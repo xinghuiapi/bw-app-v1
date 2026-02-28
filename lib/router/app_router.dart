@@ -221,7 +221,12 @@ class AppRouter {
       GoRoute(
         path: '/game-view',
         name: 'game-view',
-        builder: (context, state) => const GameViewScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final url = extra?['url'] as String? ?? '';
+          final title = extra?['title'] as String?;
+          return GameViewScreen(url: url, title: title);
+        },
       ),
       GoRoute(
         path: '/customer-service',

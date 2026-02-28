@@ -30,17 +30,98 @@
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>my_flutter_app</title>
-  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      background-color: #000;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <div class="loading-container" id="loading-indicator">
+    <div class="spinner"></div>
+    <div>Loading...</div>
+  </div>
+  
+  <script>
+     // 监听 body 变化，当 Flutter 注入内容时隐藏 loading
+     const removeLoading = () => {
+       const loading = document.getElementById('loading-indicator');
+       if (loading) {
+         loading.style.display = 'none';
+         if (observer) observer.disconnect();
+       }
+     };
+ 
+     const observer = new MutationObserver((mutations) => {
+        if (document.querySelector('flt-glass-pane') || document.querySelector('flt-scene-host') || document.querySelector('flutter-view')) {
+           removeLoading();
+        }
+     });
+     
+     observer.observe(document.body, { childList: true, subtree: true });
+ 
+     // 兜底：5秒后强制移除 Loading，防止一直卡住
+     setTimeout(removeLoading, 5000);
+     
+     // 监听 window load 事件
+     window.addEventListener('load', () => {
+        // 如果 Flutter 已经加载完成，这里也会触发
+        if (document.querySelector('flt-glass-pane') || document.querySelector('flt-scene-host') || document.querySelector('flutter-view')) {
+           removeLoading();
+        }
+     });
+   </script>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+   <script src="flutter_bootstrap.js" async></script>
+   
+   <script>
+    // 使用新的 flutter_bootstrap.js 配置方式
+    // 必须在 flutter_bootstrap.js 加载后执行配置（或者通过全局变量 _flutter 注入，取决于版本）
+    // 注意：Flutter 3.22+ 推荐直接在 script 标签中嵌入配置，或者修改 flutter_bootstrap.js 的调用方式
+    
+    // 由于我们使用了 flutter_bootstrap.js，它内部会读取 window.flutterConfiguration
+    // 但错误提示 "Using the (deprecated) window.flutterConfiguration and initializeEngine configuration simultaneously is not supported"
+    // 说明 flutter_bootstrap.js 内部可能已经包含了一套初始化逻辑，而我们又在外部设置了 window.flutterConfiguration 导致冲突
+    // 或者 flutter_bootstrap.js 是旧版构建产物，而我们用了新版配置方式
+    
+    // 解决方案：移除 window.flutterConfiguration，改用 {{flutter_bootstrap_js}} 模板注入或自定义加载流程
+    
+    // 如果是 Flutter 3.22+，flutter_bootstrap.js 会自动处理初始化。
+    // 我们需要自定义配置，应该通过自定义 _flutter.loader.loadEntrypoint 来实现。
+    
+    // 但是，flutter_bootstrap.js 通常是构建时生成的。
+    // 如果我们想覆盖配置，最稳妥的方式是：
+    // 1. 不定义 window.flutterConfiguration
+    // 2. 如果需要自定义 renderer，可以在 flutter run 时通过命令行参数传递 --web-renderer html
+    // 3. 或者，在 index.html 中完全自定义加载流程（不使用默认的 flutter_bootstrap.js），但这比较复杂。
+    
+    // 鉴于当前错误，最直接的修复是：删除 window.flutterConfiguration 的定义。
+    // 然后依靠 flutter run --web-renderer html 来控制渲染器。
+   </script>
 </body>
 </html>

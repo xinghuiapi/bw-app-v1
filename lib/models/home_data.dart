@@ -182,8 +182,31 @@ class SubCategory {
     this.label,
   });
 
-  factory SubCategory.fromJson(Map<String, dynamic> json) => _$SubCategoryFromJson(json);
-  Map<String, dynamic> toJson() => _$SubCategoryToJson(this);
+  factory SubCategory.fromJson(Map<String, dynamic> json) {
+    return SubCategory(
+      id: json['id'] as int?,
+      title: json['title'] as String?,
+      h5Logo: (json['h5_logo'] as String?)?.trim(),
+      pcLogo: (json['pc_logo'] as String?)?.trim(),
+      gamecode: json['gamecode'] as String?,
+      category: json['category'] as int?,
+      statusS: json['status_s'] as int?,
+      img: (json['img'] as String?)?.trim(),
+      label: json['label'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'h5_logo': h5Logo,
+    'pc_logo': pcLogo,
+    'gamecode': gamecode,
+    'category': category,
+    'status_s': statusS,
+    'img': img,
+    'label': label,
+  };
 }
 
 @JsonSerializable()
@@ -193,12 +216,54 @@ class GameItem {
   final String? img;
   @JsonKey(name: 'game_code')
   final String? gameCode;
-  final int? favorites;
+  final dynamic favorites;
+  @JsonKey(name: 'is_category_result')
+  final bool? isCategoryResult;
+  @JsonKey(name: 'is_hot')
+  final bool? isHot;
 
-  GameItem({this.id, this.title, this.img, this.gameCode, this.favorites});
+  GameItem({
+    this.id,
+    this.title,
+    this.img,
+    this.gameCode,
+    this.favorites,
+    this.isCategoryResult,
+    this.isHot,
+  });
 
-  factory GameItem.fromJson(Map<String, dynamic> json) => _$GameItemFromJson(json);
-  Map<String, dynamic> toJson() => _$GameItemToJson(this);
+  // 手动实现 fromJson 以处理数据类型不一致的问题
+  factory GameItem.fromJson(Map<String, dynamic> json) {
+    return GameItem(
+      id: json['id'] as int?,
+      title: json['title'] as String?,
+      img: (json['img'] as String?)?.trim(),
+      // 兼容 game_code 和 code
+      gameCode: (json['game_code'] ?? json['code']) as String?,
+      favorites: json['favorites'],
+      // 兼容 bool 和 int (0/1)
+      isCategoryResult: _toBool(json['is_category_result']),
+      isHot: _toBool(json['is_hot']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'img': img,
+    'game_code': gameCode,
+    'favorites': favorites,
+    'is_category_result': isCategoryResult,
+    'is_hot': isHot,
+  };
+
+  static bool? _toBool(dynamic val) {
+    if (val == null) return null;
+    if (val is bool) return val;
+    if (val is int) return val == 1;
+    if (val is String) return val == '1' || val == 'true';
+    return false;
+  }
 }
 
 @JsonSerializable()

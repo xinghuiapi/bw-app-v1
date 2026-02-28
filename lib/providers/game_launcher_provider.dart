@@ -1,9 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../api/dio_client.dart';
+import 'package:go_router/go_router.dart';
 import '../models/api_response.dart';
 import '../models/game_model.dart';
+import '../models/home_data.dart';
+import '../services/game_service.dart';
+import '../router/app_router.dart';
 import 'auth_provider.dart';
+import 'home_provider.dart';
+import 'language_provider.dart';
 
 final gameLauncherProvider = Provider((ref) => GameLauncher(ref));
 
@@ -12,7 +18,40 @@ class GameLauncher {
 
   GameLauncher(this._ref);
 
-  Future<void> launchGame(dynamic game, {bool isCategoryEntry = false, String? categoryCode}) async {
+  /// 智能游戏登录，自动切换主/备用接口
+  /// 对标 Vue: smartGameLogin
+  Future<ApiResponse<GameLoginResponse>> smartGameLogin(
+    dynamic id, {
+    String lang = 'zh-cn',
+    bool useBackup = false,
+  }) async {
+    try {
+      final response = useBackup 
+          ? await GameService.gameLogin2(id: id, lang: lang)
+          : await GameService.gameLogin(id: id, lang: lang);
+
+      if (response.isSuccess && response.data?.url != null) {
+        return response;
+      } else {
+        throw response.msg ?? '游戏登录失败';
+      }
+    } catch (e) {
+      if (!useBackup) {
+        // ignore: avoid_print
+        print('主游戏接口失败，尝试备用接口: $e');
+        return smartGameLogin(id, lang: lang, useBackup: true);
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> launchGame(
+    dynamic game, {
+    bool isCategoryEntry = false,
+    String? categoryCode,
+    bool? isCategoryResult,
+    bool? isHot,
+  }) async {
     final authState = _ref.read(authProvider);
     if (!authState.isLoggedIn) {
       // TODO: Show login modal
@@ -23,32 +62,33 @@ class GameLauncher {
 
     try {
       final gameId = game.id;
+      final gameTitle = game.title ?? '游戏';
       final String code = categoryCode ?? '';
       
-      // 根据分类类型判断使用哪个接口
-      // 对标 Vue: const shouldUseGameLogin2 = !isCategoryEntry && ['game', 'poker', 'fishing'].includes(currentCategoryCode)
-      final bool shouldUseGameLogin2 = !isCategoryEntry && ['game', 'poker', 'fishing'].contains(code);
-      final String endpoint = shouldUseGameLogin2 ? '/game/login2' : '/game/login';
+      debugPrint('Launching Game: $gameTitle (ID: $gameId), Category: $code, isEntry: $isCategoryEntry');
 
-      final response = await api.post(endpoint, data: {
-        'id': gameId,
-        'lang': 'zh-cn', // 默认中文
-      });
+      bool startWithBackup = false;
 
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data,
-        (json) => json as Map<String, dynamic>,
-      );
+      if (game is GameItem) {
+        startWithBackup = true;
+      } else if (isCategoryResult != null || isHot != null) {
+        startWithBackup = (isCategoryResult == false) || (isHot == true);
+      } else {
+        // 对齐 Vue 逻辑：['game', 'poker', 'fishing'] 分类下使用 gameLogin2
+        startWithBackup = ['game', 'poker', 'fishing'].contains(code.toLowerCase().trim());
+      }
+
+      final lang = _ref.read(languageProvider);
+      final apiResponse = await smartGameLogin(gameId, lang: lang, useBackup: startWithBackup);
 
       if (apiResponse.isSuccess && apiResponse.data != null) {
-        final loginData = GameLoginResponse.fromJson(apiResponse.data!);
+        final loginData = apiResponse.data!;
         if (loginData.url != null) {
-          final Uri url = Uri.parse(loginData.url!);
-          if (await canLaunchUrl(url)) {
-            await launchUrl(url, mode: LaunchMode.externalApplication);
-          } else {
-            throw 'Could not launch ${loginData.url}';
-          }
+          // 跳转到内部 GameViewScreen 展现游戏
+          AppRouter.router.push('/game-view', extra: {
+            'url': loginData.url,
+            'title': gameTitle,
+          });
         }
       } else {
         throw apiResponse.msg ?? '获取游戏链接失败';

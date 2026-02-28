@@ -105,20 +105,72 @@ class GameService {
     }
   }
 
-  /// 启动游戏
-  /// 接口: /api/game/login
-  static Future<ApiResponse<GameLoginResponse>> launchGame(int id) async {
+  /// 搜索游戏
+  /// 接口: /api/gamelist/getlist (带 title 参数)
+  static Future<ApiResponse<GameListResponse>> searchGames({
+    required String keyword,
+    int page = 1,
+    int size = 20,
+  }) async {
     try {
-      final response = await api.post('/game/login', data: {'id': id});
+      final response = await api.post('/gamelist/getlist', data: {
+        'title': keyword,
+        'page': page,
+        'size': size,
+      });
       
-      return ApiResponse<GameLoginResponse>.fromJson(
+      return ApiResponse<GameListResponse>.fromJson(
         response.data,
         (json) {
           if (json is Map<String, dynamic>) {
-            return GameLoginResponse.fromJson(json);
+            return GameListResponse.fromJson(json);
           }
-          return GameLoginResponse();
+          return GameListResponse();
         },
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  /// 游戏登录 (主接口)
+  /// 接口: /api/game/login
+  static Future<ApiResponse<GameLoginResponse>> gameLogin({
+    required dynamic id,
+    String lang = 'zh-cn',
+  }) async {
+    try {
+      final response = await api.post(
+        '/game/login', 
+        data: {'id': id},
+        options: dioOptions(headers: {'lang': lang}),
+      );
+      
+      return ApiResponse<GameLoginResponse>.fromJson(
+        response.data,
+        (json) => GameLoginResponse.fromJson(json as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  /// 游戏登录 (备用接口)
+  /// 接口: /api/game_code/login
+  static Future<ApiResponse<GameLoginResponse>> gameLogin2({ 
+    required dynamic id,
+    String lang = 'zh-cn',
+  }) async {
+    try {
+      final response = await api.post(
+        '/game_code/login', 
+        data: {'id': id},
+        options: dioOptions(headers: {'lang': lang}),
+      );
+      
+      return ApiResponse<GameLoginResponse>.fromJson(
+        response.data,
+        (json) => GameLoginResponse.fromJson(json as Map<String, dynamic>),
       );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());

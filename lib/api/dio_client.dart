@@ -13,9 +13,12 @@ class DioClient {
   static String get _baseUrl {
     if (kDebugMode) {
       // 开发环境使用真实的 API 地址
+      // 注意：Web 端直接访问 http 可能会因为 mixed-content 或 CORS 而失败
+      // 如果遇到问题，建议配置本地反向代理
       return AppConstants.apiBaseUrl;
     }
     // 生产环境：从配置或环境变量中获取
+    // 确保生产环境使用 HTTPS
     return "https://api.example.com";
   }
 

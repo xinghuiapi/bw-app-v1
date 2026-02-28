@@ -185,6 +185,8 @@ GameItem _$GameItemFromJson(Map<String, dynamic> json) => GameItem(
   img: json['img'] as String?,
   gameCode: json['game_code'] as String?,
   favorites: (json['favorites'] as num?)?.toInt(),
+  isCategoryResult: json['is_category_result'] as bool?,
+  isHot: json['is_hot'] as bool?,
 );
 
 Map<String, dynamic> _$GameItemToJson(GameItem instance) => <String, dynamic>{
@@ -193,6 +195,8 @@ Map<String, dynamic> _$GameItemToJson(GameItem instance) => <String, dynamic>{
   'img': instance.img,
   'game_code': instance.gameCode,
   'favorites': instance.favorites,
+  'is_category_result': instance.isCategoryResult,
+  'is_hot': instance.isHot,
 };
 
 ActivityClass _$ActivityClassFromJson(Map<String, dynamic> json) =>

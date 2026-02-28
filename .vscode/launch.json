@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "flutter_web_no_cors",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--web-browser-flag",
+        "--disable-web-security",
+        "--web-port",
+        "8080"
+      ]
+    }
+  ]
+}

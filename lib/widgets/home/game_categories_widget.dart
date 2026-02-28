@@ -1,0 +1,368 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/home_data.dart';
+import '../../providers/home_provider.dart';
+import '../../providers/game_launcher_provider.dart';
+import '../../theme/app_theme.dart';
+import '../common/skeleton_widget.dart';
+import '../common/state_widgets.dart';
+import '../common/web_safe_image.dart';
+import '../../utils/constants.dart';
+
+class GameCategoriesWidget extends ConsumerStatefulWidget {
+  final List<GameCategory> categories;
+
+  const GameCategoriesWidget({super.key, required this.categories});
+
+  @override
+  ConsumerState<GameCategoriesWidget> createState() => _GameCategoriesWidgetState();
+}
+
+class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
+  int _selectedTabIndex = 0;
+  SubCategory? _selectedSubCategory;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.categories.isEmpty) return const SizedBox.shrink();
+
+    final selectedCategory = widget.categories[_selectedTabIndex];
+    
+    // 如果已经选择了二级分类且不是 "推荐"，则显示游戏列表
+    if (_selectedSubCategory != null && selectedCategory.code != 'reco') {
+      return _buildGameList(selectedCategory, _selectedSubCategory!);
+    }
+
+    final subCategoriesAsync = ref.watch(subCategoriesProvider(selectedCategory.code ?? ''));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 一级分类 Tab
+        SizedBox(
+          height: 44,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: widget.categories.length,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemBuilder: (context, index) {
+              final category = widget.categories[index];
+              final isSelected = _selectedTabIndex == index;
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedTabIndex = index;
+                    _selectedSubCategory = null; // 重置二级分类
+                  });
+                },
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppTheme.primary : AppTheme.surface,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.05),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    category.title ?? '',
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : AppTheme.textSecondary,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // 二级分类内容
+        subCategoriesAsync.when(
+          data: (subCategories) {
+            if (subCategories.isEmpty) {
+              return const EmptyStateWidget(
+                message: '该分类下暂无提供商',
+                icon: Icons.grid_off_outlined,
+              );
+            }
+
+            // 如果是一级分类是 "推荐"，直接显示（它们本身就是游戏/快速进入）
+            if (selectedCategory.code == 'reco') {
+              return _buildSubCategoryGrid(subCategories, isReco: true);
+            }
+
+            // 否则显示二级分类（提供商列表）
+            return _buildSubCategoryGrid(subCategories, isReco: false);
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: CategorySkeleton(),
+          ),
+          error: (err, stack) => ErrorStateWidget(
+            message: '加载二级分类失败: $err',
+            onRetry: () => ref.invalidate(subCategoriesProvider(selectedCategory.code ?? '')),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubCategoryGrid(List<SubCategory> items, {required bool isReco}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: isReco ? 3 : 2,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: isReco ? 0.8 : 1.8,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return _buildItemCard(item, isReco);
+        },
+      ),
+    );
+  }
+
+  Widget _buildItemCard(SubCategory item, bool isReco) {
+    // 补全图片 URL
+    String imageUrl = item.h5Logo ?? item.img ?? '';
+    if (imageUrl.startsWith('/')) {
+      imageUrl = '${AppConstants.resourceBaseUrl}$imageUrl';
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (isReco) {
+          ref.read(gameLauncherProvider).launchGame(item, isCategoryEntry: true, categoryCode: 'reco');
+        } else {
+          setState(() {
+            _selectedSubCategory = item;
+          });
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (imageUrl.isNotEmpty)
+                WebSafeImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: const Skeleton(),
+                  errorWidget: Container(
+                    color: AppTheme.surface,
+                    child: const Icon(Icons.gamepad, color: AppTheme.textTertiary),
+                  ),
+                ),
+              if (true) // 无论是推荐还是普通分类，都添加底部遮罩以增强文字可读性
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.0),
+                        Colors.black.withValues(alpha: 0.8),
+                      ],
+                      stops: const [0.5, 1.0],
+                    ),
+                  ),
+                ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    item.title ?? '',
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: isReco ? 12 : 14,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.8),
+                          offset: const Offset(0, 1),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGameList(GameCategory category, SubCategory subCategory) {
+    final gameParams = GameListParams(
+      game: subCategory.gamecode ?? '',
+      code: category.code ?? '',
+      page: 1,
+      size: 30,
+    );
+    final gameListAsync = ref.watch(gameListProvider(gameParams));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPrimary, size: 20),
+                onPressed: () => setState(() => _selectedSubCategory = null),
+              ),
+              Text(
+                '${subCategory.title} 游戏',
+                style: const TextStyle(color: AppTheme.textPrimary, fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        gameListAsync.when(
+          data: (games) {
+            if (games.isEmpty) {
+              return const EmptyStateWidget(
+                message: '该分类下暂无游戏',
+                icon: Icons.sports_esports_outlined,
+              );
+            }
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 0.8,
+                ),
+                itemCount: games.length,
+                itemBuilder: (context, index) {
+                  final game = games[index];
+                  return _buildGameCard(game);
+                },
+              ),
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CategorySkeleton(),
+          ),
+          error: (err, stack) => ErrorStateWidget(
+            message: '加载游戏失败: $err',
+            onRetry: () => ref.invalidate(gameListProvider(gameParams)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGameCard(GameItem game) {
+    String imageUrl = game.img ?? '';
+    if (imageUrl.startsWith('/')) {
+      imageUrl = '${AppConstants.resourceBaseUrl}$imageUrl';
+    }
+
+    return GestureDetector(
+      onTap: () {
+        final category = widget.categories[_selectedTabIndex];
+        ref.read(gameLauncherProvider).launchGame(game, categoryCode: category.code);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (imageUrl.isNotEmpty)
+                      WebSafeImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: const Skeleton(),
+                        errorWidget: Container(
+                          color: AppTheme.surface,
+                          child: const Icon(Icons.gamepad, color: AppTheme.textTertiary),
+                        ),
+                      )
+                    else
+                      Container(
+                        color: AppTheme.surface,
+                        child: const Icon(Icons.gamepad, color: AppTheme.textTertiary),
+                      ),
+                    // 添加底部渐变，使文字更清晰
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.5),
+                            ],
+                            stops: const [0.7, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+              child: Text(
+                game.title ?? '',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

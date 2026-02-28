@@ -2,6 +2,35 @@
 
 这是一个 Flutter 项目。本文档旨在帮助新手队友快速搭建环境并运行项目。
 
+---
+
+## 🛠️ 技术栈 (Tech Stack)
+
+本项目采用现代化的 Flutter 跨平台架构，确保了代码的高复用性和运行的高性能：
+
+*   **核心框架**：Flutter 3.x (Dart 3.x)
+*   **状态管理**：**Riverpod 3.x** —— 响应式、编译时安全的状态管理方案。
+*   **路由导航**：**GoRouter 17.x** —— 官方推荐的声明式路由，支持 Deep Link。
+*   **网络层**：**Dio 5.x** —— 支持拦截器、全局错误处理及请求缓存。
+*   **数据持久化**：Shared Preferences (用于 Token 和用户配置存储)。
+*   **数据模型**：json_serializable (配合 build_runner 自动生成序列化代码)。
+*   **UI/组件库**：
+    - CachedNetworkImage (高效图片缓存)
+    - FontAwesome (第三方图标库)
+    - Shimmer & SpinKit (加载动画)
+
+## 📱 平台兼容性 (Compatibility)
+
+项目原生支持以下平台，并已完成核心功能的适配：
+
+*   **Web 端**：完美兼容，已处理 CORS 跨域图片显示问题（通过 `WebSafeImage`）。
+*   **Android 端**：**完全兼容**。支持原生 APK/App Bundle 打包，运行稳定。
+*   **iOS 端**：**完全兼容**。适配了 iOS 侧滑返回手感及居中标题。
+    *   *注意：由于涉及图片上传功能，发布前需在 `Info.plist` 中补充相机/相册权限说明。*
+*   **Windows 端**：支持桌面端运行。
+
+---
+
 ## 🚀 环境搭建指南 (针对 Windows 用户)
 
 由于国内网络环境特殊，请严格按照以下步骤操作，以确保下载速度。

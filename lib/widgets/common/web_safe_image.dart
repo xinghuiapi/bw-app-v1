@@ -40,7 +40,7 @@ class WebSafeImage extends StatelessWidget {
       return _buildAssetImage();
     }
 
-    final String correctedUrl = _normalizeUrl(_correctProtocol(imageUrl));
+    final String correctedUrl = _normalizeUrl(_correctProtocol(imageUrl)).trim();
     
     if (!kIsWeb) {
       return _buildMobileImage(correctedUrl);
@@ -113,52 +113,23 @@ class WebSafeImage extends StatelessWidget {
   String _normalizeUrl(String url) {
     if (url.isEmpty) return url;
     
-    try {
-      final Uri uri = Uri.parse(url);
-      final String scheme = uri.scheme;
-      final String host = uri.host;
-      final int port = uri.port;
-      
-      // 规范化路径：合并多个连续的斜杠
-      String path = uri.path.replaceAll(RegExp(r'/+'), '/');
-      
-      // 如果原始路径以 / 结尾，确保规范化后也保留一个 /
-      if (uri.path.endsWith('/') && !path.endsWith('/')) {
-        path += '/';
+    // 如果 URL 已经包含正确的协议，不要进行 URI 解析（避免端口丢失等问题）
+    // 简单的字符串替换逻辑
+    if (url.contains('://')) {
+      final parts = url.split('://');
+      final protocol = parts[0];
+      final rest = parts.sublist(1).join('://');
+      // 保持主机名之后的第一对 // 不变，替换路径中的 //
+      // 注意：这里需要更精细的处理，避免破坏主机名和路径的连接
+      final firstSlash = rest.indexOf('/');
+      if (firstSlash != -1) {
+        final host = rest.substring(0, firstSlash);
+        final path = rest.substring(firstSlash).replaceAll(RegExp(r'/+'), '/');
+        return '$protocol://$host$path';
       }
-
-      // 重新组合 URL
-      String normalized = '';
-      if (scheme.isNotEmpty) {
-        normalized += '$scheme://';
-      }
-      if (host.isNotEmpty) {
-        normalized += host;
-        if (port != 80 && port != 443 && port != 0) {
-          normalized += ':$port';
-        }
-      }
-      normalized += path;
-      
-      if (uri.hasQuery) {
-        normalized += '?${uri.query}';
-      }
-      if (uri.hasFragment) {
-        normalized += '#${uri.fragment}';
-      }
-      
-      return normalized;
-    } catch (e) {
-      // 如果解析失败，回退到简单的字符串替换逻辑
-      // 保持协议部分 (://) 不变，替换路径中的 //
-      if (url.contains('://')) {
-        final parts = url.split('://');
-        final protocol = parts[0];
-        final rest = parts.sublist(1).join('://');
-        return '$protocol://${rest.replaceAll('//', '/')}';
-      }
-      return url.replaceAll('//', '/');
+      return url;
     }
+    return url.replaceAll(RegExp(r'/+'), '/');
   }
 
   Widget _buildAssetImage() {

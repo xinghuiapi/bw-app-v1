@@ -145,11 +145,34 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     return GestureDetector(
       onTap: () {
         if (isReco) {
+          // 推荐分类下的点击直接启动
           ref.read(gameLauncherProvider).launchGame(item, isCategoryEntry: true, categoryCode: 'reco');
         } else {
-          setState(() {
-            _selectedSubCategory = item;
-          });
+          final category = widget.categories[_selectedTabIndex];
+          // 根据 category 字段判断是进入二级页面还是直接启动
+          // category: 1 -> 有二级游戏列表
+          // category: 0 -> 直接启动游戏
+          // 调试日志
+          debugPrint('Tap Category: ${category.code}, Item Category: ${item.category}, Title: ${item.title}');
+
+          // 额外增加判断：只有 game/poker/fishing 分类才允许进入二级页面
+          // 忽略大小写和空格
+          final code = (category.code ?? '').toLowerCase().trim();
+          final isMultiGameCategory = ['game', 'poker', 'fishing'].contains(code);
+          
+          // 如果是一级分类，且不在 game/poker/fishing 中，强制直接启动
+          if (!isMultiGameCategory) {
+             ref.read(gameLauncherProvider).launchGame(item, categoryCode: category.code);
+             return;
+          }
+
+          if (item.category == 1) {
+            setState(() {
+              _selectedSubCategory = item;
+            });
+          } else {
+            ref.read(gameLauncherProvider).launchGame(item, categoryCode: category.code);
+          }
         }
       },
       child: Container(
@@ -220,12 +243,21 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
 
   Widget _buildGameList(GameCategory category, SubCategory subCategory) {
     final gameParams = GameListParams(
-      game: subCategory.gamecode ?? '',
-      code: category.code ?? '',
-      page: 1,
+      game: subCategory.gamecode,
+      code: category.code,
       size: 30,
     );
-    final gameListAsync = ref.watch(gameListProvider(gameParams));
+    
+    // 获取 provider 状态
+    final gameState = ref.watch(gameListProvider(gameParams));
+    
+    // 监听滚动到底部事件
+    ref.listen(scrollBottomProvider, (previous, next) {
+      if (next == true) {
+        // 当滚动到底部时，加载更多
+        ref.read(gameListProvider(gameParams).notifier).loadMore();
+      }
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,42 +277,79 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
             ],
           ),
         ),
-        gameListAsync.when(
-          data: (games) {
-            if (games.isEmpty) {
-              return const EmptyStateWidget(
-                message: '该分类下暂无游戏',
-                icon: Icons.sports_esports_outlined,
-              );
-            }
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 0.8,
-                ),
-                itemCount: games.length,
-                itemBuilder: (context, index) {
-                  final game = games[index];
-                  return _buildGameCard(game);
-                },
-              ),
-            );
-          },
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: CategorySkeleton(),
-          ),
-          error: (err, stack) => ErrorStateWidget(
-            message: '加载游戏失败: $err',
-            onRetry: () => ref.invalidate(gameListProvider(gameParams)),
+        _buildGameListContent(gameState, gameParams),
+      ],
+    );
+  }
+
+  Widget _buildGameListContent(GameListPaginationState state, GameListParams gameParams) {
+    // 如果是第一页加载中，显示骨架屏
+    if (state.currentPage == 0 && state.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: CategorySkeleton(),
+      );
+    }
+    
+    // 如果加载出错且没有数据
+    if (state.error != null && state.items.isEmpty) {
+      return ErrorStateWidget(
+        message: '加载游戏失败: ${state.error}',
+        onRetry: () => ref.read(gameListProvider(gameParams).notifier).loadMore(),
+      );
+    }
+
+    final games = state.items;
+    if (games.isEmpty && !state.isLoading) {
+      return const EmptyStateWidget(
+        message: '该分类下暂无游戏',
+        icon: Icons.sports_esports_outlined,
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.8,
+            ),
+            itemCount: games.length,
+            itemBuilder: (context, index) {
+              final game = games[index];
+              return _buildGameCard(game);
+            },
           ),
         ),
+        // 加载更多指示器
+        if (state.isLoading)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
+              ),
+            ),
+          ),
+        // 没有更多数据提示
+        if (!state.hasMore && games.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: Text(
+                '没有更多游戏了',
+                style: TextStyle(color: AppTheme.textTertiary.withValues(alpha: 0.5), fontSize: 12),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -294,7 +363,12 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     return GestureDetector(
       onTap: () {
         final category = widget.categories[_selectedTabIndex];
-        ref.read(gameLauncherProvider).launchGame(game, categoryCode: category.code);
+        ref.read(gameLauncherProvider).launchGame(
+          game, 
+          categoryCode: category.code,
+          isCategoryResult: game.isCategoryResult,
+          isHot: game.isHot,
+        );
       },
       child: Container(
         decoration: BoxDecoration(

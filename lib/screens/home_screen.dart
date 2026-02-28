@@ -35,7 +35,29 @@ class HomeScreen extends ConsumerWidget {
               AppDownloadBar(siteConfig: homeData.siteConfig),
               
               Expanded(
-                child: SingleChildScrollView(
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (scrollInfo) {
+                    // 仅监听直接子 ScrollView (SingleChildScrollView) 的滚动事件
+                    if (scrollInfo.depth == 0) {
+                      final pixels = scrollInfo.metrics.pixels;
+                      final maxScroll = scrollInfo.metrics.maxScrollExtent;
+                      // debugPrint('Scroll: $pixels / $maxScroll');
+                      
+                      // 距离底部 200 像素时触发加载更多
+                      if (pixels >= maxScroll - 200 && maxScroll > 0) {
+                        if (ref.read(scrollBottomProvider) == false) {
+                          debugPrint('Reached bottom, triggering load more');
+                          ref.read(scrollBottomProvider.notifier).set(true);
+                        }
+                      } else {
+                        if (ref.read(scrollBottomProvider) == true) {
+                          ref.read(scrollBottomProvider.notifier).set(false);
+                        }
+                      }
+                    }
+                    return false;
+                  },
+                  child: SingleChildScrollView(
                   child: Column(
                     children: [
                       // 轮播图
@@ -69,6 +91,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+                ),
                 ],
               ),
             ),

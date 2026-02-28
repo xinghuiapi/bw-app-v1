@@ -19,7 +19,7 @@ GameListResponse _$GameListResponseFromJson(Map<String, dynamic> json) =>
           .toList(),
       currentPage: (json['current_page'] as num?)?.toInt(),
       total: (json['total'] as num?)?.toInt(),
-      lastPage: (json['last_page'] as num?)?.toInt(),
+      lastPage: (json['lastPage'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$GameListResponseToJson(GameListResponse instance) =>
@@ -27,7 +27,7 @@ Map<String, dynamic> _$GameListResponseToJson(GameListResponse instance) =>
       'data': instance.data,
       'current_page': instance.currentPage,
       'total': instance.total,
-      'last_page': instance.lastPage,
+      'lastPage': instance.lastPage,
     };
 
 BalanceResponse _$BalanceResponseFromJson(Map<String, dynamic> json) =>

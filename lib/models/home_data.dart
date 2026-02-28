@@ -1,0 +1,265 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'home_data.g.dart';
+
+@JsonSerializable()
+class HomeData {
+  @JsonKey(name: 'config_banner')
+  final List<BannerModel>? banners;
+  @JsonKey(name: 'config_notice')
+  final List<NoticeModel>? notices;
+  @JsonKey(name: 'config_site')
+  final SiteConfig? siteConfig;
+  @JsonKey(name: 'config_reg')
+  final List<RegConfig>? regConfig;
+  @JsonKey(name: 'config_pic')
+  final PicConfig? picConfig;
+  @JsonKey(name: 'config_mail')
+  final Map<String, dynamic>? mailConfig;
+  @JsonKey(name: 'config_send')
+  final Map<String, dynamic>? sendConfig;
+  @JsonKey(name: 'config_lang')
+  final List<LangConfig>? langConfig;
+  @JsonKey(name: 'config_curr')
+  final List<CurrConfig>? currConfig;
+
+  HomeData({
+    this.banners,
+    this.notices,
+    this.siteConfig,
+    this.regConfig,
+    this.picConfig,
+    this.mailConfig,
+    this.sendConfig,
+    this.langConfig,
+    this.currConfig,
+  });
+
+  factory HomeData.fromJson(Map<String, dynamic> json) => _$HomeDataFromJson(json);
+  Map<String, dynamic> toJson() => _$HomeDataToJson(this);
+}
+
+@JsonSerializable()
+class RegConfig {
+  final String? name;
+  final String? title;
+  final int? status; // 1: 显示, 0: 隐藏
+  @JsonKey(name: 'is_required')
+  final int? isRequired; // 1: 必填, 0: 选填
+
+  RegConfig({this.name, this.title, this.status, this.isRequired});
+
+  factory RegConfig.fromJson(Map<String, dynamic> json) => _$RegConfigFromJson(json);
+  Map<String, dynamic> toJson() => _$RegConfigToJson(this);
+}
+
+@JsonSerializable()
+class PicConfig {
+  final int? status; // 1: 开启图形验证码, 0: 关闭
+
+  PicConfig({this.status});
+
+  factory PicConfig.fromJson(Map<String, dynamic> json) => _$PicConfigFromJson(json);
+  Map<String, dynamic> toJson() => _$PicConfigToJson(this);
+}
+
+@JsonSerializable()
+class LangConfig {
+  final String? name;
+  final String? code;
+  final String? img;
+
+  LangConfig({this.name, this.code, this.img});
+
+  factory LangConfig.fromJson(Map<String, dynamic> json) => _$LangConfigFromJson(json);
+  Map<String, dynamic> toJson() => _$LangConfigToJson(this);
+}
+
+@JsonSerializable()
+class CurrConfig {
+  final String? name;
+  final String? code;
+
+  CurrConfig({this.name, this.code});
+
+  factory CurrConfig.fromJson(Map<String, dynamic> json) => _$CurrConfigFromJson(json);
+  Map<String, dynamic> toJson() => _$CurrConfigToJson(this);
+}
+
+@JsonSerializable()
+class BannerModel {
+  final String? img;
+  final String? title;
+  @JsonKey(name: 'open_url')
+  final String? openUrl;
+  final int? open;
+
+  BannerModel({this.img, this.title, this.openUrl, this.open});
+
+  factory BannerModel.fromJson(Map<String, dynamic> json) => _$BannerModelFromJson(json);
+  Map<String, dynamic> toJson() => _$BannerModelToJson(this);
+}
+
+@JsonSerializable()
+class NoticeModel {
+  final int? id;
+  final String? title;
+  @JsonKey(name: 'text')
+  final String? content;
+
+  NoticeModel({this.id, this.title, this.content});
+
+  factory NoticeModel.fromJson(Map<String, dynamic> json) => _$NoticeModelFromJson(json);
+  Map<String, dynamic> toJson() => _$NoticeModelToJson(this);
+}
+
+@JsonSerializable()
+class SiteConfig {
+  final String? title;
+  final String? logo;
+  final String? keyword;
+  final String? desc;
+  final int? status;
+  @JsonKey(name: 'service_link')
+  final String? serviceLink;
+  @JsonKey(name: 'app_download')
+  final String? appDownload;
+
+  SiteConfig({
+    this.title,
+    this.logo,
+    this.keyword,
+    this.desc,
+    this.status,
+    this.serviceLink,
+    this.appDownload,
+  });
+
+  factory SiteConfig.fromJson(Map<String, dynamic> json) => _$SiteConfigFromJson(json);
+  Map<String, dynamic> toJson() => _$SiteConfigToJson(this);
+}
+
+@JsonSerializable()
+class GameCategory {
+  final int? id;
+  final String? title;
+  final String? img;
+  @JsonKey(name: 'se_img')
+  final String? seImg;
+  final String? code;
+  final List<SubCategory>? subCategories;
+
+  GameCategory({this.id, this.title, this.img, this.seImg, this.code, this.subCategories});
+
+  factory GameCategory.fromJson(Map<String, dynamic> json) => _$GameCategoryFromJson(json);
+  Map<String, dynamic> toJson() => _$GameCategoryToJson(this);
+}
+
+@JsonSerializable()
+class SubCategory {
+  final int? id;
+  final String? title;
+  @JsonKey(name: 'h5_logo')
+  final String? h5Logo;
+  @JsonKey(name: 'pc_logo')
+  final String? pcLogo;
+  final String? gamecode;
+  final int? category;
+  @JsonKey(name: 'status_s')
+  final int? statusS;
+  final String? img; // for reco data
+  final String? label; // for reco data
+
+  SubCategory({
+    this.id,
+    this.title,
+    this.h5Logo,
+    this.pcLogo,
+    this.gamecode,
+    this.category,
+    this.statusS,
+    this.img,
+    this.label,
+  });
+
+  factory SubCategory.fromJson(Map<String, dynamic> json) => _$SubCategoryFromJson(json);
+  Map<String, dynamic> toJson() => _$SubCategoryToJson(this);
+}
+
+@JsonSerializable()
+class GameItem {
+  final int? id;
+  final String? title;
+  final String? img;
+  @JsonKey(name: 'game_code')
+  final String? gameCode;
+  final int? favorites;
+
+  GameItem({this.id, this.title, this.img, this.gameCode, this.favorites});
+
+  factory GameItem.fromJson(Map<String, dynamic> json) => _$GameItemFromJson(json);
+  Map<String, dynamic> toJson() => _$GameItemToJson(this);
+}
+
+@JsonSerializable()
+class ActivityClass {
+  final int? id;
+  final String? title;
+  final String? img;
+
+  ActivityClass({this.id, this.title, this.img});
+
+  factory ActivityClass.fromJson(Map<String, dynamic> json) => _$ActivityClassFromJson(json);
+  Map<String, dynamic> toJson() => _$ActivityClassToJson(this);
+}
+
+@JsonSerializable()
+class Activity {
+  final int? id;
+  final String? title;
+  final String? img;
+  final String? content;
+  @JsonKey(name: 'start_at')
+  final String? startAt;
+  @JsonKey(name: 'end_at')
+  final String? endAt;
+  final int? status;
+
+  Activity({this.id, this.title, this.img, this.content, this.startAt, this.endAt, this.status});
+
+  factory Activity.fromJson(Map<String, dynamic> json) => _$ActivityFromJson(json);
+  Map<String, dynamic> toJson() => _$ActivityToJson(this);
+}
+
+@JsonSerializable()
+class FeedbackType {
+  final int? id;
+  final String? title;
+
+  FeedbackType({this.id, this.title});
+
+  factory FeedbackType.fromJson(Map<String, dynamic> json) => _$FeedbackTypeFromJson(json);
+  Map<String, dynamic> toJson() => _$FeedbackTypeToJson(this);
+}
+
+@JsonSerializable()
+class SinglePageClass {
+  final int? id;
+  final String? title;
+
+  SinglePageClass({this.id, this.title});
+
+  factory SinglePageClass.fromJson(Map<String, dynamic> json) => _$SinglePageClassFromJson(json);
+  Map<String, dynamic> toJson() => _$SinglePageClassToJson(this);
+}
+
+@JsonSerializable()
+class SinglePageContent {
+  final String? title;
+  final String? content;
+
+  SinglePageContent({this.title, this.content});
+
+  factory SinglePageContent.fromJson(Map<String, dynamic> json) => _$SinglePageContentFromJson(json);
+  Map<String, dynamic> toJson() => _$SinglePageContentToJson(this);
+}

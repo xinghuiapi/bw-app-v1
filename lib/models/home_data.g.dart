@@ -184,7 +184,7 @@ GameItem _$GameItemFromJson(Map<String, dynamic> json) => GameItem(
   title: json['title'] as String?,
   img: json['img'] as String?,
   gameCode: json['game_code'] as String?,
-  favorites: (json['favorites'] as num?)?.toInt(),
+  favorites: json['favorites'],
   isCategoryResult: json['is_category_result'] as bool?,
   isHot: json['is_hot'] as bool?,
 );

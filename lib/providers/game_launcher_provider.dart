@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +7,7 @@ import '../models/game_model.dart';
 import '../models/home_data.dart';
 import '../services/game_service.dart';
 import '../router/app_router.dart';
+import '../widgets/common/state_widgets.dart';
 import 'auth_provider.dart';
 import 'home_provider.dart';
 import 'language_provider.dart';
@@ -46,6 +47,7 @@ class GameLauncher {
   }
 
   Future<void> launchGame(
+    BuildContext context,
     dynamic game, {
     bool isCategoryEntry = false,
     String? categoryCode,
@@ -54,11 +56,13 @@ class GameLauncher {
   }) async {
     final authState = _ref.read(authProvider);
     if (!authState.isLoggedIn) {
-      // TODO: Show login modal
-      // ignore: avoid_print
-      print('User not logged in');
+      // 如果未登录，跳转到登录页
+      AppRouter.router.push('/login');
       return;
     }
+
+    // 显示加载提示
+    GlobalLoadingDialog.show(context, message: '正在启动游戏...');
 
     try {
       final gameId = game.id;
@@ -81,6 +85,11 @@ class GameLauncher {
       final lang = _ref.read(languageProvider);
       final apiResponse = await smartGameLogin(gameId, lang: lang, useBackup: startWithBackup);
 
+      // 隐藏加载提示
+      if (context.mounted) {
+        GlobalLoadingDialog.hide(context);
+      }
+
       if (apiResponse.isSuccess && apiResponse.data != null) {
         final loginData = apiResponse.data!;
         if (loginData.url != null) {
@@ -94,9 +103,20 @@ class GameLauncher {
         throw apiResponse.msg ?? '获取游戏链接失败';
       }
     } catch (e) {
-      // ignore: avoid_print
-      print('Error launching game: $e');
-      // TODO: Show error notification
+      // 隐藏加载提示
+      if (context.mounted) {
+        GlobalLoadingDialog.hide(context);
+        
+        // 显示错误提示
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('游戏启动失败: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      debugPrint('Error launching game: $e');
     }
   }
 }

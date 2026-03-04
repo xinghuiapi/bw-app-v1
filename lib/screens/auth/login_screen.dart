@@ -142,7 +142,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppTheme.textPrimary),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
         ),
         backgroundColor: Colors.transparent,
         bottom: TabBar(

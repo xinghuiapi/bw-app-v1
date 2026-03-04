@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:webview_flutter/webview_flutter.dart';
 
-class GameViewScreen extends StatelessWidget {
+class GameViewScreen extends StatefulWidget {
   final String url;
   final String? title;
 
@@ -13,41 +14,72 @@ class GameViewScreen extends StatelessWidget {
   });
 
   @override
+  State<GameViewScreen> createState() => _GameViewScreenState();
+}
+
+class _GameViewScreenState extends State<GameViewScreen> {
+  late final WebViewController? _controller;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) {
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(Colors.black)
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageStarted: (String url) {
+              if (mounted) setState(() => _isLoading = true);
+            },
+            onPageFinished: (String url) {
+              if (mounted) setState(() => _isLoading = false);
+            },
+            onWebResourceError: (WebResourceError error) {
+              debugPrint('WebView Error: ${error.description}');
+            },
+          ),
+        )
+        ..loadRequest(Uri.parse(widget.url));
+    } else {
+      _controller = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(title ?? '游戏'),
+        title: Text(widget.title ?? '游戏'),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Center(
-        child: kIsWeb
-            ? _buildWebFrame()
-            : _buildMobileFrame(), // 目前暂时都用 Html 插件处理，或者后期引入 webview_flutter
-      ),
+      body: kIsWeb
+          ? _buildWebFrame()
+          : Stack(
+              children: [
+                WebViewWidget(controller: _controller!),
+                if (_isLoading)
+                  const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+              ],
+            ),
     );
   }
 
   Widget _buildWebFrame() {
     // Web 环境下，直接渲染 iframe
     return HtmlWidget(
-      '<iframe src="$url" style="width:100%; height:100vh; border:none;"></iframe>',
+      '<iframe src="${widget.url}" style="width:100%; height:100vh; border:none;"></iframe>',
       factoryBuilder: () => MyHtmlWidgetFactory(),
-    );
-  }
-
-  Widget _buildMobileFrame() {
-    // 移动端环境下，可以使用 webview_flutter，这里暂时也用 HtmlWidget 替代展示
-    return HtmlWidget(
-      '<iframe src="$url" style="width:100%; height:100vh; border:none;"></iframe>',
     );
   }
 }
 
 class MyHtmlWidgetFactory extends WidgetFactory {
-  // const MyHtmlWidgetFactory(); // Error: super constructor is not const
-  
   // 可以在这里自定义 iframe 的宽高或其他属性
 }

@@ -159,3 +159,74 @@ class LoadingStateWidget extends StatelessWidget {
     );
   }
 }
+
+class GlobalLoadingDialog extends StatelessWidget {
+  final String message;
+
+  const GlobalLoadingDialog({
+    super.key,
+    this.message = '正在加载...',
+  });
+
+  static void show(BuildContext context, {String message = '正在加载...'}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => GlobalLoadingDialog(message: message),
+    );
+  }
+
+  static void hide(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          decoration: BoxDecoration(
+            color: AppTheme.cardBackground.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 48,
+                height: 48,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                message,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

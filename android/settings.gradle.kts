@@ -3,14 +3,27 @@ pluginManagement {
         run {
             val properties = java.util.Properties()
             file("local.properties").inputStream().use { properties.load(it) }
-            val flutterSdkPath = properties.getProperty("flutter.sdk")
-            require(flutterSdkPath != null) { "flutter.sdk not set in local.properties" }
-            flutterSdkPath
+            val sdkPath = properties.getProperty("flutter.sdk")
+            if (sdkPath != null && file(sdkPath).exists()) {
+                return@run sdkPath
+            }
+
+            // Fallback for when local.properties fails to read correctly due to encoding
+            val fallbackPath = file("../flutter_sdk").absolutePath
+            if (file(fallbackPath).exists()) {
+                return@run fallbackPath
+            }
+            
+            throw GradleException("flutter.sdk not found. Checked local.properties and '../flutter_sdk'.")
         }
 
-    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+    // Hardcoded relative path to avoid encoding issues with Chinese characters in absolute path
+    includeBuild("../flutter_sdk/packages/flutter_tools/gradle")
 
     repositories {
+        maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
         google()
         mavenCentral()
         gradlePluginPortal()

@@ -146,7 +146,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
       onTap: () {
         if (isReco) {
           // 推荐分类下的点击直接启动
-          ref.read(gameLauncherProvider).launchGame(item, isCategoryEntry: true, categoryCode: 'reco');
+          ref.read(gameLauncherProvider).launchGame(context, item, isCategoryEntry: true, categoryCode: 'reco');
         } else {
           final category = widget.categories[_selectedTabIndex];
           // 根据 category 字段判断是进入二级页面还是直接启动
@@ -162,7 +162,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
           
           // 如果是一级分类，且不在 game/poker/fishing 中，强制直接启动
           if (!isMultiGameCategory) {
-             ref.read(gameLauncherProvider).launchGame(item, categoryCode: category.code);
+             ref.read(gameLauncherProvider).launchGame(context, item, categoryCode: category.code);
              return;
           }
 
@@ -171,7 +171,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
               _selectedSubCategory = item;
             });
           } else {
-            ref.read(gameLauncherProvider).launchGame(item, categoryCode: category.code);
+            ref.read(gameLauncherProvider).launchGame(context, item, categoryCode: category.code);
           }
         }
       },
@@ -364,6 +364,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
       onTap: () {
         final category = widget.categories[_selectedTabIndex];
         ref.read(gameLauncherProvider).launchGame(
+          context,
           game, 
           categoryCode: category.code,
           isCategoryResult: game.isCategoryResult,

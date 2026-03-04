@@ -104,6 +104,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return GestureDetector(
       onTap: () {
         ref.read(gameLauncherProvider).launchGame(
+              context,
               game,
               isCategoryResult: game.isCategoryResult ?? false,
               isHot: game.isHot ?? false,

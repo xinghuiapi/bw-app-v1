@@ -25,3 +25,7 @@
 -dontwarn javax.annotation.**
 -dontwarn org.checkerframework.**
 -dontwarn com.google.errorprone.annotations.**
+
+# Play Core (Deferred Components)
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }

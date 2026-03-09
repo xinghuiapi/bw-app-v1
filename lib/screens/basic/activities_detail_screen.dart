@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:go_router/go_router.dart';
-import '../../models/home_data.dart';
-import '../../providers/activities_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/common/skeleton_widget.dart';
-import '../../widgets/common/state_widgets.dart';
-import '../../widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/providers/activities_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 
 class ActivitiesDetailScreen extends ConsumerWidget {
   const ActivitiesDetailScreen({super.key});
@@ -53,7 +53,7 @@ class ActivitiesDetailScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 活动横幅图
+          // 活动横幅
           if (activity.img != null)
             WebSafeImage(
               imageUrl: activity.img!,

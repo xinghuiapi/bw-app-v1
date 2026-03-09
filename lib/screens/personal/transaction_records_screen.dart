@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../services/finance_service.dart';
-import '../../models/finance_models.dart';
-import '../../widgets/common/state_widgets.dart';
-import '../../theme/app_theme.dart';
+import 'package:my_flutter_app/services/finance_service.dart';
+import 'package:my_flutter_app/models/finance_models.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/models/api_response.dart';
 
 class TransactionRecordsScreen extends ConsumerStatefulWidget {
-  const TransactionRecordsScreen({super.key});
+  final int initialIndex;
+  const TransactionRecordsScreen({super.key, this.initialIndex = 0});
 
   @override
   ConsumerState<TransactionRecordsScreen> createState() => _TransactionRecordsScreenState();
@@ -16,23 +18,30 @@ class TransactionRecordsScreen extends ConsumerStatefulWidget {
 
 class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _tabs = ['充值', '提现', '转账', '账变'];
+  final List<String> _tabs = ['充值', '提现', '转账', '返水', '下注', '账变'];
   
   // 筛选相关
   String _activeQuickDate = 'today';
   DateTimeRange? _selectedDateRange;
   
+  // 返水筛选相关
+  String? _rebateCode; // 游戏类型 (live, egame, etc)
+  int? _rebateStatus; // 0: 未领取 1: 已领取
+  // 下注记录筛选相关
+  String? _betCode; // 游戏类型
+  int? _betStatus; // 状态  
   // 数据状态
   final Map<int, List<dynamic>> _records = {};
   final Map<int, int> _currentPage = {};
   final Map<int, bool> _isLoading = {};
   final Map<int, bool> _hasMore = {};
   final Map<int, String?> _error = {};
+  final Map<int, ScrollController> _scrollControllers = {};
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(length: _tabs.length, vsync: this, initialIndex: widget.initialIndex);
     _tabController.addListener(_handleTabChange);
     
     // 初始化各标签状态
@@ -42,38 +51,61 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       _isLoading[i] = false;
       _hasMore[i] = true;
       _error[i] = null;
+      _scrollControllers[i] = ScrollController();
+      _scrollControllers[i]!.addListener(() => _onScroll(i));
     }
     
-    // 默认加载第一个标签
-    _loadData(0);
+    // 默认加载初始标签
+    _loadData(widget.initialIndex);
   }
 
   @override
   void dispose() {
     _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
+  void _onScroll(int index) {
+    if (!_scrollControllers[index]!.hasClients) return;
+    
+    final maxScroll = _scrollControllers[index]!.position.maxScrollExtent;
+    final currentScroll = _scrollControllers[index]!.offset;
+    
+    // 距离底部 200 像素时预加载
+    if (maxScroll - currentScroll < 200) {
+      if (_hasMore[index]! && !_isLoading[index]! && _error[index] == null) {
+        _loadData(index);
+      }
+    }
+  }
+
   void _handleTabChange() {
-    if (_tabController.indexIsChanging) return;
-    if (_records[_tabController.index]!.isEmpty && _hasMore[_tabController.index]!) {
-      _loadData(_tabController.index);
+    if (!_tabController.indexIsChanging) {
+      setState(() {});
+      if (_records[_tabController.index]!.isEmpty) {
+        _loadData(_tabController.index);
+      }
     }
   }
 
   Future<void> _loadData(int index, {bool isRefresh = false}) async {
-    if (_isLoading[index]!) return;
+    if (_isLoading[index]! && !isRefresh) return;
 
-    setState(() {
-      _isLoading[index] = true;
-      if (isRefresh) {
-        _currentPage[index] = 1;
-        _records[index] = [];
-        _hasMore[index] = true;
-      }
-      _error[index] = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading[index] = true;
+        if (isRefresh) {
+          _currentPage[index] = 1;
+          _records[index] = [];
+          _hasMore[index] = true;
+          _error[index] = null;
+        }
+      });
+    }
 
     try {
       final page = _currentPage[index]!;
@@ -106,7 +138,25 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
         case 2: // 转账
           response = await FinanceService.getTransferRecords(page: page);
           break;
-        case 3: // 账变
+        case 3: // 返水
+          response = await FinanceService.getRebateRecords(
+            page: page,
+            startDate: startDate,
+            endDate: endDate,
+            code: _rebateCode,
+            status: _rebateStatus,
+          );
+          break;
+        case 4: // 下注
+          response = await FinanceService.getBettingRecords(
+            page: page,
+            startDate: startDate,
+            endDate: endDate,
+            code: _betCode,
+            status: _betStatus,
+          );
+          break;
+        case 5: // 账变
           response = await FinanceService.getMoneyLogList(page: page);
           break;
       }
@@ -148,9 +198,9 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       case 'yesterday':
         return DateFormat('yyyy-MM-dd').format(now.subtract(const Duration(days: 1)));
       case 'week':
-        return DateFormat('yyyy-MM-dd').format(now.subtract(const Duration(days: 7)));
+        return DateFormat('yyyy-MM-dd').format(now.subtract(const Duration(days: 6)));
       case 'month':
-        return DateFormat('yyyy-MM-dd').format(DateTime(now.year, now.month, 1));
+        return DateFormat('yyyy-MM-01').format(now);
       default:
         return DateFormat('yyyy-MM-dd').format(now);
     }
@@ -162,6 +212,41 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       _selectedDateRange = null;
     });
     _loadData(_tabController.index, isRefresh: true);
+  }
+
+  bool _isClaiming = false;
+
+  Future<void> _claimAllRebate() async {
+    if (_isClaiming) return;
+    
+    setState(() => _isClaiming = true);
+    try {
+      final response = await FinanceService.claimRebate(0);
+      if (response.code == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('领取成功')),
+          );
+          _loadData(3, isRefresh: true);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response.msg ?? '领取失败')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isClaiming = false);
+      }
+    }
   }
 
   @override
@@ -189,32 +274,199 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
           ),
         ],
       ),
+      bottomNavigationBar: _tabController.index == 3 
+        ? Builder(
+            builder: (context) {
+              final hasUnclaimed = _records[3]?.any((r) => r is RebateRecord && r.status == 0) ?? false;
+              if (hasUnclaimed) {
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(25),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: ElevatedButton(
+                      onPressed: _isClaiming ? null : _claimAllRebate,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: _isClaiming 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('一键领取全部返水', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          )
+        : const SizedBox.shrink(),
     );
   }
 
   Widget _buildFilterBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       color: AppTheme.surface,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            _buildFilterChip('今日', 'today'),
-            _buildFilterChip('昨日', 'yesterday'),
-            _buildFilterChip('近七日', 'week'),
-            _buildFilterChip('本月', 'month'),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: _showDateRangePicker,
-              icon: const Icon(Icons.calendar_today, size: 20, color: AppTheme.textSecondary),
-              style: IconButton.styleFrom(
-                backgroundColor: AppTheme.cardBackground,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
+      child: Column(
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                _buildFilterChip('今日', 'today'),
+                _buildFilterChip('昨日', 'yesterday'),
+                _buildFilterChip('近七日', 'week'),
+                _buildFilterChip('本月', 'month'),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _showDateRangePicker,
+                  icon: const Icon(Icons.calendar_today, size: 20, color: AppTheme.textSecondary),
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppTheme.cardBackground,
+                    padding: const EdgeInsets.all(8),
+                    minimumSize: Size.zero,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+          if (_tabController.index == 3) ...[
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildRebateFilterDropdown(
+                    label: _rebateCode ?? '所有类型',
+                    options: {
+                      null: '所有类型',
+                      'live': '真人',
+                      'egame': '电子',
+                      'sport': '体育',
+                      'chess': '棋牌',
+                      'lottery': '彩票',
+                      'fish': '捕鱼',
+                    },
+                    value: _rebateCode,
+                    onChanged: (val) => setState(() {
+                      _rebateCode = val;
+                      _loadData(3, isRefresh: true);
+                    }),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildRebateFilterDropdown(
+                    label: _rebateStatus == null ? '所有状态' : (_rebateStatus == 1 ? '已领取' : '未领取'),
+                    options: {
+                      null: '所有状态',
+                      1: '已领取',
+                      0: '未领取',
+                    },
+                    value: _rebateStatus,
+                    onChanged: (val) => setState(() {
+                      _rebateStatus = val;
+                      _loadData(3, isRefresh: true);
+                    }),
+                  ),
+                 ],
+               ),
+             ),
+           ],
+           if (_tabController.index == 4) ...[
+             const SizedBox(height: 8),
+             SingleChildScrollView(
+               scrollDirection: Axis.horizontal,
+               padding: const EdgeInsets.symmetric(horizontal: 16),
+               child: Row(
+                 children: [
+                   _buildRebateFilterDropdown(
+                     label: _betCode ?? '所有类型',
+                     options: {
+                       null: '所有类型',
+                       'live': '真人',
+                       'egame': '电子',
+                       'sport': '体育',
+                       'chess': '棋牌',
+                       'lottery': '彩票',
+                       'fish': '捕鱼',
+                     },
+                     value: _betCode,
+                     onChanged: (val) => setState(() {
+                       _betCode = val;
+                       _loadData(4, isRefresh: true);
+                     }),
+                   ),
+                   const SizedBox(width: 8),
+                   _buildRebateFilterDropdown(
+                     label: _betStatus == null ? '所有状态' : (_betStatus == 1 ? '已结算' : '未结算'),
+                     options: {
+                       null: '所有状态',
+                       1: '已结算',
+                       0: '未结算',
+                     },
+                     value: _betStatus,
+                     onChanged: (val) => setState(() {
+                       _betStatus = val;
+                       _loadData(4, isRefresh: true);
+                     }),
+                   ),
+                 ],
+               ),
+             ),
+           ],
+         ],
+       ),
+     );
+  }
+
+  Widget _buildRebateFilterDropdown<T>({
+    required String label,
+    required Map<T, String> options,
+    required T value,
+    required Function(T) onChanged,
+  }) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: value != null ? AppTheme.primary : Colors.transparent,
+          width: 1,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          hint: Text(label, style: TextStyle(fontSize: 12, color: value != null ? AppTheme.primary : AppTheme.textSecondary)),
+          icon: Icon(Icons.keyboard_arrow_down, size: 16, color: value != null ? AppTheme.primary : AppTheme.textSecondary),
+          items: options.entries.map((e) {
+            return DropdownMenuItem<T>(
+              value: e.key,
+              child: Text(e.value, style: const TextStyle(fontSize: 13)),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null || (val == null && value != null)) {
+              onChanged(val as T);
+            }
+          },
+          dropdownColor: AppTheme.surface,
+          style: TextStyle(color: value != null ? AppTheme.primary : AppTheme.textPrimary),
         ),
       ),
     );
@@ -231,7 +483,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
           if (selected) _applyQuickDate(type);
         },
         backgroundColor: AppTheme.cardBackground,
-        selectedColor: AppTheme.primary.withValues(alpha: 0.1),
+        selectedColor: AppTheme.primary.withAlpha(25),
         labelStyle: TextStyle(
           color: isActive ? AppTheme.primary : AppTheme.textSecondary,
           fontSize: 13,
@@ -303,11 +555,12 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
     return RefreshIndicator(
       onRefresh: () => _loadData(index, isRefresh: true),
       child: ListView.builder(
+        controller: _scrollControllers[index],
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         itemCount: dates.length + (hasMore ? 1 : 0),
         itemBuilder: (context, dateIndex) {
           if (dateIndex == dates.length) {
-            _loadData(index);
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
@@ -348,6 +601,8 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       String? dateStr;
       if (record is TradeRecord) dateStr = record.createdAt;
       if (record is TransferRecord) dateStr = record.createdAt;
+      if (record is RebateRecord) dateStr = record.createdAt;
+      if (record is BettingRecord) dateStr = record.betTime;
       if (record is MoneyLog) dateStr = record.createdAt;
       
       if (dateStr != null) {
@@ -373,6 +628,18 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
     return DateFormat('MM月dd日').format(date);
   }
 
+  String _getBetCategoryName(String? code) {
+    switch (code) {
+      case 'live': return '真人';
+      case 'egame': return '电子';
+      case 'sport': return '体育';
+      case 'chess': return '棋牌';
+      case 'lottery': return '彩票';
+      case 'fish': return '捕鱼';
+      default: return code ?? '游戏';
+    }
+  }
+
   Widget _buildRecordItem(int index, dynamic item) {
     String title = '';
     String subtitle = '';
@@ -395,9 +662,13 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
           status = '成功';
           statusColor = AppTheme.success;
           break;
-        case 2:
+        case 0:
           status = '失败';
           statusColor = AppTheme.error;
+          break;
+        case 5:
+          status = '处理中';
+          statusColor = AppTheme.warning;
           break;
         default:
           status = '处理中';
@@ -431,8 +702,42 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       amount = '${money >= 0 ? '+' : ''}¥${money.toStringAsFixed(2)}';
       amountColor = money >= 0 ? AppTheme.success : AppTheme.error;
       status = item.typeName ?? item.type ?? '账变';
+    } else if (item is RebateRecord) {
+      title = '返水 - ${item.apiCode ?? item.code ?? ''}';
+      subtitle = '${item.createdAt?.split(' ')[1] ?? ''} | 比例: ${item.bl}%';
+      final money = double.tryParse(item.fsMoney?.toString() ?? '0') ?? 0;
+      amount = '+¥${money.toStringAsFixed(2)}';
+      amountColor = AppTheme.success;
+      
+      switch (item.status) {
+        case 1:
+          status = '已领取';
+          statusColor = AppTheme.success;
+          break;
+        case 0:
+          status = '未领取';
+          statusColor = AppTheme.warning;
+          break;
+        default:
+          status = '未知';
+          statusColor = AppTheme.textSecondary;
+      }
+    } else if (item is BettingRecord) {
+      final categoryName = _getBetCategoryName(item.code);
+      final subTitle = item.interfaceTitle ?? item.title ?? '未知游戏';
+      title = '$categoryName - $subTitle';
+      subtitle = item.betTime?.split(' ')[1] ?? '';
+      
+      final netAmount = double.tryParse(item.netAmount.toString()) ?? 0;
+      final betAmount = double.tryParse(item.betAmount.toString()) ?? 0;
+      
+      amount = '${netAmount >= 0 ? '+' : ''}¥${netAmount.toStringAsFixed(2)}';
+      amountColor = netAmount > 0 ? AppTheme.success : (netAmount < 0 ? AppTheme.error : AppTheme.textPrimary);
+      
+      status = '投注: ¥${betAmount.toStringAsFixed(2)}';
+      orderNo = item.rowid;
     }
-
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),

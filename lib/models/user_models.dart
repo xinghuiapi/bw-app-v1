@@ -5,20 +5,38 @@ part 'user_models.g.dart';
 @JsonSerializable()
 class UserMessage {
   final int id;
-  final String title;
-  final String content;
+  final String? title;
+  @JsonKey(name: 'text')
+  final String? content;
   @JsonKey(name: 'created_at')
-  final String createdAt;
-  @JsonKey(name: 'is_read')
-  final int isRead; // 0未读，1已读
+  final String? createdAt;
+  final int? type; // 1未读，2已读
 
   UserMessage({
     required this.id,
-    required this.title,
-    required this.content,
-    required this.createdAt,
-    required this.isRead,
+    this.title,
+    this.content,
+    this.createdAt,
+    this.type,
   });
+
+  UserMessage copyWith({
+    int? id,
+    String? title,
+    String? content,
+    String? createdAt,
+    int? type,
+  }) {
+    return UserMessage(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+      type: type ?? this.type,
+    );
+  }
+
+  bool get isRead => type == 2;
 
   factory UserMessage.fromJson(Map<String, dynamic> json) => _$UserMessageFromJson(json);
   Map<String, dynamic> toJson() => _$UserMessageToJson(this);
@@ -31,6 +49,8 @@ class UserProfileUpdateRequest {
   @JsonKey(name: 'real_name')
   final String? realName;
   final String? phone;
+  @JsonKey(name: 'area_code')
+  final String? areaCode;
   final String? gender;
   @JsonKey(name: 'born_time')
   final String? bornTime;
@@ -43,6 +63,7 @@ class UserProfileUpdateRequest {
     this.telegram,
     this.realName,
     this.phone,
+    this.areaCode,
     this.gender,
     this.bornTime,
     this.qq,
@@ -144,11 +165,30 @@ class UserRebateInfo {
     this.userAmount,
   });
 
-  factory UserRebateInfo.fromJson(Map<String, dynamic> json) => _$UserRebateInfoFromJson(json);
-  Map<String, dynamic> toJson() => _$UserRebateInfoToJson(this);
+  factory UserRebateInfo.fromJson(Map<String, dynamic> json) {
+    return UserRebateInfo(
+      userSum: json['user_sum'] as int? ?? 0,
+      userYouxiao: json['user_youxiao'] as int? ?? 0,
+      dailingqu: json['dailingqu'],
+      zuidi: json['zuidi'],
+      userMax: json['user_max'] as int? ?? 0,
+      userAmount: json['user_amount'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_sum': userSum,
+      'user_youxiao': userYouxiao,
+      'dailingqu': dailingqu,
+      'zuidi': zuidi,
+      'user_max': userMax,
+      'user_amount': userAmount,
+    };
+  }
 }
 
-@JsonSerializable()
+// @JsonSerializable()
 class VipLevel {
   final int id;
   final String title;
@@ -209,6 +249,51 @@ class VipLevel {
     this.gamingBl,
   });
 
-  factory VipLevel.fromJson(Map<String, dynamic> json) => _$VipLevelFromJson(json);
-  Map<String, dynamic> toJson() => _$VipLevelToJson(this);
+  factory VipLevel.fromJson(Map<String, dynamic> json) {
+    return VipLevel(
+      id: json['id'] as int? ?? 0,
+      title: json['title'] as String? ?? '',
+      chargeLevel: json['charge_level'],
+      flowingLevel: json['flowing_level'],
+      levelGive: json['level_give'],
+      weekRed: json['week_red'],
+      birthdayGive: json['birthday_give'],
+      dayCountDrawing: json['day_count_drawing'],
+      dayAmountDrawing: json['day_amount_drawing'],
+      minDrawing: json['min_drawing'],
+      minRecharge: json['min_recharge'],
+      maxRecharge: json['max_recharge'],
+      sportBl: json['sport_bl'],
+      liveBl: json['live_bl'],
+      gamesBl: json['games_bl'],
+      pokerBl: json['poker_bl'],
+      fishingBl: json['fishing_bl'],
+      lotteryBl: json['lottery_bl'],
+      gamingBl: json['gaming_bl'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'charge_level': chargeLevel,
+      'flowing_level': flowingLevel,
+      'level_give': levelGive,
+      'week_red': weekRed,
+      'birthday_give': birthdayGive,
+      'day_count_drawing': dayCountDrawing,
+      'day_amount_drawing': dayAmountDrawing,
+      'min_drawing': minDrawing,
+      'min_recharge': minRecharge,
+      'max_recharge': maxRecharge,
+      'sport_bl': sportBl,
+      'live_bl': liveBl,
+      'games_bl': gamesBl,
+      'poker_bl': pokerBl,
+      'fishing_bl': fishingBl,
+      'lottery_bl': lotteryBl,
+      'gaming_bl': gamingBl,
+    };
+  }
 }

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/home_data.dart';
-import '../../providers/home_provider.dart';
-import '../../providers/game_launcher_provider.dart';
-import '../../theme/app_theme.dart';
-import '../common/skeleton_widget.dart';
-import '../common/state_widgets.dart';
-import '../common/web_safe_image.dart';
-import '../../utils/constants.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/providers/home_provider.dart';
+import 'package:my_flutter_app/providers/game_launcher_provider.dart';
+import 'package:my_flutter_app/providers/game_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/utils/constants.dart';
 
 class GameCategoriesWidget extends ConsumerStatefulWidget {
   final List<GameCategory> categories;
@@ -63,7 +64,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                     color: isSelected ? AppTheme.primary : AppTheme.surface,
                     borderRadius: BorderRadius.circular(22),
                     border: Border.all(
-                      color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.05),
+                      color: isSelected ? Colors.transparent : Colors.white.withAlpha(13),
                       width: 1,
                     ),
                   ),
@@ -179,7 +180,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
         decoration: BoxDecoration(
           color: AppTheme.cardBackground,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
+          border: Border.all(color: Colors.white.withAlpha(13), width: 0.5),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
@@ -203,8 +204,8 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withValues(alpha: 0.0),
-                        Colors.black.withValues(alpha: 0.8),
+                        Colors.black.withAlpha(0),
+                        Colors.black.withAlpha(204),
                       ],
                       stops: const [0.5, 1.0],
                     ),
@@ -225,7 +226,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                       fontSize: isReco ? 12 : 14,
                       shadows: [
                         Shadow(
-                          color: Colors.black.withValues(alpha: 0.8),
+                          color: Colors.black.withAlpha(204),
                           offset: const Offset(0, 1),
                           blurRadius: 4,
                         ),
@@ -242,11 +243,11 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
   }
 
   Widget _buildGameList(GameCategory category, SubCategory subCategory) {
-    final gameParams = GameListParams(
-      game: subCategory.gamecode,
-      code: category.code,
-      size: 30,
-    );
+    final Map<String, dynamic> gameParams = {
+      'game': subCategory.gamecode,
+      'code': category.code,
+      'size': 30,
+    };
     
     // 获取 provider 状态
     final gameState = ref.watch(gameListProvider(gameParams));
@@ -282,7 +283,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     );
   }
 
-  Widget _buildGameListContent(GameListPaginationState state, GameListParams gameParams) {
+  Widget _buildGameListContent(GameListPaginationState state, Map<String, dynamic> gameParams) {
     // 如果是第一页加载中，显示骨架屏
     if (state.currentPage == 0 && state.isLoading) {
       return const Padding(
@@ -346,7 +347,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
             child: Center(
               child: Text(
                 '没有更多游戏了',
-                style: TextStyle(color: AppTheme.textTertiary.withValues(alpha: 0.5), fontSize: 12),
+                style: TextStyle(color: AppTheme.textTertiary.withAlpha(128), fontSize: 12),
               ),
             ),
           ),
@@ -375,7 +376,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
         decoration: BoxDecoration(
           color: AppTheme.cardBackground,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
+          border: Border.all(color: Colors.white.withAlpha(13), width: 0.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -410,7 +411,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Colors.black.withValues(alpha: 0.5),
+                              Colors.black.withAlpha(128),
                             ],
                             stops: const [0.7, 1.0],
                           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../theme/app_theme.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 
 class Skeleton extends StatelessWidget {
   final double? width;
@@ -71,7 +71,7 @@ class CategorySkeleton extends StatelessWidget {
               child: Skeleton(borderRadius: 12),
             ),
             const SizedBox(height: 4),
-            Skeleton(width: 40, height: 12, borderRadius: 2),
+            const Skeleton(width: 40, height: 12, borderRadius: 2),
           ],
         );
       },
@@ -90,7 +90,7 @@ class GameCardSkeleton extends StatelessWidget {
           child: Skeleton(borderRadius: 12),
         ),
         const SizedBox(height: 8),
-        Skeleton(width: 60, height: 14, borderRadius: 2),
+        const Skeleton(width: 60, height: 14, borderRadius: 2),
       ],
     );
   }

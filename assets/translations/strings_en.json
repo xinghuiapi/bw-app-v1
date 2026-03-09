@@ -1,0 +1,41 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "noData": "No Data",
+    "retry": "Retry",
+    "error": {
+      "connectionTimeout": "Connection timeout, please check your network",
+      "sendTimeout": "Send timeout, please try again",
+      "receiveTimeout": "Receive timeout, please try again later",
+      "badRequest": "Bad Request",
+      "unauthorized": "Unauthorized, please login again",
+      "forbidden": "Forbidden",
+      "notFound": "Resource not found",
+      "serverError": "Internal Server Error",
+      "badGateway": "Bad Gateway",
+      "serviceUnavailable": "Service Unavailable",
+      "gatewayTimeout": "Gateway Timeout",
+      "networkError": "Network Error ({})",
+      "cancelled": "Request cancelled",
+      "connectionError": "Connection error, please check your network",
+      "unknown": "Unknown error, please try again"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "loginSuccess": "Login Success",
+    "logoutSuccess": "Logged out safely"
+  },
+  "home": {
+    "title": "Home",
+    "activities": "Activities",
+    "service": "Service",
+    "mine": "Mine"
+  }
+}

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../models/home_data.dart';
-import '../../providers/activities_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/common/skeleton_widget.dart';
-import '../../widgets/common/state_widgets.dart';
-import '../../widgets/common/web_safe_image.dart';
-import '../../widgets/layout/footer_widget.dart';
-import '../../widgets/layout/header_widget.dart';
-import '../../widgets/layout/user_drawer.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/providers/activities_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/widgets/layout/footer_widget.dart';
+import 'package:my_flutter_app/widgets/layout/header_widget.dart';
+import 'package:my_flutter_app/widgets/layout/user_drawer.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
   const ActivitiesScreen({super.key});
@@ -85,7 +85,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       decoration: BoxDecoration(
         color: AppTheme.secondary,
         border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
+          bottom: BorderSide(color: Colors.white.withAlpha(13), width: 0.5),
         ),
       ),
       child: ListView.builder(
@@ -147,7 +147,7 @@ class _ActivityCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withAlpha(25),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -167,7 +167,7 @@ class _ActivityCard extends StatelessWidget {
               Container(
                 height: 160,
                 decoration: BoxDecoration(
-                  color: AppTheme.textTertiary.withValues(alpha: 0.1),
+                  color: AppTheme.textTertiary.withAlpha(25),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 ),
                 child: const Icon(Icons.image_not_supported, size: 40, color: AppTheme.textTertiary),

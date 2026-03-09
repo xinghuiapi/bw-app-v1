@@ -5,13 +5,19 @@ part 'finance_models.g.dart';
 @JsonSerializable()
 class DepositCategory {
   final int id;
-  final String name;
+  @JsonKey(name: 'title')
+  final String? name;
+  @JsonKey(name: 'img')
   final String? icon;
+  final String? msg; // 角标信息
+  final String? code;
 
   DepositCategory({
     required this.id,
-    required this.name,
+    this.name,
     this.icon,
+    this.msg,
+    this.code,
   });
 
   factory DepositCategory.fromJson(Map<String, dynamic> json) => _$DepositCategoryFromJson(json);
@@ -19,15 +25,78 @@ class DepositCategory {
 }
 
 @JsonSerializable()
+class TransferCategory {
+  final int id;
+  @JsonKey(name: 'title')
+  final String? name;
+  final String? code;
+  final String? icon;
+  @JsonKey(name: 'pc_logo')
+  final String? pcLogo; // 用于转账页面显示的 Logo
+
+  TransferCategory({
+    required this.id,
+    this.name,
+    this.code,
+    this.icon,
+    this.pcLogo,
+  });
+
+  factory TransferCategory.fromJson(Map<String, dynamic> json) => _$TransferCategoryFromJson(json);
+  Map<String, dynamic> toJson() => _$TransferCategoryToJson(this);
+}
+
+@JsonSerializable()
+class GameBalance {
+  final int id;
+  final dynamic money;
+  final String? title;
+
+  GameBalance({
+    required this.id,
+    this.money,
+    this.title,
+  });
+
+  double get balance => _stringToDouble(money);
+
+  factory GameBalance.fromJson(Map<String, dynamic> json) => _$GameBalanceFromJson(json);
+  Map<String, dynamic> toJson() => _$GameBalanceToJson(this);
+}
+
+@JsonSerializable()
+class TransferMoneyRequest {
+  final int id; // 平台/分类 ID
+  final int money; // 转账金额，通常为整数
+  TransferMoneyRequest({
+    required this.id,
+    required this.money,
+  });
+
+  factory TransferMoneyRequest.fromJson(Map<String, dynamic> json) => _$TransferMoneyRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$TransferMoneyRequestToJson(this);
+}
+
+@JsonSerializable()
 class DepositChannel {
   final int id;
-  final String name;
+  @JsonKey(name: 'title')
+  final String? name;
   final String? icon;
+  @JsonKey(fromJson: _stringToDouble)
   final double min;
+  @JsonKey(fromJson: _stringToDouble)
   final double max;
   final String? type; // 支付类型
   @JsonKey(name: 'bank_code')
   final String? bankCode;
+  @JsonKey(name: 'amount_type')
+  final int? amountType; // 1:任意金额, 2:固定金额
+  final List<dynamic>? amount; // 固定金额列表 (API可能返回数字或字符串列表)
+  @JsonKey(name: 'give_type')
+  final int? giveType; // 赠送类型: 1金额, 2比例, 3固定金额
+  @JsonKey(name: 'give_money', fromJson: _stringToDouble)
+  final double? giveMoney; // 赠送金额或比例
 
   DepositChannel({
     required this.id,
@@ -37,6 +106,10 @@ class DepositChannel {
     required this.max,
     this.type,
     this.bankCode,
+    this.amountType,
+    this.amount,
+    this.giveType,
+    this.giveMoney,
   });
 
   factory DepositChannel.fromJson(Map<String, dynamic> json) => _$DepositChannelFromJson(json);
@@ -63,11 +136,17 @@ class DepositOrderResponse {
   final String? qrcode; // 二维码内容
   @JsonKey(name: 'order_no')
   final String? orderNo;
-
+  final int? id; // 订单ID (用于跳转详情)
+  @JsonKey(name: 'order_id')
+  final int? orderId; // 某些接口可能返回 order_id
+  final Map<String, dynamic>? data; // 兼容 {code: 200, data: {data: {...}}} 的嵌套结构
   DepositOrderResponse({
     this.url,
     this.qrcode,
     this.orderNo,
+    this.id,
+    this.orderId,
+    this.data,
   });
 
   factory DepositOrderResponse.fromJson(Map<String, dynamic> json) => _$DepositOrderResponseFromJson(json);
@@ -94,20 +173,39 @@ class WithdrawRequest {
 @JsonSerializable()
 class PaymentMethod {
   final int id;
+  final String? card;
+  final String? img;
+  final String? qrcode;
+  final String? alias;
+  final String? title;
+  final dynamic rete;
+  final int? type;
+  final int? status; // 0: 禁用, 1: 正常, 2: 待审核
   @JsonKey(name: 'bank_name')
-  final String bankName;
+  final String? bankName;
   @JsonKey(name: 'card_number')
-  final String cardNumber;
+  final String? cardNumber;
   final String? name; // 持卡人姓名
   final String? address; // 开户行地址
 
   PaymentMethod({
     required this.id,
-    required this.bankName,
-    required this.cardNumber,
+    this.card,
+    this.img,
+    this.qrcode,
+    this.alias,
+    this.title,
+    this.rete,
+    this.type,
+    this.status,
+    this.bankName,
+    this.cardNumber,
     this.name,
     this.address,
   });
+
+  String get displayCard => card ?? cardNumber ?? '';
+  String get displayTitle => title ?? bankName ?? '';
 
   factory PaymentMethod.fromJson(Map<String, dynamic> json) => _$PaymentMethodFromJson(json);
   Map<String, dynamic> toJson() => _$PaymentMethodToJson(this);
@@ -190,7 +288,7 @@ class RebateRecord {
   final dynamic fsMoney;
   final dynamic money;
   final dynamic bl;
-  final int? status; // 0: 未领取, 1: 已领取
+  final int? status; // 0: 未领取 1: 已领取
   @JsonKey(name: 'created_at')
   final String? createdAt;
 
@@ -210,15 +308,127 @@ class RebateRecord {
 }
 
 @JsonSerializable()
+class RechargeParams {
+  final String? merchant;
+  @JsonKey(name: 'pay_key')
+  final String? payKey;
+  @JsonKey(name: 'pay_url')
+  final String? payUrl;
+  @JsonKey(name: 'pay_code')
+  final String? payCode;
+  final String? code;
+  final String? name; // 持卡人姓名
+  final String? account; // 银行卡号
+  final String? addres; // 可能的拼写错误
+  @JsonKey(name: 'bank_name')
+  final String? bankName; // 银行名称
+  final String? bank;
+  final String? card;
+  final String? address; // 开户行地址
+
+  RechargeParams({
+    this.merchant,
+    this.payKey,
+    this.payUrl,
+    this.payCode,
+    this.code,
+    this.name,
+    this.account,
+    this.addres,
+    this.bankName,
+    this.bank,
+    this.card,
+    this.address,
+  });
+
+  factory RechargeParams.fromJson(Map<String, dynamic> json) => _$RechargeParamsFromJson(json);
+  Map<String, dynamic> toJson() => _$RechargeParamsToJson(this);
+}
+
+@JsonSerializable()
+class RechargeDetail {
+  @JsonKey(includeFromJson: false)
+  final int id; // 默认 0，Provider 负责填充
+  
+  final RechargeParams? params;
+
+  @JsonKey(fromJson: _stringToDouble)
+  final double money; 
+  
+  @JsonKey(fromJson: _stringToDoubleNullable)
+  final double? hl; // 汇率?
+  
+  @JsonKey(name: 'usdt_money', fromJson: _stringToDoubleNullable)
+  final double? usdtMoney;
+  
+  final String? img; // 二维码图片链接
+  final String? currency;
+  @JsonKey(fromJson: _stringToIntNullable)
+  final int? type; // 支付类型
+
+  // 兼容旧字段 of Getter
+  String? get order => null; // 订单号未知
+  int? get status => 0; // 默认状态
+  String? get createdAt => null;
+  String? get qrcode => img; // UI 使用 qrcode
+  String? get bankName => params?.bankName ?? params?.bank;
+  String? get bankCard => params?.account ?? params?.card; 
+  String? get bankUser => params?.name;
+  String? get bankAddr => params?.address ?? params?.addres;
+  String? get remark => null;
+
+  RechargeDetail({
+    this.id = 0,
+    this.params,
+    required this.money,
+    this.hl,
+    this.usdtMoney,
+    this.img,
+    this.currency,
+    this.type,
+  });
+
+  factory RechargeDetail.fromJson(Map<String, dynamic> json) => _$RechargeDetailFromJson(json);
+  Map<String, dynamic> toJson() => _$RechargeDetailToJson(this);
+
+  RechargeDetail copyWith({
+    int? id,
+    RechargeParams? params,
+    double? money,
+    double? hl,
+    double? usdtMoney,
+    String? img,
+    String? currency,
+    int? type,
+  }) {
+    return RechargeDetail(
+      id: id ?? this.id,
+      params: params ?? this.params,
+      money: money ?? this.money,
+      hl: hl ?? this.hl,
+      usdtMoney: usdtMoney ?? this.usdtMoney,
+      img: img ?? this.img,
+      currency: currency ?? this.currency,
+      type: type ?? this.type,
+    );
+  }
+}
+
+@JsonSerializable()
 class BankType {
   final int id;
   final String name;
+  @JsonKey(name: 'title')
+  final String? title; // 某些接口可能使用 title
   final String? code;
+  final String? img;
 
   BankType({
     required this.id,
     required this.name,
+    this.title,
     this.code,
+    this.img,
   });
 
   factory BankType.fromJson(Map<String, dynamic> json) => _$BankTypeFromJson(json);
@@ -306,31 +516,93 @@ class MoneyLog {
   Map<String, dynamic> toJson() => _$MoneyLogToJson(this);
 }
 
-@JsonSerializable()
+// @JsonSerializable()
 class BettingRecord {
   final int id;
   @JsonKey(name: 'game_name')
-  final String gameName;
-  @JsonKey(name: 'bet_amount')
+  final String? gameName;
+  @JsonKey(name: 'bet_amount', fromJson: _stringToDouble)
   final double betAmount;
-  @JsonKey(name: 'win_amount')
+  @JsonKey(name: 'win_amount', fromJson: _stringToDouble)
   final double winAmount;
-  @JsonKey(name: 'net_amount')
+  @JsonKey(name: 'net_amount', fromJson: _stringToDouble)
   final double netAmount;
   @JsonKey(name: 'bet_time')
-  final String betTime;
+  final String? betTime;
   final int status;
+  final String? code;
+  @JsonKey(name: 'interface_title')
+  final String? interfaceTitle;
+  final String? title;
+  final String? rowid;
 
   BettingRecord({
     required this.id,
-    required this.gameName,
+    this.gameName,
     required this.betAmount,
     required this.winAmount,
     required this.netAmount,
-    required this.betTime,
+    this.betTime,
     required this.status,
+    this.code,
+    this.interfaceTitle,
+    this.title,
+    this.rowid,
   });
 
-  factory BettingRecord.fromJson(Map<String, dynamic> json) => _$BettingRecordFromJson(json);
-  Map<String, dynamic> toJson() => _$BettingRecordToJson(this);
+  factory BettingRecord.fromJson(Map<String, dynamic> json) {
+    return BettingRecord(
+      id: json['id'] as int? ?? 0,
+      gameName: json['game_name'] as String?,
+      betAmount: _stringToDouble(json['bet_amount']),
+      winAmount: _stringToDouble(json['win_amount']),
+      netAmount: _stringToDouble(json['net_amount']),
+      betTime: json['bet_time'] as String?,
+      status: json['status'] as int? ?? 0,
+      code: json['code'] as String?,
+      interfaceTitle: json['interface_title'] as String?,
+      title: json['title'] as String?,
+      rowid: json['rowid'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'game_name': gameName,
+      'bet_amount': betAmount,
+      'win_amount': winAmount,
+      'net_amount': netAmount,
+      'bet_time': betTime,
+      'status': status,
+      'code': code,
+      'interface_title': interfaceTitle,
+      'title': title,
+      'rowid': rowid,
+    };
+  }
+}
+
+// 辅助函数：将 String 或 num 转换为 double
+double _stringToDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
+}
+
+// 辅助函数：将 String 或 num 转换为 double (可空)
+double? _stringToDoubleNullable(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+// 辅助函数：将 String 或 num 转换为 int (可空)
+int? _stringToIntNullable(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../models/betting_models.dart';
-import '../../services/game_service.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/models/betting_models.dart';
+import 'package:my_flutter_app/services/game_service.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class BetRecordsScreen extends ConsumerStatefulWidget {
   const BetRecordsScreen({super.key});
@@ -177,7 +177,7 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Row(
         children: [
@@ -279,7 +279,7 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Column(
         children: [
@@ -288,7 +288,7 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
             children: [
               Expanded(
                 child: Text(
-                  displayTitle!,
+                  displayTitle,
                   style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -376,9 +376,9 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withAlpha(25),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withAlpha(76)),
       ),
       child: Text(
         text,

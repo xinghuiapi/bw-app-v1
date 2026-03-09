@@ -1,10 +1,33 @@
 import 'package:dio/dio.dart';
-import '../api/dio_client.dart';
-import '../models/api_response.dart';
-import '../models/user.dart';
-import '../models/user_models.dart';
+import 'package:my_flutter_app/api/dio_client.dart';
+import 'package:my_flutter_app/models/api_response.dart';
+import 'package:my_flutter_app/models/user.dart';
+import 'package:my_flutter_app/models/user_models.dart';
 
 class UserService {
+  /// 获取VIP等级列表
+  /// 接口: /api/vip/getlist
+  static Future<ApiResponse<List<VipLevel>>> getVipLevels() async {
+    try {
+      final response = await api.post('/vip/getlist');
+      
+      return ApiResponse<List<VipLevel>>.fromJson(
+        response.data,
+        (json) {
+          if (json is List) {
+            return json.map((e) => VipLevel.fromJson(e as Map<String, dynamic>)).toList();
+          }
+          if (json is Map<String, dynamic> && json.containsKey('data') && json['data'] is List) {
+            return (json['data'] as List).map((e) => VipLevel.fromJson(e as Map<String, dynamic>)).toList();
+          }
+          return [];
+        },
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
   /// 获取个人信息
   /// 接口: /api/token/user
   static Future<ApiResponse<User>> getUserInfo() async {
@@ -39,7 +62,10 @@ class UserService {
   static Future<ApiResponse<void>> updateUserProfile(UserProfileUpdateRequest request) async {
     try {
       final response = await api.post('/user/edit', data: request.toJson());
-      return ApiResponse<void>.fromJson(response.data, (_) {});
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -60,9 +86,10 @@ class UserService {
         options: Options(contentType: 'multipart/form-data'),
       );
 
-      return ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data,
-        (json) => json as Map<String, dynamic>,
+      return ApiResponse<Map<String, dynamic>>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+        data: response.data['data'] as Map<String, dynamic>?,
       );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
@@ -80,18 +107,48 @@ class UserService {
         data['old_pay_password'] = oldPayPassword;
       }
       final response = await api.post('/user/pay_password', data: data);
-      return ApiResponse<void>.fromJson(response.data, (_) {});
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  /// 获取返水信息
+  /// 接口: /api/user/rebate_info
+  static Future<ApiResponse<UserRebateInfo>> getRebateInfo() async {
+    try {
+      final response = await api.post('/user/rebate_info');
+      return ApiResponse<UserRebateInfo>.fromJson(
+        response.data,
+        (json) => UserRebateInfo.fromJson(json as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  /// 领取返水
+  /// 接口: /api/user/claim_rebate
+  static Future<ApiResponse<void>> claimRebate() async {
+    try {
+      final response = await api.post('/user/claim_rebate');
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
   }
 
   /// 获取用户消息列表
-  /// 接口: /api/user/messages
-  static Future<ApiResponse<List<UserMessage>>> getUserMessages({int page = 1, int limit = 20}) async {
+  /// 接口: /api/notify/getlist
+  static Future<ApiResponse<List<UserMessage>>> getUserMessages({int page = 1, int size = 20}) async {
     try {
-      // 注意：这里 user.js 使用的是 GET 请求
-      final response = await api.get('/user/messages', queryParameters: {'page': page, 'limit': limit});
+      final response = await api.post('/notify/getlist', data: {'page': page, 'size': size});
       
       return ApiResponse<List<UserMessage>>.fromJson(
         response.data,
@@ -111,22 +168,28 @@ class UserService {
   }
 
   /// 标记消息为已读
-  /// 接口: /api/user/messages/{id}/read
+  /// 接口: /api/notify/status
   static Future<ApiResponse<void>> markMessageAsRead(int messageId) async {
     try {
-      final response = await api.post('/user/messages/$messageId/read');
-      return ApiResponse<void>.fromJson(response.data, (_) {});
+      final response = await api.post('/notify/status', data: {'id': messageId});
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
   }
 
-  /// 删除消息
-  /// 接口: /api/user/messages/{id}
-  static Future<ApiResponse<void>> deleteMessage(int messageId) async {
+  /// 标记所有消息为已读
+  /// 接口: /api/notify/all
+  static Future<ApiResponse<void>> markAllMessagesAsRead() async {
     try {
-      final response = await api.delete('/user/messages/$messageId');
-      return ApiResponse<void>.fromJson(response.data, (_) {});
+      final response = await api.post('/notify/all');
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -145,137 +208,6 @@ class UserService {
             return json;
           }
           return {};
-        },
-      );
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-
-  /// 更新用户设置
-  /// 接口: /api/user/settings
-  static Future<ApiResponse<void>> updateUserSettings(Map<String, dynamic> settings) async {
-    try {
-      final response = await api.post('/user/settings', data: settings);
-      return ApiResponse<void>.fromJson(response.data, (_) {});
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-
-  /// 获取用户安全设置
-  /// 接口: /api/user/security-settings
-  static Future<ApiResponse<Map<String, dynamic>>> getUserSecuritySettings() async {
-    try {
-      final response = await api.get('/user/security-settings');
-      
-      return ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return json;
-          }
-          return {};
-        },
-      );
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-
-  /// 更新用户安全设置
-  /// 接口: /api/user/security-settings
-  static Future<ApiResponse<void>> updateUserSecuritySettings(Map<String, dynamic> settings) async {
-    try {
-      final response = await api.post('/user/security-settings', data: settings);
-      return ApiResponse<void>.fromJson(response.data, (_) {});
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-  
-  /// 获取用户VIP信息
-  /// 接口: /api/user/vip
-  static Future<ApiResponse<Map<String, dynamic>>> getUserVipInfo() async {
-    try {
-      final response = await api.get('/user/vip');
-      return ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data,
-        (json) => json as Map<String, dynamic>,
-      );
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-  
-  /// 获取用户钱包信息
-  /// 接口: /api/user/wallet
-  static Future<ApiResponse<Map<String, dynamic>>> getUserWallet() async {
-    try {
-      final response = await api.get('/user/wallet');
-      return ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data,
-        (json) => json as Map<String, dynamic>,
-      );
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-  
-  /// 获取用户代理信息
-  /// 接口: /api/user/agent
-  static Future<ApiResponse<Map<String, dynamic>>> getUserAgentInfo() async {
-    try {
-      final response = await api.get('/user/agent');
-      return ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data,
-        (json) => json as Map<String, dynamic>,
-      );
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-
-  /// 获取返利数据
-  /// 接口: /api/retabe/list
-  static Future<ApiResponse<UserRebateInfo>> getRebateInfo() async {
-    try {
-      final response = await api.post('/retabe/list');
-      return ApiResponse<UserRebateInfo>.fromJson(
-        response.data,
-        (json) => UserRebateInfo.fromJson(json as Map<String, dynamic>),
-      );
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-
-  /// 领取返利
-  /// 接口: /api/retabe/amount
-  static Future<ApiResponse<void>> claimRebate() async {
-    try {
-      final response = await api.post('/retabe/amount');
-      return ApiResponse<void>.fromJson(response.data, (_) {});
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-
-  /// 获取VIP等级列表
-  /// 接口: /api/vip/getlist
-  static Future<ApiResponse<List<VipLevel>>> getVipLevels() async {
-    try {
-      final response = await api.post('/vip/getlist');
-      return ApiResponse<List<VipLevel>>.fromJson(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic> && json.containsKey('data') && json['data'] is List) {
-            return (json['data'] as List).map((e) => VipLevel.fromJson(e as Map<String, dynamic>)).toList();
-          }
-          if (json is List) {
-            return json.map((e) => VipLevel.fromJson(e as Map<String, dynamic>)).toList();
-          }
-          return [];
         },
       );
     } catch (e) {

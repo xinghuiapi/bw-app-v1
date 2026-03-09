@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../providers/home_provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/layout/footer_widget.dart';
+import 'package:my_flutter_app/providers/home_provider.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/layout/footer_widget.dart';
 
 class CustomerServiceScreen extends ConsumerStatefulWidget {
   const CustomerServiceScreen({super.key});
@@ -153,7 +153,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -168,7 +168,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.1),
+                    color: iconColor.withAlpha(25),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(icon, color: iconColor, size: 28),

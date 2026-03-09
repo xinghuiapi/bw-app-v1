@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 
 class ErrorStateWidget extends StatelessWidget {
   final String message;
@@ -22,7 +22,7 @@ class ErrorStateWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppTheme.error.withValues(alpha: 0.1),
+                color: AppTheme.error.withAlpha(26),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -184,19 +184,19 @@ class GlobalLoadingDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Dialog(
         backgroundColor: Colors.transparent,
         elevation: 0,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
           decoration: BoxDecoration(
-            color: AppTheme.cardBackground.withValues(alpha: 0.95),
+            color: AppTheme.cardBackground.withAlpha(242),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
+                color: Colors.black.withAlpha(77),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),

@@ -59,17 +59,3 @@ Map<String, dynamic> _$BettingRecordsResponseToJson(
   'total_betAmount': instance.totalBetAmount,
   'total_netAmount': instance.totalNetAmount,
 };
-
-BettingCategory _$BettingCategoryFromJson(Map<String, dynamic> json) =>
-    BettingCategory(
-      id: (json['id'] as num?)?.toInt(),
-      title: json['title'] as String?,
-      code: json['code'] as String?,
-    );
-
-Map<String, dynamic> _$BettingCategoryToJson(BettingCategory instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'code': instance.code,
-    };

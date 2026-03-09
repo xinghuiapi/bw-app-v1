@@ -1,7 +1,7 @@
-import '../api/dio_client.dart';
-import '../models/api_response.dart';
-import '../models/game_model.dart';
-import '../models/betting_models.dart';
+import 'package:my_flutter_app/api/dio_client.dart';
+import 'package:my_flutter_app/models/api_response.dart';
+import 'package:my_flutter_app/models/game_model.dart';
+import 'package:my_flutter_app/models/betting_models.dart';
 
 class GameService {
   /// 获取投注记录列表

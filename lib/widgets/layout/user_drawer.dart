@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/user_provider.dart';
-import '../../theme/app_theme.dart';
-import '../common/skeleton_widget.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/utils/toast_utils.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
 
 class UserDrawer extends ConsumerWidget {
   const UserDrawer({super.key});
@@ -52,9 +53,14 @@ class UserDrawer extends ConsumerWidget {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      ref.read(authProvider.notifier).logout();
+                    onPressed: () async {
+                      // 1. 关闭侧边栏
                       Navigator.pop(context);
+                      // 2. 跳转到首页
+                      context.go('/home');
+                      // 3. 执行退出逻辑
+                      await ref.read(authProvider.notifier).logout();
+                      ToastUtils.showSuccess('已安全退出');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.surface,
@@ -78,7 +84,7 @@ class UserDrawer extends ConsumerWidget {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+            backgroundColor: AppTheme.primary.withAlpha(25),
             radius: 24,
             child: const Icon(Icons.person, color: AppTheme.primary, size: 28),
           ),
@@ -141,9 +147,9 @@ class UserDrawer extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
+        color: isSelected ? AppTheme.primary.withAlpha(25) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
         child: ListTile(
           leading: Icon(icon, color: isSelected ? AppTheme.primary : AppTheme.textSecondary, size: 22),
           title: Text(

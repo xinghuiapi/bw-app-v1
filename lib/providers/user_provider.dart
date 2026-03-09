@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../api/dio_client.dart';
-import '../models/user.dart';
-import '../models/api_response.dart';
-import 'auth_provider.dart';
+import 'package:my_flutter_app/api/dio_client.dart';
+import 'package:my_flutter_app/models/user.dart';
+import 'package:my_flutter_app/models/api_response.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
 
 /// 用户状态
 class UserState {
@@ -59,7 +59,7 @@ class UserNotifier extends Notifier<UserState> {
     
     state = state.copyWith(isLoading: true, error: null);
     try {
-      // ⚠️ 修复：对接原项目接口 /token/user
+      // 对接原项目接口 /token/user
       debugPrint('Fetching user info from /token/user...');
       final response = await api.post('/token/user');
       debugPrint('User info response: ${response.data}');
@@ -127,7 +127,7 @@ class UserNotifier extends Notifier<UserState> {
     
     state = state.copyWith(isAllTransLoading: true);
     try {
-      // ⚠️ 修复：对接原项目接口 /game/all_trans
+      // 对接原项目接口 /game/all_trans
       final response = await api.post('/game/all_trans');
       final apiResponse = ApiResponse.fromJson(response.data, (json) => json);
       
@@ -141,9 +141,12 @@ class UserNotifier extends Notifier<UserState> {
       state = state.copyWith(isAllTransLoading: false);
     }
   }
+
+  /// 清除错误
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
 }
 
-/// 用户信息提供者
-final userProvider = NotifierProvider<UserNotifier, UserState>(() {
-  return UserNotifier();
-});
+/// 用户信息 Provider
+final userProvider = NotifierProvider.autoDispose<UserNotifier, UserState>(UserNotifier.new);

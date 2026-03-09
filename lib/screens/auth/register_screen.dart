@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_theme.dart';
-import '../../providers/auth_provider.dart';
-import '../../models/auth_models.dart';
-import '../../services/auth_service.dart';
-import '../../models/home_data.dart';
-import '../../providers/home_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/models/auth_models.dart';
+import 'package:my_flutter_app/services/auth_service.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/providers/home_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -192,7 +192,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.amber.withValues(alpha: 0.1),
+            color: Colors.amber.withAlpha(26),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -361,7 +361,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        color: AppTheme.primary.withValues(alpha: 0.1),
+        color: AppTheme.primary.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextButton(
@@ -456,7 +456,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) return '请输入支付密码';
-        if (value.length != 6) return '支付密码必须为6位数字';
+        if (value.length != 6) return '支付密码必须是6位数字';
         return null;
       },
     );
@@ -551,7 +551,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+              borderSide: BorderSide(color: Colors.white.withAlpha(13)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../../providers/user_provider.dart';
-import '../../services/user_service.dart';
-import '../../models/user_models.dart';
-import '../../theme/app_theme.dart';
+import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/services/user_service.dart';
+import 'package:my_flutter_app/models/user_models.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 
 class ShareInviteScreen extends ConsumerStatefulWidget {
   const ShareInviteScreen({super.key});
@@ -136,7 +136,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Column(
         children: [
@@ -183,7 +183,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
+                color: Colors.white.withAlpha(13),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: RichText(
@@ -262,7 +262,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Column(
         children: [
@@ -320,7 +320,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,7 +330,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Colors.white.withAlpha(13),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -361,7 +361,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Column(
         children: [
@@ -400,7 +400,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
       decoration: BoxDecoration(
         color: AppTheme.surface,
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, -2)),
+          BoxShadow(color: Colors.black.withAlpha(51), blurRadius: 10, offset: const Offset(0, -2)),
         ],
       ),
       child: ElevatedButton(

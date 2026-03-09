@@ -1,37 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../screens/home_screen.dart';
-import '../screens/placeholder_screen.dart';
-import '../screens/auth/login_screen.dart';
-import '../screens/auth/register_screen.dart';
-import '../screens/basic/activities_screen.dart';
-import '../screens/basic/activities_detail_screen.dart';
-import '../screens/basic/games_screen.dart';
-import '../screens/basic/game_view_screen.dart';
-import '../screens/basic/search_screen.dart';
-import '../screens/basic/customer_service_screen.dart';
-import '../screens/basic/about_us_screen.dart';
-import '../screens/basic/feedback_screen.dart';
-import '../screens/basic/password_reset_screen.dart';
-import '../screens/basic/system_maintenance_screen.dart';
-import '../screens/personal/share_invite_screen.dart';
-import '../screens/basic/agent_cooperation_screen.dart';
-import '../screens/personal/personal_center_screen.dart';
-import '../screens/personal/profile_screen.dart';
-import '../screens/personal/profile_edit_screen.dart';
-import '../screens/personal/transaction_records_screen.dart';
-import '../screens/personal/card_packages_screen.dart';
-import '../screens/personal/add_card_package_screen.dart';
-import '../screens/personal/vip_screen.dart';
-import '../screens/personal/bet_records_screen.dart';
-import '../screens/personal/capital_records_screen.dart';
-import '../screens/personal/notifications_screen.dart';
-import '../screens/personal/share_invite_screen.dart';
-import '../screens/wallet/recharge_screen.dart';
-import '../screens/wallet/recharge_detail_screen.dart';
-import '../screens/wallet/withdraw_screen.dart';
-import '../screens/wallet/transfer_screen.dart';
-import '../utils/auth_helper.dart';
+import 'package:my_flutter_app/screens/home_screen.dart';
+import 'package:my_flutter_app/screens/placeholder_screen.dart';
+import 'package:my_flutter_app/screens/auth/login_screen.dart';
+import 'package:my_flutter_app/screens/auth/register_screen.dart';
+import 'package:my_flutter_app/screens/basic/activities_screen.dart';
+import 'package:my_flutter_app/screens/basic/activities_detail_screen.dart';
+import 'package:my_flutter_app/screens/basic/games_screen.dart';
+import 'package:my_flutter_app/screens/basic/game_view_screen.dart';
+import 'package:my_flutter_app/screens/basic/search_screen.dart';
+import 'package:my_flutter_app/screens/basic/customer_service_screen.dart';
+import 'package:my_flutter_app/screens/basic/about_us_screen.dart';
+import 'package:my_flutter_app/screens/basic/feedback_screen.dart';
+import 'package:my_flutter_app/screens/basic/password_reset_screen.dart';
+import 'package:my_flutter_app/screens/basic/system_maintenance_screen.dart';
+import 'package:my_flutter_app/screens/personal/share_invite_screen.dart';
+import 'package:my_flutter_app/screens/basic/agent_cooperation_screen.dart';
+import 'package:my_flutter_app/screens/personal/personal_center_screen.dart';
+import 'package:my_flutter_app/screens/personal/profile_screen.dart';
+import 'package:my_flutter_app/screens/personal/profile_edit_screen.dart';
+import 'package:my_flutter_app/screens/personal/transaction_records_screen.dart';
+import 'package:my_flutter_app/screens/personal/card_packages_screen.dart';
+import 'package:my_flutter_app/screens/personal/add_card_package_screen.dart';
+import 'package:my_flutter_app/screens/personal/vip_screen.dart';
+import 'package:my_flutter_app/screens/personal/bet_records_screen.dart';
+import 'package:my_flutter_app/screens/personal/capital_records_screen.dart';
+import 'package:my_flutter_app/screens/personal/notifications_screen.dart';
+import 'package:my_flutter_app/screens/wallet/recharge_screen.dart';
+import 'package:my_flutter_app/screens/wallet/recharge_detail_screen.dart';
+import 'package:my_flutter_app/screens/wallet/withdraw_screen.dart';
+import 'package:my_flutter_app/screens/wallet/transfer_screen.dart';
+import 'package:my_flutter_app/widgets/payment_webview/payment_webview.dart';
+import 'package:my_flutter_app/utils/auth_helper.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -126,6 +126,18 @@ class AppRouter {
         redirect: _authGuard,
       ),
       GoRoute(
+        path: '/personal-center-profile-gender',
+        name: 'personal-center-profile-gender',
+        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.gender),
+        redirect: _authGuard,
+      ),
+      GoRoute(
+        path: '/personal-center-profile-borntime',
+        name: 'personal-center-profile-borntime',
+        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.bornTime),
+        redirect: _authGuard,
+      ),
+      GoRoute(
         path: '/personal-center-profile-paypassword',
         name: 'personal-center-profile-paypassword',
         builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.payPassword),
@@ -134,7 +146,10 @@ class AppRouter {
       GoRoute(
         path: '/personal-center-transaction-records',
         name: 'personal-center-transaction-records',
-        builder: (context, state) => const TransactionRecordsScreen(),
+        builder: (context, state) {
+          final index = int.tryParse(state.uri.queryParameters['index'] ?? '0') ?? 0;
+          return TransactionRecordsScreen(initialIndex: index);
+        },
         redirect: _authGuard,
       ),
       GoRoute(
@@ -168,8 +183,8 @@ class AppRouter {
         redirect: _authGuard,
       ),
       GoRoute(
-        path: '/notifications',
-        name: 'notifications',
+        path: '/personal-center-notifications',
+        name: 'personal-center-notifications',
         builder: (context, state) => const NotificationsScreen(),
         redirect: _authGuard,
       ),
@@ -209,6 +224,17 @@ class AppRouter {
         path: '/wallet-transfer',
         name: 'wallet-transfer',
         builder: (context, state) => const TransferScreen(),
+        redirect: _authGuard,
+      ),
+      GoRoute(
+        path: '/payment-webview',
+        name: 'payment-webview',
+        builder: (context, state) {
+          final uri = state.uri;
+          final url = uri.queryParameters['url'] ?? '';
+          final title = uri.queryParameters['title'] ?? '支付';
+          return PaymentWebView(url: url, title: title);
+        },
         redirect: _authGuard,
       ),
       

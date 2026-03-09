@@ -182,31 +182,8 @@ class SubCategory {
     this.label,
   });
 
-  factory SubCategory.fromJson(Map<String, dynamic> json) {
-    return SubCategory(
-      id: json['id'] as int?,
-      title: json['title'] as String?,
-      h5Logo: (json['h5_logo'] as String?)?.trim(),
-      pcLogo: (json['pc_logo'] as String?)?.trim(),
-      gamecode: json['gamecode'] as String?,
-      category: json['category'] as int?,
-      statusS: json['status_s'] as int?,
-      img: (json['img'] as String?)?.trim(),
-      label: json['label'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'h5_logo': h5Logo,
-    'pc_logo': pcLogo,
-    'gamecode': gamecode,
-    'category': category,
-    'status_s': statusS,
-    'img': img,
-    'label': label,
-  };
+  factory SubCategory.fromJson(Map<String, dynamic> json) => _$SubCategoryFromJson(json);
+  Map<String, dynamic> toJson() => _$SubCategoryToJson(this);
 }
 
 @JsonSerializable()
@@ -247,15 +224,7 @@ class GameItem {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'img': img,
-    'game_code': gameCode,
-    'favorites': favorites,
-    'is_category_result': isCategoryResult,
-    'is_hot': isHot,
-  };
+  Map<String, dynamic> toJson() => _$GameItemToJson(this);
 
   static bool? _toBool(dynamic val) {
     if (val == null) return null;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_swiper_view/flutter_swiper_view.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../models/home_data.dart';
-import '../../theme/app_theme.dart';
-import '../common/skeleton_widget.dart';
-import '../common/web_safe_image.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 
 class HomeBanner extends StatelessWidget {
   final List<BannerModel> banners;
@@ -59,7 +59,7 @@ class HomeBanner extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          title ?? "广告图",
+          title ?? "广告位",
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,

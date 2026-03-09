@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_theme.dart';
-import '../../providers/auth_provider.dart';
-import '../../models/auth_models.dart';
-import '../../services/auth_service.dart';
-import '../../providers/home_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/models/auth_models.dart';
+import 'package:my_flutter_app/services/auth_service.dart';
+import 'package:my_flutter_app/providers/home_provider.dart';
+import 'package:my_flutter_app/utils/toast_utils.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   final String? redirectPath;
@@ -111,21 +112,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
 
     final response = await ref.read(authProvider.notifier).login(request);
-
+    
     if (mounted) {
       if (response.isSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('登录成功')),
-        );
+        ToastUtils.showSuccess('登录成功');
         if (widget.redirectPath != null) {
           context.go(widget.redirectPath!);
         } else {
           context.go('/home');
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.msg ?? '登录失败')),
-        );
+        ToastUtils.showError(response.msg ?? '登录失败');
         _refreshCaptcha();
         _captchaController.clear();
       }
@@ -309,7 +306,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        color: AppTheme.primary.withValues(alpha: 0.1),
+        color: AppTheme.primary.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextButton(
@@ -326,7 +323,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.deepPurple.withValues(alpha: 0.1),
+            color: Colors.deepPurple.withAlpha(26),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -419,7 +416,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               decoration: BoxDecoration(
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                border: Border.all(color: Colors.white.withAlpha(13)),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(11),
@@ -481,7 +478,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+              borderSide: BorderSide(color: Colors.white.withAlpha(13)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

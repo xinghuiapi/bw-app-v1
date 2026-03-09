@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:my_flutter_app/api/dio_client.dart';
 
 /// 语言 Provider，管理当前应用的语言代码 (如 'CN', 'EN' 等)
 class LanguageNotifier extends Notifier<String> {
@@ -19,6 +20,7 @@ class LanguageNotifier extends Notifier<String> {
     final savedLanguage = prefs.getString(_storageKey);
     if (savedLanguage != null) {
       state = savedLanguage;
+      DioClient().authInterceptor.updateLanguage(savedLanguage);
     }
   }
 
@@ -27,9 +29,10 @@ class LanguageNotifier extends Notifier<String> {
     if (state == langCode) return;
     
     state = langCode;
+    DioClient().authInterceptor.updateLanguage(langCode);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storageKey, langCode);
   }
 }
 
-final languageProvider = NotifierProvider<LanguageNotifier, String>(LanguageNotifier.new);
+final languageProvider = NotifierProvider.autoDispose<LanguageNotifier, String>(LanguageNotifier.new);

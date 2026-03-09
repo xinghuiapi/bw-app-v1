@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:go_router/go_router.dart';
-import '../models/api_response.dart';
-import '../models/game_model.dart';
-import '../models/home_data.dart';
-import '../services/game_service.dart';
-import '../router/app_router.dart';
-import '../widgets/common/state_widgets.dart';
-import 'auth_provider.dart';
-import 'home_provider.dart';
-import 'language_provider.dart';
+import 'package:my_flutter_app/models/api_response.dart';
+import 'package:my_flutter_app/models/game_model.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/services/game_service.dart';
+import 'package:my_flutter_app/router/app_router.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/language_provider.dart';
 
-final gameLauncherProvider = Provider((ref) => GameLauncher(ref));
+final gameLauncherProvider = Provider.autoDispose((ref) => GameLauncher(ref));
 
 class GameLauncher {
   final Ref _ref;
@@ -93,7 +90,7 @@ class GameLauncher {
       if (apiResponse.isSuccess && apiResponse.data != null) {
         final loginData = apiResponse.data!;
         if (loginData.url != null) {
-          // 跳转到内部 GameViewScreen 展现游戏
+          // 跳转到内置 GameViewScreen 展现游戏
           AppRouter.router.push('/game-view', extra: {
             'url': loginData.url,
             'title': gameTitle,

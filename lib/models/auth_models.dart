@@ -4,7 +4,7 @@ part 'auth_models.g.dart';
 
 @JsonSerializable()
 class LoginRequest {
-  final int type; // 1普通登陆，2邮箱登录，3手机号登陆
+  final int type; // 1普通登录，2邮箱登录，3手机号登录
   final String? username;
   final String? password;
   final String? email;

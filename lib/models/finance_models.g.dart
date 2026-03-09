@@ -9,37 +9,91 @@ part of 'finance_models.dart';
 DepositCategory _$DepositCategoryFromJson(Map<String, dynamic> json) =>
     DepositCategory(
       id: (json['id'] as num).toInt(),
-      name: json['name'] as String,
-      icon: json['icon'] as String?,
+      name: json['title'] as String?,
+      icon: json['img'] as String?,
+      msg: json['msg'] as String?,
+      code: json['code'] as String?,
     );
 
 Map<String, dynamic> _$DepositCategoryToJson(DepositCategory instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'name': instance.name,
-      'icon': instance.icon,
+      'title': instance.name,
+      'img': instance.icon,
+      'msg': instance.msg,
+      'code': instance.code,
     };
+
+TransferCategory _$TransferCategoryFromJson(Map<String, dynamic> json) =>
+    TransferCategory(
+      id: (json['id'] as num).toInt(),
+      name: json['title'] as String?,
+      code: json['code'] as String?,
+      icon: json['icon'] as String?,
+      pcLogo: json['pc_logo'] as String?,
+    );
+
+Map<String, dynamic> _$TransferCategoryToJson(TransferCategory instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.name,
+      'code': instance.code,
+      'icon': instance.icon,
+      'pc_logo': instance.pcLogo,
+    };
+
+GameBalance _$GameBalanceFromJson(Map<String, dynamic> json) => GameBalance(
+  id: (json['id'] as num).toInt(),
+  money: json['money'],
+  title: json['title'] as String?,
+);
+
+Map<String, dynamic> _$GameBalanceToJson(GameBalance instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'money': instance.money,
+      'title': instance.title,
+    };
+
+TransferMoneyRequest _$TransferMoneyRequestFromJson(
+  Map<String, dynamic> json,
+) => TransferMoneyRequest(
+  id: (json['id'] as num).toInt(),
+  money: (json['money'] as num).toInt(),
+);
+
+Map<String, dynamic> _$TransferMoneyRequestToJson(
+  TransferMoneyRequest instance,
+) => <String, dynamic>{'id': instance.id, 'money': instance.money};
 
 DepositChannel _$DepositChannelFromJson(Map<String, dynamic> json) =>
     DepositChannel(
       id: (json['id'] as num).toInt(),
-      name: json['name'] as String,
+      name: json['title'] as String?,
       icon: json['icon'] as String?,
-      min: (json['min'] as num).toDouble(),
-      max: (json['max'] as num).toDouble(),
+      min: _stringToDouble(json['min']),
+      max: _stringToDouble(json['max']),
       type: json['type'] as String?,
       bankCode: json['bank_code'] as String?,
+      amountType: (json['amount_type'] as num?)?.toInt(),
+      amount: json['amount'] as List<dynamic>?,
+      giveType: (json['give_type'] as num?)?.toInt(),
+      giveMoney: _stringToDouble(json['give_money']),
     );
 
 Map<String, dynamic> _$DepositChannelToJson(DepositChannel instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'name': instance.name,
+      'title': instance.name,
       'icon': instance.icon,
       'min': instance.min,
       'max': instance.max,
       'type': instance.type,
       'bank_code': instance.bankCode,
+      'amount_type': instance.amountType,
+      'amount': instance.amount,
+      'give_type': instance.giveType,
+      'give_money': instance.giveMoney,
     };
 
 DepositOrderRequest _$DepositOrderRequestFromJson(Map<String, dynamic> json) =>
@@ -58,6 +112,9 @@ DepositOrderResponse _$DepositOrderResponseFromJson(
   url: json['url'] as String?,
   qrcode: json['qrcode'] as String?,
   orderNo: json['order_no'] as String?,
+  id: (json['id'] as num?)?.toInt(),
+  orderId: (json['order_id'] as num?)?.toInt(),
+  data: json['data'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$DepositOrderResponseToJson(
@@ -66,6 +123,9 @@ Map<String, dynamic> _$DepositOrderResponseToJson(
   'url': instance.url,
   'qrcode': instance.qrcode,
   'order_no': instance.orderNo,
+  'id': instance.id,
+  'order_id': instance.orderId,
+  'data': instance.data,
 };
 
 WithdrawRequest _$WithdrawRequestFromJson(Map<String, dynamic> json) =>
@@ -85,8 +145,16 @@ Map<String, dynamic> _$WithdrawRequestToJson(WithdrawRequest instance) =>
 PaymentMethod _$PaymentMethodFromJson(Map<String, dynamic> json) =>
     PaymentMethod(
       id: (json['id'] as num).toInt(),
-      bankName: json['bank_name'] as String,
-      cardNumber: json['card_number'] as String,
+      card: json['card'] as String?,
+      img: json['img'] as String?,
+      qrcode: json['qrcode'] as String?,
+      alias: json['alias'] as String?,
+      title: json['title'] as String?,
+      rete: json['rete'],
+      type: (json['type'] as num?)?.toInt(),
+      status: (json['status'] as num?)?.toInt(),
+      bankName: json['bank_name'] as String?,
+      cardNumber: json['card_number'] as String?,
       name: json['name'] as String?,
       address: json['address'] as String?,
     );
@@ -94,6 +162,14 @@ PaymentMethod _$PaymentMethodFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$PaymentMethodToJson(PaymentMethod instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'card': instance.card,
+      'img': instance.img,
+      'qrcode': instance.qrcode,
+      'alias': instance.alias,
+      'title': instance.title,
+      'rete': instance.rete,
+      'type': instance.type,
+      'status': instance.status,
       'bank_name': instance.bankName,
       'card_number': instance.cardNumber,
       'name': instance.name,
@@ -178,16 +254,76 @@ Map<String, dynamic> _$RebateRecordToJson(RebateRecord instance) =>
       'created_at': instance.createdAt,
     };
 
+RechargeParams _$RechargeParamsFromJson(Map<String, dynamic> json) =>
+    RechargeParams(
+      merchant: json['merchant'] as String?,
+      payKey: json['pay_key'] as String?,
+      payUrl: json['pay_url'] as String?,
+      payCode: json['pay_code'] as String?,
+      code: json['code'] as String?,
+      name: json['name'] as String?,
+      account: json['account'] as String?,
+      addres: json['addres'] as String?,
+      bankName: json['bank_name'] as String?,
+      bank: json['bank'] as String?,
+      card: json['card'] as String?,
+      address: json['address'] as String?,
+    );
+
+Map<String, dynamic> _$RechargeParamsToJson(RechargeParams instance) =>
+    <String, dynamic>{
+      'merchant': instance.merchant,
+      'pay_key': instance.payKey,
+      'pay_url': instance.payUrl,
+      'pay_code': instance.payCode,
+      'code': instance.code,
+      'name': instance.name,
+      'account': instance.account,
+      'addres': instance.addres,
+      'bank_name': instance.bankName,
+      'bank': instance.bank,
+      'card': instance.card,
+      'address': instance.address,
+    };
+
+RechargeDetail _$RechargeDetailFromJson(Map<String, dynamic> json) =>
+    RechargeDetail(
+      params: json['params'] == null
+          ? null
+          : RechargeParams.fromJson(json['params'] as Map<String, dynamic>),
+      money: _stringToDouble(json['money']),
+      hl: _stringToDoubleNullable(json['hl']),
+      usdtMoney: _stringToDoubleNullable(json['usdt_money']),
+      img: json['img'] as String?,
+      currency: json['currency'] as String?,
+      type: _stringToIntNullable(json['type']),
+    );
+
+Map<String, dynamic> _$RechargeDetailToJson(RechargeDetail instance) =>
+    <String, dynamic>{
+      'params': instance.params,
+      'money': instance.money,
+      'hl': instance.hl,
+      'usdt_money': instance.usdtMoney,
+      'img': instance.img,
+      'currency': instance.currency,
+      'type': instance.type,
+    };
+
 BankType _$BankTypeFromJson(Map<String, dynamic> json) => BankType(
   id: (json['id'] as num).toInt(),
   name: json['name'] as String,
+  title: json['title'] as String?,
   code: json['code'] as String?,
+  img: json['img'] as String?,
 );
 
 Map<String, dynamic> _$BankTypeToJson(BankType instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
+  'title': instance.title,
   'code': instance.code,
+  'img': instance.img,
 };
 
 BindPaymentRequest _$BindPaymentRequestFromJson(Map<String, dynamic> json) =>
@@ -255,25 +391,3 @@ Map<String, dynamic> _$MoneyLogToJson(MoneyLog instance) => <String, dynamic>{
   'created_at': instance.createdAt,
   'rowid': instance.rowid,
 };
-
-BettingRecord _$BettingRecordFromJson(Map<String, dynamic> json) =>
-    BettingRecord(
-      id: (json['id'] as num).toInt(),
-      gameName: json['game_name'] as String,
-      betAmount: (json['bet_amount'] as num).toDouble(),
-      winAmount: (json['win_amount'] as num).toDouble(),
-      netAmount: (json['net_amount'] as num).toDouble(),
-      betTime: json['bet_time'] as String,
-      status: (json['status'] as num).toInt(),
-    );
-
-Map<String, dynamic> _$BettingRecordToJson(BettingRecord instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'game_name': instance.gameName,
-      'bet_amount': instance.betAmount,
-      'win_amount': instance.winAmount,
-      'net_amount': instance.netAmount,
-      'bet_time': instance.betTime,
-      'status': instance.status,
-    };

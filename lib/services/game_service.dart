@@ -1,9 +1,31 @@
+import 'dart:convert';
 import 'package:my_flutter_app/api/dio_client.dart';
 import 'package:my_flutter_app/models/api_response.dart';
 import 'package:my_flutter_app/models/game_model.dart';
 import 'package:my_flutter_app/models/betting_models.dart';
 
 class GameService {
+  /// 内部通用的响应解析方法，处理 Dio 未自动解析为 Map 的情况
+  static ApiResponse<T> _parseResponse<T>(
+    dynamic responseData,
+    T Function(Object? json) fromJsonT,
+  ) {
+    try {
+      Map<String, dynamic> jsonMap;
+      if (responseData is Map<String, dynamic>) {
+        jsonMap = responseData;
+      } else if (responseData is String) {
+        jsonMap = jsonDecode(responseData) as Map<String, dynamic>;
+      } else {
+        return ApiResponse(code: -1, msg: '未知响应格式: ${responseData.runtimeType}');
+      }
+
+      return ApiResponse<T>.fromJson(jsonMap, fromJsonT);
+    } catch (e) {
+      return ApiResponse(code: -1, msg: '解析响应失败: $e');
+    }
+  }
+
   /// 获取投注记录列表
   /// 接口: /api/gamerecord/getlist
   static Future<ApiResponse<BettingRecordsResponse>> getBettingRecords({
@@ -27,7 +49,7 @@ class GameService {
 
       final response = await api.post('/gamerecord/getlist', data: data);
       
-      return ApiResponse<BettingRecordsResponse>.fromJson(
+      return _parseResponse<BettingRecordsResponse>(
         response.data,
         (json) => BettingRecordsResponse.fromJson(json as Map<String, dynamic>),
       );
@@ -42,7 +64,7 @@ class GameService {
     try {
       final response = await api.post('/interface/class');
       
-      return ApiResponse<List<BettingCategory>>.fromJson(
+      return _parseResponse<List<BettingCategory>>(
         response.data,
         (json) {
           if (json is List) {
@@ -62,7 +84,7 @@ class GameService {
     try {
       final response = await api.post('/interface/list', data: {'code': code});
       
-      return ApiResponse<List<BettingCategory>>.fromJson(
+      return _parseResponse<List<BettingCategory>>(
         response.data,
         (json) {
           if (json is List) {
@@ -91,7 +113,7 @@ class GameService {
         'size': size,
       });
       
-      return ApiResponse<GameListResponse>.fromJson(
+      return _parseResponse<GameListResponse>(
         response.data,
         (json) {
           if (json is Map<String, dynamic>) {
@@ -119,7 +141,7 @@ class GameService {
         'size': size,
       });
       
-      return ApiResponse<GameListResponse>.fromJson(
+      return _parseResponse<GameListResponse>(
         response.data,
         (json) {
           if (json is Map<String, dynamic>) {
@@ -146,9 +168,14 @@ class GameService {
         options: dioOptions(headers: {'lang': lang}),
       );
       
-      return ApiResponse<GameLoginResponse>.fromJson(
+      return _parseResponse<GameLoginResponse>(
         response.data,
-        (json) => GameLoginResponse.fromJson(json as Map<String, dynamic>),
+        (json) {
+          if (json is Map<String, dynamic>) {
+            return GameLoginResponse.fromJson(json);
+          }
+          return GameLoginResponse();
+        },
       );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
@@ -168,9 +195,14 @@ class GameService {
         options: dioOptions(headers: {'lang': lang}),
       );
       
-      return ApiResponse<GameLoginResponse>.fromJson(
+      return _parseResponse<GameLoginResponse>(
         response.data,
-        (json) => GameLoginResponse.fromJson(json as Map<String, dynamic>),
+        (json) {
+          if (json is Map<String, dynamic>) {
+            return GameLoginResponse.fromJson(json);
+          }
+          return GameLoginResponse();
+        },
       );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
@@ -183,7 +215,7 @@ class GameService {
     try {
       final response = await api.post('/game/balance');
       
-      return ApiResponse<BalanceResponse>.fromJson(
+      return _parseResponse<BalanceResponse>(
         response.data,
         (json) {
           if (json is Map<String, dynamic>) {

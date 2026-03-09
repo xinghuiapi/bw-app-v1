@@ -243,20 +243,20 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
   }
 
   Widget _buildGameList(GameCategory category, SubCategory subCategory) {
-    final Map<String, dynamic> gameParams = {
-      'game': subCategory.gamecode,
-      'code': category.code,
-      'size': 30,
-    };
+    final params = GameListParams(
+      game: subCategory.gamecode ?? '',
+      code: category.code ?? '',
+      size: 30,
+    );
     
     // 获取 provider 状态
-    final gameState = ref.watch(gameListProvider(gameParams));
+    final gameState = ref.watch(gameListProvider(params));
     
     // 监听滚动到底部事件
     ref.listen(scrollBottomProvider, (previous, next) {
       if (next == true) {
         // 当滚动到底部时，加载更多
-        ref.read(gameListProvider(gameParams).notifier).loadMore();
+        ref.read(gameListProvider(params).notifier).loadMore();
       }
     });
 
@@ -278,12 +278,12 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
             ],
           ),
         ),
-        _buildGameListContent(gameState, gameParams),
+        _buildGameListContent(gameState, params),
       ],
     );
   }
 
-  Widget _buildGameListContent(GameListPaginationState state, Map<String, dynamic> gameParams) {
+  Widget _buildGameListContent(GameListPaginationState state, GameListParams params) {
     // 如果是第一页加载中，显示骨架屏
     if (state.currentPage == 0 && state.isLoading) {
       return const Padding(
@@ -296,7 +296,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     if (state.error != null && state.items.isEmpty) {
       return ErrorStateWidget(
         message: '加载游戏失败: ${state.error}',
-        onRetry: () => ref.read(gameListProvider(gameParams).notifier).loadMore(),
+        onRetry: () => ref.read(gameListProvider(params).notifier).loadMore(),
       );
     }
 

@@ -1,11 +1,13 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:my_flutter_app/router/app_router.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/providers/language_provider.dart';
 import 'package:my_flutter_app/providers/theme_provider.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
+import 'package:my_flutter_app/gen/strings.g.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,10 +60,12 @@ void main() {
     debugPrint('===================');
     return true;
   };
-
+  
   runApp(
-    const ProviderScope(
-      child: MyApp(),
+    ProviderScope(
+      child: TranslationProvider(
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -129,6 +133,10 @@ class _MyAppState extends ConsumerState<MyApp> {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       routerConfig: AppRouter.router,
+      // 多语言配置
+      locale: TranslationProvider.of(context).flutterLocale,
+      supportedLocales: AppLocaleUtils.instance.supportedLocales,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
     );
   }
 }

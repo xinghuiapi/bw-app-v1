@@ -9,7 +9,7 @@ import 'package:my_flutter_app/providers/language_provider.dart';
 /// 反馈分类提供者
 final feedbackTypesProvider = FutureProvider.autoDispose<List<FeedbackType>>((ref) async {
   final lang = ref.watch(languageProvider);
-  final response = await HomeService.getFeedbackTypes(lang: lang);
+  final response = await HomeService.getFeedbackTypes(lang: lang.apiCode);
   if (response.isSuccess) {
     return response.data ?? [];
   }
@@ -93,7 +93,7 @@ class FeedbackSubmitNotifier extends Notifier<FeedbackSubmitState> {
         
         formData.fields.add(const MapEntry('name', 'feedback'));
         
-        final uploadResponse = await HomeService.uploadImage(formData, lang: lang);
+        final uploadResponse = await HomeService.uploadImage(formData, lang: lang.apiCode);
         if (uploadResponse.isSuccess && uploadResponse.data != null) {
           uploadedImageUrl = uploadResponse.data;
         } else {
@@ -110,7 +110,7 @@ class FeedbackSubmitNotifier extends Notifier<FeedbackSubmitState> {
         typeId,
         content,
         img: uploadedImageUrl,
-        lang: lang,
+        lang: lang.apiCode,
       );
 
       if (response.isSuccess) {

@@ -16,8 +16,10 @@ class AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
     
-    // 默认语言设置
-    options.headers['lang'] = _currentLang ?? 'CN';
+    // 仅在未设置 lang 头时设置默认值
+    if (!options.headers.containsKey('lang')) {
+      options.headers['lang'] = _currentLang ?? 'CN';
+    }
     
     return handler.next(options);
   }

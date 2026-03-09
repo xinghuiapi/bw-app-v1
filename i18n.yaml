@@ -4,7 +4,7 @@
 base_locale: zh
 fallback_strategy: base_locale
 input_directory: assets/translations
-output_directory: lib/i18n
+output_directory: lib/gen
 output_file_name: strings.g.dart
 translate_var: t
 enum_name: AppLocale

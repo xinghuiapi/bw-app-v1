@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/home_data.dart';
-import '../../theme/app_theme.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 
 class AppDownloadBar extends StatefulWidget {
   final SiteConfig? siteConfig;

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_theme.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
 
-class AppFooter extends StatelessWidget {
+class AppFooter extends ConsumerWidget {
   const AppFooter({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final String location = GoRouterState.of(context).uri.path;
+    final isLoggedIn = ref.watch(authProvider).isLoggedIn;
 
     return SafeArea(
       top: false,
@@ -15,12 +18,12 @@ class AppFooter extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.secondary,
           border: Border(
-            top: BorderSide(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
+            top: BorderSide(color: Colors.white.withAlpha(13), width: 0.5),
           ),
         ),
         child: BottomNavigationBar(
           currentIndex: _getSelectedIndex(location),
-          onTap: (index) => _onItemTapped(context, index),
+          onTap: (index) => _onItemTapped(context, ref, index, isLoggedIn),
           backgroundColor: Colors.transparent,
           elevation: 0,
           type: BottomNavigationBarType.fixed,
@@ -59,7 +62,13 @@ class AppFooter extends StatelessWidget {
     return 0;
   }
 
-  void _onItemTapped(BuildContext context, int index) {
+  void _onItemTapped(BuildContext context, WidgetRef ref, int index, bool isLoggedIn) {
+    // 未登录时，点击底部任何导航都跳转登录页
+    if (!isLoggedIn) {
+      context.push('/login');
+      return;
+    }
+
     switch (index) {
       case 0:
         context.go('/home');

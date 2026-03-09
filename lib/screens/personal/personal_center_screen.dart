@@ -3,14 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/user_provider.dart';
-import '../../providers/theme_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../models/user.dart';
-import '../../widgets/layout/footer_widget.dart';
-import '../../widgets/common/web_safe_image.dart';
-import '../../utils/constants.dart';
+import 'package:my_flutter_app/utils/toast_utils.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/providers/theme_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/models/user.dart';
+import 'package:my_flutter_app/widgets/layout/footer_widget.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/utils/constants.dart';
 
 class PersonalCenterScreen extends ConsumerWidget {
   const PersonalCenterScreen({super.key});
@@ -22,24 +23,7 @@ class PersonalCenterScreen extends ConsumerWidget {
     final user = userState.user;
 
     if (!authState.isLoggedIn) {
-      return Scaffold(
-        backgroundColor: AppTheme.background,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.account_circle_outlined, size: 80, color: AppTheme.textTertiary),
-              const SizedBox(height: 16),
-              const Text('您还未登录', style: TextStyle(color: AppTheme.textSecondary, fontSize: 16)),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => context.push('/login'),
-                child: const Text('立即登录'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     if (userState.isLoading && user == null) {
@@ -86,7 +70,7 @@ class PersonalCenterScreen extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 35,
-                      backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                      backgroundColor: AppTheme.primary.withAlpha(25),
                       child: ClipOval(
                         child: _buildAvatar(user),
                       ),
@@ -111,12 +95,12 @@ class PersonalCenterScreen extends ConsumerWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [AppTheme.warning, AppTheme.warning.withValues(alpha: 0.7)],
+                                    colors: [AppTheme.warning, AppTheme.warning.withAlpha(178)],
                                   ),
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.warning.withValues(alpha: 0.3),
+                                      color: AppTheme.warning.withAlpha(76),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -229,7 +213,7 @@ class PersonalCenterScreen extends ConsumerWidget {
     
     if (avatarUrl == null || avatarUrl.isEmpty) {
       return Container(
-        color: AppTheme.primary.withValues(alpha: 0.1),
+        color: AppTheme.primary.withAlpha(25),
         alignment: Alignment.center,
         child: Text(
           displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
@@ -254,7 +238,7 @@ class PersonalCenterScreen extends ConsumerWidget {
       height: 70,
       fit: BoxFit.cover,
       errorWidget: Container(
-        color: AppTheme.primary.withValues(alpha: 0.1),
+        color: AppTheme.primary.withAlpha(25),
         alignment: Alignment.center,
         child: Text(
           displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
@@ -334,7 +318,7 @@ class PersonalCenterScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withAlpha(51),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -496,7 +480,7 @@ class PersonalCenterScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withAlpha(25),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 24),
@@ -518,10 +502,8 @@ class PersonalCenterScreen extends ConsumerWidget {
       child: Column(
         children: [
           _buildListItem(context, Icons.person_outline, '个人资料', '查看并完善您的个人信息', () => context.push('/personal-center-profile'), iconColor: Colors.blue),
-          _buildListItem(context, Icons.receipt_long_outlined, '交易记录', '充值、提现及资金流水', () => context.push('/personal-center-transaction-records'), iconColor: Colors.orange),
-          _buildListItem(context, Icons.account_balance_outlined, '资金记录', '查看详细资金流水', () => context.push('/personal-center-capital-records'), iconColor: Colors.blueAccent),
-          _buildListItem(context, Icons.notifications_none_outlined, '消息通知', '站内信与系统通知', () => context.push('/notifications'), iconColor: Colors.pink),
-          _buildListItem(context, Icons.history_outlined, '投注记录', '查看您的所有投注记录', () => context.push('/bet-records'), iconColor: Colors.green),
+          _buildListItem(context, Icons.receipt_long_outlined, '往来记录', '会员返水/充值提现/红利/游戏记录/账单明细', () => context.push('/personal-center-transaction-records'), iconColor: Colors.orange),
+          _buildListItem(context, Icons.notifications_none_outlined, '消息通知', '站内信与系统通知', () => context.push('/personal-center-notifications'), iconColor: Colors.pink),
           _buildListItem(context, Icons.campaign_outlined, '代理合作', '加入我们，开启创业之路', () => context.push('/agent-cooperation'), iconColor: Colors.amber),
           _buildListItem(context, Icons.share_outlined, '分享好友', '邀请好友领福利', () => context.push('/share-invite'), iconColor: Colors.teal),
           _buildListItem(context, Icons.headset_mic_outlined, '联系客服', '24小时在线为您服务', () => context.push('/customer-service'), iconColor: Colors.indigo),
@@ -571,7 +553,7 @@ class PersonalCenterScreen extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.warning.withValues(alpha: 0.1),
+          color: AppTheme.warning.withAlpha(25),
           borderRadius: BorderRadius.circular(8),
         ),
         child: const Icon(Icons.delete_outline, color: AppTheme.warning, size: 20),
@@ -654,7 +636,7 @@ class PersonalCenterScreen extends ConsumerWidget {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (iconColor ?? AppTheme.textPrimary).withValues(alpha: 0.1),
+              color: (iconColor ?? AppTheme.textPrimary).withAlpha(25),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: iconColor ?? AppTheme.textPrimary, size: 20),
@@ -710,9 +692,13 @@ class PersonalCenterScreen extends ConsumerWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(context);
-                          ref.read(authProvider.notifier).logout();
+                          // 先跳转到首页
+                          context.go('/home');
+                          // 再执行退出逻辑
+                          await ref.read(authProvider.notifier).logout();
+                          ToastUtils.showSuccess('已安全退出');
                         },
                         style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
                         child: const Text('确定退出'),

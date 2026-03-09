@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
-import '../../models/home_data.dart';
-import '../../theme/app_theme.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 
 class HomeNotices extends StatelessWidget {
   final List<NoticeModel> notices;
@@ -23,7 +23,7 @@ class HomeNotices extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
+          border: Border.all(color: Colors.white.withAlpha(13), width: 0.5),
         ),
         child: Row(
           children: [

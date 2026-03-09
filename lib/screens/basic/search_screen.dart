@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../services/game_service.dart';
-import '../../models/home_data.dart';
-import '../../providers/game_launcher_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/common/web_safe_image.dart';
-import '../../utils/constants.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/utils/constants.dart';
+import 'package:my_flutter_app/services/game_service.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/providers/game_launcher_provider.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -60,7 +59,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: '搜索游戏...',
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+            hintStyle: TextStyle(color: Colors.white.withAlpha(128)),
             border: InputBorder.none,
           ),
           onSubmitted: (_) => _handleSearch(),
@@ -116,13 +115,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: WebSafeImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                errorWidget: Container(
-                  color: AppTheme.surface,
-                  child: const Icon(Icons.gamepad, color: AppTheme.textTertiary),
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
                 ),
-              ),
             ),
           ),
           const SizedBox(height: 4),

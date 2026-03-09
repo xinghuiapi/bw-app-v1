@@ -1,6 +1,6 @@
-import '../api/dio_client.dart';
-import '../models/api_response.dart';
-import '../models/auth_models.dart';
+import 'package:my_flutter_app/api/dio_client.dart';
+import 'package:my_flutter_app/models/api_response.dart';
+import 'package:my_flutter_app/models/auth_models.dart';
 
 class AuthService {
   static Future<ApiResponse<AuthResponseData>> login(LoginRequest request) async {
@@ -46,6 +46,19 @@ class AuthService {
     }
   }
 
+  static Future<ApiResponse<void>> logout() async {
+    try {
+      // ⚠️ 对标原项目接口/token/logout
+      final response = await api.post('/token/logout');
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
   static Future<ApiResponse<CaptchaData>> getCaptcha() async {
     try {
       final response = await api.post('/captcha/get');
@@ -54,7 +67,7 @@ class AuthService {
         response.data,
         (json) {
           final map = json as Map<String, dynamic>;
-          // 验证码数据通常也在 data 字段下
+          // 验证码数据通常也在 data 字段中
           if (map.containsKey('data') && map['data'] is Map<String, dynamic>) {
             return CaptchaData.fromJson(map['data'] as Map<String, dynamic>);
           }
@@ -73,7 +86,10 @@ class AuthService {
         'username': username ?? '',
         'type': type,
       });
-      return ApiResponse<void>.fromJson(response.data, (_) {});
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -86,7 +102,10 @@ class AuthService {
         'area_code': areaCode,
         'type': type,
       });
-      return ApiResponse<void>.fromJson(response.data, (_) {});
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -108,7 +127,10 @@ class AuthService {
         if (email != null) data['email'] = email;
       }
       final response = await api.post('/code/send', data: data);
-      return ApiResponse<void>.fromJson(response.data, (_) {});
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -141,17 +163,10 @@ class AuthService {
         data['pay_password'] = payPassword ?? '';
       }
       final response = await api.post('/password/get', data: data);
-      return ApiResponse<void>.fromJson(response.data, (_) {});
-    } catch (e) {
-      return ApiResponse(code: -1, msg: e.toString());
-    }
-  }
-
-  static Future<ApiResponse<void>> logout() async {
-    try {
-      // ⚠️ 对标原项目接口 /token/logout
-      final response = await api.post('/token/logout');
-      return ApiResponse<void>.fromJson(response.data, (_) {});
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }

@@ -1,6 +1,6 @@
-import '../api/dio_client.dart';
-import '../models/api_response.dart';
-import '../models/home_data.dart';
+import 'package:my_flutter_app/api/dio_client.dart';
+import 'package:my_flutter_app/models/api_response.dart';
+import 'package:my_flutter_app/models/home_data.dart';
 
 class HomeService {
   /// 获取系统配置
@@ -17,6 +17,26 @@ class HomeService {
             return HomeData.fromJson(json['data'] as Map<String, dynamic>);
           }
           return HomeData.fromJson(json as Map<String, dynamic>);
+        },
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  /// 获取推荐游戏
+  /// 接口: /api/interface/reco
+  static Future<ApiResponse<List<SubCategory>>> getRecommendedGames() async {
+    try {
+      final response = await api.post('/interface/reco');
+      
+      return ApiResponse<List<SubCategory>>.fromJson(
+        response.data,
+        (json) {
+          if (json is List) {
+            return json.map((e) => SubCategory.fromJson(e as Map<String, dynamic>)).toList();
+          }
+          return [];
         },
       );
     } catch (e) {
@@ -198,8 +218,8 @@ class HomeService {
       final data = {
         'id': id,
         'text': text,
-        if (img != null) 'img': img,
-      };
+        'img': img,
+      }..removeWhere((key, value) => value == null);
       final response = await api.post(
         '/feedback/to',
         data: data,

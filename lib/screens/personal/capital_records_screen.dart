@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../services/finance_service.dart';
-import '../../models/finance_models.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/services/finance_service.dart';
+import 'package:my_flutter_app/models/finance_models.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class CapitalRecordsScreen extends ConsumerStatefulWidget {
   const CapitalRecordsScreen({super.key});
@@ -140,7 +140,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -188,7 +188,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Column(
         children: [
@@ -333,7 +333,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                           Text(
                             _selectedDateRange == null
                                 ? '请选择时间范围'
-                                : '${DateFormat('yyyy-MM-dd').format(_selectedDateRange!.start)} 至 ${DateFormat('yyyy-MM-dd').format(_selectedDateRange!.end)}',
+                                : '${DateFormat('yyyy-MM-dd').format(_selectedDateRange!.start)} - ${DateFormat('yyyy-MM-dd').format(_selectedDateRange!.end)}',
                             style: TextStyle(
                               color: _selectedDateRange == null ? AppTheme.textTertiary : AppTheme.textPrimary,
                               fontSize: 14,
@@ -405,7 +405,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppTheme.primary.withValues(alpha: 0.1) : AppTheme.surface,
+          color: isActive ? AppTheme.primary.withAlpha(25) : AppTheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isActive ? AppTheme.primary : Colors.transparent),
         ),

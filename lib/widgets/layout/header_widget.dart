@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_theme.dart';
-import '../../providers/home_provider.dart';
-import '../../providers/language_provider.dart';
-import '../common/skeleton_widget.dart';
-import '../common/web_safe_image.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/providers/home_provider.dart';
+import 'package:my_flutter_app/providers/language_provider.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
 
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   const AppHeader({super.key});
@@ -101,46 +101,23 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                   imageUrl: homeData.siteConfig!.logo!,
                   height: 32,
                   fit: BoxFit.contain,
-                  placeholder: const Skeleton(width: 80, height: 20),
-                  errorWidget: _buildLogoPlaceholder(homeData.siteConfig?.title),
                 )
-              : _buildLogoPlaceholder(homeData.siteConfig?.title),
-          loading: () => const Center(child: Skeleton(width: 80, height: 20)),
-          error: (_, _) => _buildLogoPlaceholder(null),
+              : const SizedBox.shrink(),
+          loading: () => const Skeleton(width: 100, height: 32),
+          error: (err, _) => const SizedBox.shrink(),
         ),
       ),
       actions: [
         IconButton(
+          icon: const Icon(Icons.search, color: AppTheme.textPrimary),
           onPressed: () => context.push('/search'),
-          icon: const Icon(Icons.search, color: AppTheme.textSecondary, size: 22),
         ),
         IconButton(
+          icon: const Icon(Icons.language, color: AppTheme.textPrimary),
           onPressed: () => _showLanguageSelector(context, ref),
-          icon: const Icon(Icons.language, color: AppTheme.textSecondary, size: 22),
-        ),
-        Builder(
-          builder: (context) => IconButton(
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-            icon: const Icon(Icons.person_outline, color: AppTheme.textSecondary, size: 22),
-          ),
         ),
         const SizedBox(width: 8),
       ],
-    );
-  }
-
-  Widget _buildLogoPlaceholder(String? title) {
-    return Center(
-      child: Text(
-        title ?? 'Cloud Gaming',
-        style: const TextStyle(
-          color: AppTheme.primary,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
-      ),
     );
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 
 class AgentCooperationScreen extends StatelessWidget {
   const AgentCooperationScreen({super.key});
@@ -46,7 +46,7 @@ class AgentCooperationScreen extends StatelessWidget {
           // 安全又可靠 (Security)
           _buildSection(
             title: '安全又可靠',
-            description: '本站使用最高的数据加密标准（安全套接字(SS) 128位加密）来保护客户个人信息，防止第三方泄露，确保数据不被公开访问。我们严格监控和管理所有数据，提供安全的用户体验。',
+            description: '本站使用最高的数据加密标准（安全套接字(SSL) 128位加密）来保护客户个人信息，防止第三方泄露，确保数据不被公开访问。我们严格监控和管理所有数据，提供安全的用户体验。',
           ),
           
           // Footer / Join Button
@@ -78,7 +78,7 @@ class AgentCooperationScreen extends StatelessWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.6),
+                    Colors.black.withAlpha(153),
                     Colors.transparent,
                   ],
                 ),
@@ -121,10 +121,10 @@ class AgentCooperationScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withAlpha(25),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -158,7 +158,7 @@ class AgentCooperationScreen extends StatelessWidget {
           Text(
             description,
             style: TextStyle(
-              color: AppTheme.textSecondary.withValues(alpha: 0.9),
+              color: AppTheme.textSecondary.withAlpha(230),
               fontSize: 14,
               height: 1.7,
             ),
@@ -188,7 +188,7 @@ class AgentCooperationScreen extends StatelessWidget {
       {
         'icon': '📄',
         'title': '平台费用明细',
-        'description': '平台流水，费用率，盈亏状况即总平台费用',
+        'description': '平台流水，费用率，盈亏状况及总平台费用',
       },
     ];
 
@@ -198,12 +198,12 @@ class AgentCooperationScreen extends StatelessWidget {
   Widget _buildAppFeaturesSection() {
     final List<Map<String, String>> items = [
       {
-        'icon': '➕',
+        'icon': '🎮',
         'title': '更丰富',
         'description': '更多游戏产品我们拥有您想要的一切',
       },
       {
-        'icon': '✅',
+        'icon': '🚀',
         'title': '更稳定',
         'description': '强大的技术团队提供最稳定的产品',
       },
@@ -231,7 +231,7 @@ class AgentCooperationScreen extends StatelessWidget {
       },
       {
         'title': '稳定',
-        'description': '介绍新客户可获得高达60%的佣金，维护老客户仍有可持续的60%佣金。',
+        'description': '介绍新客户可获得高达60%的佣金，维护老客户仍有可持续60%佣金。',
         'icon': '💹',
       },
       {
@@ -252,10 +252,10 @@ class AgentCooperationScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withAlpha(25),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -297,9 +297,9 @@ class AgentCooperationScreen extends StatelessWidget {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface.withValues(alpha: 0.4),
+                  color: AppTheme.surface.withAlpha(102),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
+                  border: Border.all(color: Colors.white.withAlpha(8)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,10 +350,10 @@ class AgentCooperationScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withAlpha(25),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -402,9 +402,9 @@ class AgentCooperationScreen extends StatelessWidget {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface.withValues(alpha: 0.4),
+                  color: AppTheme.surface.withAlpha(102),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
+                  border: Border.all(color: Colors.white.withAlpha(8)),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -412,7 +412,7 @@ class AgentCooperationScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        color: AppTheme.primary.withAlpha(25),
                         shape: BoxShape.circle,
                       ),
                       child: Text(

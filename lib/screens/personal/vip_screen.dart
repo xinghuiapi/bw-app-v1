@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/user_provider.dart';
-import '../../services/user_service.dart';
-import '../../models/user_models.dart';
-import '../../models/user.dart';
-import '../../theme/app_theme.dart';
+import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/services/user_service.dart';
+import 'package:my_flutter_app/models/user_models.dart';
+import 'package:my_flutter_app/models/user.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 import 'dart:math' as math;
 
 class VipScreen extends ConsumerStatefulWidget {
@@ -107,7 +107,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
     final currentLevel = user?.displayVipLevel ?? 'VIP0';
     final nextLevel = levelData?.nextVipLevel ?? 'VIP1';
     
-    // 计算总进度 (对标 Vue 逻辑)
+    // 计算总进度(对标 Vue 逻辑)
     final recharge = double.tryParse(levelData?.recharge?.toString() ?? '0') ?? 0;
     final nextRecharge = double.tryParse(levelData?.nextRecharge?.toString() ?? '0') ?? 0;
     final validBet = double.tryParse(levelData?.validBetAmount?.toString() ?? '0') ?? 0;
@@ -130,7 +130,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF4D4F).withValues(alpha: 0.3),
+            color: const Color(0xFFFF4D4F).withAlpha(77),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -145,7 +145,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: Colors.white.withAlpha(51),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.stars, color: Colors.white, size: 28),
@@ -172,7 +172,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: Colors.white.withAlpha(51),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -195,7 +195,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
                       value: totalPercent,
-                      backgroundColor: Colors.white.withValues(alpha: 0.3),
+                      backgroundColor: Colors.white.withAlpha(77),
                       valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                       minHeight: 8,
                     ),
@@ -209,7 +209,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
+                color: Colors.white.withAlpha(38),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -230,7 +230,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Colors.white.withAlpha(51),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -281,10 +281,10 @@ class _VipScreenState extends ConsumerState<VipScreen> {
                 child: Container(
                   width: 80,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary.withValues(alpha: 0.1) : AppTheme.cardBackground,
+                    color: isSelected ? AppTheme.primary.withAlpha(26) : AppTheme.cardBackground,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? AppTheme.primary : Colors.white.withValues(alpha: 0.05),
+                      color: isSelected ? AppTheme.primary : Colors.white.withAlpha(13),
                       width: 1.5,
                     ),
                   ),
@@ -354,7 +354,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
           decoration: BoxDecoration(
             color: AppTheme.cardBackground,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            border: Border.all(color: Colors.white.withAlpha(13)),
           ),
           child: Column(
             children: [
@@ -375,7 +375,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withAlpha(13)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -415,7 +415,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
           decoration: BoxDecoration(
             color: AppTheme.cardBackground,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            border: Border.all(color: Colors.white.withAlpha(13)),
           ),
           child: Wrap(
             spacing: 0,

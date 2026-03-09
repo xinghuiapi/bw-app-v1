@@ -8,19 +8,19 @@ part of 'user_models.dart';
 
 UserMessage _$UserMessageFromJson(Map<String, dynamic> json) => UserMessage(
   id: (json['id'] as num).toInt(),
-  title: json['title'] as String,
-  content: json['content'] as String,
-  createdAt: json['created_at'] as String,
-  isRead: (json['is_read'] as num).toInt(),
+  title: json['title'] as String?,
+  content: json['text'] as String?,
+  createdAt: json['created_at'] as String?,
+  type: (json['type'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$UserMessageToJson(UserMessage instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
-      'content': instance.content,
+      'text': instance.content,
       'created_at': instance.createdAt,
-      'is_read': instance.isRead,
+      'type': instance.type,
     };
 
 UserProfileUpdateRequest _$UserProfileUpdateRequestFromJson(
@@ -30,6 +30,7 @@ UserProfileUpdateRequest _$UserProfileUpdateRequestFromJson(
   telegram: json['telegram'] as String?,
   realName: json['real_name'] as String?,
   phone: json['phone'] as String?,
+  areaCode: json['area_code'] as String?,
   gender: json['gender'] as String?,
   bornTime: json['born_time'] as String?,
   qq: json['qq'] as String?,
@@ -44,6 +45,7 @@ Map<String, dynamic> _$UserProfileUpdateRequestToJson(
   'telegram': instance.telegram,
   'real_name': instance.realName,
   'phone': instance.phone,
+  'area_code': instance.areaCode,
   'gender': instance.gender,
   'born_time': instance.bornTime,
   'qq': instance.qq,
@@ -120,47 +122,3 @@ Map<String, dynamic> _$UserRebateInfoToJson(UserRebateInfo instance) =>
       'user_max': instance.userMax,
       'user_amount': instance.userAmount,
     };
-
-VipLevel _$VipLevelFromJson(Map<String, dynamic> json) => VipLevel(
-  id: (json['id'] as num).toInt(),
-  title: json['title'] as String,
-  chargeLevel: json['charge_level'],
-  flowingLevel: json['flowing_level'],
-  levelGive: json['level_give'],
-  weekRed: json['week_red'],
-  birthdayGive: json['birthday_give'],
-  dayCountDrawing: json['day_count_drawing'],
-  dayAmountDrawing: json['day_amount_drawing'],
-  minDrawing: json['min_drawing'],
-  minRecharge: json['min_recharge'],
-  maxRecharge: json['max_recharge'],
-  sportBl: json['sport_bl'],
-  liveBl: json['live_bl'],
-  gamesBl: json['games_bl'],
-  pokerBl: json['poker_bl'],
-  fishingBl: json['fishing_bl'],
-  lotteryBl: json['lottery_bl'],
-  gamingBl: json['gaming_bl'],
-);
-
-Map<String, dynamic> _$VipLevelToJson(VipLevel instance) => <String, dynamic>{
-  'id': instance.id,
-  'title': instance.title,
-  'charge_level': instance.chargeLevel,
-  'flowing_level': instance.flowingLevel,
-  'level_give': instance.levelGive,
-  'week_red': instance.weekRed,
-  'birthday_give': instance.birthdayGive,
-  'day_count_drawing': instance.dayCountDrawing,
-  'day_amount_drawing': instance.dayAmountDrawing,
-  'min_drawing': instance.minDrawing,
-  'min_recharge': instance.minRecharge,
-  'max_recharge': instance.maxRecharge,
-  'sport_bl': instance.sportBl,
-  'live_bl': instance.liveBl,
-  'games_bl': instance.gamesBl,
-  'poker_bl': instance.pokerBl,
-  'fishing_bl': instance.fishingBl,
-  'lottery_bl': instance.lotteryBl,
-  'gaming_bl': instance.gamingBl,
-};

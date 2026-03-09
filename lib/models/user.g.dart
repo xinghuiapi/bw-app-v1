@@ -35,7 +35,9 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   totalFlow: json['total_flow'],
   flowingAmount: json['flowing_amount'],
   totalBet: json['total_bet'],
-  payPassword: json['pay_password'] as bool?,
+  payPassword: json['pay_password'],
+  sumWater: json['sum_water'],
+  okWater: json['ok_water'],
   levelData: json['level_data'] == null
       ? null
       : LevelData.fromJson(json['level_data'] as Map<String, dynamic>),
@@ -71,6 +73,8 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'flowing_amount': instance.flowingAmount,
   'total_bet': instance.totalBet,
   'pay_password': instance.payPassword,
+  'sum_water': instance.sumWater,
+  'ok_water': instance.okWater,
   'level_data': instance.levelData,
 };
 

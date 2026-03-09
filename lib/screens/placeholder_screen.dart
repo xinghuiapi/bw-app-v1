@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 
 class PlaceholderScreen extends StatelessWidget {
   final String title;

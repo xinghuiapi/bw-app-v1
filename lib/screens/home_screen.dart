@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/home_provider.dart';
-import '../widgets/home/banner_widget.dart';
-import '../widgets/home/notices_widget.dart';
-import '../widgets/home/quick_access_widget.dart';
-import '../widgets/home/game_categories_widget.dart';
-import '../widgets/home/app_download_bar_widget.dart';
-import '../widgets/layout/header_widget.dart';
-import '../widgets/layout/footer_widget.dart';
-import '../widgets/layout/user_drawer.dart';
-import '../widgets/common/skeleton_widget.dart';
-import '../widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/providers/home_provider.dart';
+import 'package:my_flutter_app/widgets/home/banner_widget.dart';
+import 'package:my_flutter_app/widgets/home/notices_widget.dart';
+import 'package:my_flutter_app/widgets/home/quick_access_widget.dart';
+import 'package:my_flutter_app/widgets/home/game_categories_widget.dart';
+import 'package:my_flutter_app/widgets/home/app_download_bar_widget.dart';
+import 'package:my_flutter_app/widgets/layout/header_widget.dart';
+import 'package:my_flutter_app/widgets/layout/footer_widget.dart';
+import 'package:my_flutter_app/widgets/layout/user_drawer.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -21,7 +21,7 @@ class HomeScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
-      appBar: AppHeader(),
+      appBar: const AppHeader(),
       endDrawer: const UserDrawer(),
       body: homeDataAsync.when(
         data: (homeData) => RefreshIndicator(
@@ -41,12 +41,10 @@ class HomeScreen extends ConsumerWidget {
                     if (scrollInfo.depth == 0) {
                       final pixels = scrollInfo.metrics.pixels;
                       final maxScroll = scrollInfo.metrics.maxScrollExtent;
-                      // debugPrint('Scroll: $pixels / $maxScroll');
                       
                       // 距离底部 200 像素时触发加载更多
                       if (pixels >= maxScroll - 200 && maxScroll > 0) {
                         if (ref.read(scrollBottomProvider) == false) {
-                          debugPrint('Reached bottom, triggering load more');
                           ref.read(scrollBottomProvider.notifier).set(true);
                         }
                       } else {
@@ -58,45 +56,46 @@ class HomeScreen extends ConsumerWidget {
                     return false;
                   },
                   child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      // 轮播图
-                      if (homeData.banners != null)
-                        HomeBanner(banners: homeData.banners!),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // 通知栏
-                      if (homeData.notices != null)
-                        HomeNotices(notices: homeData.notices!),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // 快捷入口
-                      const QuickAccess(),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // 游戏分类
-                      categoriesAsync.when(
-                        data: (categories) => GameCategoriesWidget(categories: categories),
-                        loading: () => const CategorySkeleton(),
-                        error: (err, stack) => ErrorStateWidget(
-                          message: '加载分类失败: $err',
-                          onRetry: () => ref.invalidate(categoriesProvider),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      children: [
+                        // 轮播图
+                        if (homeData.banners != null)
+                          HomeBanner(banners: homeData.banners!),
+                        
+                        const SizedBox(height: 12),
+                        
+                        // 通知栏
+                        if (homeData.notices != null)
+                          HomeNotices(notices: homeData.notices!),
+                        
+                        const SizedBox(height: 12),
+                        
+                        // 快捷入口
+                        const QuickAccess(),
+                        
+                        const SizedBox(height: 12),
+                        
+                        // 游戏分类
+                        categoriesAsync.when(
+                          data: (categories) => GameCategoriesWidget(categories: categories),
+                          loading: () => const CategorySkeleton(),
+                          error: (err, stack) => ErrorStateWidget(
+                            message: '加载分类失败: $err',
+                            onRetry: () => ref.invalidate(categoriesProvider),
+                          ),
                         ),
-                      ),
-                          const SizedBox(height: 30),
-                        ],
-                      ),
+                        const SizedBox(height: 30),
+                      ],
                     ),
                   ),
                 ),
-                ],
               ),
-            ),
-            loading: () => const _HomeLoadingSkeleton(),
-            error: (err, stack) => ErrorStateWidget(
+            ],
+          ),
+        ),
+        loading: () => const _HomeLoadingSkeleton(),
+        error: (err, stack) => ErrorStateWidget(
           message: '加载页面数据失败: $err',
           onRetry: () => ref.invalidate(homeDataProvider),
         ),
@@ -111,19 +110,19 @@ class _HomeLoadingSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return const SingleChildScrollView(
       child: Column(
         children: [
-          const Skeleton(height: 50, borderRadius: 0), // AppDownloadBar
-          const SizedBox(height: 12),
-          const BannerSkeleton(),
-          const SizedBox(height: 12),
-          const Padding(
+          Skeleton(height: 50, borderRadius: 0), // AppDownloadBar
+          SizedBox(height: 12),
+          BannerSkeleton(),
+          SizedBox(height: 12),
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 12),
             child: Skeleton(height: 40, borderRadius: 20), // Notices
           ),
-          const SizedBox(height: 12),
-          const Padding(
+          SizedBox(height: 12),
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
@@ -137,8 +136,8 @@ class _HomeLoadingSkeleton extends StatelessWidget {
               ],
             ), // QuickAccess
           ),
-          const SizedBox(height: 12),
-          const CategorySkeleton(),
+          SizedBox(height: 12),
+          CategorySkeleton(),
         ],
       ),
     );

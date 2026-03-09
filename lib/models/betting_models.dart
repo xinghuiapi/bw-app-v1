@@ -61,11 +61,30 @@ class BettingRecordsResponse {
     this.totalNetAmount,
   });
 
-  factory BettingRecordsResponse.fromJson(Map<String, dynamic> json) => _$BettingRecordsResponseFromJson(json);
-  Map<String, dynamic> toJson() => _$BettingRecordsResponseToJson(this);
+  factory BettingRecordsResponse.fromJson(Map<String, dynamic> json) {
+    return BettingRecordsResponse(
+      data: (json['data'] as List?)
+          ?.map((e) => BettingRecord.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: json['total'] as int?,
+      currentPage: json['current_page'] as int?,
+      totalBetAmount: json['total_betAmount'],
+      totalNetAmount: json['total_netAmount'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'data': data?.map((e) => e.toJson()).toList(),
+      'total': total,
+      'current_page': currentPage,
+      'total_betAmount': totalBetAmount,
+      'total_netAmount': totalNetAmount,
+    };
+  }
 }
 
-@JsonSerializable()
+// @JsonSerializable()
 class BettingCategory {
   final int? id;
   final String? title;
@@ -73,6 +92,19 @@ class BettingCategory {
 
   BettingCategory({this.id, this.title, this.code});
 
-  factory BettingCategory.fromJson(Map<String, dynamic> json) => _$BettingCategoryFromJson(json);
-  Map<String, dynamic> toJson() => _$BettingCategoryToJson(this);
+  factory BettingCategory.fromJson(Map<String, dynamic> json) {
+    return BettingCategory(
+      id: json['id'] as int?,
+      title: json['title'] as String?,
+      code: json['code'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'code': code,
+    };
+  }
 }

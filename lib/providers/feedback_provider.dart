@@ -2,12 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
-import '../models/home_data.dart';
-import '../services/home_service.dart';
-import 'language_provider.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/services/home_service.dart';
+import 'package:my_flutter_app/providers/language_provider.dart';
 
 /// 反馈分类提供者
-final feedbackTypesProvider = FutureProvider<List<FeedbackType>>((ref) async {
+final feedbackTypesProvider = FutureProvider.autoDispose<List<FeedbackType>>((ref) async {
   final lang = ref.watch(languageProvider);
   final response = await HomeService.getFeedbackTypes(lang: lang);
   if (response.isSuccess) {
@@ -22,7 +22,8 @@ class SelectedFeedbackTypeId extends Notifier<int?> {
   int? build() => null;
   void set(int? id) => state = id;
 }
-final selectedFeedbackTypeIdProvider = NotifierProvider<SelectedFeedbackTypeId, int?>(SelectedFeedbackTypeId.new);
+
+final selectedFeedbackTypeIdProvider = NotifierProvider.autoDispose<SelectedFeedbackTypeId, int?>(SelectedFeedbackTypeId.new);
 
 /// 选中的反馈图片
 class FeedbackImage extends Notifier<String?> {
@@ -31,7 +32,8 @@ class FeedbackImage extends Notifier<String?> {
   void set(String? path) => state = path;
   void clear() => state = null;
 }
-final feedbackImageProvider = NotifierProvider<FeedbackImage, String?>(FeedbackImage.new);
+
+final feedbackImageProvider = NotifierProvider.autoDispose<FeedbackImage, String?>(FeedbackImage.new);
 
 /// 反馈提交状态
 class FeedbackSubmitState {
@@ -103,20 +105,18 @@ class FeedbackSubmitNotifier extends Notifier<FeedbackSubmitState> {
         }
       }
 
-      // 提交反馈
+      // 提交反馈内容
       final response = await HomeService.submitFeedback(
-        typeId, 
-        content, 
+        typeId,
+        content,
         img: uploadedImageUrl,
         lang: lang,
       );
-      
+
       if (response.isSuccess) {
         state = state.copyWith(isLoading: false, isSuccess: true);
-        // 成功后清除图片
-        ref.read(feedbackImageProvider.notifier).clear();
       } else {
-        state = state.copyWith(isLoading: false, error: response.msg ?? '提交失败');
+        state = state.copyWith(isLoading: false, error: response.msg);
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -128,4 +128,4 @@ class FeedbackSubmitNotifier extends Notifier<FeedbackSubmitState> {
   }
 }
 
-final feedbackSubmitProvider = NotifierProvider<FeedbackSubmitNotifier, FeedbackSubmitState>(FeedbackSubmitNotifier.new);
+final feedbackSubmitProvider = NotifierProvider.autoDispose<FeedbackSubmitNotifier, FeedbackSubmitState>(FeedbackSubmitNotifier.new);

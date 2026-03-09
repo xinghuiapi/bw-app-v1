@@ -27,7 +27,7 @@ class User {
   final int? fsStatus;
   @JsonKey(name: 'is_agent')
   final int? isAgent;
-  final int? transfer; // 1手动，2免转
+  final int? transfer; // 1手动免转
   final String? gender;
   @JsonKey(name: 'born_time')
   final String? bornTime;
@@ -47,7 +47,11 @@ class User {
   @JsonKey(name: 'total_bet')
   final dynamic totalBet;
   @JsonKey(name: 'pay_password')
-  final bool? payPassword; // 是否设置支付密码
+  final dynamic payPassword; // 可能返回 boolean, int 或 string
+  @JsonKey(name: 'sum_water')
+  final dynamic sumWater; // 所需流水
+  @JsonKey(name: 'ok_water')
+  final dynamic okWater; // 已完成流水
   @JsonKey(name: 'level_data')
   final LevelData? levelData;
 
@@ -81,8 +85,19 @@ class User {
     this.flowingAmount,
     this.totalBet,
     this.payPassword,
+    this.sumWater,
+    this.okWater,
     this.levelData,
   });
+
+  /// 是否已设置支付密码
+  bool get hasPayPassword {
+    if (payPassword == null) return false;
+    if (payPassword is bool) return payPassword;
+    if (payPassword is int) return payPassword == 1;
+    if (payPassword is String) return payPassword.isNotEmpty && payPassword != '0';
+    return false;
+  }
 
   /// 获取显示的 VIP 等级
   String get displayVipLevel {

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../providers/user_provider.dart';
-import '../../services/user_service.dart';
-import '../../models/user.dart';
-import '../../models/user_models.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/common/web_safe_image.dart';
-import '../../utils/constants.dart';
+import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/services/user_service.dart';
+import 'package:my_flutter_app/models/user.dart';
+import 'package:my_flutter_app/models/user_models.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/utils/constants.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -102,6 +102,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   _buildSectionTitle('个人信息'),
                   _buildSettingsGroup([
                     _buildSettingsCell(
+                      label: '性别',
+                      value: user?.gender ?? '未设置',
+                      onTap: () => context.push('/personal-center-profile-gender'),
+                    ),
+                    _buildSettingsCell(
+                      label: '出生日期',
+                      value: user?.bornTime ?? '未设置',
+                      onTap: () => context.push('/personal-center-profile-borntime'),
+                    ),
+                    _buildSettingsCell(
                       label: 'QQ号',
                       value: user?.qq != null ? user!.qq.toString() : '未设置',
                       onTap: () => context.push('/personal-center-profile-qq'),
@@ -148,22 +158,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         errorWidget: Container(
                           width: 70,
                           height: 70,
-                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          color: AppTheme.primary.withAlpha(26),
                           child: const Icon(Icons.person, size: 40, color: AppTheme.primary),
                         ),
                       )
                     : Container(
                         width: 70,
                         height: 70,
-                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        color: AppTheme.primary.withAlpha(26),
                         child: const Icon(Icons.person, size: 40, color: AppTheme.primary),
                       ),
                 ),
                 if (_isUploading)
                   Positioned.fill(
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
@@ -311,112 +321,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } finally {
       if (mounted) {
         setState(() => _isUploading = false);
-      }
-    }
-  }
-
-  void _showGenderPicker(BuildContext context, User? user) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.cardBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Text('选择性别', style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              const Divider(height: 1),
-              _buildGenderOption('男', user),
-              const Divider(height: 1, indent: 20, endIndent: 20),
-              _buildGenderOption('女', user),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildGenderOption(String gender, User? user) {
-    final isSelected = user?.gender == gender;
-    return ListTile(
-      onTap: () async {
-        Navigator.pop(context);
-        if (isSelected) return;
-        
-        setState(() => _isLoading = true);
-        final response = await UserService.updateUserProfile(
-          UserProfileUpdateRequest(gender: gender),
-        );
-        
-        if (mounted) {
-          setState(() => _isLoading = false);
-          if (response.code == 200) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('更新成功')));
-            ref.read(userProvider.notifier).fetchUserInfo();
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response.msg ?? '更新失败')));
-          }
-        }
-      },
-      title: Text(gender, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16)),
-      trailing: isSelected ? const Icon(Icons.check, color: AppTheme.primary) : null,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-    );
-  }
-
-  Future<void> _showBirthDatePicker(BuildContext context, User? user) async {
-    final DateTime now = DateTime.now();
-    DateTime initialDate = now;
-    
-    if (user?.bornTime != null && user!.bornTime!.isNotEmpty) {
-      try {
-        initialDate = DateTime.parse(user.bornTime!);
-      } catch (_) {}
-    }
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(1900),
-      lastDate: now,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppTheme.primary,
-              onPrimary: Colors.white,
-              surface: AppTheme.cardBackground,
-              onSurface: AppTheme.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null && mounted) {
-      final String formattedDate = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-      
-      setState(() => _isLoading = true);
-      final response = await UserService.updateUserProfile(
-        UserProfileUpdateRequest(bornTime: formattedDate),
-      );
-      
-      if (mounted) {
-        setState(() => _isLoading = false);
-        if (response.code == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('更新成功')));
-          ref.read(userProvider.notifier).fetchUserInfo();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response.msg ?? '更新失败')));
-        }
       }
     }
   }

@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../utils/auth_helper.dart';
-import '../services/auth_service.dart';
-import '../models/auth_models.dart';
-import '../models/api_response.dart';
+import 'package:my_flutter_app/services/auth_service.dart';
+import 'package:my_flutter_app/models/auth_models.dart';
+import 'package:my_flutter_app/models/api_response.dart';
+import 'package:my_flutter_app/utils/auth_helper.dart';
 
 /// 身份验证状态类
 class AuthState {
@@ -34,7 +34,7 @@ class AuthState {
   }
 }
 
-/// 身份验证提供者
+/// 身份验证提供器
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
@@ -99,6 +99,5 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 }
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(() {
-  return AuthNotifier();
-});
+/// 身份验证 Provider
+final authProvider = NotifierProvider.autoDispose<AuthNotifier, AuthState>(AuthNotifier.new);

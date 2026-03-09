@@ -23,26 +23,17 @@ class GameListResponse {
   //   "lastPage": 1
   // }
   // 这里 GameListResponse 对应的是外层 "data" 的内容
-  
   final List<GameItem>? data;
   @JsonKey(name: 'current_page')
   final int? currentPage;
   final int? total;
-  // 后端返回的是 lastPage (驼峰)，不是 last_page
   @JsonKey(name: 'lastPage')
   final int? lastPage;
 
   GameListResponse({this.data, this.currentPage, this.total, this.lastPage});
 
-  factory GameListResponse.fromJson(Map<String, dynamic> json) {
-    // 处理 data 字段为 Map 的情况 (如 {"1": {...}, "2": {...}})
-    if (json['data'] is Map) {
-      final newJson = Map<String, dynamic>.from(json);
-      newJson['data'] = (json['data'] as Map).values.toList();
-      return _$GameListResponseFromJson(newJson);
-    }
-    return _$GameListResponseFromJson(json);
-  }
+  factory GameListResponse.fromJson(Map<String, dynamic> json) => _$GameListResponseFromJson(json);
+
   Map<String, dynamic> toJson() => _$GameListResponseToJson(this);
 }
 

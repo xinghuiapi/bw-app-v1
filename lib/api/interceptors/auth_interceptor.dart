@@ -1,8 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../../utils/auth_helper.dart';
+import 'package:my_flutter_app/utils/auth_helper.dart';
 
 class AuthInterceptor extends Interceptor {
+  String? _currentLang;
+
+  void updateLanguage(String lang) {
+    _currentLang = lang;
+  }
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     final token = await AuthHelper.getToken();
@@ -10,8 +16,8 @@ class AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
     
-    // ⚠️ 增加：默认语言头 (对标原项目)
-    options.headers['lang'] = 'CN';
+    // 默认语言设置
+    options.headers['lang'] = _currentLang ?? 'CN';
     
     return handler.next(options);
   }

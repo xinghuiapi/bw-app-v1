@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/user_provider.dart';
-import '../../theme/app_theme.dart';
-import '../common/skeleton_widget.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
 
 class QuickAccess extends ConsumerWidget {
   const QuickAccess({super.key});
@@ -21,7 +21,7 @@ class QuickAccess extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
+        border: Border.all(color: Colors.white.withAlpha(13), width: 0.5),
       ),
       child: authState.isLoggedIn 
           ? (userState.isLoading && user == null
@@ -38,7 +38,7 @@ class QuickAccess extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              '下午好!',
+              '下午好',
               style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Row(
@@ -58,7 +58,7 @@ class QuickAccess extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withAlpha(51),
             borderRadius: BorderRadius.circular(8),
           ),
           child: const Row(
@@ -91,9 +91,9 @@ class QuickAccess extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        color: AppTheme.primary.withAlpha(25),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+                        border: Border.all(color: AppTheme.primary.withAlpha(76)),
                       ),
                       child: const Text('主钱包', style: TextStyle(color: AppTheme.primary, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
@@ -135,21 +135,28 @@ class QuickAccess extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              color: color.withAlpha(25),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

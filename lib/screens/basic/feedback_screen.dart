@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io' show File;
-import '../../providers/feedback_provider.dart';
-import '../../providers/language_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../models/home_data.dart';
+import 'package:my_flutter_app/providers/feedback_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 class FeedbackScreen extends ConsumerStatefulWidget {
   const FeedbackScreen({super.key});
 
@@ -132,7 +132,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   filled: true,
-                  fillColor: Colors.grey.withOpacity(0.05),
+                  fillColor: Colors.grey.withAlpha(13),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return '请输入反馈内容';
@@ -180,25 +180,25 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
   }
 
   Widget _buildPreviewImage(String imagePath) {
-    // 优先检测是否为 URL (Web端 XFile.path 返回的是 blob: URL)
+    // 优先检测是否为 URL (Web下 XFile.path 返回的是 blob: URL)
     if (imagePath.startsWith('blob:') || imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
+      return WebSafeImage(
+        imageUrl: imagePath,
         width: 100,
         height: 100,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image)),
+        errorWidget: const Center(child: Icon(Icons.broken_image)),
       );
     }
     
-    // 如果是 Web 环境，即使不是 blob 开头也强制使用 Image.network (防止意外路径)
+    // 如果是 Web 环境，即使不是 blob 开头也强制使用 WebSafeImage (防止意外路径)
     if (kIsWeb) {
-      return Image.network(
-        imagePath,
+      return WebSafeImage(
+        imageUrl: imagePath,
         width: 100,
         height: 100,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image)),
+        errorWidget: const Center(child: Icon(Icons.broken_image)),
       );
     }
 
@@ -219,8 +219,8 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
         width: 100,
         height: 100,
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.05),
-          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          color: Colors.grey.withAlpha(13),
+          border: Border.all(color: Colors.grey.withAlpha(77)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: imagePath != null
@@ -266,9 +266,9 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withAlpha(77)),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.grey.withOpacity(0.05),
+        color: Colors.grey.withAlpha(13),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(

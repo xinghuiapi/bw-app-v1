@@ -1,7 +1,257 @@
 # my_flutter_app
 
-这是一个 Flutter 项目。本文档旨在帮助新手队友快速搭建环境并运行项目。
+我先大致扫描一下整个仓库结构和主要文件，然后用通俗中文帮你总结这个 Flutter 项目的功能、模块划分和技术栈。
 
+[1 tool called]
+
+下面我用结构化的方式，用中文帮你梳理当前这个 Flutter 项目。
+
+---
+
+### 1）这是一个什么项目？
+
+- **应用类型**：一款 **云游戏平台 / 的 Flutter 客户端。
+- **核心业务功能**：
+  - **首页与推荐**：轮播 Banner、公告跑马灯、app下载提示条、游戏分类与推荐卡片等。
+  - **游戏中心**：游戏分类、游戏搜索、游戏详情、游戏启动（嵌入 WebView 或外部 H5）、游戏登录。
+  - **钱包**：充值、提现、转账、充值记录详情等资金相关操作。
+  - **用户体系**：登录/注册/重置密码、个人中心、资料编辑、VIP 信息、银行卡管理、通知中心、邀请分享等。
+  - **记录类页面**：投注记录、资金流水记录等。
+  - **活动与客服**：活动列表、活动详情页、客服入口、关于我们、合作代理介绍、系统维护页等。
+
+这些功能在代码中主要对应：
+- `lib/screens/home_screen.dart`（首页）
+- `lib/widgets/home/*`（首页各模块）
+- `lib/screens/basic/*`（活动、客服等基础页面）
+- `lib/screens/personal/*`（个人中心相关）
+- `lib/screens/wallet/*`（钱包相关）
+- `lib/services/*_service.dart`（对应的业务接口）
+
+---
+
+### 2）主要技术栈与依赖
+
+- **运行环境**
+  - **Dart SDK**：`^3.11.0`
+  - Flutter 版本由本机 SDK 决定（代码整体已适配 Dart 3）。
+
+- **重要依赖按功能分类**
+
+- **路由与导航**
+  - **`go_router`**：集中在 `lib/router/app_router.dart`，使用 `GoRouter` 声明所有页面路由，并通过 `_authGuard` 实现登录拦截。
+
+- **状态管理**
+  - **`flutter_riverpod` + `riverpod_annotation`**：项目统一使用 Riverpod 管理状态。
+  - 各业务模块都有对应的 `Notifier`：
+    - 例如：`language_provider.dart`, `theme_provider.dart`, `home_provider.dart`, `game_provider.dart`, `game_launcher_provider.dart`, `recharge_provider.dart`, `withdraw_provider.dart`, `user_provider.dart`, `auth_provider.dart`, `feedback_provider.dart` 等。
+
+- **网络层**
+  - **`dio`**：HTTP 客户端，在 `lib/api/dio_client.dart` 做统一封装（baseUrl、超时、拦截器等）。
+  - **`dio_smart_retry`**：请求失败自动重试。
+  - 自定义拦截器：
+    - `lib/api/interceptors/auth_interceptor.dart`：注入 Token、语言 Header，处理鉴权。
+    - `lib/api/interceptors/error_interceptor.dart`：统一错误日志与错误处理。
+
+- **数据模型与 JSON**
+  - **`json_annotation` + `json_serializable` + `build_runner`**：通过注解自动生成模型序列化代码。
+  - 模型示例：`home_data.dart`, `user_models.dart`, `game_model.dart`, `betting_models.dart`, `finance_models.dart`, `auth_models.dart`, `paginated_response.dart`, `api_response.dart` 等，对应的 `.g.dart` 文件自动生成。
+
+- **本地存储**
+  - **`shared_preferences`**：持久化一些简单配置，如主题模式、语言选择等，被 `theme_provider`、`language_provider` 使用。
+
+- **多语言（i18n）**
+  - **`slang` + `slang_flutter`**：核心多语言方案。
+  - **`intl`** + **`flutter_localizations`**：Flutter 自带国际化基础。
+  - 通过配置 `i18n.yaml` + `assets/translations/*.i18n.json` 生成 `lib/gen/strings*.g.dart`，在全局通过 `TranslationProvider` 和 `AppLocale` 使用。
+
+- **UI & 组件相关**
+  - `cupertino_icons`, `font_awesome_flutter`：图标库。
+  - `flutter_swiper_view`：首页轮播图。
+  - `marquee`：公告跑马灯。
+  - `shimmer`, `flutter_spinkit`：骨架屏和 Loading 动效。
+  - 自定义主题 `lib/theme/app_theme.dart`：封装浅色/深色主题和项目主色系。
+
+- **媒体/系统能力**
+  - `url_launcher`：打开外部链接。
+  - `cached_network_image`：带缓存的网络图片组件（例如游戏封面、Banner）。
+  - `image_picker`：图片选择（例如上传头像）。
+  - `webview_flutter`：嵌入支付页、游戏 Web 页面（如游戏 WebView 页、支付 H5 页）。
+  - `just_audio`：音频播放（可以用于音效或提示音）。
+  - `qr_flutter`：生成二维码（可能用于邀请/收款）。
+  - `flutter_widget_from_html`：将后端传来的 HTML 文本渲染为 Flutter Widget。
+  - `web`：Web 平台类型支持。
+
+---
+
+### 3）项目结构与各目录职责（`lib/`）
+
+- **入口与路由**
+  - `lib/main.dart`：应用总入口，初始化错误处理、Riverpod Provider 容器、多语言 Provider，构建 `MaterialApp.router`。
+  - `lib/router/app_router.dart`：通过 `go_router` 定义路由表和登录守卫（拦截未登录用户访问需要登录的页面）。
+
+- **API 与网络层（`lib/api/`）**
+  - `dio_client.dart`：创建和配置全局 `Dio` 实例，注册拦截器、配置重试、超时、baseUrl 等。
+  - `interceptors/auth_interceptor.dart`：为请求加上 Token、语言信息，处理鉴权相关逻辑，并与 `LanguageNotifier` 协作。
+  - `interceptors/error_interceptor.dart`：统一处理错误（打印、转换为统一错误对象等）。
+
+- **数据模型（`lib/models/`）**
+  - 各业务模块的数据结构定义，如：
+    - 首页：`home_data.dart`。
+    - 用户：`user.dart`, `user_models.dart`。
+    - 游戏/投注：`game_model.dart`, `betting_models.dart`。
+    - 钱包/资金：`finance_models.dart`。
+    - 认证：`auth_models.dart`。
+    - 通用：`paginated_response.dart`, `api_response.dart`。
+  - 通过 `json_serializable` 生成相应的 `*.g.dart`。
+
+- **服务层（`lib/services/`）**
+  - 面向业务的 API 封装：
+    - `game_service.dart`：游戏相关接口（获取游戏列表、登录游戏、查询投注记录、刷新余额等）。
+    - `home_service.dart`：首页数据获取（Banner、公告、站点配置等）。
+    - `user_service.dart`：用户信息、个人配置、通知等。
+    - `finance_service.dart`：充值、提现、转账、支付渠道等资金相关操作。
+    - `auth_service.dart`：登录、注册、重置密码等认证流程。
+
+- **状态管理（`lib/providers/`）**
+  - **全局配置**
+    - `language_provider.dart`：管理当前语言（`AppLocale`），与 `slang`、`Dio` 的语言配置联动，并持久化到本地。
+    - `theme_provider.dart`：管理主题模式（浅色/深色/跟随系统），同样持久化。
+  - **用户 & 认证**
+    - `auth_provider.dart`：登录状态、登录动作、退出登录等。
+    - `user_provider.dart`：当前用户信息、刷新资料等。
+  - **首页/活动/通知**
+    - `home_provider.dart`：首页数据（banner、公告等）。
+    - `activities_provider.dart`：活动列表、活动详情。
+    - `notifications_provider.dart`：站内通知。
+  - **游戏 & 钱包**
+    - `game_provider.dart`：游戏列表、分页加载、搜索状态。
+    - `game_launcher_provider.dart`：游戏启动相关封装，可能负责构造 WebView 地址或处理游戏登录返回数据。
+    - `recharge_provider.dart`, `withdraw_provider.dart`, `transfer_provider.dart`, `recharge_detail_provider.dart`：对应充值、提现、转账及相关详情。
+  - **其他**
+    - `feedback_provider.dart`：意见反馈提交流程。
+
+- **页面层（`lib/screens/`）**
+  - `auth/`：登录、注册、重置密码等认证相关 UI。
+  - `basic/`：通用功能页面：
+    - 搜索页、反馈页、客服页、活动列表与详情、游戏列表与详情、系统维护页、关于我们、代理合作介绍等。
+  - `personal/`：个人中心：
+    - 个人中心总览、个人资料编辑、VIP、投注记录、资金记录、银行卡包、通知中心、分享邀请等。
+  - `wallet/`：钱包相关：
+    - 充值页、提现页、转账页、充值详情页等。
+  - 顶层页面：
+    - `home_screen.dart`：主首页。
+    - `placeholder_screen.dart`：占位/未完成页。
+
+- **组件层（`lib/widgets/`）**
+  - `home/`：构成首页 UI 的各个子模块：
+    - `banner_widget.dart`、`notices_widget.dart`、`quick_access_widget.dart`、`game_categories_widget.dart`、`app_download_bar_widget.dart` 等。
+  - `layout/`：
+    - `header_widget.dart`：顶部栏（显示 logo、用户入口、语言/主题切换等）。
+    - `footer_widget.dart`：底部导航（切换 Tab：首页、游戏、钱包、个人中心）。
+    - `user_drawer.dart`：侧边栏用户菜单。
+  - `common/`：
+    - `state_widgets.dart`：加载失败、空数据、重试等通用状态组件。
+    - `skeleton_widget.dart`：骨架屏组件。
+    - `web_safe_image.dart` / `web_safe_image_web.dart` / `web_safe_image_stub.dart`：在 web 和 native 不同平台安全显示网络图片。
+  - `payment_webview/`：
+    - `payment_webview.dart` + 各平台具体实现：对支付页 WebView 进行统一封装。
+
+- **主题与工具（`lib/theme/`, `lib/utils/`）**
+  - `theme/app_theme.dart`：定义深浅色主题、颜色、TextStyle 等全局样式。
+  - `utils/constants.dart`：统一常量，尤其是 API baseUrl、资源域名等。
+  - `utils/toast_utils.dart`：基于 `ScaffoldMessenger` 实现统一弹窗/Toast。
+  - `utils/auth_helper.dart`：登录状态辅助函数，比如 `hasToken()`，被路由守卫使用。
+
+- **多语言生成文件（`lib/gen/`）**
+  - `strings.g.dart` + `strings_en.g.dart` + `strings_pt.g.dart` + `strings_zh.g.dart` 等：`slang` 自动生成的多语言访问代码。
+
+---
+
+### 4）应用启动流程（`lib/main.dart`）
+
+- **初始化阶段**
+  - `WidgetsFlutterBinding.ensureInitialized()`：确保绑定初始化。
+  - 设置：
+    - `FlutterError.onError`：捕获并打印 Flutter 内部错误，自定义红屏 `ErrorWidget`。
+    - `PlatformDispatcher.instance.onError`：捕获未处理的异步错误并打印日志。
+- **挂载全局 Provider 与 i18n**
+  - `runApp` 时，最外层是：
+    - `ProviderScope`：Riverpod 的根容器。
+    - 里面包 `TranslationProvider`：来自 `slang_flutter`，提供多语言上下文。
+    - 内层是 `MyApp`（`ConsumerStatefulWidget`），根据 Provider 状态构建 `MaterialApp.router`。
+- **`MyApp` 的初始化逻辑**
+  - 在 `initState` 里调用 `_initApp()`：
+    - 通过 `ref.read(languageProvider.notifier).init()` 读取本地存储的语言并设置当前语言（含 `slang` 和 `Dio` 的语言 header）。
+    - 使用 `Future.wait([...]).timeout(Duration(seconds: 5))`，有超时时间保护。
+    - 完成后将 `_isInitialized` 设为 `true`，结束初始 Loading。
+- **加载页面 vs 正式 App**
+  - `_isInitialized == false` 时：
+    - 返回一个简单 `MaterialApp` + 黑底 + `CircularProgressIndicator` + “正在初始化...” 文案。
+  - `_isInitialized == true` 时构建真正的应用：
+    - `themeMode` 来自 `theme_provider`。
+    - `MaterialApp.router` 关键配置：
+      - `scaffoldMessengerKey: ToastUtils.messengerKey`
+      - `theme: AppTheme.lightTheme`
+      - `darkTheme: AppTheme.darkTheme`
+      - `themeMode: themeMode`
+      - `routerConfig: AppRouter.router`
+      - `locale: TranslationProvider.of(context).flutterLocale`
+      - `supportedLocales: AppLocaleUtils.instance.supportedLocales`
+      - `localizationsDelegates: GlobalMaterialLocalizations.delegates`
+- **登录拦截与路由**
+  - 在 `app_router.dart` 中使用 `GoRouter` 定义路由，并通过 `_authGuard` 判断访问某些路由是否需要登录。
+  - `_authGuard` 会调用 `AuthHelper.hasToken()` 判断本地是否有 Token，如果没有，就重定向到 `/login?redirect=<原路径>`。
+
+---
+
+### 5）国际化（i18n）方案
+
+- **采用方案：`slang` + `slang_flutter`**
+  - 配合 `intl` 与 `flutter_localizations` 实现完整多语言支持。
+  - 基础语言：中文（`base_locale: zh`）。
+
+- **配置与资源**
+  - **配置文件**：`i18n.yaml`
+    - 指定：
+      - `base_locale: zh`
+      - `input_directory: assets/translations`
+      - `output_directory: lib/i18n`（实际生成目前在 `lib/gen`，即项目做了相应调整）
+      - `output_file_name: strings.g.dart`
+      - `translate_var: t`
+      - `enum_name: AppLocale`
+  - **文案资源**：`assets/translations/`
+    - `en.i18n.json`（英文）
+    - `pt.i18n.json`（葡语）
+    - `zh.i18n.json`（中文）
+    - 旧的 `strings.json` 等已被删除，说明项目已经从「自定义 JSON」迁移到 `slang` 约定格式的 `*.i18n.json`。
+  - **生成代码**：`lib/gen/strings*.g.dart`
+    - 提供 `t.xxx` 的翻译访问方法。
+    - 提供 `AppLocale` 枚举和相关工具（如 `AppLocaleUtils`、`LocaleSettings`）。
+
+- **语言状态管理与 API 语言同步**
+  - 通过 `lib/providers/language_provider.dart` 管理当前语言：
+    - 启动时 `init()` 从 `SharedPreferences` 读取语言。
+    - `setLanguage(AppLocale locale)` 会：
+      - 更新 `state`。
+      - 调用 `LocaleSettings.setLocale(locale)` 通知 `slang`。
+      - 调用 `DioClient().authInterceptor.updateLanguage(locale.apiCode)` 更新请求头的语言字段。
+      - 写入 `SharedPreferences` 保存。
+    - 同时会 `invalidate` 相关 Provider，让首页、活动等按新语言重新请求数据。
+- **与 `MaterialApp` 集成**
+  - `MaterialApp.router` 中：
+    - `locale: TranslationProvider.of(context).flutterLocale`
+    - `supportedLocales: AppLocaleUtils.instance.supportedLocales`
+    - `localizationsDelegates: GlobalMaterialLocalizations.delegates`
+
+---
+
+### 6）你可以怎么继续了解/开发这个项目？
+
+- **想了解「页面层」**：可以重点看 `lib/screens/home_screen.dart` + `lib/widgets/home/*`，理解首页结构；再看 `lib/screens/wallet/*`, `lib/screens/personal/*`。
+- **想看「网络与数据流」**：从 `lib/services/game_service.dart` 或 `home_service.dart` 入手，然后对应到 `providers` 和 `screens` 看数据如何流向 UI。
+- **想扩展多语言**：在 `assets/translations/*.i18n.json` 增加字段，然后通过 `slang` 重新生成 `lib/gen/strings*.g.dart`，再在页面中使用 `t.xxx`。
+
+如果你告诉我你更关心哪一部分（比如：游戏启动逻辑、钱包流水、登录流程、主题/语言切换等），我可以结合具体文件帮你画一条「从 UI 到 API」的详细数据流。
 ---
 
 ## 🛠️ 技术栈 (Tech Stack)

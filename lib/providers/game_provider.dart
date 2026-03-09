@@ -38,8 +38,44 @@ class GameListPaginationState {
   }
 }
 
+class GameListParams {
+  final String game;
+  final String code;
+  final int size;
+
+  const GameListParams({
+    required this.game,
+    required this.code,
+    this.size = 30,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GameListParams &&
+          runtimeType == other.runtimeType &&
+          game == other.game &&
+          code == other.code &&
+          size == other.size;
+
+  @override
+  int get hashCode => game.hashCode ^ code.hashCode ^ size.hashCode;
+}
+
 class GameListNotifier extends Notifier<GameListPaginationState> {
-  final Map<String, dynamic> arg;
+  GameListParams get params {
+    final arg = this.arg;
+    if (arg is GameListParams) return arg;
+    // 兼容旧的 Map 传参
+    final map = arg as Map<String, dynamic>;
+    return GameListParams(
+      game: map['game'] as String,
+      code: map['code'] as String,
+      size: map['size'] as int? ?? 30,
+    );
+  }
+  
+  final dynamic arg;
   GameListNotifier(this.arg);
 
   @override
@@ -58,17 +94,17 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
     state = currentState.copyWith(isLoading: true, error: null);
 
     try {
-      final gameCode = arg['game'] as String;
-      final typeCode = arg['code'] as String;
-      final pageSize = arg['size'] as int? ?? 30;
+      final p = params;
       final nextPage = currentState.currentPage + 1;
 
       final response = await GameService.getSubGameList(
-        gameCode: gameCode,
-        typeCode: typeCode,
+        gameCode: p.game,
+        typeCode: p.code,
         page: nextPage,
-        size: pageSize,
+        size: p.size,
       );
+
+      if (!ref.mounted) return;
 
       if (response.isSuccess && response.data != null) {
         final newData = response.data!;
@@ -91,7 +127,8 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
         );
       }
     } catch (e) {
-      state = currentState.copyWith(
+      if (!ref.mounted) return;
+      state = state.copyWith(
         isLoading: false,
         error: e.toString(),
       );
@@ -101,16 +138,16 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final gameCode = arg['game'] as String;
-      final typeCode = arg['code'] as String;
-      final pageSize = arg['size'] as int? ?? 30;
+      final p = params;
       
       final response = await GameService.getSubGameList(
-        gameCode: gameCode,
-        typeCode: typeCode,
+        gameCode: p.game,
+        typeCode: p.code,
         page: 1,
-        size: pageSize,
+        size: p.size,
       );
+
+      if (!ref.mounted) return;
 
       if (response.isSuccess && response.data != null) {
         final newData = response.data!;
@@ -131,6 +168,7 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
         );
       }
     } catch (e) {
+      if (!ref.mounted) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -139,6 +177,6 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
   }
 }
 
-final gameListProvider = NotifierProvider.autoDispose.family<GameListNotifier, GameListPaginationState, Map<String, dynamic>>((arg) {
+final gameListProvider = NotifierProvider.autoDispose.family<GameListNotifier, GameListPaginationState, dynamic>((arg) {
   return GameListNotifier(arg);
 });

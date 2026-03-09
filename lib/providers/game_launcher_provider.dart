@@ -66,7 +66,10 @@ class GameLauncher {
       final gameTitle = game.title ?? '游戏';
       final String code = categoryCode ?? '';
       
-      debugPrint('Launching Game: $gameTitle (ID: $gameId), Category: $code, isEntry: $isCategoryEntry');
+      debugPrint('--- Game Launch Debug ---');
+      debugPrint('Game Title: $gameTitle, ID: $gameId, Type: ${game.runtimeType}');
+      debugPrint('Category: $code, isEntry: $isCategoryEntry');
+      debugPrint('-------------------------');
 
       bool startWithBackup = false;
 
@@ -78,9 +81,18 @@ class GameLauncher {
         // 对齐 Vue 逻辑：['game', 'poker', 'fishing'] 分类下使用 gameLogin2
         startWithBackup = ['game', 'poker', 'fishing'].contains(code.toLowerCase().trim());
       }
+      
+      debugPrint('Using Backup Interface: $startWithBackup');
 
       final lang = _ref.read(languageProvider);
-      final apiResponse = await smartGameLogin(gameId, lang: lang, useBackup: startWithBackup);
+      final apiResponse = await smartGameLogin(gameId, lang: lang.apiCode, useBackup: startWithBackup);
+      
+      debugPrint('Game Login Response Success: ${apiResponse.isSuccess}');
+      if (apiResponse.isSuccess) {
+        debugPrint('Game URL: ${apiResponse.data?.url}');
+      } else {
+        debugPrint('Game Login Error: ${apiResponse.msg}');
+      }
 
       // 隐藏加载提示
       if (context.mounted) {

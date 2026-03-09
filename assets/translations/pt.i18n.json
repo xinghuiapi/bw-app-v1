@@ -1,0 +1,42 @@
+{
+  "common": {
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "loading": "Carregando...",
+    "noData": "Sem dados",
+    "retry": "Tentar novamente",
+    "languageSelectorTitle": "Selecionar idioma",
+    "error": {
+      "connectionTimeout": "Tempo limite de conexão, verifique sua rede",
+      "sendTimeout": "Tempo limite de envio, tente novamente",
+      "receiveTimeout": "Tempo limite de recebimento, tente novamente mais tarde",
+      "badRequest": "Solicitação incorreta",
+      "unauthorized": "Não autorizado, faça login novamente",
+      "forbidden": "Proibido",
+      "notFound": "Recurso não encontrado",
+      "serverError": "Erro interno do servidor",
+      "badGateway": "Bad Gateway",
+      "serviceUnavailable": "Serviço indisponível",
+      "gatewayTimeout": "Gateway Timeout",
+      "networkError": "Erro de rede ({})",
+      "cancelled": "Solicitação cancelada",
+      "connectionError": "Erro de conexão, verifique sua rede",
+      "unknown": "Erro desconhecido, tente novamente"
+    }
+  },
+  "auth": {
+    "login": "Entrar",
+    "register": "Registrar",
+    "logout": "Sair",
+    "username": "Nome de usuário",
+    "password": "Senha",
+    "loginSuccess": "Login com sucesso",
+    "logoutSuccess": "Sair com segurança"
+  },
+  "home": {
+    "title": "Início",
+    "activities": "Atividades",
+    "service": "Serviço",
+    "mine": "Meu"
+  }
+}

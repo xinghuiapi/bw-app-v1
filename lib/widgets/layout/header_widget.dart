@@ -6,13 +6,14 @@ import 'package:my_flutter_app/providers/home_provider.dart';
 import 'package:my_flutter_app/providers/language_provider.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/gen/strings.g.dart';
 
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   const AppHeader({super.key});
 
   void _showLanguageSelector(BuildContext context, WidgetRef ref) {
     final homeDataAsync = ref.read(homeDataProvider);
-    final currentLang = ref.read(languageProvider);
+    final currentLocale = ref.read(languageProvider);
 
     homeDataAsync.whenData((homeData) {
       final languages = homeData.langConfig ?? [];
@@ -29,11 +30,11 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    '选择语言',
-                    style: TextStyle(
+                    t.common.languageSelectorTitle,
+                    style: const TextStyle(
                       color: AppTheme.textPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -47,7 +48,13 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                     itemCount: languages.length,
                     itemBuilder: (context, index) {
                       final lang = languages[index];
-                      final isSelected = lang.code == currentLang;
+                      // 映射 API 返回的语言代码到 AppLocale
+                      AppLocale? targetLocale;
+                      if (lang.code == 'CN') targetLocale = AppLocale.zh;
+                      if (lang.code == 'EN') targetLocale = AppLocale.en;
+                      if (lang.code == 'PT') targetLocale = AppLocale.pt;
+                      
+                      final isSelected = targetLocale == currentLocale;
 
                       return ListTile(
                         leading: lang.img != null
@@ -68,8 +75,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                             ? const Icon(Icons.check, color: AppTheme.primary)
                             : null,
                         onTap: () {
-                          if (lang.code != null) {
-                            ref.read(languageProvider.notifier).setLanguage(lang.code!);
+                          if (targetLocale != null) {
+                            ref.read(languageProvider.notifier).setLanguage(targetLocale);
                           }
                           Navigator.pop(context);
                         },

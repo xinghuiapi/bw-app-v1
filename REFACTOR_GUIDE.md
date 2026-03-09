@@ -21,20 +21,44 @@
 
 ---
 
-## 2. 目录结构映射 (Project Structure)
+## 2. 目录结构与开发约定 (Project Structure & Conventions)
 
-请按照以下结构在 Flutter 项目中组织代码，以保持与原项目逻辑的一致性：
+请按照以下结构组织代码，并遵循相关开发约定：
 
-| Vue 项目路径 (src/) | Flutter 项目路径 (lib/) | 说明 |
+| 目录路径 (lib/) | 职责说明 | 开发约定 |
 | :--- | :--- | :--- |
-| `api/` | `api/` | 网络请求封装与接口定义 |
-| `store/modules/` | `providers/` | 业务逻辑与全局状态 |
-| `components/` | `widgets/` | 可复用的 UI 组件 |
-| `views/basic/` | `screens/home/` | 首页及基础功能页面 |
-| `views/personal/` | `screens/profile/` | 个人中心相关页面 |
-| `views/wallet/` | `screens/wallet/` | 充值、提现、转账页面 |
-| `utils/` | `utils/` | 工具类 (Auth, Logger, Date) |
-| `i18n/locales/` | `i18n/` | 国际化语言包 (YAML/JSON) |
+| `api/` | 底层网络请求封装 | 使用 `DioClient` 单例，拦截器处理 Token/语言 |
+| `models/` | 数据模型定义 | 必须使用 `json_serializable`，严禁使用 `dynamic` |
+| `services/` | 业务接口封装 | 调用 `DioClient`，返回 `ApiResponse<T>` |
+| `providers/` | 状态管理 (Riverpod) | 统一使用 `Notifier` / `AsyncNotifier` |
+| `screens/` | 页面级 UI | 优先使用 `ConsumerWidget` |
+| `widgets/` | 可复用 UI 组件 | 遵循原子化设计，复杂逻辑抽离至 Provider |
+| `gen/` | 自动生成代码 | **禁止手动修改**，包含 i18n 生成代码 |
+
+### 核心开发流程 (Core Workflow)
+
+1.  **新增接口**: 在 `models/` 定义模型 -> 运行 `build_runner` -> 在 `services/` 封装调用。
+2.  **状态流转**: 在 `providers/` 创建 Notifier -> 在 `screens/` 通过 `ref.watch` 监听。
+3.  **多语言**: 在 `assets/translations/*.i18n.json` 修改文案 -> 运行 `dart run slang` -> 使用 `t.xxx` 调用。
+
+---
+
+## 3. 代码生成与版本管理 (Code Generation & Git)
+
+为了保证团队协作的一致性，请遵循以下版本管理策略：
+
+-   **生成文件策略**: `lib/gen/` (i18n) 和 `*.g.dart` (models) **建议纳入版本控制**，以确保 CI/CD 环境直接编译。
+-   **禁止手动修改**: 任何 `*.g.dart` 或 `lib/gen/` 下的文件严禁手动编辑。
+-   **清理仓库**: 严禁将 `.apk`、临时日志或个人配置文件提交至根目录。请定期检查 `git status` 保持环境整洁。
+
+---
+
+## 4. 国际化 (i18n) 配置说明
+
+本项目使用 `slang` 方案，配置位于 `i18n.yaml`：
+-   **输入目录**: `assets/translations/`
+-   **输出目录**: `lib/gen/` (统一存放自动生成代码)
+-   **调用方式**: 导入 `lib/gen/strings.g.dart`，使用全局变量 `t` 或 `TranslationProvider`。
 
 ---
 

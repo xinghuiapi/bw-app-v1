@@ -130,7 +130,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
           crossAxisCount: isReco ? 3 : 2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          childAspectRatio: isReco ? 0.8 : 1.8,
+          childAspectRatio: isReco ? 1.0 : 1.8, // 推荐位改为 1.0 (正方形) 更好地契合游戏图标
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {
@@ -190,12 +190,12 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Stack(
-            fit: StackFit.expand,
+            fit: StackFit.expand, // 改回 expand 以确保填满
             children: [
               if (imageUrl.isNotEmpty)
                 WebSafeImage(
                   imageUrl: imageUrl,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.cover, // 改回 cover 以填满容器
                   placeholder: const Skeleton(),
                   errorWidget: Container(
                     color: AppTheme.surface,
@@ -203,40 +203,41 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                   ),
                 ),
               if (true) // 无论是推荐还是普通分类，都添加底部遮罩以增强文字可读性
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withAlpha(0),
-                        Colors.black.withAlpha(204),
-                      ],
-                      stops: const [0.5, 1.0],
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withAlpha(0),
+                          Colors.black.withAlpha(153), // 遮罩稍微变淡一些，不要挡住太多底部图标
+                        ],
+                        stops: const [0.6, 1.0],
+                      ),
                     ),
                   ),
                 ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    item.title ?? '',
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: isReco ? 12 : 14,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withAlpha(204),
-                          offset: const Offset(0, 1),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
+              Positioned(
+                left: 4,
+                right: 4,
+                bottom: 4,
+                child: Text(
+                  item.title ?? '',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: isReco ? 11 : 13, // 字号微调
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withAlpha(180),
+                        offset: const Offset(0, 1),
+                        blurRadius: 2,
+                      ),
+                    ],
                   ),
                 ),
               ),

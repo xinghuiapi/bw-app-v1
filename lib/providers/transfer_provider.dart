@@ -107,9 +107,7 @@ class TransferNotifier extends Notifier<TransferState> {
       if (balancesResponse.code == 200) {
         final Map<int, double> balancesMap = {};
         for (var item in (balancesResponse.data ?? [])) {
-          if (item.id != null) {
-            balancesMap[item.id!] = double.tryParse(item.balance ?? '0') ?? 0.0;
-          }
+          balancesMap[item.id] = item.balance;
         }
         state = state.copyWith(platformBalances: balancesMap);
       }

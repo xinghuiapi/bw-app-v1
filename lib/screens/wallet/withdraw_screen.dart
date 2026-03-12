@@ -462,7 +462,13 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
-            onPressed: () => context.push('/personal-center-card-packages'),
+            onPressed: () async {
+              await context.push('/personal-center-card-packages');
+              // 返回后自动刷新收款方式
+              if (mounted) {
+                ref.read(withdrawProvider.notifier).fetchPaymentMethods();
+              }
+            },
             icon: const Icon(Icons.add),
             label: const Text('添加收款方式'),
           ),
@@ -570,7 +576,13 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
             ),
           ),
           TextButton(
-            onPressed: () => context.push('/personal-center-profile-paypassword'),
+            onPressed: () async {
+              await context.push('/personal-center-profile-paypassword');
+              // 返回后自动刷新用户信息，检查是否设置了支付密码
+              if (mounted) {
+                ref.read(userProvider.notifier).fetchUserInfo();
+              }
+            },
             child: const Text('去设置'),
           ),
         ],

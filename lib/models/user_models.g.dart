@@ -61,6 +61,14 @@ Map<String, dynamic> _$SetPayPasswordRequestToJson(
   SetPayPasswordRequest instance,
 ) => <String, dynamic>{'pay_password': instance.payPassword};
 
+FavoriteToggleRequest _$FavoriteToggleRequestFromJson(
+  Map<String, dynamic> json,
+) => FavoriteToggleRequest(gameId: (json['game_id'] as num).toInt());
+
+Map<String, dynamic> _$FavoriteToggleRequestToJson(
+  FavoriteToggleRequest instance,
+) => <String, dynamic>{'game_id': instance.gameId};
+
 BetRecord _$BetRecordFromJson(Map<String, dynamic> json) => BetRecord(
   id: (json['id'] as num).toInt(),
   orderId: json['order_id'] as String?,

@@ -40,6 +40,7 @@ class TranslationsPt with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _TranslationsCommonPt common = _TranslationsCommonPt._(_root);
 	@override late final _TranslationsAuthPt auth = _TranslationsAuthPt._(_root);
 	@override late final _TranslationsHomePt home = _TranslationsHomePt._(_root);
+	@override late final _TranslationsTelegramLoginPt telegramLogin = _TranslationsTelegramLoginPt._(_root);
 }
 
 // Path: common
@@ -85,6 +86,19 @@ class _TranslationsHomePt implements TranslationsHomeEn {
 	@override String get activities => 'Atividades';
 	@override String get service => 'Serviço';
 	@override String get mine => 'Meu';
+}
+
+// Path: telegramLogin
+class _TranslationsTelegramLoginPt implements TranslationsTelegramLoginEn {
+	_TranslationsTelegramLoginPt._(this._root);
+
+	final TranslationsPt _root; // ignore: unused_field
+
+	// Translations
+	@override String get firstLoginProcessing => 'Criando conta para você...';
+	@override String get secureLoginProcessing => 'Fazendo login com segurança...';
+	@override String passwordSetDefault({required Object password}) => 'Senha inicializada para ${password}, altere-a a tempo';
+	@override String get setPasswordFailed => 'Falha ao definir a senha padrão, entre em contato com o suporte';
 }
 
 // Path: common.error
@@ -151,6 +165,10 @@ extension on TranslationsPt {
 			'home.activities' => 'Atividades',
 			'home.service' => 'Serviço',
 			'home.mine' => 'Meu',
+			'telegramLogin.firstLoginProcessing' => 'Criando conta para você...',
+			'telegramLogin.secureLoginProcessing' => 'Fazendo login com segurança...',
+			'telegramLogin.passwordSetDefault' => ({required Object password}) => 'Senha inicializada para ${password}, altere-a a tempo',
+			'telegramLogin.setPasswordFailed' => 'Falha ao definir a senha padrão, entre em contato com o suporte',
 			_ => null,
 		};
 	}

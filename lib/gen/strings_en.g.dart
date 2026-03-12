@@ -43,6 +43,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final TranslationsCommonEn common = TranslationsCommonEn._(_root);
 	late final TranslationsAuthEn auth = TranslationsAuthEn._(_root);
 	late final TranslationsHomeEn home = TranslationsHomeEn._(_root);
+	late final TranslationsTelegramLoginEn telegramLogin = TranslationsTelegramLoginEn._(_root);
 }
 
 // Path: common
@@ -123,6 +124,27 @@ class TranslationsHomeEn {
 
 	/// en: 'Mine'
 	String get mine => 'Mine';
+}
+
+// Path: telegramLogin
+class TranslationsTelegramLoginEn {
+	TranslationsTelegramLoginEn._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Creating account for you...'
+	String get firstLoginProcessing => 'Creating account for you...';
+
+	/// en: 'Securely logging in...'
+	String get secureLoginProcessing => 'Securely logging in...';
+
+	/// en: 'Password initialized to ${password}, please change it in time'
+	String passwordSetDefault({required Object password}) => 'Password initialized to ${password}, please change it in time';
+
+	/// en: 'Failed to set default password, please contact support'
+	String get setPasswordFailed => 'Failed to set default password, please contact support';
 }
 
 // Path: common.error
@@ -219,6 +241,10 @@ extension on Translations {
 			'home.activities' => 'Activities',
 			'home.service' => 'Service',
 			'home.mine' => 'Mine',
+			'telegramLogin.firstLoginProcessing' => 'Creating account for you...',
+			'telegramLogin.secureLoginProcessing' => 'Securely logging in...',
+			'telegramLogin.passwordSetDefault' => ({required Object password}) => 'Password initialized to ${password}, please change it in time',
+			'telegramLogin.setPasswordFailed' => 'Failed to set default password, please contact support',
 			_ => null,
 		};
 	}

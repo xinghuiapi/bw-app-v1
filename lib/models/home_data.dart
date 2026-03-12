@@ -124,6 +124,10 @@ class SiteConfig {
   final String? serviceLink;
   @JsonKey(name: 'app_download')
   final String? appDownload;
+  @JsonKey(name: 'terminal_login')
+  final int? terminalLogin;
+  @JsonKey(name: 'app_version')
+  final String? appVersion;
 
   SiteConfig({
     this.title,
@@ -133,6 +137,8 @@ class SiteConfig {
     this.status,
     this.serviceLink,
     this.appDownload,
+    this.terminalLogin,
+    this.appVersion,
   });
 
   factory SiteConfig.fromJson(Map<String, dynamic> json) => _$SiteConfigFromJson(json);
@@ -198,6 +204,9 @@ class GameItem {
   final bool? isCategoryResult;
   @JsonKey(name: 'is_hot')
   final bool? isHot;
+  @JsonKey(name: 'interface_title')
+  final String? interfaceTitle;
+  final List<String>? label;
 
   GameItem({
     this.id,
@@ -207,7 +216,11 @@ class GameItem {
     this.favorites,
     this.isCategoryResult,
     this.isHot,
+    this.interfaceTitle,
+    this.label,
   });
+
+  bool get isFavorite => favorites == 1 || favorites == true || favorites == '1' || favorites == 'true';
 
   // 手动实现 fromJson 以处理数据类型不一致的问题
   factory GameItem.fromJson(Map<String, dynamic> json) {
@@ -220,7 +233,9 @@ class GameItem {
       favorites: json['favorites'],
       // 兼容 bool 和 int (0/1)
       isCategoryResult: _toBool(json['is_category_result']),
-      isHot: _toBool(json['is_hot']),
+      isHot: _toBool(json['is_hot'] ?? (json['label'] is List && (json['label'] as List).contains('hot'))),
+      interfaceTitle: json['interface_title'] as String?,
+      label: (json['label'] as List?)?.map((e) => e as String).toList(),
     );
   }
 

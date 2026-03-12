@@ -5,6 +5,9 @@ import 'package:my_flutter_app/models/user.dart';
 import 'package:my_flutter_app/models/api_response.dart';
 import 'package:my_flutter_app/providers/auth_provider.dart';
 
+import 'package:my_flutter_app/services/user_service.dart';
+import 'package:my_flutter_app/utils/toast_utils.dart';
+
 /// 用户状态
 class UserState {
   final User? user;
@@ -146,7 +149,27 @@ class UserNotifier extends Notifier<UserState> {
   void clearError() {
     state = state.copyWith(error: null);
   }
+
+  /// 切换收藏状态
+  /// [gameId] 游戏 ID
+  /// [status] 目标状态：1 为收藏，0 为取消收藏
+  Future<bool> toggleFavorite(int gameId, int status) async {
+    try {
+      final response = await UserService.toggleGameFavorite(gameId, status);
+      if (response.isSuccess) {
+        // 收藏成功后不需要刷新整个用户信息，只需返回成功即可。
+        // UI 层负责更新本地状态以保持流畅性。
+        return true;
+      } else {
+        ToastUtils.showError(response.msg ?? '操作失败');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Toggle favorite error: $e');
+      return false;
+    }
+  }
 }
 
-/// 用户信息 Provider
-final userProvider = NotifierProvider.autoDispose<UserNotifier, UserState>(UserNotifier.new);
+/// 用户 Provider
+final userProvider = NotifierProvider<UserNotifier, UserState>(UserNotifier.new);

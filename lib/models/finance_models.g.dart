@@ -254,6 +254,25 @@ Map<String, dynamic> _$RebateRecordToJson(RebateRecord instance) =>
       'created_at': instance.createdAt,
     };
 
+RebateData _$RebateDataFromJson(Map<String, dynamic> json) => RebateData(
+  userSum: (json['user_sum'] as num).toInt(),
+  userYouxiao: (json['user_youxiao'] as num).toInt(),
+  dailingqu: (json['dailingqu'] as num).toDouble(),
+  zuidi: json['zuidi'] as String,
+  userMax: (json['user_max'] as num).toInt(),
+  userAmount: (json['user_amount'] as num).toDouble(),
+);
+
+Map<String, dynamic> _$RebateDataToJson(RebateData instance) =>
+    <String, dynamic>{
+      'user_sum': instance.userSum,
+      'user_youxiao': instance.userYouxiao,
+      'dailingqu': instance.dailingqu,
+      'zuidi': instance.zuidi,
+      'user_max': instance.userMax,
+      'user_amount': instance.userAmount,
+    };
+
 RechargeParams _$RechargeParamsFromJson(Map<String, dynamic> json) =>
     RechargeParams(
       merchant: json['merchant'] as String?,
@@ -312,7 +331,7 @@ Map<String, dynamic> _$RechargeDetailToJson(RechargeDetail instance) =>
 
 BankType _$BankTypeFromJson(Map<String, dynamic> json) => BankType(
   id: (json['id'] as num).toInt(),
-  name: json['name'] as String,
+  name: json['name'] as String?,
   title: json['title'] as String?,
   code: json['code'] as String?,
   img: json['img'] as String?,
@@ -320,19 +339,20 @@ BankType _$BankTypeFromJson(Map<String, dynamic> json) => BankType(
 
 Map<String, dynamic> _$BankTypeToJson(BankType instance) => <String, dynamic>{
   'id': instance.id,
-  'name': instance.name,
   'title': instance.title,
   'code': instance.code,
   'img': instance.img,
+  'name': instance.name,
 };
 
 BindPaymentRequest _$BindPaymentRequestFromJson(Map<String, dynamic> json) =>
     BindPaymentRequest(
       id: (json['id'] as num).toInt(),
       card: json['card'] as String,
-      address: json['address'] as String?,
+      address: json['addres'] as String?,
       alias: json['alias'] as String?,
       name: json['name'] as String?,
+      img: json['img'] as String?,
       payPassword: json['pay_password'] as String?,
     );
 
@@ -340,9 +360,10 @@ Map<String, dynamic> _$BindPaymentRequestToJson(BindPaymentRequest instance) =>
     <String, dynamic>{
       'id': instance.id,
       'card': instance.card,
-      'address': instance.address,
+      'addres': instance.address,
       'alias': instance.alias,
       'name': instance.name,
+      'img': instance.img,
       'pay_password': instance.payPassword,
     };
 

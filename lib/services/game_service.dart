@@ -136,9 +136,66 @@ class GameService {
   }) async {
     try {
       final response = await api.post('/gamelist/getlist', data: {
-        'title': keyword,
+        'search_word': keyword, // 修正字段名为 search_word
         'page': page,
         'size': size,
+      });
+      
+      return _parseResponse<GameListResponse>(
+        response.data,
+        (json) {
+          if (json is Map<String, dynamic>) {
+            return GameListResponse.fromJson(json);
+          }
+          return GameListResponse();
+        },
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  /// 获取热门游戏列表
+  /// 接口: /api/gamelist/getlist
+  static Future<ApiResponse<GameListResponse>> getHotGames({
+    int page = 1,
+    int size = 20,
+  }) async {
+    try {
+      final response = await api.post('/gamelist/getlist', data: {
+        'page': page,
+        'size': size,
+        'game': '',
+        'code': '',
+        'search_word': '',
+        'label': 'hot',
+      });
+      
+      return _parseResponse<GameListResponse>(
+        response.data,
+        (json) {
+          if (json is Map<String, dynamic>) {
+            return GameListResponse.fromJson(json);
+          }
+          return GameListResponse();
+        },
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  /// 获取收藏游戏列表
+  /// 接口: /api/gamelist/getlist
+  static Future<ApiResponse<GameListResponse>> getFavoriteGames({
+    int page = 1,
+    int size = 20,
+  }) async {
+    try {
+      final response = await api.post('/gamelist/getlist', data: {
+        'page': page,
+        'size': size,
+        'label': 'favorite',
       });
       
       return _parseResponse<GameListResponse>(

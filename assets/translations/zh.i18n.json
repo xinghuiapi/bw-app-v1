@@ -38,5 +38,11 @@
     "activities": "活动",
     "service": "客服",
     "mine": "我的"
+  },
+  "telegramLogin": {
+    "firstLoginProcessing": "正在为您创建账户...",
+    "secureLoginProcessing": "正在安全登录中...",
+    "passwordSetDefault": "密码已初始化为 ${password}，请及时修改",
+    "setPasswordFailed": "设置默认密码失败，请联系客服"
   }
 }

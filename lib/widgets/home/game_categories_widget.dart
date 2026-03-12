@@ -6,6 +6,9 @@ import 'package:my_flutter_app/providers/game_launcher_provider.dart';
 import 'package:my_flutter_app/providers/game_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:my_flutter_app/utils/constants.dart';
@@ -22,6 +25,7 @@ class GameCategoriesWidget extends ConsumerStatefulWidget {
 class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
   int _selectedTabIndex = 0;
   SubCategory? _selectedSubCategory;
+  int _selectedSubTabIndex = 0; // 0: 全部游戏, 1: 我的收藏
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +58,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                   setState(() {
                     _selectedTabIndex = index;
                     _selectedSubCategory = null; // 重置二级分类
+                    _selectedSubTabIndex = 0; // 重置子页签
                   });
                 },
                 child: Container(
@@ -252,6 +257,9 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     // 获取 provider 状态
     final gameState = ref.watch(gameListProvider(params));
     
+    // 获取当前一级分类下的所有二级分类，用于顶部导航
+    final subCategoriesAsync = ref.watch(subCategoriesProvider(category.code ?? ''));
+    
     // 监听滚动到底部事件
     ref.listen(scrollBottomProvider, (previous, next) {
       if (next == true) {
@@ -263,23 +271,152 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // 顶部二级分类切换导航 (任务二)
+        subCategoriesAsync.when(
+          data: (subCategories) => Container(
+            height: 80,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: subCategories.length,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemBuilder: (context, index) {
+                final item = subCategories[index];
+                final isSelected = item.gamecode == subCategory.gamecode;
+                
+                String imageUrl = item.h5Logo ?? item.img ?? '';
+                if (imageUrl.startsWith('/')) {
+                  imageUrl = '${AppConstants.resourceBaseUrl}$imageUrl';
+                }
+
+                return GestureDetector(
+                  onTap: () {
+                    if (!isSelected) {
+                      setState(() {
+                        _selectedSubCategory = item;
+                        _selectedSubTabIndex = 0; // 切换分类时重置为“全部游戏”
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: 70,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppTheme.primary.withOpacity(0.1) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? AppTheme.primary : Colors.white.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (imageUrl.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: WebSafeImage(
+                              imageUrl: imageUrl,
+                              width: 32,
+                              height: 32,
+                              fit: BoxFit.contain,
+                            ),
+                          )
+                        else
+                          const Icon(Icons.gamepad, size: 24, color: AppTheme.textTertiary),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.title ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+                            fontSize: 11,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          loading: () => const SizedBox(height: 80),
+          error: (_, __) => const SizedBox(height: 80),
+        ),
+
+        const Divider(height: 1, color: Colors.white10),
+
+        // 搜索和子页签 (任务一)
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
+              // 返回按钮
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPrimary, size: 20),
-                onPressed: () => setState(() => _selectedSubCategory = null),
+                icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.textSecondary, size: 20),
+                onPressed: () {
+                  setState(() {
+                    _selectedSubCategory = null;
+                    _selectedSubTabIndex = 0;
+                  });
+                },
               ),
-              Text(
-                '${subCategory.title} 游戏',
-                style: const TextStyle(color: AppTheme.textPrimary, fontSize: 17, fontWeight: FontWeight.bold),
+              // 搜索按钮
+              IconButton(
+                icon: const Icon(Icons.search, color: AppTheme.textSecondary, size: 22),
+                onPressed: () {
+                  // TODO: 实现子游戏搜索
+                },
+              ),
+              const SizedBox(width: 4),
+              // 全部游戏 / 我的收藏 页签
+              Expanded(
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildSubTabItem('全部游戏', 0),
+                      _buildSubTabItem('我的收藏', 1),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
         ),
+
         _buildGameListContent(gameState, params),
       ],
+    );
+  }
+
+  Widget _buildSubTabItem(String title, int index) {
+    final isSelected = _selectedSubTabIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedSubTabIndex = index),
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: isSelected ? Colors.white : AppTheme.textSecondary,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -300,11 +437,14 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
       );
     }
 
-    final games = state.items;
+    final games = _selectedSubTabIndex == 1 
+        ? state.items.where((game) => game.isFavorite).toList() 
+        : state.items;
+        
     if (games.isEmpty && !state.isLoading) {
-      return const EmptyStateWidget(
-        message: '该分类下暂无游戏',
-        icon: Icons.sports_esports_outlined,
+      return EmptyStateWidget(
+        message: _selectedSubTabIndex == 1 ? '暂无收藏游戏' : '该分类下暂无游戏',
+        icon: _selectedSubTabIndex == 1 ? Icons.favorite_border : Icons.sports_esports_outlined,
       );
     }
 
@@ -324,7 +464,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
             itemCount: games.length,
             itemBuilder: (context, index) {
               final game = games[index];
-              return _buildGameCard(game);
+              return _buildGameCard(game, params);
             },
           ),
         ),
@@ -355,7 +495,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     );
   }
 
-  Widget _buildGameCard(GameItem game) {
+  Widget _buildGameCard(GameItem game, GameListParams? params) {
     String imageUrl = game.img ?? '';
     if (imageUrl.startsWith('/')) {
       imageUrl = '${AppConstants.resourceBaseUrl}$imageUrl';
@@ -414,6 +554,48 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                               Colors.black.withAlpha(128),
                             ],
                             stops: const [0.7, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 收藏按钮
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () async {
+                            if (game.id != null) {
+                              // 检查登录状态
+                              if (!ref.read(authProvider).isLoggedIn) {
+                                ToastUtils.showInfo('请先登录以收藏游戏');
+                                return;
+                              }
+
+                              // 本地先切换，提供即时反馈
+                              if (params != null) {
+                                ref.read(gameListProvider(params).notifier).toggleFavoriteLocal(game.id!);
+                              }
+                              
+                              // 计算目标状态
+                              final targetStatus = game.isFavorite ? 0 : 1;
+                              final success = await ref.read(userProvider.notifier).toggleFavorite(game.id!, targetStatus);
+                              
+                              if (!success && params != null) {
+                                // 如果失败，回退本地状态
+                                ref.read(gameListProvider(params).notifier).toggleFavoriteLocal(game.id!);
+                              }
+                            }
+                          },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(102),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            game.isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+                            color: game.isFavorite ? AppTheme.primary : Colors.white,
+                            size: 16,
                           ),
                         ),
                       ),

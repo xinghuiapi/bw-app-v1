@@ -79,6 +79,8 @@ AuthResponseData _$AuthResponseDataFromJson(Map<String, dynamic> json) =>
       tokenType: json['token_type'] as String?,
       expiresIn: (json['expires_in'] as num?)?.toInt(),
       refreshToken: json['refresh_token'] as String?,
+      oneLogin: json['one_login'] as bool?,
+      isOneLogin: json['is_one_login'] as bool?,
     );
 
 Map<String, dynamic> _$AuthResponseDataToJson(AuthResponseData instance) =>
@@ -87,7 +89,37 @@ Map<String, dynamic> _$AuthResponseDataToJson(AuthResponseData instance) =>
       'token_type': instance.tokenType,
       'expires_in': instance.expiresIn,
       'refresh_token': instance.refreshToken,
+      'one_login': instance.oneLogin,
+      'is_one_login': instance.isOneLogin,
     };
+
+TelegramLoginRequest _$TelegramLoginRequestFromJson(
+  Map<String, dynamic> json,
+) => TelegramLoginRequest(
+  userId: json['user_id'] as String,
+  username: json['username'] as String,
+);
+
+Map<String, dynamic> _$TelegramLoginRequestToJson(
+  TelegramLoginRequest instance,
+) => <String, dynamic>{
+  'user_id': instance.userId,
+  'username': instance.username,
+};
+
+SetTelegramPasswordRequest _$SetTelegramPasswordRequestFromJson(
+  Map<String, dynamic> json,
+) => SetTelegramPasswordRequest(
+  newPass: json['newPass'] as String,
+  confirmPass: json['confirmpass'] as String,
+);
+
+Map<String, dynamic> _$SetTelegramPasswordRequestToJson(
+  SetTelegramPasswordRequest instance,
+) => <String, dynamic>{
+  'newPass': instance.newPass,
+  'confirmpass': instance.confirmPass,
+};
 
 CaptchaData _$CaptchaDataFromJson(Map<String, dynamic> json) => CaptchaData(
   captchaKey: json['captcha_key'] as String,

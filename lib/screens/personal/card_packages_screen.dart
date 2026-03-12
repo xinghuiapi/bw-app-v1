@@ -29,7 +29,7 @@ class CardPackagesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('我的金库'),
+        title: const Text('我的卡包'),
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: AppTheme.textPrimary,

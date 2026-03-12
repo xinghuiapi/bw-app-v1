@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:my_flutter_app/providers/home_provider.dart';
 import 'package:my_flutter_app/widgets/home/banner_widget.dart';
 import 'package:my_flutter_app/widgets/home/notices_widget.dart';
@@ -11,14 +12,32 @@ import 'package:my_flutter_app/widgets/layout/footer_widget.dart';
 import 'package:my_flutter_app/widgets/layout/user_drawer.dart';
 import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
 import 'package:my_flutter_app/widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/widgets/common/update_dialog.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _hasCheckedUpdate = false;
+
+  @override
+  Widget build(BuildContext context) {
     final homeDataAsync = ref.watch(homeDataProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
+
+    // 监听首页数据加载，完成后检查版本更新
+    ref.listen(homeDataProvider, (previous, next) {
+      if (!_hasCheckedUpdate && next.hasValue && next.value != null) {
+        final siteConfig = next.value!.siteConfig;
+        if (siteConfig != null && siteConfig.appVersion != null) {
+          _checkVersionUpdate(siteConfig.appVersion!, siteConfig.appDownload);
+        }
+      }
+    });
 
     return Scaffold(
       appBar: const AppHeader(),
@@ -31,9 +50,6 @@ class HomeScreen extends ConsumerWidget {
           },
           child: Column(
             children: [
-              // 下载栏
-              AppDownloadBar(siteConfig: homeData.siteConfig),
-              
               Expanded(
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (scrollInfo) {
@@ -102,6 +118,42 @@ class HomeScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: const AppFooter(),
     );
+  }
+
+  Future<void> _checkVersionUpdate(String serverVersion, String? downloadUrl) async {
+    _hasCheckedUpdate = true;
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+
+      if (_isVersionGreater(serverVersion, currentVersion)) {
+        if (mounted) {
+          showUpdateDialog(context, serverVersion, downloadUrl);
+        }
+      }
+    } catch (e) {
+      debugPrint('Check version update error: $e');
+    }
+  }
+
+  bool _isVersionGreater(String serverVersion, String currentVersion) {
+    try {
+      final serverParts = serverVersion.split('.').map(int.parse).toList();
+      final currentParts = currentVersion.split('.').map(int.parse).toList();
+
+      final length = serverParts.length > currentParts.length ? serverParts.length : currentParts.length;
+
+      for (var i = 0; i < length; i++) {
+        final serverPart = i < serverParts.length ? serverParts[i] : 0;
+        final currentPart = i < currentParts.length ? currentParts[i] : 0;
+
+        if (serverPart > currentPart) return true;
+        if (serverPart < currentPart) return false;
+      }
+    } catch (e) {
+      debugPrint('Version comparison error: $e');
+    }
+    return false;
   }
 }
 

@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:my_flutter_app/providers/user_provider.dart';
-import 'package:my_flutter_app/services/user_service.dart';
-import 'package:my_flutter_app/models/user_models.dart';
+import 'package:my_flutter_app/providers/referral_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 
 class ShareInviteScreen extends ConsumerStatefulWidget {
@@ -15,52 +14,7 @@ class ShareInviteScreen extends ConsumerStatefulWidget {
 }
 
 class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
-  bool _isLoading = true;
-  bool _claimLoading = false;
-  UserRebateInfo? _rebateInfo;
   bool _rulesExpanded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchRebateData();
-  }
-
-  Future<void> _fetchRebateData() async {
-    setState(() => _isLoading = true);
-    try {
-      final response = await UserService.getRebateInfo();
-      if (response.isSuccess) {
-        setState(() => _rebateInfo = response.data);
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _handleClaim() async {
-    if (_rebateInfo == null || double.tryParse(_rebateInfo!.dailingqu.toString()) == 0) return;
-
-    setState(() => _claimLoading = true);
-    try {
-      final response = await UserService.claimRebate();
-      if (mounted) {
-        if (response.isSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response.msg ?? '领取成功')),
-          );
-          _fetchRebateData();
-          ref.read(userProvider.notifier).fetchUserInfo();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response.msg ?? '领取失败')),
-          );
-        }
-      }
-    } finally {
-      if (mounted) setState(() => _claimLoading = false);
-    }
-  }
 
   void _copyText(String text, String message) {
     Clipboard.setData(ClipboardData(text: text));
@@ -72,6 +26,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider).user;
+    final referralState = ref.watch(referralProvider);
     final inviteCode = user?.id.toString() ?? 'N/A';
     // 假设 referralUrl 逻辑与 Vue 一致
     final referralUrl = 'https://yourdomain.com/home?refcode=$inviteCode';
@@ -86,7 +41,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
         elevation: 0,
         centerTitle: true,
       ),
-      body: _isLoading
+      body: referralState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : Container(
               decoration: const BoxDecoration(
@@ -97,38 +52,42 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
                   stops: [0.0, 0.3],
                 ),
               ),
-              child: ListView(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 60,
-                  left: 16,
-                  right: 16,
-                  bottom: 100,
+              child: RefreshIndicator(
+                onRefresh: () => ref.read(referralProvider.notifier).fetchReferralData(),
+                child: ListView(
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 60,
+                    left: 16,
+                    right: 16,
+                    bottom: 100,
+                  ),
+                  children: [
+                    // 返利统计卡片
+                    _buildStatsCard(referralState),
+                    const SizedBox(height: 16),
+                    
+                    // 邀请码与二维码卡片
+                    _buildInviteCard(inviteCode, referralUrl),
+                    const SizedBox(height: 16),
+                    
+                    // 邀请链接卡片
+                    _buildLinkCard(referralUrl),
+                    const SizedBox(height: 16),
+                    
+                    // 规则卡片
+                    _buildRulesCard(),
+                  ],
                 ),
-                children: [
-                  // 返利统计卡片
-                  _buildStatsCard(),
-                  const SizedBox(height: 16),
-                  
-                  // 邀请码与二维码卡片
-                  _buildInviteCard(inviteCode, referralUrl),
-                  const SizedBox(height: 16),
-                  
-                  // 邀请链接卡片
-                  _buildLinkCard(referralUrl),
-                  const SizedBox(height: 16),
-                  
-                  // 规则卡片
-                  _buildRulesCard(),
-                ],
               ),
             ),
       bottomNavigationBar: _buildBottomBar(referralUrl),
     );
   }
 
-  Widget _buildStatsCard() {
-    final dailingqu = double.tryParse(_rebateInfo?.dailingqu.toString() ?? '0') ?? 0;
-    final userYouxiao = _rebateInfo?.userYouxiao ?? 0;
+  Widget _buildStatsCard(ReferralState state) {
+    final rebateData = state.data;
+    final dailingqu = double.tryParse(rebateData?.dailingqu.toString() ?? '0') ?? 0;
+    final userYouxiao = rebateData?.userYouxiao ?? 0;
     final canClaim = dailingqu > 0 && userYouxiao >= 1;
 
     return Container(
@@ -160,14 +119,16 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: (_claimLoading || !canClaim) ? null : _handleClaim,
+              onPressed: (state.isClaiming || !canClaim) 
+                  ? null 
+                  : () => ref.read(referralProvider.notifier).claimRebate(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Colors.white10,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: _claimLoading
+              child: state.isClaiming
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Text('立即领取', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
@@ -178,7 +139,7 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
             style: TextStyle(color: AppTheme.textTertiary, fontSize: 12),
           ),
           
-          if (_rebateInfo != null && _rebateInfo!.userMax > 0) ...[
+          if (rebateData != null && rebateData.userMax > 0) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -192,40 +153,29 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
                   children: [
                     const TextSpan(text: '再邀请 '),
                     TextSpan(
-                      text: '${(_rebateInfo!.userMax - _rebateInfo!.userYouxiao).clamp(0, 999999)}',
+                      text: '${(rebateData.userMax - rebateData.userYouxiao).clamp(0, 999999)}',
                       style: const TextStyle(color: AppTheme.warning, fontWeight: FontWeight.bold),
                     ),
                     const TextSpan(text: ' 人即可多领取 '),
                     TextSpan(
-                      text: '${_rebateInfo!.userAmount}',
+                      text: '${rebateData.userAmount}',
                       style: const TextStyle(color: AppTheme.warning, fontWeight: FontWeight.bold),
                     ),
-                    const TextSpan(text: ' 元'),
+                    const TextSpan(text: ' 元返利'),
                   ],
                 ),
               ),
             ),
           ],
           
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Divider(color: Colors.white10, height: 1),
-          ),
-          
+          const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(
-                child: _buildGridItem('会员总数', '${_rebateInfo?.userSum ?? 0}', '人'),
-              ),
-              Container(width: 1, height: 40, color: Colors.white10),
-              Expanded(
-                child: _buildGridItem(
-                  '有效会员', 
-                  '${_rebateInfo?.userYouxiao ?? 0}', 
-                  '人',
-                  desc: '充值≥${_rebateInfo?.zuidi ?? 0}元为有效',
-                ),
-              ),
+              _buildStatItem('已领总额', '${rebateData?.userSum ?? 0}', AppTheme.textPrimary),
+              Container(width: 1, height: 24, color: Colors.white10),
+              _buildStatItem('有效会员', '${rebateData?.userYouxiao ?? 0}', AppTheme.success),
+              Container(width: 1, height: 24, color: Colors.white10),
+              _buildStatItem('邀请总人数', '${rebateData?.userSum ?? 0}', AppTheme.textPrimary),
             ],
           ),
         ],
@@ -233,26 +183,15 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
     );
   }
 
-  Widget _buildGridItem(String label, String value, String unit, {String? desc}) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(value, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(width: 2),
-            Text(unit, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-          ],
-        ),
-        if (desc != null) ...[
+  Widget _buildStatItem(String label, String value, Color valueColor) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(label, style: const TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
           const SizedBox(height: 4),
-          Text(desc, style: const TextStyle(color: AppTheme.textTertiary, fontSize: 10)),
+          Text(value, style: TextStyle(color: valueColor, fontSize: 16, fontWeight: FontWeight.bold)),
         ],
-      ],
+      ),
     );
   }
 

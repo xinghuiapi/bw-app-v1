@@ -96,16 +96,53 @@ class AuthResponseData {
   final int? expiresIn;
   @JsonKey(name: 'refresh_token')
   final String? refreshToken;
+  @JsonKey(name: 'one_login')
+  final bool? oneLogin;
+  @JsonKey(name: 'is_one_login')
+  final bool? isOneLogin;
 
   AuthResponseData({
     required this.accessToken,
     this.tokenType,
     this.expiresIn,
     this.refreshToken,
+    this.oneLogin,
+    this.isOneLogin,
   });
 
   factory AuthResponseData.fromJson(Map<String, dynamic> json) => _$AuthResponseDataFromJson(json);
   Map<String, dynamic> toJson() => _$AuthResponseDataToJson(this);
+}
+
+@JsonSerializable()
+class TelegramLoginRequest {
+  @JsonKey(name: 'user_id')
+  final String userId;
+  final String username;
+
+  TelegramLoginRequest({
+    required this.userId,
+    required this.username,
+  });
+
+  factory TelegramLoginRequest.fromJson(Map<String, dynamic> json) => _$TelegramLoginRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$TelegramLoginRequestToJson(this);
+}
+
+@JsonSerializable()
+class SetTelegramPasswordRequest {
+  @JsonKey(name: 'newPass')
+  final String newPass;
+  @JsonKey(name: 'confirmpass')
+  final String confirmPass;
+
+  SetTelegramPasswordRequest({
+    required this.newPass,
+    required this.confirmPass,
+  });
+
+  factory SetTelegramPasswordRequest.fromJson(Map<String, dynamic> json) => _$SetTelegramPasswordRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$SetTelegramPasswordRequestToJson(this);
 }
 
 @JsonSerializable()

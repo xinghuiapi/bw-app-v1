@@ -11,6 +11,8 @@ import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:my_flutter_app/utils/constants.dart';
+import 'package:my_flutter_app/screens/personal/card_packages_screen.dart';
+import 'package:my_flutter_app/providers/withdraw_provider.dart';
 
 class SelectedTypeNotifier extends Notifier<int> {
    @override
@@ -144,7 +146,8 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
         card: _cardController.text.trim(),
         alias: _aliasController.text.trim(),
         name: user.realName!, // 使用实名
-        address: selectedType == 1 ? _addressController.text.trim() : uploadedImageUrl,
+        address: selectedType == 1 ? _addressController.text.trim() : null, // 仅银行卡需要开户地
+        img: selectedType != 1 ? uploadedImageUrl : null, // 虚拟币/支付宝需要二维码
         payPassword: _payPasswordController.text.trim(),
       );
 
@@ -152,7 +155,22 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
       if (response.code == 200) {
         ToastUtils.showSuccess('绑定成功');
         if (mounted) {
+          // 刷新用户信息和收款方式列表
           ref.refresh(userProvider.notifier).fetchUserInfo();
+          // 如果 CardPackagesScreen 中定义了 paymentMethodsProvider，尝试刷新它
+          // 由于 paymentMethodsProvider 定义在 card_packages_screen.dart 中，
+          // 我们需要确保能访问到它，或者通过 ref.invalidate 刷新
+          try {
+            // 尝试通过 invalidate 刷新收款方式列表
+            // 注意：这里需要导入对应的 provider，或者如果 provider 是全局的可以直接引用
+            // 在 card_packages_screen.dart 中定义的是全局的 paymentMethodsProvider
+            ref.invalidate(paymentMethodsProvider);
+            // 同时刷新提现页面的 provider，确保数据同步
+            ref.invalidate(withdrawProvider);
+          } catch (e) {
+            debugPrint('Refresh paymentMethodsProvider failed: $e');
+          }
+          
           context.pop();
         }
       } else {
@@ -195,24 +213,21 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                   children: [
                     _buildBankGrid(bankTypesAsync),
                     if (_selectedBank != null) ...[
-                      const SizedBox(height: 24),
-                      const Text('填写信息', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 24, bottom: 12),
+                        child: Text('填写信息', style: TextStyle(fontSize: 14, color: Color(0xFF333333))),
+                      ),
                       _buildRealNameStatus(isRealNameSet, user?.realName),
-                      if (!hasPayPassword) ...[
-                        const SizedBox(height: 12),
-                        _buildPayPasswordStatus(),
-                      ],
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _cardController,
-                        label: selectedType == 1 ? '银行卡号' : (selectedType == 2 ? '钱包地址' : '账号'),
-                        placeholder: '请输入账号/地址',
+                        label: selectedType == 1 ? '银行卡号' : (selectedType == 2 ? '卡号/地址' : '账号'),
+                        placeholder: selectedType == 1 ? '请输入银行卡号' : '请输入卡号或收款地址',
                         required: true,
                         validator: (v) => v?.isEmpty ?? true ? '不能为空' : null,
                       ),
+                      const SizedBox(height: 16),
                       if (selectedType == 1) ...[
-                        const SizedBox(height: 16),
                         _buildTextField(
                           controller: _addressController,
                           label: '开户行地址',
@@ -220,21 +235,21 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                           required: true,
                           validator: (v) => v?.isEmpty ?? true ? '地址不能为空' : null,
                         ),
+                        const SizedBox(height: 16),
                       ],
-                      const SizedBox(height: 16),
                       _buildTextField(
                         controller: _aliasController,
-                        label: '备注名',
-                        placeholder: '例如：常用卡',
+                        label: '备注',
+                        placeholder: '请输入备注 (选填)',
                       ),
+                      const SizedBox(height: 16),
                       if (selectedType != 1) ...[
-                        const SizedBox(height: 16),
                         const Text('上传收款码', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF666666))),
                         const SizedBox(height: 8),
                         _buildImagePicker(),
+                        const SizedBox(height: 16),
                       ],
                       if (hasPayPassword) ...[
-                        const SizedBox(height: 16),
                         _buildTextField(
                           controller: _payPasswordController,
                           label: '交易密码',
@@ -244,8 +259,12 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                           keyboardType: TextInputType.number,
                           validator: (v) => v?.isEmpty ?? true ? '密码不能为空' : null,
                         ),
+                        const SizedBox(height: 16),
+                      ] else ...[
+                        _buildPayPasswordStatus(),
+                        const SizedBox(height: 16),
                       ],
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 24),
                       _buildSubmitButton(),
                       const SizedBox(height: 40),
                     ],
@@ -262,8 +281,8 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
   Widget _buildTypeSelector(int selectedType) {
     final types = [
       {'label': '银行卡', 'value': 1, 'emoji': '🏦'},
-      {'label': '数字货币', 'value': 2, 'emoji': '🪙'},
-      {'label': '第三方', 'value': 3, 'emoji': '💳'},
+      {'label': '虚拟币', 'value': 2, 'emoji': '🪙'},
+      {'label': '支付宝', 'value': 3, 'emoji': '💳'},
     ];
 
     return Container(
@@ -323,27 +342,20 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
       data: (banks) {
         if (banks.isEmpty) return const SizedBox();
         
-        final displayedBanks = _banksExpanded || banks.length <= 4 
-            ? banks 
-            : banks.sublist(0, 4);
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('选择支付方式', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            GridView.builder(
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Text('选择方式', style: TextStyle(fontSize: 14, color: Color(0xFF333333))),
+            ),
+            ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 2.2,
-              ),
-              itemCount: displayedBanks.length,
+              itemCount: banks.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
-                final bank = displayedBanks[index];
+                final bank = banks[index];
                 final isSelected = _selectedBank?.id == bank.id;
                 
                 String? imageUrl = bank.img;
@@ -354,13 +366,13 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                 return GestureDetector(
                   onTap: () => setState(() => _selectedBank = bank),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFFFF1F1) : Colors.white,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected ? AppTheme.primary : Colors.transparent,
-                        width: 1.5,
+                        width: 1,
                       ),
                     ),
                     child: Row(
@@ -378,122 +390,107 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             bank.name,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF333333),
+                              fontWeight: FontWeight.w500,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (isSelected)
-                          const Icon(Icons.check_circle, size: 16, color: AppTheme.primary),
+                        Icon(
+                          isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                          color: isSelected ? AppTheme.primary : const Color(0xFFDCDCDC),
+                          size: 20,
+                        ),
                       ],
                     ),
                   ),
                 );
               },
             ),
-            if (banks.length > 4) ...[
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => setState(() => _banksExpanded = !_banksExpanded),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFFEEEEEE)),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _banksExpanded ? '收起部分' : '查看更多 (${banks.length - 4})',
-                        style: const TextStyle(color: Color(0xFF999999), fontSize: 13),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        _banksExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                        size: 16,
-                        color: const Color(0xFF999999),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
           ],
         );
       },
-      loading: () => const Center(child: Padding(
-        padding: EdgeInsets.all(20),
-        child: CircularProgressIndicator(),
-      )),
-      error: (err, _) => Center(child: Text('加载失败: $err')),
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (err, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              const SizedBox(height: 10),
+              Text('加载失败: $err', textAlign: TextAlign.center),
+              TextButton(
+                onPressed: () => ref.refresh(bankTypesProvider(ref.read(selectedTypeProvider))),
+                child: const Text('重试'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildRealNameStatus(bool isVerified, String? name) {
-    if (isVerified) {
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF6FFED),
-          border: Border.all(color: const Color(0xFFB7EB8F)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.verified_user, size: 18, color: Color(0xFF52C41A)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '持卡人姓名：$name',
-                style: const TextStyle(color: Color(0xFF52C41A), fontWeight: FontWeight.bold),
-              ),
-            ),
-            const Text(
-              '已实名',
-              style: TextStyle(fontSize: 12, color: Color(0xFF52C41A)),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return GestureDetector(
-        onTap: _goToBindRealName,
-        child: Container(
-          padding: const EdgeInsets.all(12),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('真实姓名', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF666666))),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFFBE6),
-            border: Border.all(color: const Color(0xFFFFE58F)),
-            borderRadius: BorderRadius.circular(12),
+            color: isVerified ? const Color(0xFFF6FFED) : const Color(0xFFFFFBE6),
+            border: Border.all(color: isVerified ? const Color(0xFFB7EB8F) : const Color(0xFFFFE58F)),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, size: 18, color: Color(0xFFFAAD14)),
-              const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('尚未实名', style: TextStyle(color: Color(0xFFFAAD14), fontWeight: FontWeight.bold)),
-                    Text('请先完善真实姓名', style: TextStyle(color: Color(0xFFFAAD14), fontSize: 12)),
-                  ],
+                child: Text(
+                  name ?? '尚未实名',
+                  style: TextStyle(
+                    color: isVerified ? const Color(0xFF52C41A) : const Color(0xFFFAAD14),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              Icon(Icons.chevron_right, size: 20, color: Color(0xFFFAAD14)),
+              if (isVerified)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF52C41A),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    '已实名',
+                    style: TextStyle(color: Colors.white, fontSize: 11),
+                  ),
+                )
+              else
+                GestureDetector(
+                  onTap: _goToBindRealName,
+                  child: const Row(
+                    children: [
+                      Text('去实名', style: TextStyle(color: Color(0xFFFAAD14), fontSize: 12)),
+                      Icon(Icons.chevron_right, size: 16, color: Color(0xFFFAAD14)),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
-      );
-    }
+      ],
+    );
   }
 
   Widget _buildPayPasswordStatus() {
@@ -539,69 +536,61 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(text: label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF666666))),
-              if (required)
-                const TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
-            ],
-          ),
+        Row(
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF666666))),
+            if (required) const Text(' *', style: TextStyle(color: Colors.red, fontSize: 13)),
+          ],
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           obscureText: obscureText,
-          keyboardType: keyboardType,
-          validator: validator,
           enabled: enabled,
-          style: const TextStyle(fontSize: 15),
+          keyboardType: keyboardType,
+          style: const TextStyle(fontSize: 14, color: Color(0xFF333333)),
           decoration: InputDecoration(
             hintText: placeholder,
-            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+            hintStyle: const TextStyle(color: Color(0xFFCCCCCC), fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            fillColor: const Color(0xFFF8F9FB),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
+            ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: AppTheme.primary),
             ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
-            ),
           ),
+          validator: validator,
         ),
       ],
     );
   }
 
   Widget _buildSubmitButton() {
+    final isEnabled = _selectedBank != null && !_isSubmitting;
+    
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _submit,
+        onPressed: isEnabled ? _submit : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: isEnabled ? AppTheme.primary : const Color(0xFFEEEEEE),
+          foregroundColor: isEnabled ? Colors.white : const Color(0xFF999999),
           elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
         child: _isSubmitting
-            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            : const Text('确认添加', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : const Text('确定绑定', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -613,25 +602,17 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
         width: double.infinity,
         height: 160,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
+          color: const Color(0xFFF8F9FB),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFDDDDDD), style: BorderStyle.solid),
         ),
         child: _imageBytes != null
             ? Stack(
                 children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.memory(_imageBytes!, fit: BoxFit.contain),
-                      ),
-                    ),
-                  ),
+                  Center(child: Image.memory(_imageBytes!, fit: BoxFit.contain)),
                   Positioned(
-                    right: 12,
-                    top: 12,
+                    right: 8,
+                    top: 8,
                     child: GestureDetector(
                       onTap: () => setState(() {
                         _imageFile = null;
@@ -649,18 +630,11 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add_a_photo, color: Color(0xFF999999), size: 32),
-                  ),
+                  const Icon(Icons.add_a_photo_outlined, size: 32, color: Color(0xFF999999)),
                   const SizedBox(height: 12),
-                  const Text('上传二维码图片', style: TextStyle(color: Color(0xFF666666), fontSize: 14)),
+                  const Text('点击上传收款码图片', style: TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  const Text('支持 JPG、PNG 格式，不超过 5MB', style: TextStyle(color: Color(0xFF999999), fontSize: 12)),
+                  const Text('支持 JPG、PNG 格式，大小不超过 5MB', style: TextStyle(color: Color(0xFF999999), fontSize: 12)),
                 ],
               ),
       ),

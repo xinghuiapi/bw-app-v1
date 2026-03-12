@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 class ToastUtils {
   static final GlobalKey<ScaffoldMessengerState> messengerKey = GlobalKey<ScaffoldMessengerState>();
 
+  static void showInfo(String message) {
+    _showToast(message, Colors.blue);
+  }
+
   static void showSuccess(String message) {
     _showToast(message, Colors.green);
   }

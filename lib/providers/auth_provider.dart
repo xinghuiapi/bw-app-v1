@@ -38,13 +38,21 @@ class AuthState {
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
+    // 监听状态，确保一旦状态被改变就会重新构建
+    // 虽然这里没有直接 watch 任何东西，但返回初始状态是必要的
+    // _init 是异步的，会稍后触发 state = ... 来更新 UI
     _init();
-    return AuthState();
+    return AuthState(isLoading: true);
   }
 
   Future<void> _init() async {
     final token = await AuthHelper.getToken();
-    state = AuthState(isLoggedIn: token != null && token.isNotEmpty, token: token);
+    state = AuthState(isLoggedIn: token != null && token.isNotEmpty, token: token, isLoading: false);
+  }
+
+  /// 更新登录状态 (用于外部登录流程，如 Telegram 登录)
+  void updateLoginState(String token) {
+    state = AuthState(isLoggedIn: true, token: token);
   }
 
   /// 登录

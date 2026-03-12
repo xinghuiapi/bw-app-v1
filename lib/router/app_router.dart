@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/screens/home_screen.dart';
 import 'package:my_flutter_app/screens/placeholder_screen.dart';
+import 'package:my_flutter_app/screens/auth/telegram_login_screen.dart';
 import 'package:my_flutter_app/screens/auth/login_screen.dart';
 import 'package:my_flutter_app/screens/auth/register_screen.dart';
 import 'package:my_flutter_app/screens/basic/activities_screen.dart';
@@ -50,7 +51,11 @@ class AppRouter {
       GoRoute(
         path: '/telegram-login',
         name: 'telegram-login',
-        builder: (context, state) => const PlaceholderScreen(title: 'Telegram登录'),
+        builder: (context, state) {
+          final userId = state.uri.queryParameters['user_id'];
+          final username = state.uri.queryParameters['username'];
+          return TelegramLoginScreen(userId: userId, username: username);
+        },
       ),
       GoRoute(
         path: '/login',

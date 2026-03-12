@@ -199,6 +199,34 @@ class FinanceService {
     }
   }
 
+  /// 获取推广返利数据
+  /// 接口: /api/retabe/list
+  static Future<ApiResponse<RebateData>> getReferralRebateData() async {
+    try {
+      final response = await api.post('/retabe/list');
+      return ApiResponse<RebateData>.fromJson(
+        response.data,
+        (json) => RebateData.fromJson(json as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  /// 领取推广返利
+  /// 接口: /api/retabe/amount
+  static Future<ApiResponse<void>> claimReferralRebate() async {
+    try {
+      final response = await api.post('/retabe/amount');
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
   /// 删除收款方式
   /// 接口: /api/member_bank/delete
   static Future<ApiResponse<void>> deletePaymentMethod(int id) async {

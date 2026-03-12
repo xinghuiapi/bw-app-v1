@@ -124,9 +124,9 @@ class QuickAccess extends ConsumerWidget {
             ),
             Row(
               children: [
-                _buildActionButton(context, '充值', Icons.add_circle_outline, AppTheme.info, () => context.push('/wallet/recharge')),
+                _buildActionButton(context, '充值', Icons.add_circle_outline, AppTheme.info, () => context.push('/wallet-recharge')),
                 const SizedBox(width: 12),
-                _buildActionButton(context, '提现', Icons.account_balance_wallet_outlined, AppTheme.success, () => context.push('/wallet/withdraw')),
+                _buildActionButton(context, '提现', Icons.account_balance_wallet_outlined, AppTheme.success, () => context.push('/wallet-withdraw')),
               ],
             ),
           ],

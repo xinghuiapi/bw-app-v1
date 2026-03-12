@@ -38,5 +38,11 @@
     "activities": "Atividades",
     "service": "Serviço",
     "mine": "Meu"
+  },
+  "telegramLogin": {
+    "firstLoginProcessing": "Criando conta para você...",
+    "secureLoginProcessing": "Fazendo login com segurança...",
+    "passwordSetDefault": "Senha inicializada para ${password}, altere-a a tempo",
+    "setPasswordFailed": "Falha ao definir a senha padrão, entre em contato com o suporte"
   }
 }

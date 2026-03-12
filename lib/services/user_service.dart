@@ -71,6 +71,24 @@ class UserService {
     }
   }
 
+  /// 收藏/取消收藏游戏
+  /// 接口: /api/user_favorites/game
+  /// params: { "id": int, "status": int } (status: 1 收藏, 0 取消收藏)
+  static Future<ApiResponse<void>> toggleGameFavorite(int gameId, int status) async {
+    try {
+      final response = await api.post('/user_favorites/game', data: {
+        'id': gameId,
+        'status': status,
+      });
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
   /// 上传图片
   /// 接口: /api/img/save
   static Future<ApiResponse<Map<String, dynamic>>> uploadImage(List<int> bytes, String fileName) async {
@@ -199,16 +217,11 @@ class UserService {
   /// 接口: /api/user/settings
   static Future<ApiResponse<Map<String, dynamic>>> getUserSettings() async {
     try {
-      final response = await api.get('/user/settings');
-      
-      return ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return json;
-          }
-          return {};
-        },
+      final response = await api.post('/user/settings');
+      return ApiResponse<Map<String, dynamic>>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+        data: response.data['data'] as Map<String, dynamic>?,
       );
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());

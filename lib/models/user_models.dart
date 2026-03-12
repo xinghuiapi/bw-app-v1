@@ -87,6 +87,17 @@ class SetPayPasswordRequest {
 }
 
 @JsonSerializable()
+class FavoriteToggleRequest {
+  @JsonKey(name: 'game_id')
+  final int gameId;
+
+  FavoriteToggleRequest({required this.gameId});
+
+  factory FavoriteToggleRequest.fromJson(Map<String, dynamic> json) => _$FavoriteToggleRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$FavoriteToggleRequestToJson(this);
+}
+
+@JsonSerializable()
 class BetRecord {
   final int id;
   @JsonKey(name: 'order_id')

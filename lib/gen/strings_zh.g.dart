@@ -40,6 +40,7 @@ class TranslationsZh with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _TranslationsCommonZh common = _TranslationsCommonZh._(_root);
 	@override late final _TranslationsAuthZh auth = _TranslationsAuthZh._(_root);
 	@override late final _TranslationsHomeZh home = _TranslationsHomeZh._(_root);
+	@override late final _TranslationsTelegramLoginZh telegramLogin = _TranslationsTelegramLoginZh._(_root);
 }
 
 // Path: common
@@ -85,6 +86,19 @@ class _TranslationsHomeZh implements TranslationsHomeEn {
 	@override String get activities => '活动';
 	@override String get service => '客服';
 	@override String get mine => '我的';
+}
+
+// Path: telegramLogin
+class _TranslationsTelegramLoginZh implements TranslationsTelegramLoginEn {
+	_TranslationsTelegramLoginZh._(this._root);
+
+	final TranslationsZh _root; // ignore: unused_field
+
+	// Translations
+	@override String get firstLoginProcessing => '正在为您创建账户...';
+	@override String get secureLoginProcessing => '正在安全登录中...';
+	@override String passwordSetDefault({required Object password}) => '密码已初始化为 ${password}，请及时修改';
+	@override String get setPasswordFailed => '设置默认密码失败，请联系客服';
 }
 
 // Path: common.error
@@ -151,6 +165,10 @@ extension on TranslationsZh {
 			'home.activities' => '活动',
 			'home.service' => '客服',
 			'home.mine' => '我的',
+			'telegramLogin.firstLoginProcessing' => '正在为您创建账户...',
+			'telegramLogin.secureLoginProcessing' => '正在安全登录中...',
+			'telegramLogin.passwordSetDefault' => ({required Object password}) => '密码已初始化为 ${password}，请及时修改',
+			'telegramLogin.setPasswordFailed' => '设置默认密码失败，请联系客服',
 			_ => null,
 		};
 	}

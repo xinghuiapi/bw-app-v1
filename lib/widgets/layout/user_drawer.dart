@@ -37,9 +37,9 @@ class UserDrawer extends ConsumerWidget {
                 padding: EdgeInsets.zero,
                 children: [
                   _buildMenuItem(context, Icons.person_outline, '个人资料', '/personal-center-profile'),
-                  _buildMenuItem(context, Icons.account_balance_wallet_outlined, '钱包充值', '/wallet/recharge'),
-                  _buildMenuItem(context, Icons.account_balance_wallet_outlined, '钱包提现', '/wallet/withdraw'),
-                  _buildMenuItem(context, Icons.history, '投注记录', '/bet-history'),
+                  _buildMenuItem(context, Icons.account_balance_wallet_outlined, '钱包充值', '/wallet-recharge'),
+                  _buildMenuItem(context, Icons.account_balance_wallet_outlined, '钱包提现', '/wallet-withdraw'),
+                  _buildMenuItem(context, Icons.history, '投注记录', '/bet-records'),
                   _buildMenuItem(context, Icons.card_giftcard, '活动中心', '/activities'),
                   _buildMenuItem(context, Icons.headset_mic_outlined, '联系客服', '/customer-service'),
                 ],

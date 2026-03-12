@@ -175,6 +175,28 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
       );
     }
   }
+
+  /// 本地更新收藏状态（用于即时反馈）
+  void toggleFavoriteLocal(int gameId) {
+    final newItems = state.items.map((item) {
+      if (item.id == gameId) {
+        // 由于 GameItem 是 immutable，需要重新构造
+        final currentFavorite = item.isFavorite;
+        return GameItem(
+          id: item.id,
+          title: item.title,
+          img: item.img,
+          gameCode: item.gameCode,
+          favorites: currentFavorite ? 0 : 1, // 切换状态
+          isCategoryResult: item.isCategoryResult,
+          isHot: item.isHot,
+        );
+      }
+      return item;
+    }).toList();
+    
+    state = state.copyWith(items: newItems);
+  }
 }
 
 final gameListProvider = NotifierProvider.autoDispose.family<GameListNotifier, GameListPaginationState, dynamic>((arg) {

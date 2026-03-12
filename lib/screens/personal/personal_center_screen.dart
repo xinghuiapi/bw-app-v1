@@ -464,7 +464,7 @@ class PersonalCenterScreen extends ConsumerWidget {
               _buildWalletAction(context, '充值', Icons.add_circle_outline, AppTheme.info, () => context.push('/wallet-recharge')),
               _buildWalletAction(context, '提现', Icons.account_balance_wallet_outlined, AppTheme.success, () => context.push('/wallet-withdraw')),
               _buildWalletAction(context, '转账', Icons.swap_horiz, AppTheme.warning, () => context.push('/wallet-transfer')),
-              _buildWalletAction(context, '券包', Icons.confirmation_number_outlined, AppTheme.primary, () => context.push('/personal-center-card-packages')),
+              _buildWalletAction(context, '卡包', Icons.confirmation_number_outlined, AppTheme.primary, () => context.push('/personal-center-card-packages')),
             ],
           ),
         ],

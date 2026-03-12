@@ -308,6 +308,32 @@ class RebateRecord {
 }
 
 @JsonSerializable()
+class RebateData {
+  @JsonKey(name: 'user_sum')
+  final int userSum;
+  @JsonKey(name: 'user_youxiao')
+  final int userYouxiao;
+  final double dailingqu;
+  final String zuidi;
+  @JsonKey(name: 'user_max')
+  final int userMax;
+  @JsonKey(name: 'user_amount')
+  final double userAmount;
+
+  RebateData({
+    required this.userSum,
+    required this.userYouxiao,
+    required this.dailingqu,
+    required this.zuidi,
+    required this.userMax,
+    required this.userAmount,
+  });
+
+  factory RebateData.fromJson(Map<String, dynamic> json) => _$RebateDataFromJson(json);
+  Map<String, dynamic> toJson() => _$RebateDataToJson(this);
+}
+
+@JsonSerializable()
 class RechargeParams {
   final String? merchant;
   @JsonKey(name: 'pay_key')
@@ -417,19 +443,22 @@ class RechargeDetail {
 @JsonSerializable()
 class BankType {
   final int id;
-  final String name;
+  @JsonKey(name: 'name')
+  final String? _name;
   @JsonKey(name: 'title')
-  final String? title; // 某些接口可能使用 title
+  final String? title;
   final String? code;
   final String? img;
 
+  String get name => _name ?? title ?? '';
+
   BankType({
     required this.id,
-    required this.name,
+    String? name,
     this.title,
     this.code,
     this.img,
-  });
+  }) : _name = name;
 
   factory BankType.fromJson(Map<String, dynamic> json) => _$BankTypeFromJson(json);
   Map<String, dynamic> toJson() => _$BankTypeToJson(this);
@@ -439,9 +468,11 @@ class BankType {
 class BindPaymentRequest {
   final int id; // 银行类型ID
   final String card; // 卡号/地址
-  final String? address; // 开户地
+  @JsonKey(name: 'addres')
+  final String? address; // 接口拼写为 addres
   final String? alias; // 别名
   final String? name; // 持卡人姓名
+  final String? img; // 二维码地址
   @JsonKey(name: 'pay_password')
   final String? payPassword;
 
@@ -451,6 +482,7 @@ class BindPaymentRequest {
     this.address,
     this.alias,
     this.name,
+    this.img,
     this.payPassword,
   });
 

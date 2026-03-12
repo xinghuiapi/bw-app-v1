@@ -120,6 +120,8 @@ SiteConfig _$SiteConfigFromJson(Map<String, dynamic> json) => SiteConfig(
   status: (json['status'] as num?)?.toInt(),
   serviceLink: json['service_link'] as String?,
   appDownload: json['app_download'] as String?,
+  terminalLogin: (json['terminal_login'] as num?)?.toInt(),
+  appVersion: json['app_version'] as String?,
 );
 
 Map<String, dynamic> _$SiteConfigToJson(SiteConfig instance) =>
@@ -131,6 +133,8 @@ Map<String, dynamic> _$SiteConfigToJson(SiteConfig instance) =>
       'status': instance.status,
       'service_link': instance.serviceLink,
       'app_download': instance.appDownload,
+      'terminal_login': instance.terminalLogin,
+      'app_version': instance.appVersion,
     };
 
 GameCategory _$GameCategoryFromJson(Map<String, dynamic> json) => GameCategory(
@@ -187,6 +191,8 @@ GameItem _$GameItemFromJson(Map<String, dynamic> json) => GameItem(
   favorites: json['favorites'],
   isCategoryResult: json['is_category_result'] as bool?,
   isHot: json['is_hot'] as bool?,
+  interfaceTitle: json['interface_title'] as String?,
+  label: (json['label'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$GameItemToJson(GameItem instance) => <String, dynamic>{
@@ -197,6 +203,8 @@ Map<String, dynamic> _$GameItemToJson(GameItem instance) => <String, dynamic>{
   'favorites': instance.favorites,
   'is_category_result': instance.isCategoryResult,
   'is_hot': instance.isHot,
+  'interface_title': instance.interfaceTitle,
+  'label': instance.label,
 };
 
 ActivityClass _$ActivityClassFromJson(Map<String, dynamic> json) =>

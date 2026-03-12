@@ -111,6 +111,37 @@ class AuthService {
     }
   }
 
+  static Future<ApiResponse<AuthResponseData>> telegramLogin(TelegramLoginRequest request) async {
+    try {
+      final response = await api.post('/telegram/login', data: request.toJson());
+      
+      return ApiResponse<AuthResponseData>.fromJson(
+        response.data,
+        (json) {
+          final map = json as Map<String, dynamic>;
+          if (map.containsKey('data') && map['data'] is Map<String, dynamic>) {
+            return AuthResponseData.fromJson(map['data'] as Map<String, dynamic>);
+          }
+          return AuthResponseData.fromJson(map);
+        },
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  static Future<ApiResponse<void>> setTelegramPassword(SetTelegramPasswordRequest request) async {
+    try {
+      final response = await api.post('/telegram/password', data: request.toJson());
+      return ApiResponse<void>(
+        code: response.data['code'] ?? -1,
+        msg: response.data['msg'],
+      );
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
   static Future<ApiResponse<void>> sendResetPasswordCode({
     required int type, // 1手机验证码，2邮箱验证码
     String? areaCode,

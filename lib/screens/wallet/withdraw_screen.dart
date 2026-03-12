@@ -462,9 +462,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
-            onPressed: () {
-              // TODO: 跳转添加收款方式
-            },
+            onPressed: () => context.push('/personal-center-card-packages'),
             icon: const Icon(Icons.add),
             label: const Text('添加收款方式'),
           ),
@@ -572,9 +570,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              // TODO: 跳转设置密码
-            },
+            onPressed: () => context.push('/personal-center-profile-paypassword'),
             child: const Text('去设置'),
           ),
         ],

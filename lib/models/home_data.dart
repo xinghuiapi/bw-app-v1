@@ -15,9 +15,9 @@ class HomeData {
   @JsonKey(name: 'config_pic')
   final PicConfig? picConfig;
   @JsonKey(name: 'config_mail')
-  final Map<String, dynamic>? mailConfig;
+  final MailConfig? mailConfig;
   @JsonKey(name: 'config_send')
-  final Map<String, dynamic>? sendConfig;
+  final SendConfig? sendConfig;
   @JsonKey(name: 'config_lang')
   final List<LangConfig>? langConfig;
   @JsonKey(name: 'config_curr')
@@ -41,13 +41,13 @@ class HomeData {
 
 @JsonSerializable()
 class RegConfig {
-  final String? name;
+  final String? code;
   final String? title;
   final int? status; // 1: 显示, 0: 隐藏
-  @JsonKey(name: 'is_required')
-  final int? isRequired; // 1: 必填, 0: 选填
+  @JsonKey(name: 'status_s')
+  final int? statusS; // 1: 必填, 0: 选填
 
-  RegConfig({this.name, this.title, this.status, this.isRequired});
+  RegConfig({this.code, this.title, this.status, this.statusS});
 
   factory RegConfig.fromJson(Map<String, dynamic> json) => _$RegConfigFromJson(json);
   Map<String, dynamic> toJson() => _$RegConfigToJson(this);
@@ -55,12 +55,104 @@ class RegConfig {
 
 @JsonSerializable()
 class PicConfig {
-  final int? status; // 1: 开启图形验证码, 0: 关闭
+  final int? id;
+  @JsonKey(name: 'login_status')
+  final int? loginStatus;
+  @JsonKey(name: 'reg_status')
+  final int? regStatus;
+  @JsonKey(name: 'agent_login_status')
+  final int? agentLoginStatus;
+  @JsonKey(name: 'admin_login_status')
+  final int? adminLoginStatus;
+  @JsonKey(name: 'login_error')
+  final int? loginError;
+  @JsonKey(name: 'code_type')
+  final int? codeType; // 1: 图形, 0: 滑行
+  @JsonKey(name: 'pic_width')
+  final String? picWidth;
+  @JsonKey(name: 'pic_height')
+  final String? picHeight;
+  @JsonKey(name: 'pic_size')
+  final String? picSize;
+  @JsonKey(name: 'pic_digit')
+  final String? picDigit;
 
-  PicConfig({this.status});
+  PicConfig({
+    this.id,
+    this.loginStatus,
+    this.regStatus,
+    this.agentLoginStatus,
+    this.adminLoginStatus,
+    this.loginError,
+    this.codeType,
+    this.picWidth,
+    this.picHeight,
+    this.picSize,
+    this.picDigit,
+  });
 
   factory PicConfig.fromJson(Map<String, dynamic> json) => _$PicConfigFromJson(json);
   Map<String, dynamic> toJson() => _$PicConfigToJson(this);
+}
+
+@JsonSerializable()
+class MailConfig {
+  final int? id;
+  @JsonKey(name: 'login_status')
+  final int? loginStatus;
+  @JsonKey(name: 'reg_status')
+  final int? regStatus;
+  @JsonKey(name: 'agent_login_status')
+  final int? agentLoginStatus;
+  @JsonKey(name: 'admin_login_status')
+  final int? adminLoginStatus;
+  final int? type;
+  final int? expire;
+  final int? frequency;
+
+  MailConfig({
+    this.id,
+    this.loginStatus,
+    this.regStatus,
+    this.agentLoginStatus,
+    this.adminLoginStatus,
+    this.type,
+    this.expire,
+    this.frequency,
+  });
+
+  factory MailConfig.fromJson(Map<String, dynamic> json) => _$MailConfigFromJson(json);
+  Map<String, dynamic> toJson() => _$MailConfigToJson(this);
+}
+
+@JsonSerializable()
+class SendConfig {
+  final int? id;
+  @JsonKey(name: 'login_status')
+  final int? loginStatus;
+  @JsonKey(name: 'reg_status')
+  final int? regStatus;
+  @JsonKey(name: 'agent_login_status')
+  final int? agentLoginStatus;
+  @JsonKey(name: 'admin_login_status')
+  final int? adminLoginStatus;
+  final int? type;
+  final int? expire;
+  final int? frequency;
+
+  SendConfig({
+    this.id,
+    this.loginStatus,
+    this.regStatus,
+    this.agentLoginStatus,
+    this.adminLoginStatus,
+    this.type,
+    this.expire,
+    this.frequency,
+  });
+
+  factory SendConfig.fromJson(Map<String, dynamic> json) => _$SendConfigFromJson(json);
+  Map<String, dynamic> toJson() => _$SendConfigToJson(this);
 }
 
 @JsonSerializable()
@@ -77,10 +169,13 @@ class LangConfig {
 
 @JsonSerializable()
 class CurrConfig {
-  final String? name;
   final String? code;
+  final String? title;
+  final String? symbol;
+  @JsonKey(name: 'status_s')
+  final int? statusS;
 
-  CurrConfig({this.name, this.code});
+  CurrConfig({this.code, this.title, this.symbol, this.statusS});
 
   factory CurrConfig.fromJson(Map<String, dynamic> json) => _$CurrConfigFromJson(json);
   Map<String, dynamic> toJson() => _$CurrConfigToJson(this);

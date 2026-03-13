@@ -22,8 +22,12 @@ HomeData _$HomeDataFromJson(Map<String, dynamic> json) => HomeData(
   picConfig: json['config_pic'] == null
       ? null
       : PicConfig.fromJson(json['config_pic'] as Map<String, dynamic>),
-  mailConfig: json['config_mail'] as Map<String, dynamic>?,
-  sendConfig: json['config_send'] as Map<String, dynamic>?,
+  mailConfig: json['config_mail'] == null
+      ? null
+      : MailConfig.fromJson(json['config_mail'] as Map<String, dynamic>),
+  sendConfig: json['config_send'] == null
+      ? null
+      : SendConfig.fromJson(json['config_send'] as Map<String, dynamic>),
   langConfig: (json['config_lang'] as List<dynamic>?)
       ?.map((e) => LangConfig.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -45,25 +49,92 @@ Map<String, dynamic> _$HomeDataToJson(HomeData instance) => <String, dynamic>{
 };
 
 RegConfig _$RegConfigFromJson(Map<String, dynamic> json) => RegConfig(
-  name: json['name'] as String?,
+  code: json['code'] as String?,
   title: json['title'] as String?,
   status: (json['status'] as num?)?.toInt(),
-  isRequired: (json['is_required'] as num?)?.toInt(),
+  statusS: (json['status_s'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$RegConfigToJson(RegConfig instance) => <String, dynamic>{
-  'name': instance.name,
+  'code': instance.code,
   'title': instance.title,
   'status': instance.status,
-  'is_required': instance.isRequired,
+  'status_s': instance.statusS,
 };
 
-PicConfig _$PicConfigFromJson(Map<String, dynamic> json) =>
-    PicConfig(status: (json['status'] as num?)?.toInt());
+PicConfig _$PicConfigFromJson(Map<String, dynamic> json) => PicConfig(
+  id: (json['id'] as num?)?.toInt(),
+  loginStatus: (json['login_status'] as num?)?.toInt(),
+  regStatus: (json['reg_status'] as num?)?.toInt(),
+  agentLoginStatus: (json['agent_login_status'] as num?)?.toInt(),
+  adminLoginStatus: (json['admin_login_status'] as num?)?.toInt(),
+  loginError: (json['login_error'] as num?)?.toInt(),
+  codeType: (json['code_type'] as num?)?.toInt(),
+  picWidth: json['pic_width'] as String?,
+  picHeight: json['pic_height'] as String?,
+  picSize: json['pic_size'] as String?,
+  picDigit: json['pic_digit'] as String?,
+);
 
 Map<String, dynamic> _$PicConfigToJson(PicConfig instance) => <String, dynamic>{
-  'status': instance.status,
+  'id': instance.id,
+  'login_status': instance.loginStatus,
+  'reg_status': instance.regStatus,
+  'agent_login_status': instance.agentLoginStatus,
+  'admin_login_status': instance.adminLoginStatus,
+  'login_error': instance.loginError,
+  'code_type': instance.codeType,
+  'pic_width': instance.picWidth,
+  'pic_height': instance.picHeight,
+  'pic_size': instance.picSize,
+  'pic_digit': instance.picDigit,
 };
+
+MailConfig _$MailConfigFromJson(Map<String, dynamic> json) => MailConfig(
+  id: (json['id'] as num?)?.toInt(),
+  loginStatus: (json['login_status'] as num?)?.toInt(),
+  regStatus: (json['reg_status'] as num?)?.toInt(),
+  agentLoginStatus: (json['agent_login_status'] as num?)?.toInt(),
+  adminLoginStatus: (json['admin_login_status'] as num?)?.toInt(),
+  type: (json['type'] as num?)?.toInt(),
+  expire: (json['expire'] as num?)?.toInt(),
+  frequency: (json['frequency'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$MailConfigToJson(MailConfig instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'login_status': instance.loginStatus,
+      'reg_status': instance.regStatus,
+      'agent_login_status': instance.agentLoginStatus,
+      'admin_login_status': instance.adminLoginStatus,
+      'type': instance.type,
+      'expire': instance.expire,
+      'frequency': instance.frequency,
+    };
+
+SendConfig _$SendConfigFromJson(Map<String, dynamic> json) => SendConfig(
+  id: (json['id'] as num?)?.toInt(),
+  loginStatus: (json['login_status'] as num?)?.toInt(),
+  regStatus: (json['reg_status'] as num?)?.toInt(),
+  agentLoginStatus: (json['agent_login_status'] as num?)?.toInt(),
+  adminLoginStatus: (json['admin_login_status'] as num?)?.toInt(),
+  type: (json['type'] as num?)?.toInt(),
+  expire: (json['expire'] as num?)?.toInt(),
+  frequency: (json['frequency'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$SendConfigToJson(SendConfig instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'login_status': instance.loginStatus,
+      'reg_status': instance.regStatus,
+      'agent_login_status': instance.agentLoginStatus,
+      'admin_login_status': instance.adminLoginStatus,
+      'type': instance.type,
+      'expire': instance.expire,
+      'frequency': instance.frequency,
+    };
 
 LangConfig _$LangConfigFromJson(Map<String, dynamic> json) => LangConfig(
   name: json['name'] as String?,
@@ -78,11 +149,20 @@ Map<String, dynamic> _$LangConfigToJson(LangConfig instance) =>
       'img': instance.img,
     };
 
-CurrConfig _$CurrConfigFromJson(Map<String, dynamic> json) =>
-    CurrConfig(name: json['name'] as String?, code: json['code'] as String?);
+CurrConfig _$CurrConfigFromJson(Map<String, dynamic> json) => CurrConfig(
+  code: json['code'] as String?,
+  title: json['title'] as String?,
+  symbol: json['symbol'] as String?,
+  statusS: (json['status_s'] as num?)?.toInt(),
+);
 
 Map<String, dynamic> _$CurrConfigToJson(CurrConfig instance) =>
-    <String, dynamic>{'name': instance.name, 'code': instance.code};
+    <String, dynamic>{
+      'code': instance.code,
+      'title': instance.title,
+      'symbol': instance.symbol,
+      'status_s': instance.statusS,
+    };
 
 BannerModel _$BannerModelFromJson(Map<String, dynamic> json) => BannerModel(
   img: json['img'] as String?,

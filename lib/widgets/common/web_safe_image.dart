@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:my_flutter_app/utils/constants.dart';
 
 // 使用条件导入来处理多平台
 import 'web_safe_image_stub.dart'
@@ -10,6 +11,7 @@ import 'web_safe_image_stub.dart'
 class WebSafeImage extends StatelessWidget {
   final String imageUrl;
   final BoxFit fit;
+  final Alignment alignment;
   final Widget? placeholder;
   final Widget? errorWidget;
   final double? width;
@@ -20,6 +22,7 @@ class WebSafeImage extends StatelessWidget {
     super.key,
     required this.imageUrl,
     this.fit = BoxFit.cover,
+    this.alignment = Alignment.center,
     this.placeholder,
     this.errorWidget,
     this.width,
@@ -50,6 +53,7 @@ class WebSafeImage extends StatelessWidget {
     return buildWebImage(
       url: correctedUrl,
       fit: fit,
+      alignment: alignment,
       width: width,
       height: height,
       borderRadius: borderRadius,
@@ -62,6 +66,14 @@ class WebSafeImage extends StatelessWidget {
     // 处理协议相对路径 //
     if (processedUrl.startsWith('//')) {
       processedUrl = 'https:$processedUrl';
+    }
+    // 如果没有协议且不带基础 URL 且不是本地资源，补全资源路径
+    else if (!processedUrl.startsWith('http') && !processedUrl.startsWith('assets/') && !processedUrl.contains('://')) {
+       final baseUrl = AppConstants.resourceBaseUrl.endsWith('/') 
+          ? AppConstants.resourceBaseUrl.substring(0, AppConstants.resourceBaseUrl.length - 1)
+          : AppConstants.resourceBaseUrl;
+       final path = processedUrl.startsWith('/') ? processedUrl : '/$processedUrl';
+       processedUrl = '$baseUrl$path';
     }
     return processedUrl;
   }
@@ -87,6 +99,7 @@ class WebSafeImage extends StatelessWidget {
     Widget image = Image.asset(
       imageUrl,
       fit: fit,
+      alignment: alignment,
       width: width,
       height: height,
       errorBuilder: (context, error, stackTrace) => _buildErrorWidget(),
@@ -98,6 +111,7 @@ class WebSafeImage extends StatelessWidget {
     Widget image = CachedNetworkImage(
       imageUrl: url,
       fit: fit,
+      alignment: alignment,
       width: width,
       height: height,
       placeholder: (context, url) => placeholder ?? _buildPlaceholder(),

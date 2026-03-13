@@ -1,6 +1,6 @@
 class AppConstants {
   // API 相关配置
-  static const String devBaseUrl = "http://45.200.16.18:60000";
+  static const String devBaseUrl = "http://apis.xh-demo.com";
   static const String devApiPrefix = "/api";
   static const String apiBaseUrl = "$devBaseUrl$devApiPrefix";
 

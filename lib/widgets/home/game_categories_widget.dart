@@ -130,7 +130,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
           crossAxisCount: isReco ? 3 : 2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          childAspectRatio: isReco ? 1.0 : 1.8, // 推荐位改为 1.0 (正方形) 更好地契合游戏图标
+          childAspectRatio: isReco ? 1.0 : 0.65, // 非推荐位采用纵向比例，显示更多内容
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {
@@ -142,10 +142,15 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
   }
 
   Widget _buildItemCard(SubCategory item, bool isReco) {
-    // 补全图片 URL
+    // 补全图片 URL：如果不是完整 URL 且不是本地资源，则拼接基础 URL
     String imageUrl = item.h5Logo ?? item.img ?? '';
-    if (imageUrl.startsWith('/')) {
-      imageUrl = '${AppConstants.resourceBaseUrl}$imageUrl';
+    if (imageUrl.isNotEmpty && !imageUrl.startsWith('http') && !imageUrl.startsWith('assets/')) {
+      // 统一处理，确保中间只有一个 /
+      final baseUrl = AppConstants.resourceBaseUrl.endsWith('/') 
+          ? AppConstants.resourceBaseUrl.substring(0, AppConstants.resourceBaseUrl.length - 1)
+          : AppConstants.resourceBaseUrl;
+      final path = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
+      imageUrl = '$baseUrl$path';
     }
 
     return GestureDetector(
@@ -195,7 +200,8 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
               if (imageUrl.isNotEmpty)
                 WebSafeImage(
                   imageUrl: imageUrl,
-                  fit: BoxFit.cover, // 改回 cover 以填满容器
+                  fit: isReco ? BoxFit.contain : BoxFit.cover, 
+                  alignment: isReco ? Alignment.center : Alignment.topCenter,
                   placeholder: const Skeleton(),
                   errorWidget: Container(
                     color: AppTheme.surface,
@@ -210,10 +216,11 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withAlpha(0),
-                          Colors.black.withAlpha(153), // 遮罩稍微变淡一些，不要挡住太多底部图标
+                          Colors.transparent,
+                          Colors.black.withAlpha(20),
+                          Colors.black.withAlpha(160),
                         ],
-                        stops: const [0.6, 1.0],
+                        stops: const [0.5, 0.7, 1.0], // 文字处加深
                       ),
                     ),
                   ),
@@ -498,8 +505,12 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
 
   Widget _buildGameCard(GameItem game, GameListParams? params) {
     String imageUrl = game.img ?? '';
-    if (imageUrl.startsWith('/')) {
-      imageUrl = '${AppConstants.resourceBaseUrl}$imageUrl';
+    if (imageUrl.isNotEmpty && !imageUrl.startsWith('http') && !imageUrl.startsWith('assets/')) {
+      final baseUrl = AppConstants.resourceBaseUrl.endsWith('/') 
+          ? AppConstants.resourceBaseUrl.substring(0, AppConstants.resourceBaseUrl.length - 1)
+          : AppConstants.resourceBaseUrl;
+      final path = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
+      imageUrl = '$baseUrl$path';
     }
 
     return GestureDetector(

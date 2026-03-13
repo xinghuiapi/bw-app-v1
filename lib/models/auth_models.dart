@@ -150,20 +150,17 @@ class CaptchaData {
   @JsonKey(name: 'captcha_key')
   final String captchaKey;
   @JsonKey(name: 'captcha_image_content')
-  final String captchaImageContent; // Note: API might return 'captcha_img' or similar, check usage. Doc said captcha_img?
-  // Re-checking doc: "captcha_img": "data:image/jpeg;base64..."
-  // Previous code had captchaImageContent, maybe mapped manually?
-  // Let's check AuthService.getCaptcha implementation in previous Read.
-  // It used CaptchaData.fromJson. I should check if key matches.
-  // Doc: "captcha_img". Previous Read: "captcha_image_content".
-  // I will add alias.
+  final String captchaImageContent;
   @JsonKey(name: 'captcha_img')
   final String? captchaImg;
+  @JsonKey(name: 'captcha_code')
+  final String? captchaCode;
 
   CaptchaData({
     required this.captchaKey,
     this.captchaImageContent = '',
     this.captchaImg,
+    this.captchaCode,
   });
 
   factory CaptchaData.fromJson(Map<String, dynamic> json) => _$CaptchaDataFromJson(json);

@@ -454,7 +454,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                       final canLaunch = await canLaunchUrl(uri);
                       if (context.mounted) {
                         if (canLaunch) {
-                          context.push('/payment-webview?url=${Uri.encodeComponent(response.url!)}&title=充值支付');
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('无法打开支付链接')),

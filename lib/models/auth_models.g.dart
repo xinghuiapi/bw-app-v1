@@ -125,6 +125,7 @@ CaptchaData _$CaptchaDataFromJson(Map<String, dynamic> json) => CaptchaData(
   captchaKey: json['captcha_key'] as String,
   captchaImageContent: json['captcha_image_content'] as String? ?? '',
   captchaImg: json['captcha_img'] as String?,
+  captchaCode: json['captcha_code'] as String?,
 );
 
 Map<String, dynamic> _$CaptchaDataToJson(CaptchaData instance) =>
@@ -132,6 +133,7 @@ Map<String, dynamic> _$CaptchaDataToJson(CaptchaData instance) =>
       'captcha_key': instance.captchaKey,
       'captcha_image_content': instance.captchaImageContent,
       'captcha_img': instance.captchaImg,
+      'captcha_code': instance.captchaCode,
     };
 
 ResetPasswordRequest _$ResetPasswordRequestFromJson(

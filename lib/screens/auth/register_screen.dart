@@ -35,6 +35,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     'telegram': TextEditingController(),
     'invicode': TextEditingController(),
     'captcha_code': TextEditingController(),
+    'area_code': TextEditingController(text: '+86'),
   };
 
   final String _areaCode = '86';
@@ -43,11 +44,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscurePayPassword = true;
   CaptchaData? _captchaData;
   bool _isLoadingCaptcha = false;
+  String? _selectedCurrency;
 
   @override
   void initState() {
     super.initState();
     _refreshCaptcha();
+    // 强制刷新系统配置，确保注册页面加载时获取最新的动态配置
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(homeDataProvider);
+    });
   }
 
   @override
@@ -78,6 +84,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       username: _controllers['username']!.text.trim(),
       password: _controllers['password']!.text.trim(),
       oPassword: _controllers['o_password']!.text.trim(),
+      currency: _selectedCurrency,
       payPassword: _controllers['pay_password']!.text.trim(),
       phone: _controllers['phone']?.text.trim(),
       areaCode: _areaCode,
@@ -115,75 +122,100 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authProvider);
     final homeDataAsync = ref.watch(homeDataProvider);
 
+    // 监听数据加载，初始化默认货币
+    ref.listen(homeDataProvider, (previous, next) {
+      if (next.hasValue && _selectedCurrency == null) {
+        final configs = next.value!.currConfig;
+        if (configs != null && configs.isNotEmpty) {
+          final defaultCurr = configs.firstWhere(
+            (c) => c.statusS == 1,
+            orElse: () => configs.first,
+          );
+          setState(() => _selectedCurrency = defaultCurr.code);
+        }
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
+          onPressed: () => context.pop(),
         ),
-        backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
         child: homeDataAsync.when(
-          data: (homeData) => SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                _buildHeader(),
-                const SizedBox(height: 32),
-                
-                // Always required fields
-                _buildUsernameField(),
-                const SizedBox(height: 16),
-                _buildPasswordField(),
-                const SizedBox(height: 16),
-                _buildConfirmPasswordField(),
-                const SizedBox(height: 16),
-                _buildPayPasswordField(),
-                
-                // Dynamic fields from config
-                if (homeData.regConfig != null)
-                  ...homeData.regConfig!.where((c) => c.status == 1).map((config) {
-                    return Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        _buildDynamicField(config),
-                      ],
-                    );
-                  }),
-                
-                // Captcha field if enabled
-                if (homeData.picConfig?.status == 1) ...[
-                  const SizedBox(height: 16),
-                  _buildCaptchaField(),
-                ],
-                
-                const SizedBox(height: 32),
-                _buildRegisterButton(authState.isLoading),
-                const SizedBox(height: 24),
-                _buildLoginPrompt(),
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
+          data: (homeData) => _buildRegisterForm(homeData, authState.isLoading),
+          loading: () => homeDataAsync.hasValue 
+              ? _buildRegisterForm(homeDataAsync.value!, authState.isLoading)
+              : const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('加载配置失败: $err')),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('加载配置失败: $err')),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  Widget _buildRegisterForm(HomeData homeData, bool isLoading) {
+    // 初始化默认货币 (如果还未初始化)
+    if (_selectedCurrency == null && homeData.currConfig != null && homeData.currConfig!.isNotEmpty) {
+      final defaultCurr = homeData.currConfig!.firstWhere(
+        (c) => c.statusS == 1,
+        orElse: () => homeData.currConfig!.first,
+      );
+      _selectedCurrency = defaultCurr.code;
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            _buildHeader(),
+            const SizedBox(height: 32),
+            
+            // Always required fields
+            _buildUsernameField(),
+            const SizedBox(height: 16),
+            _buildPasswordField(),
+            const SizedBox(height: 16),
+            _buildConfirmPasswordField(),
+            const SizedBox(height: 16),
+            _buildCurrencyField(homeData),
+            
+            // Dynamic fields from config
+            if (homeData.regConfig != null)
+              ...homeData.regConfig!.where((c) => c.status == 1).map((config) {
+                return Column(
+                  key: ValueKey('reg_field_${config.code}'),
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildDynamicField(config, homeData),
+                  ],
+                );
+              }),
+            
+            // Captcha field if enabled
+            if (homeData.picConfig?.regStatus == 1) ...[
+              const SizedBox(height: 16),
+              _buildCaptchaField(),
+            ],
+            
+            const SizedBox(height: 32),
+            _buildRegisterButton(isLoading),
+            const SizedBox(height: 24),
+            _buildLoginPrompt(),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildHeader() {
     return Column(
@@ -222,16 +254,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Widget _buildDynamicField(RegConfig config) {
-    final isRequired = config.isRequired == 1;
-    final String label = config.title ?? config.name ?? '';
-    final String name = config.name ?? '';
+  Widget _buildDynamicField(RegConfig config, HomeData homeData) {
+    final isRequired = config.statusS == 1;
+    final String label = config.title ?? config.code ?? '';
+    final String code = config.code ?? '';
 
-    switch (name) {
+    switch (code) {
       case 'phone':
-        return _buildPhoneField(isRequired, label);
+        return _buildPhoneField(isRequired, label, regSendStatus: homeData.sendConfig?.regStatus);
       case 'email':
-        return _buildEmailField(isRequired, label);
+        return _buildEmailField(isRequired, label, regMailStatus: homeData.mailConfig?.regStatus);
       case 'name':
         return _buildTextField(
           controller: _controllers['name']!,
@@ -246,7 +278,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           label: label,
           hint: '请输入$label',
           prefixIcon: Icons.chat_bubble_outline,
-          keyboardType: TextInputType.number,
+          keyboardType: TextInputType.text,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
         );
       case 'telegram':
@@ -265,12 +298,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           prefixIcon: Icons.card_giftcard_outlined,
           validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
         );
+      case 'pay_password':
+        return _buildPayPasswordField(isRequired, label);
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildPhoneField(bool isRequired, String label) {
+  Widget _buildPhoneField(bool isRequired, String label, {int? regSendStatus}) {
+    final showSmsCode = regSendStatus == 1;
     return Column(
       children: [
         Row(
@@ -279,7 +315,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               width: 80,
               margin: const EdgeInsets.only(right: 12),
               child: _buildTextField(
-                controller: TextEditingController(text: '+$_areaCode'),
+                controller: _controllers['area_code']!,
                 label: '区号',
                 hint: '+86',
                 readOnly: true,
@@ -294,36 +330,41 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 label: label,
                 hint: '请输入$label',
                 prefixIcon: Icons.phone_iphone,
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.text,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildTextField(
-                controller: _controllers['phone_code']!,
-                label: '短信验证码',
-                hint: '请输入验证码',
-                prefixIcon: Icons.verified_user_outlined,
-                keyboardType: TextInputType.number,
-                validator: isRequired ? (v) => v?.isEmpty == true ? '请输入验证码' : null : null,
+        if (showSmsCode) ...[
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: _controllers['phone_code']!,
+                  label: '短信验证码',
+                  hint: '请输入验证码',
+                  prefixIcon: Icons.verified_user_outlined,
+                  keyboardType: TextInputType.text,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  validator: (v) => v?.isEmpty == true ? '请输入验证码' : null,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            _buildGetCodeButton(onPressed: () {
-              AuthService.sendSmsCode(_controllers['phone']!.text, _areaCode);
-            }),
-          ],
-        ),
+              const SizedBox(width: 12),
+              _buildGetCodeButton(onPressed: () {
+                AuthService.sendSmsCode(_controllers['phone']!.text, _areaCode);
+              }),
+            ],
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildEmailField(bool isRequired, String label) {
+  Widget _buildEmailField(bool isRequired, String label, {int? regMailStatus}) {
+    final showEmailCode = regMailStatus == 1;
     return Column(
       children: [
         _buildTextField(
@@ -334,25 +375,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           keyboardType: TextInputType.emailAddress,
           validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
         ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildTextField(
-                controller: _controllers['email_code']!,
-                label: '邮箱验证码',
-                hint: '请输入验证码',
-                prefixIcon: Icons.verified_user_outlined,
-                keyboardType: TextInputType.number,
-                validator: isRequired ? (v) => v?.isEmpty == true ? '请输入验证码' : null : null,
+        if (showEmailCode) ...[
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: _controllers['email_code']!,
+                  label: '邮箱验证码',
+                  hint: '请输入验证码',
+                  prefixIcon: Icons.verified_user_outlined,
+                  keyboardType: TextInputType.number,
+                  validator: (v) => v?.isEmpty == true ? '请输入验证码' : null,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            _buildGetCodeButton(onPressed: () {
-              AuthService.sendEmailCode(_controllers['email']!.text);
-            }),
-          ],
-        ),
+              const SizedBox(width: 12),
+              _buildGetCodeButton(onPressed: () {
+                AuthService.sendEmailCode(_controllers['email']!.text);
+              }),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -434,17 +477,64 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Widget _buildPayPasswordField() {
+  Widget _buildCurrencyField(HomeData homeData) {
+    if (homeData.currConfig == null || homeData.currConfig!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Filter out items with null code to avoid DropdownButton errors
+    final validConfigs = homeData.currConfig!.where((c) => c.code != null).toList();
+    if (validConfigs.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('选择货币', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.divider),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedCurrency,
+              isExpanded: true,
+              dropdownColor: AppTheme.surface,
+              icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.textSecondary),
+              items: validConfigs.map((curr) {
+                return DropdownMenuItem<String>(
+                  value: curr.code!,
+                  child: Text(
+                    curr.title ?? curr.code!,
+                    style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _selectedCurrency = value);
+                }
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPayPasswordField(bool isRequired, String label) {
     return _buildTextField(
       controller: _controllers['pay_password']!,
-      label: '支付密码',
-      hint: '请输入6位数字支付密码',
+      label: label,
+      hint: '请输入6位数字$label',
       prefixIcon: Icons.security_outlined,
       obscureText: _obscurePayPassword,
-      keyboardType: TextInputType.number,
+      keyboardType: TextInputType.text, // 改为 text 以避免某些浏览器下的数字键盘延迟
       inputFormatters: [
         LengthLimitingTextInputFormatter(6),
-        FilteringTextInputFormatter.digitsOnly,
       ],
       suffixIcon: IconButton(
         icon: Icon(
@@ -455,8 +545,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         onPressed: () => setState(() => _obscurePayPassword = !_obscurePayPassword),
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) return '请输入支付密码';
-        if (value.length != 6) return '支付密码必须是6位数字';
+        if (isRequired && (value == null || value.isEmpty)) return '请输入$label';
+        if (value != null && value.isNotEmpty && value.length != 6) return '支付密码必须是6位数字';
         return null;
       },
     );
@@ -471,6 +561,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             label: '验证码',
             hint: '请输入图形验证码',
             prefixIcon: Icons.verified_user_outlined,
+            keyboardType: TextInputType.text,
             validator: (value) {
               if (value == null || value.isEmpty) return '请输入验证码';
               return null;
@@ -521,6 +612,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     String? Function(String?)? validator,
     bool readOnly = false,
     VoidCallback? onTap,
+    void Function(String)? onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,6 +629,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           inputFormatters: inputFormatters,
           readOnly: readOnly,
           onTap: onTap,
+          onChanged: onChanged,
           style: const TextStyle(color: AppTheme.textPrimary),
           decoration: InputDecoration(
             hintText: hint,

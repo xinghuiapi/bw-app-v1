@@ -205,7 +205,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
             label: '验证码',
             hint: '请输入验证码',
             prefixIcon: Icons.verified_user_outlined,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.text,
             onChanged: (v) => notifier.updateField(code: v),
             validator: (v) => (v == null || v.isEmpty) ? '请输入验证码' : null,
           ),

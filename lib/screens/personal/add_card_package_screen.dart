@@ -192,12 +192,12 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
     final hasPayPassword = user?.hasPayPassword ?? false;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         title: const Text('添加收款方式', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.textPrimary,
+        backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
+        foregroundColor: AppTheme.getTextPrimary(context),
         centerTitle: true,
       ),
       body: Column(
@@ -215,7 +215,7 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                     if (_selectedBank != null) ...[
                       const Padding(
                         padding: EdgeInsets.only(top: 24, bottom: 12),
-                        child: Text('填写信息', style: TextStyle(fontSize: 14, color: Color(0xFF333333))),
+                        child: Text('填写信息', style: TextStyle(fontSize: 14)), // Removed color to use default or inherited
                       ),
                       _buildRealNameStatus(isRealNameSet, user?.realName),
                       const SizedBox(height: 16),
@@ -244,7 +244,7 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                       ),
                       const SizedBox(height: 16),
                       if (selectedType != 1) ...[
-                        const Text('上传收款码', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF666666))),
+                        Text('上传收款码', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.getTextSecondary(context))),
                         const SizedBox(height: 8),
                         _buildImagePicker(),
                         const SizedBox(height: 16),
@@ -280,16 +280,16 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
 
   Widget _buildTypeSelector(int selectedType) {
     final types = [
-      {'label': '银行卡', 'value': 1, 'emoji': '🏦'},
-      {'label': '虚拟币', 'value': 2, 'emoji': '🪙'},
-      {'label': '支付宝', 'value': 3, 'emoji': '💳'},
+      {'label': '银行卡', 'value': 1, 'icon': Icons.account_balance},
+      {'label': '虚拟币', 'value': 2, 'icon': Icons.currency_bitcoin},
+      {'label': '支付宝', 'value': 3, 'icon': Icons.payment},
     ];
 
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F0F0),
+        color: AppTheme.getInputFillColor(context),
         borderRadius: BorderRadius.circular(100),
       ),
       child: Row(
@@ -311,18 +311,22 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                     color: isSelected ? AppTheme.primary : Colors.transparent,
                     borderRadius: BorderRadius.circular(100),
                     boxShadow: isSelected
-                        ? [BoxShadow(color: AppTheme.primary.withAlpha(77), blurRadius: 8, offset: const Offset(0, 4))]
+                        ? [BoxShadow(color: AppTheme.primary.withAlpha(77), blurRadius: 8, offset: const Offset(0, 2))]
                         : null,
                   ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(type['emoji'] as String, style: const TextStyle(fontSize: 16)),
+                    Icon(
+                      type['icon'] as IconData,
+                      size: 16,
+                      color: isSelected ? Colors.white : AppTheme.getTextSecondary(context),
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       type['label'] as String,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : const Color(0xFF666666),
+                        color: isSelected ? Colors.white : AppTheme.getTextSecondary(context),
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 13,
                       ),
@@ -347,7 +351,7 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
           children: [
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text('选择方式', style: TextStyle(fontSize: 14, color: Color(0xFF333333))),
+              child: Text('选择方式', style: TextStyle(fontSize: 14)),
             ),
             ListView.separated(
               shrinkWrap: true,
@@ -368,10 +372,10 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppTheme.getCardColor(context),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected ? AppTheme.primary : Colors.transparent,
+                        color: isSelected ? AppTheme.primary : AppTheme.getDividerColor(context),
                         width: 1,
                       ),
                     ),
@@ -385,8 +389,8 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                             height: 32,
                             fit: BoxFit.contain,
                             placeholder: Container(
-                              color: Colors.grey[100],
-                              child: const Icon(Icons.account_balance, size: 20, color: Colors.grey),
+                              color: AppTheme.getPlaceholderColor(context),
+                              child: Icon(Icons.account_balance, size: 20, color: AppTheme.getPlaceholderColor(context)),
                             ),
                           ),
                         ),
@@ -394,16 +398,16 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                         Expanded(
                           child: Text(
                             bank.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF333333),
+                              color: AppTheme.getTextPrimary(context),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                         Icon(
                           isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                          color: isSelected ? AppTheme.primary : const Color(0xFFDCDCDC),
+                          color: isSelected ? AppTheme.primary : AppTheme.getPlaceholderColor(context),
                           size: 20,
                         ),
                       ],
@@ -426,7 +430,7 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              const Icon(Icons.error_outline, color: AppTheme.error, size: 40),
               const SizedBox(height: 10),
               Text('加载失败: $err', textAlign: TextAlign.center),
               TextButton(
@@ -444,13 +448,13 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('真实姓名', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF666666))),
+        Text('真实姓名', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.getTextSecondary(context))),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isVerified ? const Color(0xFFF6FFED) : const Color(0xFFFFFBE6),
-            border: Border.all(color: isVerified ? const Color(0xFFB7EB8F) : const Color(0xFFFFE58F)),
+            color: isVerified ? AppTheme.success.withAlpha(25) : AppTheme.warning.withAlpha(25),
+            border: Border.all(color: isVerified ? AppTheme.success.withAlpha(100) : AppTheme.warning.withAlpha(100)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -459,7 +463,7 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                 child: Text(
                   name ?? '尚未实名',
                   style: TextStyle(
-                    color: isVerified ? const Color(0xFF52C41A) : const Color(0xFFFAAD14),
+                    color: isVerified ? AppTheme.success : AppTheme.warning,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -468,7 +472,7 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF52C41A),
+                    color: AppTheme.success,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
@@ -479,10 +483,10 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
               else
                 GestureDetector(
                   onTap: _goToBindRealName,
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Text('去实名', style: TextStyle(color: Color(0xFFFAAD14), fontSize: 12)),
-                      Icon(Icons.chevron_right, size: 16, color: Color(0xFFFAAD14)),
+                      Text('去实名', style: TextStyle(color: AppTheme.warning, fontSize: 12)),
+                      Icon(Icons.chevron_right, size: 16, color: AppTheme.warning),
                     ],
                   ),
                 ),
@@ -499,24 +503,24 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFBE6),
-          border: Border.all(color: const Color(0xFFFFE58F)),
+          color: AppTheme.warning.withAlpha(25),
+          border: Border.all(color: AppTheme.warning.withAlpha(100)),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.lock_outline, size: 18, color: Color(0xFFFAAD14)),
+            Icon(Icons.lock_outline, size: 18, color: AppTheme.warning),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('交易密码未设置', style: TextStyle(color: Color(0xFFFAAD14), fontWeight: FontWeight.bold)),
-                  Text('请先设置6位数字交易密码', style: TextStyle(color: Color(0xFFFAAD14), fontSize: 12)),
+                  Text('交易密码未设置', style: TextStyle(color: AppTheme.warning, fontWeight: FontWeight.bold)),
+                  Text('请先设置6位数字交易密码', style: TextStyle(color: AppTheme.warning, fontSize: 12)),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, size: 20, color: Color(0xFFFAAD14)),
+            Icon(Icons.chevron_right, size: 20, color: AppTheme.warning),
           ],
         ),
       ),
@@ -538,8 +542,8 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
       children: [
         Row(
           children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF666666))),
-            if (required) const Text(' *', style: TextStyle(color: Colors.red, fontSize: 13)),
+            Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.getTextSecondary(context))),
+            if (required) Text(' *', style: TextStyle(color: AppTheme.error, fontSize: 13)),
           ],
         ),
         const SizedBox(height: 8),
@@ -548,25 +552,17 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
           obscureText: obscureText,
           enabled: enabled,
           keyboardType: keyboardType,
-          style: const TextStyle(fontSize: 14, color: Color(0xFF333333)),
+          style: TextStyle(fontSize: 14, color: AppTheme.getTextPrimary(context)),
           decoration: InputDecoration(
             hintText: placeholder,
-            hintStyle: const TextStyle(color: Color(0xFFCCCCCC), fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            hintStyle: TextStyle(color: AppTheme.getPlaceholderColor(context), fontSize: 14),
             filled: true,
-            fillColor: const Color(0xFFF8F9FB),
+            fillColor: AppTheme.getInputFillColor(context),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
+              borderSide: BorderSide.none,
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppTheme.primary),
-            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
           validator: validator,
         ),
@@ -582,8 +578,8 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
       child: ElevatedButton(
         onPressed: isEnabled ? _submit : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isEnabled ? AppTheme.primary : const Color(0xFFEEEEEE),
-          foregroundColor: isEnabled ? Colors.white : const Color(0xFF999999),
+          backgroundColor: isEnabled ? AppTheme.primary : AppTheme.getDisabledColor(context),
+          foregroundColor: isEnabled ? Colors.white : AppTheme.getDisabledTextColor(context),
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -599,42 +595,24 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
     return GestureDetector(
       onTap: _pickImage,
       child: Container(
-        width: double.infinity,
-        height: 160,
+        height: 120,
+        width: 120,
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FB),
+          color: AppTheme.getInputFillColor(context),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFDDDDDD), style: BorderStyle.solid),
+          border: Border.all(color: AppTheme.getDividerColor(context)),
         ),
         child: _imageBytes != null
-            ? Stack(
-                children: [
-                  Center(child: Image.memory(_imageBytes!, fit: BoxFit.contain)),
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: GestureDetector(
-                      onTap: () => setState(() {
-                        _imageFile = null;
-                        _imageBytes = null;
-                      }),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                        child: const Icon(Icons.close, size: 16, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.memory(_imageBytes!, fit: BoxFit.cover),
               )
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.add_a_photo_outlined, size: 32, color: Color(0xFF999999)),
-                  const SizedBox(height: 12),
-                  const Text('点击上传收款码图片', style: TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.bold)),
+                  Icon(Icons.add_a_photo, color: AppTheme.getPlaceholderColor(context), size: 32),
                   const SizedBox(height: 4),
-                  const Text('支持 JPG、PNG 格式，大小不超过 5MB', style: TextStyle(color: Color(0xFF999999), fontSize: 12)),
+                  Text('点击上传', style: TextStyle(fontSize: 12, color: AppTheme.getPlaceholderColor(context))),
                 ],
               ),
       ),

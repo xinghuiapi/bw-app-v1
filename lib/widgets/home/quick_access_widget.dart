@@ -19,9 +19,9 @@ class QuickAccess extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withAlpha(13), width: 0.5),
+        border: Border.all(color: AppTheme.getDividerColor(context), width: 0.5),
       ),
       child: authState.isLoggedIn 
           ? (userState.isLoading && user == null
@@ -37,13 +37,13 @@ class QuickAccess extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               '下午好',
-              style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Row(
               children: [
-                _buildButton('注册', AppTheme.surface, AppTheme.textPrimary, () {
+                _buildButton('注册', AppTheme.getInputFillColor(context), AppTheme.getTextPrimary(context), () {
                   context.push('/register');
                 }),
                 const SizedBox(width: 8),
@@ -58,16 +58,16 @@ class QuickAccess extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.black.withAlpha(51),
+            color: AppTheme.getDividerColor(context).withAlpha(20),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.language, color: AppTheme.textTertiary, size: 16),
-              SizedBox(width: 8),
-              Text('官方域名', style: TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
-              SizedBox(width: 8),
-              Text('xh-bet.com', style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.w500)),
+              Icon(Icons.language, color: AppTheme.getTertiaryTextColor(context), size: 16),
+              const SizedBox(width: 8),
+              Text('官方域名', style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12)),
+              const SizedBox(width: 8),
+              const Text('xh-bet.com', style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.w500)),
             ],
           ),
         ),
@@ -86,7 +86,7 @@ class QuickAccess extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Text(user?.username ?? '...', style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(user?.username ?? '...', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -104,8 +104,8 @@ class QuickAccess extends ConsumerWidget {
                         width: 16,
                         height: 16,
                         child: userState.isBalanceLoading
-                            ? const CircularProgressIndicator(strokeWidth: 2, color: AppTheme.textTertiary)
-                            : const Icon(Icons.refresh, color: AppTheme.textTertiary, size: 16),
+                            ? CircularProgressIndicator(strokeWidth: 2, color: AppTheme.getTertiaryTextColor(context))
+                            : Icon(Icons.refresh, color: AppTheme.getTertiaryTextColor(context), size: 16),
                       ),
                     ),
                   ],
@@ -151,8 +151,8 @@ class QuickAccess extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             title,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: AppTheme.getTextPrimary(context),
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),

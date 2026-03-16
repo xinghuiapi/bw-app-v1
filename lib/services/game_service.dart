@@ -221,7 +221,10 @@ class GameService {
     try {
       final response = await api.post(
         '/game/login', 
-        data: {'id': id},
+        data: {
+          'id': id,
+          'mobile': 1, // mobile值固定为1
+        },
         options: dioOptions(headers: {'lang': lang}),
       );
       
@@ -248,7 +251,10 @@ class GameService {
     try {
       final response = await api.post(
         '/game_code/login', 
-        data: {'id': id},
+        data: {
+          'id': id,
+          'mobile': 1, // mobile值固定为1
+        },
         options: dioOptions(headers: {'lang': lang}),
       );
       

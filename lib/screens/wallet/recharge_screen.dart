@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/providers/recharge_provider.dart';
 import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -45,7 +46,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                  Icon(Icons.error_outline, size: 48, color: AppTheme.getPlaceholderColor(context)),
                   const SizedBox(height: 16),
                   Text(state.errorMsg ?? '暂无充值方式'),
                   const SizedBox(height: 16),
@@ -68,11 +69,11 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppTheme.getCardColor(context),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withAlpha(13),
+                          color: AppTheme.isDark(context) ? Colors.black.withAlpha(13) : Colors.black.withAlpha(5),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -83,8 +84,8 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                         Container(
                           width: 18,
                           height: 18,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
+                          decoration: BoxDecoration(
+                            color: AppTheme.error,
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
@@ -94,10 +95,10 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             '为了您的资金安全，请先完成实名认证',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF374151), fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 12, color: AppTheme.getTextPrimary(context), fontWeight: FontWeight.w600),
                           ),
                         ),
                         TextButton(
@@ -105,7 +106,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                             context.push('/personal-center-profile-realname');
                           },
                           style: TextButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: AppTheme.error,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             minimumSize: Size.zero,
@@ -124,18 +125,18 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                 _buildCategoryGrid(context, state),
                 
                 if (state.selectedCategory != null) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   _buildSectionTitle(context, '选择充值通道'),
                   const SizedBox(height: 12),
                   _buildChannelList(context, state),
                 ],
 
                 if (state.selectedChannel != null) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   _buildSectionTitle(context, '充值金额'),
                   const SizedBox(height: 12),
                   _buildAmountInput(context, state),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   _buildSubmitButton(context, state),
                 ],
               ],
@@ -160,9 +161,10 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
+            color: AppTheme.getTextPrimary(context),
           ),
         ),
       ],
@@ -194,7 +196,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                 decoration: BoxDecoration(
                   color: isSelected ? Theme.of(context).primaryColor.withAlpha(20) : Theme.of(context).cardColor,
                   border: Border.all(
-                    color: isSelected ? Theme.of(context).primaryColor : Colors.grey.withAlpha(26),
+                    color: isSelected ? Theme.of(context).primaryColor : AppTheme.getDividerColor(context),
                     width: isSelected ? 1.5 : 1.0,
                   ),
                   borderRadius: BorderRadius.circular(8),
@@ -292,7 +294,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
             decoration: BoxDecoration(
               color: isSelected ? Theme.of(context).primaryColor.withAlpha(20) : Theme.of(context).cardColor,
               border: Border.all(
-                color: isSelected ? Theme.of(context).primaryColor : Colors.grey.withAlpha(26),
+                color: isSelected ? Theme.of(context).primaryColor : AppTheme.getDividerColor(context),
                 width: isSelected ? 1.5 : 1.0,
               ),
               borderRadius: BorderRadius.circular(8),
@@ -318,7 +320,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                     child: Text(
                       '赠送${channel.giveMoney}${channel.giveType == 2 ? '%' : '元'}',
                       style: const TextStyle(
-                        color: Colors.orange,
+                        color: AppTheme.warning,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -343,7 +345,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            border: Border.all(color: Colors.grey.withAlpha(51)),
+            border: Border.all(color: AppTheme.getDividerColor(context)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -390,7 +392,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
           children: [
             Text(
               '单笔限额: ¥${channel.min} - ¥${channel.max}',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12),
             ),
           ],
         ),
@@ -417,7 +419,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                   decoration: BoxDecoration(
                     color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
                     border: Border.all(
-                      color: isSelected ? Theme.of(context).primaryColor : Colors.grey.withAlpha(51),
+                      color: isSelected ? Theme.of(context).primaryColor : AppTheme.getDividerColor(context),
                     ),
                     borderRadius: BorderRadius.circular(4),
                   ),

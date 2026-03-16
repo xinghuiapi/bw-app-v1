@@ -41,7 +41,7 @@ class AuthNotifier extends Notifier<AuthState> {
     // 监听状态，确保一旦状态被改变就会重新构建
     // 虽然这里没有直接 watch 任何东西，但返回初始状态是必要的
     // _init 是异步的，会稍后触发 state = ... 来更新 UI
-    _init();
+    Future.microtask(() => _init());
     return AuthState(isLoading: true);
   }
 

@@ -26,6 +26,62 @@ class AppTheme {
   static const Color skeletonBase = Color(0xFF2A2E35);
   static const Color skeletonHighlight = Color(0xFF3A3E45);
 
+  static bool isDark(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
+  }
+
+  static Color getDividerColor(BuildContext context) {
+    return isDark(context) ? Colors.white10 : Colors.black12;
+  }
+
+  static Color getScaffoldBackgroundColor(BuildContext context) {
+    return Theme.of(context).scaffoldBackgroundColor;
+  }
+
+  static Color getCardColor(BuildContext context) {
+    return Theme.of(context).cardColor;
+  }
+
+  static Color getAppBarBackgroundColor(BuildContext context) {
+    return Theme.of(context).appBarTheme.backgroundColor ?? getScaffoldBackgroundColor(context);
+  }
+
+  static Color getPrimaryTextColor(BuildContext context) {
+    return Theme.of(context).textTheme.bodyLarge?.color ?? (isDark(context) ? textPrimary : Colors.black87);
+  }
+
+  static Color getSecondaryTextColor(BuildContext context) {
+    return Theme.of(context).textTheme.bodyMedium?.color ?? (isDark(context) ? textSecondary : Colors.black54);
+  }
+  
+  static Color getTertiaryTextColor(BuildContext context) {
+    return isDark(context) ? textTertiary : Colors.black38;
+  }
+
+  static Color getInputFillColor(BuildContext context) {
+    return isDark(context) ? surface : Colors.white;
+  }
+  
+  static Color getInputBorderColor(BuildContext context) {
+    return isDark(context) ? Colors.white.withAlpha(13) : const Color(0xFFE0E0E0);
+  }
+
+  static Color getTextPrimary(BuildContext context) => getPrimaryTextColor(context);
+  static Color getTextSecondary(BuildContext context) => getSecondaryTextColor(context);
+  static Color getTextTertiary(BuildContext context) => getTertiaryTextColor(context);
+
+  static Color getPlaceholderColor(BuildContext context) {
+    return isDark(context) ? Colors.white24 : Colors.black26;
+  }
+
+  static Color getDisabledColor(BuildContext context) {
+    return isDark(context) ? Colors.white10 : const Color(0xFFEEEEEE);
+  }
+
+  static Color getDisabledTextColor(BuildContext context) {
+    return isDark(context) ? Colors.white38 : const Color(0xFF999999);
+  }
+
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,

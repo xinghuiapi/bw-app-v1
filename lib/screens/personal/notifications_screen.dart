@@ -38,10 +38,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final state = ref.watch(notificationsProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
-        title: const Text('站内通知'),
+        title: Text('站内通知', style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
+        backgroundColor: AppTheme.getCardColor(context),
+        foregroundColor: AppTheme.getPrimaryTextColor(context),
         elevation: 0,
+        iconTheme: IconThemeData(color: AppTheme.getPrimaryTextColor(context)),
       ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(notificationsProvider.notifier).fetchMessages(refresh: true),
@@ -60,9 +63,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppTheme.textTertiary),
+            Icon(Icons.error_outline, size: 48, color: AppTheme.getTertiaryTextColor(context)),
             const SizedBox(height: 16),
-            Text(state.error!, style: const TextStyle(color: AppTheme.textSecondary)),
+            Text(state.error!, style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => ref.read(notificationsProvider.notifier).fetchMessages(refresh: true),
@@ -74,13 +77,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
 
     if (state.messages.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.notifications_none, size: 64, color: AppTheme.textTertiary),
-            SizedBox(height: 16),
-            Text('暂无通知', style: TextStyle(color: AppTheme.textSecondary)),
+            Icon(Icons.notifications_none, size: 64, color: AppTheme.getTertiaryTextColor(context)),
+            const SizedBox(height: 16),
+            Text('暂无通知', style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
           ],
         ),
       );
@@ -118,7 +121,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.cardBackground,
+          color: AppTheme.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -149,15 +152,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: message.isRead ? FontWeight.normal : FontWeight.bold,
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.getPrimaryTextColor(context),
                     ),
                   ),
                 ),
                 Text(
                   message.createdAt ?? '',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppTheme.textTertiary,
+                    color: AppTheme.getTertiaryTextColor(context),
                   ),
                 ),
               ],
@@ -167,9 +170,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               message.content ?? '',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppTheme.textSecondary,
+                color: AppTheme.getSecondaryTextColor(context),
                 height: 1.5,
               ),
             ),
@@ -183,17 +186,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(message.title ?? '系统通知'),
+        backgroundColor: AppTheme.getCardColor(context),
+        title: Text(message.title ?? '系统通知', style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
         content: SingleChildScrollView(
           child: Text(
             message.content ?? '',
-            style: const TextStyle(fontSize: 15, height: 1.6),
+            style: TextStyle(fontSize: 15, height: 1.6, color: AppTheme.getSecondaryTextColor(context)),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
+            child: const Text('关闭', style: TextStyle(color: AppTheme.primary)),
           ),
         ],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

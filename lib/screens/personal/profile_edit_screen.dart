@@ -223,12 +223,19 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppTheme.primary,
-              onPrimary: Colors.white,
-              surface: AppTheme.cardBackground,
-              onSurface: AppTheme.textPrimary,
-            ),
+            colorScheme: AppTheme.isDark(context)
+                ? ColorScheme.dark(
+                    primary: AppTheme.primary,
+                    onPrimary: Colors.white,
+                    surface: AppTheme.getCardColor(context),
+                    onSurface: AppTheme.getTextPrimary(context),
+                  )
+                : ColorScheme.light(
+                    primary: AppTheme.primary,
+                    onPrimary: Colors.white,
+                    surface: AppTheme.getCardColor(context),
+                    onSurface: AppTheme.getTextPrimary(context),
+                  ),
           ),
           child: child!,
         );
@@ -366,11 +373,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       return _buildRealNameBoundView();
     }
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         title: Text(_title),
-        backgroundColor: AppTheme.cardBackground,
-        foregroundColor: AppTheme.textPrimary,
+        backgroundColor: AppTheme.getCardColor(context),
+        foregroundColor: AppTheme.getTextPrimary(context),
         elevation: 0,
       ),
       body: SafeArea(
@@ -387,25 +394,25 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   padding: const EdgeInsets.all(16),
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: AppTheme.cardBackground,
+                    color: AppTheme.getCardColor(context),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withAlpha(13)),
+                    border: Border.all(color: AppTheme.getDividerColor(context)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '当前${widget.type == ProfileEditType.phone ? "手机号" : "邮箱"}',
-                        style: const TextStyle(
-                          color: AppTheme.textSecondary,
+                        style: TextStyle(
+                          color: AppTheme.getTextSecondary(context),
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         _maskValue(_currentValue),
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
+                        style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -415,10 +422,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 ),
               ],
               if (widget.type == ProfileEditType.payPassword && _hasPayPassword) ...[
-                const Text(
+                Text(
                   '旧支付密码',
                   style: TextStyle(
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.getTextSecondary(context),
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -429,7 +436,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   decoration: InputDecoration(
                     hintText: '请输入旧支付密码',
                     filled: true,
-                    fillColor: AppTheme.cardBackground,
+                    fillColor: AppTheme.getInputFillColor(context),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -444,8 +451,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               ],
               Text(
                 widget.type == ProfileEditType.payPassword && _hasPayPassword ? '新支付密码' : _label,
-                style: const TextStyle(
-                  color: AppTheme.textSecondary,
+                style: TextStyle(
+                  color: AppTheme.getTextSecondary(context),
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -463,7 +470,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           prefixText: '+',
                           hintText: '86',
                           filled: true,
-                          fillColor: AppTheme.cardBackground,
+                          fillColor: AppTheme.getInputFillColor(context),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -488,13 +495,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: isSelected ? AppTheme.primary : AppTheme.cardBackground,
+                                      color: isSelected ? AppTheme.primary : AppTheme.getInputFillColor(context),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       g,
                                       style: TextStyle(
-                                        color: isSelected ? Colors.white : AppTheme.textSecondary,
+                                        color: isSelected ? Colors.white : AppTheme.getTextSecondary(context),
                                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                       ),
                                     ),
@@ -510,7 +517,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.cardBackground,
+                                    color: AppTheme.getInputFillColor(context),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Row(
@@ -519,10 +526,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                       Text(
                                         _valueController.text.isEmpty ? '请选择出生日期' : _valueController.text,
                                         style: TextStyle(
-                                          color: _valueController.text.isEmpty ? AppTheme.textSecondary : AppTheme.textPrimary,
+                                          color: _valueController.text.isEmpty ? AppTheme.getTextSecondary(context) : AppTheme.getTextPrimary(context),
                                         ),
                                       ),
-                                      const Icon(Icons.calendar_today, color: AppTheme.textSecondary, size: 20),
+                                      Icon(Icons.calendar_today, color: AppTheme.getTextSecondary(context), size: 20),
                                     ],
                                   ),
                                 ),
@@ -532,7 +539,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                 decoration: InputDecoration(
                                   hintText: _placeholder,
                                   filled: true,
-                                  fillColor: AppTheme.cardBackground,
+                                  fillColor: AppTheme.getInputFillColor(context),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide.none,

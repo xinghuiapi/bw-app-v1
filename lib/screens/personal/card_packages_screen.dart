@@ -27,12 +27,12 @@ class CardPackagesScreen extends ConsumerWidget {
     final paymentMethodsAsync = ref.watch(paymentMethodsProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         title: const Text('我的卡包'),
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: AppTheme.textPrimary,
+        foregroundColor: AppTheme.getTextPrimary(context),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -76,16 +76,16 @@ class CardPackagesScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.account_balance_wallet_outlined, size: 80, color: Colors.grey[300]),
+          Icon(Icons.account_balance_wallet_outlined, size: 80, color: AppTheme.getTextTertiary(context)),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             '暂无收款方式',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+            style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 16),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             '添加收款方式后可用于提现',
-            style: TextStyle(color: AppTheme.textTertiary, fontSize: 14),
+            style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 14),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
@@ -302,13 +302,13 @@ class CardPackagesScreen extends ConsumerWidget {
     
     if (status == 0) {
       text = '已禁用';
-      color = Colors.red;
+      color = AppTheme.error;
     } else if (status == 2) {
       text = '待审核';
-      color = Colors.orange;
+      color = AppTheme.warning;
     } else if (status == 1) {
       text = '正常';
-      color = Colors.green;
+      color = AppTheme.success;
     } else {
       return const SizedBox.shrink();
     }

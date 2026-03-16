@@ -57,11 +57,11 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
     final homeDataAsync = ref.watch(homeDataProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         title: const Text('客服与帮助'),
-        backgroundColor: AppTheme.surface,
-        foregroundColor: AppTheme.textPrimary,
+        backgroundColor: AppTheme.getAppBarBackgroundColor(context),
+        foregroundColor: AppTheme.getTextPrimary(context),
         elevation: 0,
         centerTitle: true,
       ),
@@ -98,15 +98,15 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
             ),
           );
         },
-        loading: () => const Center(
+        loading: () => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: AppTheme.primary),
-              SizedBox(height: 16),
+              const CircularProgressIndicator(color: AppTheme.primary),
+              const SizedBox(height: 16),
               Text(
                 '正在加载客服信息...',
-                style: TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
               ),
             ],
           ),
@@ -123,7 +123,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                   Text(
                     '加载失败: $err',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppTheme.textPrimary),
+                    style: TextStyle(color: AppTheme.getTextPrimary(context)),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
@@ -151,9 +151,9 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(13)),
+        border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -180,8 +180,8 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
+                        style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -189,17 +189,18 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                       const SizedBox(height: 6),
                       Text(
                         description,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.getSecondaryTextColor(context),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: AppTheme.textTertiary,
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: AppTheme.getTertiaryTextColor(context),
                 ),
               ],
             ),

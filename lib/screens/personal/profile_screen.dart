@@ -36,20 +36,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     
     // 如果正在全局加载用户信息，显示加载状态
     if (userState.isLoading && user == null) {
-      return const Scaffold(
-        backgroundColor: AppTheme.background,
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
-        title: const Text('个人资料'),
-        backgroundColor: AppTheme.surface,
-        foregroundColor: AppTheme.textPrimary,
+        title: Text('个人资料', style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
+        backgroundColor: AppTheme.getCardColor(context),
+        foregroundColor: AppTheme.getPrimaryTextColor(context),
         elevation: 0,
         centerTitle: true,
+        iconTheme: IconThemeData(color: AppTheme.getPrimaryTextColor(context)),
       ),
       body: SafeArea(
         child: _isLoading 
@@ -141,7 +142,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      color: AppTheme.surface,
+      color: AppTheme.getCardColor(context),
       child: InkWell(
         onTap: _isUploading ? null : _pickAndUploadAvatar,
         child: Row(
@@ -194,17 +195,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Text(
                     user?.realName ?? '未设置姓名',
-                    style: const TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     user?.phone ?? user?.email ?? '未设置联系方式',
-                    style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                    style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppTheme.textTertiary),
+            Icon(Icons.chevron_right, color: AppTheme.getTertiaryTextColor(context)),
           ],
         ),
       ),
@@ -216,18 +217,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Text(
         title,
-        style: const TextStyle(color: AppTheme.textTertiary, fontSize: 13, fontWeight: FontWeight.w500),
+        style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 13, fontWeight: FontWeight.w500),
       ),
     );
   }
 
   Widget _buildSettingsGroup(List<Widget> children) {
+    final dividerColor = AppTheme.getDividerColor(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: AppTheme.surface,
+      decoration: BoxDecoration(
+        color: AppTheme.getCardColor(context),
         border: Border(
-          top: BorderSide(color: AppTheme.divider, width: 0.5),
-          bottom: BorderSide(color: AppTheme.divider, width: 0.5),
+          top: BorderSide(color: dividerColor, width: 0.5),
+          bottom: BorderSide(color: dividerColor, width: 0.5),
         ),
       ),
       child: Column(
@@ -238,9 +240,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               widget,
               if (idx < children.length - 1)
-                const Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Divider(height: 0.5, color: AppTheme.divider),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Divider(height: 0.5, color: dividerColor),
                 ),
             ],
           );
@@ -260,14 +262,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
-            Text(label, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15)),
+            Text(label, style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 15)),
             const Spacer(),
             Text(
               value,
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+              style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right, color: AppTheme.textTertiary, size: 18),
+            Icon(Icons.chevron_right, color: AppTheme.getTertiaryTextColor(context), size: 18),
           ],
         ),
       ),

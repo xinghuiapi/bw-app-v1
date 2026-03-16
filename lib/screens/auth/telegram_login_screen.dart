@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/providers/telegram_login_provider.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/gen/strings.g.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -77,21 +78,21 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SpinKitRing(
-              color: Color(0xFFFF4D4F),
+              color: AppTheme.primary,
               size: 36.0,
               lineWidth: 3.0,
             ),
             const SizedBox(height: 16),
             Text(
               loadingText,
-              style: const TextStyle(
-                color: Color(0xFF666666),
+              style: TextStyle(
+                color: AppTheme.getSecondaryTextColor(context),
                 fontSize: 14,
               ),
             ),

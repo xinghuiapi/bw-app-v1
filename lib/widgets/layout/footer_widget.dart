@@ -16,9 +16,9 @@ class AppFooter extends ConsumerWidget {
       top: false,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.secondary,
+          color: AppTheme.getCardColor(context),
           border: Border(
-            top: BorderSide(color: Colors.white.withAlpha(13), width: 0.5),
+            top: BorderSide(color: AppTheme.getDividerColor(context), width: 0.5),
           ),
         ),
         child: BottomNavigationBar(
@@ -28,7 +28,7 @@ class AppFooter extends ConsumerWidget {
           elevation: 0,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppTheme.primary,
-          unselectedItemColor: AppTheme.textTertiary,
+          unselectedItemColor: AppTheme.getTertiaryTextColor(context),
           selectedFontSize: 12,
           unselectedFontSize: 12,
           items: const [

@@ -48,66 +48,80 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ref.invalidate(homeDataProvider);
             ref.invalidate(categoriesProvider);
           },
-          child: Column(
-            children: [
-              Expanded(
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (scrollInfo) {
-                    // 仅监听直接子 ScrollView (SingleChildScrollView) 的滚动事件
-                    if (scrollInfo.depth == 0) {
-                      final pixels = scrollInfo.metrics.pixels;
-                      final maxScroll = scrollInfo.metrics.maxScrollExtent;
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (scrollInfo) {
+              if (scrollInfo.depth == 0) {
+                final pixels = scrollInfo.metrics.pixels;
+                final maxScroll = scrollInfo.metrics.maxScrollExtent;
+                if (pixels >= maxScroll - 200 && maxScroll > 0) {
+                  if (ref.read(scrollBottomProvider) == false) {
+                    ref.read(scrollBottomProvider.notifier).set(true);
+                  }
+                } else {
+                  if (ref.read(scrollBottomProvider) == true) {
+                    ref.read(scrollBottomProvider.notifier).set(false);
+                  }
+                }
+              }
+              return false;
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      // 轮播图
+                      if (homeData.banners != null)
+                        HomeBanner(banners: homeData.banners!),
                       
-                      // 距离底部 200 像素时触发加载更多
-                      if (pixels >= maxScroll - 200 && maxScroll > 0) {
-                        if (ref.read(scrollBottomProvider) == false) {
-                          ref.read(scrollBottomProvider.notifier).set(true);
-                        }
-                      } else {
-                        if (ref.read(scrollBottomProvider) == true) {
-                          ref.read(scrollBottomProvider.notifier).set(false);
-                        }
-                      }
-                    }
-                    return false;
-                  },
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      children: [
-                        // 轮播图
-                        if (homeData.banners != null)
-                          HomeBanner(banners: homeData.banners!),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // 通知栏
-                        if (homeData.notices != null)
-                          HomeNotices(notices: homeData.notices!),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // 快捷入口
-                        const QuickAccess(),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // 游戏分类
-                        categoriesAsync.when(
-                          data: (categories) => GameCategoriesWidget(categories: categories),
-                          loading: () => const CategorySkeleton(),
-                          error: (err, stack) => ErrorStateWidget(
-                            message: '加载分类失败: $err',
-                            onRetry: () => ref.invalidate(categoriesProvider),
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                      ],
+                      const SizedBox(height: 12),
+                      
+                      // 通知栏
+                      if (homeData.notices != null)
+                        HomeNotices(notices: homeData.notices!),
+                      
+                      const SizedBox(height: 12),
+                      
+                      // 快捷入口
+                      const QuickAccess(),
+                      
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+                
+                // 游戏分类吸顶 Header
+                categoriesAsync.when(
+                  data: (categories) => SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _SliverAppBarDelegate(
+                      child: GameCategoryTabs(categories: categories),
+                      minHeight: 56,
+                      maxHeight: 56,
+                    ),
+                  ),
+                  loading: () => const SliverToBoxAdapter(child: CategorySkeleton()),
+                  error: (err, stack) => SliverToBoxAdapter(
+                    child: ErrorStateWidget(
+                      message: '加载分类失败: $err',
+                      onRetry: () => ref.invalidate(categoriesProvider),
                     ),
                   ),
                 ),
-              ),
-            ],
+                
+                // 游戏内容
+                SliverToBoxAdapter(
+                  child: categoriesAsync.when(
+                    data: (categories) => GameCategoriesWidget(categories: categories),
+                    loading: () => const SizedBox.shrink(),
+                    error: (err, stack) => const SizedBox.shrink(),
+                  ),
+                ),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              ],
+            ),
           ),
         ),
         loading: () => const _HomeLoadingSkeleton(),
@@ -193,5 +207,35 @@ class _HomeLoadingSkeleton extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double minHeight;
+  final double maxHeight;
+
+  _SliverAppBarDelegate({
+    required this.child,
+    required this.minHeight,
+    required this.maxHeight,
+  });
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return maxHeight != oldDelegate.maxHeight ||
+        minHeight != oldDelegate.minHeight ||
+        child != oldDelegate.child;
   }
 }

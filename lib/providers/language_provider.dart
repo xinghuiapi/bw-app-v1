@@ -21,45 +21,24 @@ class LanguageNotifier extends Notifier<AppLocale> {
 
   @override
   AppLocale build() {
-    // 默认语言为中文
-    final defaultLocale = AppLocale.zh;
-    // 异步加载初始化会在 main.dart 中调用 init()
-    // 这里同步返回默认值，但可以先尝试同步更新系统设置
-    _updateSystem(defaultLocale);
-    return defaultLocale;
+    // 强制使用中文，屏蔽多语言切换功能
+    // 注意：不要在 build 中直接执行 side effects (如 _updateSystem)
+    // 以免触发 "Tried to modify a provider while the widget tree was building" 错误
+    return AppLocale.zh;
   }
 
   /// 初始化语言设置
   Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedLanguage = prefs.getString(_storageKey);
-    
-    AppLocale locale = AppLocale.zh;
-    if (savedLanguage != null) {
-      // 尝试从保存的字符串恢复 AppLocale
-      locale = AppLocale.values.firstWhere(
-        (e) => e.languageCode == savedLanguage,
-        orElse: () => AppLocale.zh,
-      );
-    }
-    
-    state = locale;
+    // 强制重置为中文
+    const locale = AppLocale.zh;
     _updateSystem(locale);
+    state = locale;
   }
 
   /// 切换语言
   Future<void> setLanguage(AppLocale locale) async {
-    if (state == locale) return;
-    
-    state = locale;
-    _updateSystem(locale);
-    
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_storageKey, locale.languageCode);
-
-    // 语言切换后，使相关 Provider 失效，触发重新请求带上新语言头
-    ref.invalidate(homeDataProvider);
-    // 如果有其他需要实时更新的 Provider 也可以在这里添加
+    // 功能已屏蔽，不再执行切换逻辑
+    return;
   }
 
   /// 更新系统设置（Slang 状态和 API 拦截器）

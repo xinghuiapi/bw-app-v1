@@ -315,6 +315,7 @@ RechargeDetail _$RechargeDetailFromJson(Map<String, dynamic> json) =>
       usdtMoney: _stringToDoubleNullable(json['usdt_money']),
       img: json['img'] as String?,
       currency: json['currency'] as String?,
+      msg: json['msg'] as String?,
       type: _stringToIntNullable(json['type']),
     );
 
@@ -326,6 +327,7 @@ Map<String, dynamic> _$RechargeDetailToJson(RechargeDetail instance) =>
       'usdt_money': instance.usdtMoney,
       'img': instance.img,
       'currency': instance.currency,
+      'msg': instance.msg,
       'type': instance.type,
     };
 

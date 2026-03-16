@@ -7,7 +7,7 @@ class ThemeNotifier extends Notifier<ThemeMode> {
 
   @override
   ThemeMode build() {
-    _init();
+    Future.microtask(() => _init());
     return ThemeMode.dark; // 默认深色
   }
 

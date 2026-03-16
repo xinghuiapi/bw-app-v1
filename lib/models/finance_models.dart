@@ -389,6 +389,7 @@ class RechargeDetail {
   
   final String? img; // 二维码图片链接
   final String? currency;
+  final String? msg; // 提示语
   @JsonKey(fromJson: _stringToIntNullable)
   final int? type; // 支付类型
 
@@ -401,7 +402,7 @@ class RechargeDetail {
   String? get bankCard => params?.account ?? params?.card; 
   String? get bankUser => params?.name;
   String? get bankAddr => params?.address ?? params?.addres;
-  String? get remark => null;
+  String? get remark => msg; // 提示语兼容旧字段
 
   RechargeDetail({
     this.id = 0,
@@ -411,6 +412,7 @@ class RechargeDetail {
     this.usdtMoney,
     this.img,
     this.currency,
+    this.msg,
     this.type,
   });
 
@@ -425,6 +427,7 @@ class RechargeDetail {
     double? usdtMoney,
     String? img,
     String? currency,
+    String? msg,
     int? type,
   }) {
     return RechargeDetail(
@@ -435,6 +438,7 @@ class RechargeDetail {
       usdtMoney: usdtMoney ?? this.usdtMoney,
       img: img ?? this.img,
       currency: currency ?? this.currency,
+      msg: msg ?? this.msg,
       type: type ?? this.type,
     );
   }

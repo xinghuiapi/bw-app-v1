@@ -85,17 +85,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.background : const Color(0xFFF5F7FA),
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: isDark ? Colors.white : Colors.black),
+          icon: Icon(Icons.arrow_back_ios, color: AppTheme.getPrimaryTextColor(context)),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('搜索', style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text('搜索', style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 18, fontWeight: FontWeight.bold)),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -107,10 +104,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.surface : Colors.white,
+                color: AppTheme.getInputFillColor(context),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
-                  if (!isDark)
+                  if (!AppTheme.isDark(context))
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
                       blurRadius: 10,
@@ -120,13 +117,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
               ),
               child: TextField(
                 controller: _controller,
-                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
                 decoration: InputDecoration(
                   hintText: '搜索',
-                  hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey),
+                  hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context)),
                   prefixIcon: null,
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.search, color: isDark ? AppTheme.primary : Colors.grey),
+                    icon: Icon(Icons.search, color: AppTheme.getTertiaryTextColor(context)),
                     onPressed: _handleSearch,
                   ),
                   border: InputBorder.none,
@@ -147,10 +144,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('最近搜索', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                      Text('最近搜索', style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontWeight: FontWeight.bold)),
                       TextButton(
                         onPressed: () => setState(() => _recentSearches.clear()),
-                        child: Text('清空', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey)),
+                        child: Text('清空', style: TextStyle(color: AppTheme.getTertiaryTextColor(context))),
                       ),
                     ],
                   ),
@@ -168,8 +165,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
           TabBar(
             controller: _tabController,
             isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            padding: EdgeInsets.zero,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 16),
             labelColor: AppTheme.primary,
-            unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
+            unselectedLabelColor: AppTheme.getTertiaryTextColor(context),
             indicatorColor: AppTheme.primary,
             indicatorSize: TabBarIndicatorSize.label,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
@@ -231,7 +231,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
   }
 
   Widget _buildSearchTag(String text) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         _controller.text = text;
@@ -240,11 +239,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.surface : Colors.white,
+          color: AppTheme.getInputFillColor(context),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+          border: Border.all(color: AppTheme.getDividerColor(context)),
         ),
-        child: Text(text, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 12)),
+        child: Text(text, style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 12)),
       ),
     );
   }

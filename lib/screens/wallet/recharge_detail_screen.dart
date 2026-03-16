@@ -99,40 +99,90 @@ class _RechargeDetailContent extends ConsumerWidget {
   }
 
   Widget _buildAmountInfo(BuildContext context, RechargeDetail detail) {
+    final primaryColor = Theme.of(context).primaryColor;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.all(20),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(13)),
+        border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
       child: Column(
         children: [
-          const Text(
-            '充值金额',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '充值金额: ',
+                style: TextStyle(color: AppTheme.error, fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                '¥${detail.money.toStringAsFixed(4)}',
+                style: TextStyle(
+                  color: AppTheme.error,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Monospace',
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: detail.money.toStringAsFixed(4)));
+                  ToastUtils.showSuccess('已复制金额');
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppTheme.error.withAlpha(26),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '复制',
+                    style: TextStyle(color: AppTheme.error, fontSize: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            '¥${detail.money}',
-            style: const TextStyle(
-              color: AppTheme.primary,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Monospace',
+          if (detail.usdtMoney != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '虚拟币数量: ',
+                  style: TextStyle(color: AppTheme.error, fontSize: 14),
+                ),
+                Text(
+                  '${detail.usdtMoney!.toStringAsFixed(4)}USDT',
+                  style: TextStyle(
+                    color: AppTheme.error,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: AppTheme.primary.withAlpha(26),
+              color: AppTheme.error.withAlpha(26),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              '待支付',
-              style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold),
+            child: Text(
+              detail.msg ?? '请按此金额复制支付！转错金额会导致支付失败！',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppTheme.error,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -144,34 +194,34 @@ class _RechargeDetailContent extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(13)),
+        border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.account_balance, color: AppTheme.primary, size: 20),
-              SizedBox(width: 8),
+              Icon(Icons.account_balance, color: Theme.of(context).primaryColor, size: 20),
+              const SizedBox(width: 8),
               Text(
                 '收款账户信息',
-                style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          _buildInfoRow('收款银行', detail.bankName ?? '-'),
-          _buildInfoRow('收款人', detail.bankUser ?? '-'),
-          _buildInfoRow('银行卡号', detail.bankCard ?? '-'),
-          _buildInfoRow('开户网点', detail.bankAddr ?? '-'),
+          _buildInfoRow(context, '收款银行', detail.bankName ?? '-'),
+          _buildInfoRow(context, '收款人', detail.bankUser ?? '-'),
+          _buildInfoRow(context, '银行卡号', detail.bankCard ?? '-'),
+          _buildInfoRow(context, '开户网点', detail.bankAddr ?? '-'),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -181,17 +231,17 @@ class _RechargeDetailContent extends ConsumerWidget {
             width: 80,
             child: Text(
               label,
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+              style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w500),
+              style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.copy, size: 16, color: AppTheme.primary),
+            icon: Icon(Icons.copy, size: 16, color: Theme.of(context).primaryColor),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: value));
               ToastUtils.showSuccess('已复制到剪贴板');
@@ -207,16 +257,17 @@ class _RechargeDetailContent extends ConsumerWidget {
   Widget _buildQRCode(BuildContext context, RechargeDetail detail) {
     return Container(
       padding: const EdgeInsets.all(24),
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(13)),
+        border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
       child: Column(
         children: [
-          const Text(
-            '扫描二维码支付',
-            style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+          Text(
+            '支付二维码',
+            style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
           Container(
@@ -232,9 +283,9 @@ class _RechargeDetailContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             '请在有效期内完成支付',
-            style: TextStyle(color: AppTheme.textTertiary, fontSize: 12),
+            style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12),
           ),
         ],
       ),
@@ -245,16 +296,16 @@ class _RechargeDetailContent extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(13)),
+        border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '上传支付凭证',
-            style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           InkWell(
@@ -263,21 +314,21 @@ class _RechargeDetailContent extends ConsumerWidget {
               height: 160,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppTheme.background,
+                color: AppTheme.getScaffoldBackgroundColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: AppTheme.getDividerColor(context)),
               ),
               child: state.localImageBytes != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.memory(state.localImageBytes!, fit: BoxFit.contain),
                     )
-                  : const Column(
+                  : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_a_photo, color: AppTheme.textTertiary, size: 32),
-                        SizedBox(height: 8),
-                        Text('点击上传支付凭证截图', style: TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
+                        Icon(Icons.add_a_photo, color: AppTheme.getTextSecondary(context), size: 32),
+                        const SizedBox(height: 8),
+                        Text('点击上传支付凭证截图', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12)),
                       ],
                     ),
             ),
@@ -287,7 +338,7 @@ class _RechargeDetailContent extends ConsumerWidget {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 state.errorMsg!,
-                style: const TextStyle(color: AppTheme.error, fontSize: 12),
+                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
               ),
             ),
         ],
@@ -314,7 +365,7 @@ class _RechargeDetailContent extends ConsumerWidget {
                     }
                   },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primary,
+              backgroundColor: Theme.of(context).primaryColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
@@ -330,14 +381,14 @@ class _RechargeDetailContent extends ConsumerWidget {
             final confirm = await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
-                backgroundColor: AppTheme.surface,
-                title: const Text('取消订单', style: TextStyle(color: AppTheme.textPrimary)),
-                content: const Text('确定要取消该充值订单吗？', style: TextStyle(color: AppTheme.textSecondary)),
+                backgroundColor: AppTheme.getCardColor(context),
+                title: Text('取消订单', style: TextStyle(color: AppTheme.getTextPrimary(context))),
+                content: Text('确定要取消该充值订单吗？', style: TextStyle(color: AppTheme.getTextSecondary(context))),
                 actions: [
                   TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('再想想')),
                   TextButton(
                     onPressed: () => Navigator.pop(context, true), 
-                    child: const Text('确定取消', style: TextStyle(color: AppTheme.error))
+                    child: Text('确定取消', style: TextStyle(color: Theme.of(context).colorScheme.error))
                   ),
                 ],
               ),
@@ -353,7 +404,7 @@ class _RechargeDetailContent extends ConsumerWidget {
               }
             }
           },
-          child: const Text('取消充值订单', style: TextStyle(color: AppTheme.textTertiary)),
+          child: Text('取消充值订单', style: TextStyle(color: AppTheme.getTextSecondary(context))),
         ),
       ],
     );

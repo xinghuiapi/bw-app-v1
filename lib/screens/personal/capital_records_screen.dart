@@ -111,7 +111,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         title: const Text('资金记录'),
         actions: [
@@ -138,11 +138,11 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withAlpha(13)),
+        border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _StatItem(label: '账变总额', value: '¥0.00', color: AppTheme.primary),
@@ -186,9 +186,9 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withAlpha(13)),
+        border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
       child: Column(
         children: [
@@ -197,7 +197,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
             children: [
               Text(
                 record.typeName ?? '资金变动',
-                style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Text(
                 '${isPositive ? "+" : ""}¥${amount.toStringAsFixed(2)}',
@@ -210,7 +210,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(color: Colors.white10, height: 1),
+          Divider(color: AppTheme.getDividerColor(context), height: 1),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -225,11 +225,11 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
             children: [
               Text(
                 record.createdAt ?? '',
-                style: const TextStyle(color: AppTheme.textTertiary, fontSize: 12),
+                style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 12),
               ),
               Text(
                 '单号: ${record.rowid ?? "---"}',
-                style: const TextStyle(color: AppTheme.textTertiary, fontSize: 12),
+                style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 12),
               ),
             ],
           ),
@@ -242,9 +242,9 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
+        Text(label, style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 12)),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14, fontWeight: FontWeight.w500)),
+        Text(value, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14, fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -252,7 +252,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
   void _showFilterDrawer() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.cardBackground,
+      backgroundColor: AppTheme.getCardColor(context),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -269,15 +269,15 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('筛选', style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('筛选', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 18, fontWeight: FontWeight.bold)),
                       IconButton(
-                        icon: const Icon(Icons.close, color: AppTheme.textTertiary),
+                        icon: Icon(Icons.close, color: AppTheme.getTextTertiary(context)),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Text('快速时间选择', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+                  Text('快速时间选择', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -290,7 +290,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text('自定义时间段', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+                  Text('自定义时间段', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: () async {
@@ -302,12 +302,19 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(
-                              colorScheme: const ColorScheme.dark(
-                                primary: AppTheme.primary,
-                                onPrimary: Colors.white,
-                                surface: AppTheme.cardBackground,
-                                onSurface: AppTheme.textPrimary,
-                              ),
+                              colorScheme: AppTheme.isDark(context)
+                                  ? ColorScheme.dark(
+                                      primary: AppTheme.primary,
+                                      onPrimary: Colors.white,
+                                      surface: AppTheme.getCardColor(context),
+                                      onSurface: AppTheme.getTextPrimary(context),
+                                    )
+                                  : ColorScheme.light(
+                                      primary: AppTheme.primary,
+                                      onPrimary: Colors.white,
+                                      surface: Colors.white,
+                                      onSurface: Colors.black,
+                                    ),
                             ),
                             child: child!,
                           );
@@ -323,9 +330,9 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: AppTheme.surface,
+                        color: AppTheme.getInputFillColor(context),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _selectedDateRange != null ? AppTheme.primary : Colors.white10),
+                        border: Border.all(color: _selectedDateRange != null ? AppTheme.primary : AppTheme.getDividerColor(context)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -335,11 +342,11 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                                 ? '请选择时间范围'
                                 : '${DateFormat('yyyy-MM-dd').format(_selectedDateRange!.start)} - ${DateFormat('yyyy-MM-dd').format(_selectedDateRange!.end)}',
                             style: TextStyle(
-                              color: _selectedDateRange == null ? AppTheme.textTertiary : AppTheme.textPrimary,
+                              color: _selectedDateRange == null ? AppTheme.getTextTertiary(context) : AppTheme.getTextPrimary(context),
                               fontSize: 14,
                             ),
                           ),
-                          const Icon(Icons.calendar_today, size: 16, color: AppTheme.textTertiary),
+                          Icon(Icons.calendar_today, size: 16, color: AppTheme.getTextTertiary(context)),
                         ],
                       ),
                     ),
@@ -405,14 +412,14 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppTheme.primary.withAlpha(25) : AppTheme.surface,
+          color: isActive ? AppTheme.primary.withAlpha(25) : AppTheme.getInputFillColor(context),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isActive ? AppTheme.primary : Colors.transparent),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? AppTheme.primary : AppTheme.textSecondary,
+            color: isActive ? AppTheme.primary : AppTheme.getTextSecondary(context),
             fontSize: 14,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
@@ -433,7 +440,7 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+        Text(label, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12)),
         const SizedBox(height: 8),
         Text(
           value,

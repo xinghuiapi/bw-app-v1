@@ -27,22 +27,22 @@ class PersonalCenterScreen extends ConsumerWidget {
     }
 
     if (userState.isLoading && user == null) {
-      return const Scaffold(
-        backgroundColor: AppTheme.background,
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (userState.error != null && user == null) {
       return Scaffold(
-        backgroundColor: AppTheme.background,
+        backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.error_outline, size: 60, color: AppTheme.error),
               const SizedBox(height: 16),
-              Text('加载失败: ${userState.error}', style: const TextStyle(color: AppTheme.textSecondary)),
+              Text('加载失败: ${userState.error}', style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () => ref.read(userProvider.notifier).fetchUserInfo(),
@@ -55,7 +55,7 @@ class PersonalCenterScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       body: SafeArea(
         top: false, // 让背景延伸到状态栏
         child: RefreshIndicator(
@@ -84,8 +84,8 @@ class PersonalCenterScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 user?.nickname ?? user?.username ?? '加载中...',
-                                style: const TextStyle(
-                                  color: AppTheme.textPrimary,
+                                style: TextStyle(
+                                  color: AppTheme.getPrimaryTextColor(context),
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -123,13 +123,13 @@ class PersonalCenterScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.surface,
+                                  color: AppTheme.getInputFillColor(context),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   'UID: ${user?.id ?? "---"}',
-                                  style: const TextStyle(
-                                    color: AppTheme.textSecondary,
+                                  style: TextStyle(
+                                    color: AppTheme.getSecondaryTextColor(context),
                                     fontSize: 12,
                                     fontFamily: 'monospace',
                                   ),
@@ -149,7 +149,7 @@ class PersonalCenterScreen extends ConsumerWidget {
                                        ),
                                      );
                                    },
-                                   child: const Icon(Icons.copy_outlined, color: AppTheme.textTertiary, size: 14),
+                                   child: Icon(Icons.copy_outlined, color: AppTheme.getTertiaryTextColor(context), size: 14),
                                  ),
                               ],
                             ],
@@ -159,7 +159,7 @@ class PersonalCenterScreen extends ConsumerWidget {
                     ),
                     IconButton(
                       onPressed: () => context.push('/personal-center-profile'),
-                      icon: const Icon(Icons.settings_outlined, color: AppTheme.textSecondary),
+                      icon: Icon(Icons.settings_outlined, color: AppTheme.getSecondaryTextColor(context)),
                     ),
                   ],
                 ),
@@ -310,11 +310,7 @@ class PersonalCenterScreen extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFF2C3138), AppTheme.cardBackground],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -330,7 +326,7 @@ class PersonalCenterScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('VIP 升级进度', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+              Text('VIP 升级进度', style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14)),
               GestureDetector(
                 onTap: () => context.push('/personal-center-vip'),
                 child: const Row(
@@ -346,8 +342,8 @@ class PersonalCenterScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(currentLevel, style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
-              Text(nextLevel, style: const TextStyle(color: AppTheme.textSecondary)),
+              Text(currentLevel ?? 'VIP0', style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontWeight: FontWeight.bold)),
+              Text(nextLevel, style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
             ],
           ),
           const SizedBox(height: 8),
@@ -358,7 +354,7 @@ class PersonalCenterScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: Colors.white10,
+                    backgroundColor: AppTheme.getDividerColor(context),
                     valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.warning),
                     minHeight: 6,
                   ),
@@ -378,21 +374,21 @@ class PersonalCenterScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('充值进度', style: TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
+                    Text('充值进度', style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12)),
                     const SizedBox(height: 4),
-                    Text(rechargeProgressText, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text(rechargeProgressText, style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 14, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-              Container(width: 1, height: 30, color: Colors.white10),
+              Container(width: 1, height: 30, color: AppTheme.getDividerColor(context)),
               const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('流水进度', style: TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
+                    Text('流水进度', style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12)),
                     const SizedBox(height: 4),
-                    Text(validBetProgressText, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text(validBetProgressText, style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 14, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -408,7 +404,7 @@ class PersonalCenterScreen extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -419,7 +415,7 @@ class PersonalCenterScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('主账户余额', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+                  Text('主账户余额', style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -435,8 +431,8 @@ class PersonalCenterScreen extends ConsumerWidget {
                       GestureDetector(
                         onTap: () => ref.read(userProvider.notifier).refreshBalance(),
                         child: userState.isBalanceLoading
-                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.textTertiary))
-                          : const Icon(Icons.refresh, color: AppTheme.textTertiary, size: 20),
+                          ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.getTertiaryTextColor(context)))
+                          : Icon(Icons.refresh, color: AppTheme.getTertiaryTextColor(context), size: 20),
                       ),
                     ],
                   ),
@@ -445,14 +441,14 @@ class PersonalCenterScreen extends ConsumerWidget {
               ElevatedButton(
                 onPressed: () => ref.read(userProvider.notifier).allTrans(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.surface,
-                  foregroundColor: AppTheme.textPrimary,
+                  backgroundColor: AppTheme.getInputFillColor(context),
+                  foregroundColor: AppTheme.getPrimaryTextColor(context),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: userState.isAllTransLoading
-                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.textPrimary))
+                  ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.getPrimaryTextColor(context)))
                   : const Text('一键回收', style: TextStyle(fontSize: 12)),
               ),
             ],
@@ -486,7 +482,7 @@ class PersonalCenterScreen extends ConsumerWidget {
             child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          Text(label, style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 12)),
         ],
       ),
     );
@@ -496,7 +492,7 @@ class PersonalCenterScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -525,13 +521,13 @@ class PersonalCenterScreen extends ConsumerWidget {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.surface,
+              color: AppTheme.getInputFillColor(context),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined, color: AppTheme.textPrimary, size: 20),
+            child: Icon(isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined, color: AppTheme.getPrimaryTextColor(context), size: 20),
           ),
-          title: Text(isDark ? '深色模式' : '浅色模式', style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
-          subtitle: Text(isDark ? '已开启' : '已关闭', style: TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
+          title: Text(isDark ? '深色模式' : '浅色模式', style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 15, fontWeight: FontWeight.w500)),
+          subtitle: Text(isDark ? '已开启' : '已关闭', style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12)),
           trailing: Switch(
             value: isDark,
             onChanged: (value) => ref.read(themeProvider.notifier).toggleTheme(),
@@ -539,9 +535,9 @@ class PersonalCenterScreen extends ConsumerWidget {
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         ),
-        const Padding(
-          padding: EdgeInsets.only(left: 60),
-          child: Divider(height: 1),
+        Padding(
+          padding: const EdgeInsets.only(left: 60),
+          child: Divider(height: 1, color: AppTheme.getDividerColor(context)),
         ),
       ],
     );
@@ -558,9 +554,9 @@ class PersonalCenterScreen extends ConsumerWidget {
         ),
         child: const Icon(Icons.delete_outline, color: AppTheme.warning, size: 20),
       ),
-      title: const Text('清理缓存', style: TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
-      subtitle: const Text('释放应用占用的空间', style: TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, color: AppTheme.textTertiary, size: 20),
+      title: Text('清理缓存', style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 15, fontWeight: FontWeight.w500)),
+      subtitle: Text('释放应用占用的空间', style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12)),
+      trailing: Icon(Icons.chevron_right, color: AppTheme.getTertiaryTextColor(context), size: 20),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
@@ -568,7 +564,7 @@ class PersonalCenterScreen extends ConsumerWidget {
   void _showClearCacheDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.cardBackground,
+      backgroundColor: AppTheme.getCardColor(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -581,15 +577,15 @@ class PersonalCenterScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.delete_forever_outlined, color: AppTheme.warning, size: 48),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   '清理缓存',
-                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   '清理缓存将释放存储空间，不会影响您的账户数据。',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                  style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
                 ),
                 const SizedBox(height: 32),
                 Row(
@@ -597,7 +593,7 @@ class PersonalCenterScreen extends ConsumerWidget {
                     Expanded(
                       child: TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('取消', style: TextStyle(color: AppTheme.textSecondary)),
+                        child: Text('取消', style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -629,6 +625,7 @@ class PersonalCenterScreen extends ConsumerWidget {
   }
 
   Widget _buildListItem(BuildContext context, IconData icon, String title, String desc, VoidCallback onTap, {Color? iconColor, bool isLast = false}) {
+    final primaryColor = AppTheme.getPrimaryTextColor(context);
     return Column(
       children: [
         ListTile(
@@ -636,20 +633,20 @@ class PersonalCenterScreen extends ConsumerWidget {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (iconColor ?? AppTheme.textPrimary).withAlpha(25),
+              color: (iconColor ?? primaryColor).withAlpha(25),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: iconColor ?? AppTheme.textPrimary, size: 20),
+            child: Icon(icon, color: iconColor ?? primaryColor, size: 20),
           ),
-          title: Text(title, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
-          subtitle: Text(desc, style: const TextStyle(color: AppTheme.textTertiary, fontSize: 12)),
-          trailing: const Icon(Icons.chevron_right, color: AppTheme.textTertiary, size: 20),
+          title: Text(title, style: TextStyle(color: primaryColor, fontSize: 15, fontWeight: FontWeight.w500)),
+          subtitle: Text(desc, style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12)),
+          trailing: Icon(Icons.chevron_right, color: AppTheme.getTertiaryTextColor(context), size: 20),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         ),
         if (!isLast)
-          const Padding(
-            padding: EdgeInsets.only(left: 60),
-            child: Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.only(left: 60),
+            child: Divider(height: 1, color: AppTheme.getDividerColor(context)),
           ),
       ],
     );
@@ -658,7 +655,7 @@ class PersonalCenterScreen extends ConsumerWidget {
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.cardBackground,
+      backgroundColor: AppTheme.getCardColor(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -671,14 +668,14 @@ class PersonalCenterScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.warning_amber_rounded, color: AppTheme.warning, size: 48),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   '退出登录',
-                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   '您确定要退出当前账号吗？',
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                  style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
                 ),
                 const SizedBox(height: 32),
                 Row(
@@ -686,7 +683,7 @@ class PersonalCenterScreen extends ConsumerWidget {
                     Expanded(
                       child: TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('取消', style: TextStyle(color: AppTheme.textSecondary)),
+                        child: Text('取消', style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
                       ),
                     ),
                     const SizedBox(width: 16),

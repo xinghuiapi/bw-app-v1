@@ -252,7 +252,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         title: const Text('往来记录'),
         bottom: TabBar(
@@ -260,7 +260,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
           tabs: _tabs.map((t) => Tab(text: t)).toList(),
           indicatorColor: AppTheme.primary,
           labelColor: AppTheme.primary,
-          unselectedLabelColor: AppTheme.textSecondary,
+          unselectedLabelColor: AppTheme.getTextSecondary(context),
         ),
       ),
       body: Column(
@@ -282,7 +282,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
                 return Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppTheme.surface,
+                    color: AppTheme.getCardColor(context),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withAlpha(25),
@@ -317,7 +317,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
   Widget _buildFilterBar() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      color: AppTheme.surface,
+      color: AppTheme.getCardColor(context),
       child: Column(
         children: [
           SingleChildScrollView(
@@ -332,9 +332,9 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
                 const SizedBox(width: 8),
                 IconButton(
                   onPressed: _showDateRangePicker,
-                  icon: const Icon(Icons.calendar_today, size: 20, color: AppTheme.textSecondary),
+                  icon: Icon(Icons.calendar_today, size: 20, color: AppTheme.getTextSecondary(context)),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppTheme.cardBackground,
+                    backgroundColor: AppTheme.getInputFillColor(context),
                     padding: const EdgeInsets.all(8),
                     minimumSize: Size.zero,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -442,7 +442,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getInputFillColor(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: value != null ? AppTheme.primary : Colors.transparent,
@@ -452,8 +452,8 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           value: value,
-          hint: Text(label, style: TextStyle(fontSize: 12, color: value != null ? AppTheme.primary : AppTheme.textSecondary)),
-          icon: Icon(Icons.keyboard_arrow_down, size: 16, color: value != null ? AppTheme.primary : AppTheme.textSecondary),
+          hint: Text(label, style: TextStyle(fontSize: 12, color: value != null ? AppTheme.primary : AppTheme.getTextSecondary(context))),
+          icon: Icon(Icons.keyboard_arrow_down, size: 16, color: value != null ? AppTheme.primary : AppTheme.getTextSecondary(context)),
           items: options.entries.map((e) {
             return DropdownMenuItem<T>(
               value: e.key,
@@ -465,8 +465,8 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
               onChanged(val as T);
             }
           },
-          dropdownColor: AppTheme.surface,
-          style: TextStyle(color: value != null ? AppTheme.primary : AppTheme.textPrimary),
+          dropdownColor: AppTheme.getCardColor(context),
+          style: TextStyle(color: value != null ? AppTheme.primary : AppTheme.getTextPrimary(context)),
         ),
       ),
     );
@@ -482,10 +482,10 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
         onSelected: (selected) {
           if (selected) _applyQuickDate(type);
         },
-        backgroundColor: AppTheme.cardBackground,
+        backgroundColor: AppTheme.getInputFillColor(context),
         selectedColor: AppTheme.primary.withAlpha(25),
         labelStyle: TextStyle(
-          color: isActive ? AppTheme.primary : AppTheme.textSecondary,
+          color: isActive ? AppTheme.primary : AppTheme.getTextSecondary(context),
           fontSize: 13,
         ),
         side: BorderSide(
@@ -506,12 +506,19 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: AppTheme.primary,
-              onPrimary: Colors.white,
-              surface: AppTheme.surface,
-              onSurface: AppTheme.textPrimary,
-            ),
+            colorScheme: AppTheme.isDark(context)
+                ? ColorScheme.dark(
+                    primary: AppTheme.primary,
+                    onPrimary: Colors.white,
+                    surface: AppTheme.getCardColor(context),
+                    onSurface: AppTheme.getTextPrimary(context),
+                  )
+                : ColorScheme.light(
+                    primary: AppTheme.primary,
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: Colors.black,
+                  ),
           ),
           child: child!,
         );
@@ -579,8 +586,8 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
                   _formatGroupDate(date),
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
+                  style: TextStyle(
+                    color: AppTheme.getTextSecondary(context),
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -644,9 +651,9 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
     String title = '';
     String subtitle = '';
     String amount = '';
-    Color amountColor = AppTheme.textPrimary;
+    Color amountColor = AppTheme.getTextPrimary(context);
     String status = '';
-    Color statusColor = AppTheme.textSecondary;
+    Color statusColor = AppTheme.getTextSecondary(context);
     String? orderNo;
 
     if (item is TradeRecord) {
@@ -720,7 +727,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
           break;
         default:
           status = '未知';
-          statusColor = AppTheme.textSecondary;
+          statusColor = AppTheme.getTextSecondary(context);
       }
     } else if (item is BettingRecord) {
       final categoryName = _getBetCategoryName(item.code);
@@ -732,7 +739,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       final betAmount = double.tryParse(item.betAmount.toString()) ?? 0;
       
       amount = '${netAmount >= 0 ? '+' : ''}¥${netAmount.toStringAsFixed(2)}';
-      amountColor = netAmount > 0 ? AppTheme.success : (netAmount < 0 ? AppTheme.error : AppTheme.textPrimary);
+      amountColor = netAmount > 0 ? AppTheme.success : (netAmount < 0 ? AppTheme.error : AppTheme.getTextPrimary(context));
       
       status = '投注: ¥${betAmount.toStringAsFixed(2)}';
       orderNo = item.rowid;
@@ -742,7 +749,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
@@ -758,8 +765,8 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
+                        style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
@@ -769,7 +776,7 @@ class _TransactionRecordsScreenState extends ConsumerState<TransactionRecordsScr
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
-                        style: const TextStyle(color: AppTheme.textTertiary, fontSize: 12),
+                        style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12),
                       ),
                     ],
                   ),

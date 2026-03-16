@@ -47,6 +47,15 @@ class SelectedSubCategoryIndex extends Notifier<int> {
 
 final selectedSubCategoryIndexProvider = NotifierProvider.autoDispose<SelectedSubCategoryIndex, int>(SelectedSubCategoryIndex.new);
 
+/// 当前选中的二级分类对象
+class SelectedSubCategory extends Notifier<SubCategory?> {
+  @override
+  SubCategory? build() => null;
+  void set(SubCategory? value) => state = value;
+}
+
+final selectedSubCategoryProvider = NotifierProvider.autoDispose<SelectedSubCategory, SubCategory?>(SelectedSubCategory.new);
+
 /// 二级分类提供
 final subCategoriesProvider = FutureProvider.autoDispose.family<List<SubCategory>, String>((ref, code) async {
   if (code == 'reco') {

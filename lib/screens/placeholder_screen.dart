@@ -8,12 +8,12 @@ class PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
-        title: Text(title, style: const TextStyle(color: AppTheme.textPrimary)),
-        backgroundColor: AppTheme.background,
+        title: Text(title, style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
+        backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        iconTheme: IconThemeData(color: AppTheme.getPrimaryTextColor(context)),
       ),
       body: Center(
         child: Column(
@@ -23,16 +23,16 @@ class PlaceholderScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               '$title 页面正在开发中...',
-              style: const TextStyle(
-                color: AppTheme.textSecondary,
+              style: TextStyle(
+                color: AppTheme.getSecondaryTextColor(context),
                 fontSize: 16,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               '敬请期待更多功能上线',
               style: TextStyle(
-                color: AppTheme.textTertiary,
+                color: AppTheme.getTertiaryTextColor(context),
                 fontSize: 14,
               ),
             ),

@@ -26,7 +26,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     final activitiesAsync = ref.watch(activityListProvider(selectedCategoryId));
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppHeader(),
       endDrawer: const UserDrawer(),
       body: SafeArea(
@@ -34,7 +34,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
           children: [
           // 活动分类
           categoriesAsync.when(
-            data: (categories) => _buildCategoryTabs(categories, selectedCategoryId),
+            data: (categories) => _buildCategoryTabs(context, categories, selectedCategoryId),
             loading: () => const _CategoryTabsSkeleton(),
             error: (err, stack) => const SizedBox.shrink(),
           ),
@@ -74,7 +74,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   );
 }
 
-  Widget _buildCategoryTabs(List<ActivityClass> categories, int? selectedId) {
+  Widget _buildCategoryTabs(BuildContext context, List<ActivityClass> categories, int? selectedId) {
     final allCategories = [
       ActivityClass(id: null, title: '全部'),
       ...categories,
@@ -83,9 +83,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     return Container(
       height: 50,
       decoration: BoxDecoration(
-        color: AppTheme.secondary,
+        color: AppTheme.getCardColor(context),
         border: Border(
-          bottom: BorderSide(color: Colors.white.withAlpha(13), width: 0.5),
+          bottom: BorderSide(color: AppTheme.getDividerColor(context), width: 0.5),
         ),
       ),
       child: ListView.builder(
@@ -114,7 +114,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
               child: Text(
                 category.title ?? '',
                 style: TextStyle(
-                  color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+                  color: isSelected ? AppTheme.primary : AppTheme.getSecondaryTextColor(context),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 14,
                 ),
@@ -143,11 +143,11 @@ class _ActivityCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: AppTheme.secondary,
+          color: AppTheme.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(25),
+              color: Colors.black.withAlpha(isSelectedThemeDark(context) ? 25 : 10),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -167,10 +167,10 @@ class _ActivityCard extends StatelessWidget {
               Container(
                 height: 160,
                 decoration: BoxDecoration(
-                  color: AppTheme.textTertiary.withAlpha(25),
+                  color: AppTheme.getTertiaryTextColor(context).withAlpha(25),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 ),
-                child: const Icon(Icons.image_not_supported, size: 40, color: AppTheme.textTertiary),
+                child: Icon(Icons.image_not_supported, size: 40, color: AppTheme.getTertiaryTextColor(context)),
               ),
             
             // 活动标题
@@ -178,8 +178,8 @@ class _ActivityCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Text(
                 activity.title ?? '未命名活动',
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -191,6 +191,10 @@ class _ActivityCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  bool isSelectedThemeDark(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
   }
 }
 

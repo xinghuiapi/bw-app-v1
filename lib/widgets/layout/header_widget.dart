@@ -119,10 +119,6 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.search, color: AppTheme.textPrimary),
           onPressed: () => context.push('/search'),
         ),
-        IconButton(
-          icon: const Icon(Icons.language, color: AppTheme.textPrimary),
-          onPressed: () => _showLanguageSelector(context, ref),
-        ),
         const SizedBox(width: 8),
       ],
     );

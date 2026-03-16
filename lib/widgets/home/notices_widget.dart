@@ -21,9 +21,9 @@ class HomeNotices extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: AppTheme.getInputFillColor(context),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withAlpha(13), width: 0.5),
+          border: Border.all(color: AppTheme.getInputBorderColor(context), width: 0.5),
         ),
         child: Row(
           children: [
@@ -32,7 +32,7 @@ class HomeNotices extends StatelessWidget {
             Expanded(
               child: Marquee(
                 text: combinedNotices,
-                style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                style: TextStyle(fontSize: 13, color: AppTheme.getSecondaryTextColor(context)),
                 scrollAxis: Axis.horizontal,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 blankSpace: 100.0,
@@ -57,9 +57,9 @@ class HomeNotices extends StatelessWidget {
       isScrollControlled: true,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: AppTheme.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: AppTheme.getScaffoldBackgroundColor(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -67,17 +67,17 @@ class HomeNotices extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   '公告列表',
-                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                  icon: Icon(Icons.close, color: AppTheme.getSecondaryTextColor(context)),
                 ),
               ],
             ),
-            const Divider(color: Colors.white10),
+            Divider(color: AppTheme.getDividerColor(context)),
             Expanded(
               child: ListView.builder(
                 itemCount: notices.length,
@@ -86,15 +86,15 @@ class HomeNotices extends StatelessWidget {
                   return ListTile(
                     title: Text(
                       notice.title ?? "无标题",
-                      style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
                       notice.content ?? "暂无内容",
-                      style: const TextStyle(color: AppTheme.textSecondary),
+                      style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: const Icon(Icons.chevron_right, color: AppTheme.textTertiary),
+                    trailing: Icon(Icons.chevron_right, color: AppTheme.getTertiaryTextColor(context)),
                     onTap: () => _showNoticeDetail(context, notice),
                   );
                 },
@@ -110,10 +110,10 @@ class HomeNotices extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        title: Text(notice.title ?? '公告详情', style: const TextStyle(color: AppTheme.textPrimary)),
+        backgroundColor: AppTheme.getCardColor(context),
+        title: Text(notice.title ?? '公告详情', style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
         content: SingleChildScrollView(
-          child: Text(notice.content ?? '', style: const TextStyle(color: AppTheme.textSecondary)),
+          child: Text(notice.content ?? '', style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
         ),
         actions: [
           TextButton(

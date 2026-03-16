@@ -6,6 +6,7 @@ import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:my_flutter_app/utils/constants.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/models/finance_models.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 
 class TransferScreen extends ConsumerStatefulWidget {
   const TransferScreen({super.key});
@@ -80,7 +81,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(26),
+            color: AppTheme.isDark(context) ? Colors.black.withAlpha(26) : Colors.black.withAlpha(10),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -94,9 +95,9 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
             children: [
               Row(
                 children: [
-                  const Text(
+                  Text(
                     '主账户余额',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                    style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
@@ -104,7 +105,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                     child: Icon(
                       Icons.refresh,
                       size: 16,
-                      color: user.isLoading ? Colors.blue : Colors.grey,
+                      color: user.isLoading ? AppTheme.primary : AppTheme.getSecondaryTextColor(context),
                     ),
                   ),
                 ],
@@ -122,9 +123,9 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     '元',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    style: TextStyle(fontSize: 14, color: AppTheme.getSecondaryTextColor(context)),
                   ),
                 ],
               ),
@@ -143,8 +144,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                   },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
+              foregroundColor: AppTheme.primary,
+              side: const BorderSide(color: AppTheme.primary),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -154,7 +155,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
                   )
                 : const Text('一键归户'),
           ),
@@ -179,10 +180,10 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                   ref.read(transferProvider.notifier).selectPrimaryCategory(cat);
                 }
               },
-              backgroundColor: Colors.grey.withAlpha(26),
-              selectedColor: Colors.red,
+              backgroundColor: AppTheme.getDividerColor(context),
+              selectedColor: AppTheme.primary,
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey,
+                color: isSelected ? Colors.white : AppTheme.getTextSecondary(context),
               ),
               showCheckmark: false,
               shape: RoundedRectangleBorder(
@@ -204,10 +205,10 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     }
 
     if (state.subCategories.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(40.0),
-          child: Text('暂无游戏平台', style: TextStyle(color: Colors.grey)),
+          padding: const EdgeInsets.all(40.0),
+          child: Text('暂无游戏平台', style: TextStyle(color: AppTheme.getTertiaryTextColor(context))),
         ),
       );
     }
@@ -232,7 +233,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withAlpha(26)),
+              border: Border.all(color: AppTheme.getDividerColor(context)),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -257,7 +258,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                 const SizedBox(height: 4),
                 Text(
                   '${balance.toStringAsFixed(2)}元',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, color: AppTheme.getTertiaryTextColor(context)),
                 ),
               ],
             ),
@@ -271,8 +272,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     return Container(
       width: 40,
       height: 40,
-      decoration: const BoxDecoration(
-        color: Colors.grey,
+      decoration: BoxDecoration(
+        color: AppTheme.getPlaceholderColor(context),
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
@@ -315,11 +316,11 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        border: Border(top: BorderSide(color: Colors.grey.withAlpha(26))),
+        border: Border(top: BorderSide(color: AppTheme.getDividerColor(context))),
       ),
       child: Row(
         children: [
-          const Text('转账模式:', style: TextStyle(fontSize: 13, color: Colors.grey)),
+          Text('转账模式:', style: TextStyle(fontSize: 13, color: AppTheme.getTextSecondary(context))),
           const SizedBox(width: 12),
           Expanded(
             child: Row(
@@ -353,14 +354,14 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
           Icon(
             isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
             size: 18,
-            color: isSelected ? Colors.red : Colors.grey,
+            color: isSelected ? AppTheme.primary : AppTheme.getTextSecondary(context),
           ),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
               fontSize: 13,
-              color: isSelected ? Colors.red : Colors.grey,
+              color: isSelected ? AppTheme.primary : AppTheme.getTextSecondary(context),
             ),
           ),
         ],
@@ -393,9 +394,9 @@ class _TransferDialog extends ConsumerWidget {
         right: 20,
         top: 20,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1E1E1E), // 深色背景
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: AppTheme.getCardColor(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -406,31 +407,31 @@ class _TransferDialog extends ConsumerWidget {
             children: [
               Text(
                 '${platform.name} 钱包',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.getTextPrimary(context)),
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close, color: Colors.grey),
+                icon: Icon(Icons.close, color: AppTheme.getTextSecondary(context)),
               ),
             ],
           ),
           const SizedBox(height: 20),
           Container(
             decoration: BoxDecoration(
-        color: Colors.white.withAlpha(13),
-        borderRadius: BorderRadius.circular(8),
-      ),
+              color: AppTheme.getInputFillColor(context),
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: controller,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                    decoration: InputDecoration(
                       hintText: '最低1元，只能为整数',
-                      hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      hintStyle: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                       border: InputBorder.none,
                     ),
                   ),
@@ -440,7 +441,7 @@ class _TransferDialog extends ConsumerWidget {
                     // 转入全部余额，向下取整
                     controller.text = balance.floor().toString();
                   },
-                  child: const Text('全部转入', style: TextStyle(color: Colors.blue)),
+                  child: const Text('全部转入', style: TextStyle(color: AppTheme.primary)),
                 ),
               ],
             ),
@@ -452,8 +453,8 @@ class _TransferDialog extends ConsumerWidget {
                 child: OutlinedButton(
                   onPressed: () => _handleTransfer(false),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
+                    foregroundColor: AppTheme.error,
+                    side: const BorderSide(color: AppTheme.error),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -465,7 +466,7 @@ class _TransferDialog extends ConsumerWidget {
                 child: ElevatedButton(
                   onPressed: () => _handleTransfer(true),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: AppTheme.error,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

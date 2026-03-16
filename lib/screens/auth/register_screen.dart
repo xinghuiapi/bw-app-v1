@@ -137,12 +137,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppTheme.getPrimaryTextColor(context)),
           onPressed: () => context.pop(),
         ),
       ),
@@ -221,32 +221,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.amber.withAlpha(26),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.stars_outlined,
-            color: Colors.amber,
-            size: 32,
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
+        Text(
           '加入我们',
           style: TextStyle(
-            color: AppTheme.textPrimary,
+            color: AppTheme.getPrimaryTextColor(context),
             fontSize: 28,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           '创建您的账号，开启精彩旅程',
           style: TextStyle(
-            color: AppTheme.textSecondary,
+            color: AppTheme.getSecondaryTextColor(context),
             fontSize: 16,
           ),
         ),
@@ -409,7 +396,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
       child: TextButton(
         onPressed: onPressed,
-        child: const Text('获取验证码', style: TextStyle(color: AppTheme.primary)),
+        child: const Text(
+          '获取验证码',
+          style: TextStyle(
+            color: AppTheme.primary,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -442,7 +436,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       suffixIcon: IconButton(
         icon: Icon(
           _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-          color: AppTheme.textTertiary,
+          color: AppTheme.getTertiaryTextColor(context),
           size: 20,
         ),
         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -464,7 +458,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       suffixIcon: IconButton(
         icon: Icon(
           _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-          color: AppTheme.textTertiary,
+          color: AppTheme.getTertiaryTextColor(context),
           size: 20,
         ),
         onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
@@ -489,27 +483,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('选择货币', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+        Text('选择货币', style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: AppTheme.getInputFillColor(context),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.divider),
+            border: Border.all(color: AppTheme.getInputBorderColor(context)),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _selectedCurrency,
               isExpanded: true,
-              dropdownColor: AppTheme.surface,
-              icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.textSecondary),
+              dropdownColor: AppTheme.getInputFillColor(context),
+              icon: Icon(Icons.keyboard_arrow_down, color: AppTheme.getSecondaryTextColor(context)),
               items: validConfigs.map((curr) {
                 return DropdownMenuItem<String>(
                   value: curr.code!,
                   child: Text(
                     curr.title ?? curr.code!,
-                    style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15),
+                    style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 15),
                   ),
                 );
               }).toList(),
@@ -539,7 +533,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       suffixIcon: IconButton(
         icon: Icon(
           _obscurePayPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-          color: AppTheme.textTertiary,
+          color: AppTheme.getTertiaryTextColor(context),
           size: 20,
         ),
         onPressed: () => setState(() => _obscurePayPassword = !_obscurePayPassword),
@@ -581,9 +575,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         width: 120,
         height: 56,
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: AppTheme.getInputFillColor(context),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.divider),
+          border: Border.all(color: AppTheme.getInputBorderColor(context)),
         ),
         child: _isLoadingCaptcha
             ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))
@@ -595,7 +589,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       fit: BoxFit.fill,
                     ),
                   )
-                : const Icon(Icons.refresh, color: AppTheme.textTertiary),
+                : Icon(Icons.refresh, color: AppTheme.getTertiaryTextColor(context)),
       ),
     );
   }
@@ -619,7 +613,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -630,21 +624,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           readOnly: readOnly,
           onTap: onTap,
           onChanged: onChanged,
-          style: const TextStyle(color: AppTheme.textPrimary),
+          style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppTheme.textTertiary, fontSize: 14),
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppTheme.textTertiary, size: 20) : null,
+            hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppTheme.getTertiaryTextColor(context), size: 20) : null,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: AppTheme.surface,
+            fillColor: AppTheme.getInputFillColor(context),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withAlpha(13)),
+              borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -686,9 +680,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           '已有账号?',
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
         ),
         TextButton(
           onPressed: () => context.pop(),

@@ -63,11 +63,11 @@ class _VipScreenState extends ConsumerState<VipScreen> {
     final displayData = _displayLevelData;
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         title: const Text('VIP等级', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: AppTheme.cardBackground,
-        foregroundColor: AppTheme.textPrimary,
+        backgroundColor: AppTheme.getCardColor(context),
+        foregroundColor: AppTheme.getTextPrimary(context),
         elevation: 0,
         centerTitle: true,
       ),
@@ -130,7 +130,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF4D4F).withAlpha(77),
+            color: Color(0xFFFF4D4F).withAlpha(77),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -262,7 +262,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('选择等级查看权益', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.bold)),
+        Text('选择等级查看权益', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         SizedBox(
           height: 100,
@@ -281,10 +281,10 @@ class _VipScreenState extends ConsumerState<VipScreen> {
                 child: Container(
                   width: 80,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary.withAlpha(26) : AppTheme.cardBackground,
+                    color: isSelected ? AppTheme.primary.withAlpha(26) : AppTheme.getCardColor(context),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? AppTheme.primary : Colors.white.withAlpha(13),
+                      color: isSelected ? AppTheme.primary : AppTheme.getDividerColor(context),
                       width: 1.5,
                     ),
                   ),
@@ -311,7 +311,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
                       Text(
                         level.title,
                         style: TextStyle(
-                          color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
+                          color: isSelected ? AppTheme.primary : AppTheme.getTextPrimary(context),
                           fontSize: 13,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -333,7 +333,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${level.title} 专属权益', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.bold)),
+        Text('${level.title} 专属权益', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         GridView.count(
           shrinkWrap: true,
@@ -348,13 +348,14 @@ class _VipScreenState extends ConsumerState<VipScreen> {
             _buildGiftCard('生日礼金', level.birthdayGive),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 24),
         Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.cardBackground,
+            color: AppTheme.getCardColor(context),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withAlpha(13)),
+            border: Border.all(color: AppTheme.getDividerColor(context)),
           ),
           child: Column(
             children: [
@@ -373,9 +374,9 @@ class _VipScreenState extends ConsumerState<VipScreen> {
   Widget _buildGiftCard(String label, dynamic value) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(13)),
+        border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -385,7 +386,7 @@ class _VipScreenState extends ConsumerState<VipScreen> {
             style: const TextStyle(color: AppTheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+          Text(label, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 11)),
         ],
       ),
     );
@@ -397,8 +398,8 @@ class _VipScreenState extends ConsumerState<VipScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-          Text(value, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(label, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13)),
+          Text(value, style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 14, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -408,18 +409,25 @@ class _VipScreenState extends ConsumerState<VipScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${level.title} 返水比例', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.bold)),
+        Text('${level.title} 返水比例', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.cardBackground,
+            color: AppTheme.getCardColor(context),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withAlpha(13)),
+            border: Border.all(color: AppTheme.getDividerColor(context)),
           ),
-          child: Wrap(
-            spacing: 0,
-            runSpacing: 16,
+          child: GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+
+
+            crossAxisCount: 2,
+            mainAxisSpacing: 24,
+            crossAxisSpacing: 16,
+            childAspectRatio: 2.8,
             children: [
               _buildRebateItem('体育', '${level.sportBl ?? 0}%'),
               _buildRebateItem('真人', '${level.liveBl ?? 0}%'),
@@ -436,15 +444,22 @@ class _VipScreenState extends ConsumerState<VipScreen> {
   }
 
   Widget _buildRebateItem(String label, String value) {
-    return SizedBox(
-      width: (MediaQuery.of(context).size.width - 64) / 3,
-      child: Column(
-        children: [
-          Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(label, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13)),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            color: AppTheme.getTextPrimary(context),
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
     );
   }
 

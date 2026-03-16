@@ -6,36 +6,29 @@ import 'package:my_flutter_app/providers/game_launcher_provider.dart';
 import 'package:my_flutter_app/providers/game_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
-import 'package:my_flutter_app/providers/auth_provider.dart';
-import 'package:my_flutter_app/providers/user_provider.dart';
-import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:my_flutter_app/utils/constants.dart';
 
-class GameCategoriesWidget extends ConsumerStatefulWidget {
+class GameCategoriesWidget extends ConsumerWidget {
   final List<GameCategory> categories;
 
   const GameCategoriesWidget({super.key, required this.categories});
 
   @override
-  ConsumerState<GameCategoriesWidget> createState() => _GameCategoriesWidgetState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (categories.isEmpty) return const SizedBox.shrink();
 
-class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
-  int _selectedTabIndex = 0;
-  SubCategory? _selectedSubCategory;
-  int _selectedSubTabIndex = 0; // 0: 全部游戏, 1: 我的收藏
+    final selectedTabIndex = ref.watch(selectedCategoryIndexProvider);
+    final selectedSubCategory = ref.watch(selectedSubCategoryProvider);
+    final selectedCategory = categories[selectedTabIndex];
 
-  @override
-  Widget build(BuildContext context) {
-    if (widget.categories.isEmpty) return const SizedBox.shrink();
-
-    final selectedCategory = widget.categories[_selectedTabIndex];
-    
     // 如果已经选择了二级分类且不是 "推荐"，则显示游戏列表
-    if (_selectedSubCategory != null && selectedCategory.code != 'reco') {
-      return _buildGameList(selectedCategory, _selectedSubCategory!);
+    if (selectedSubCategory != null && selectedCategory.code != 'reco') {
+      return _GameListContent(
+        category: selectedCategory,
+        subCategory: selectedSubCategory,
+      );
     }
 
     final subCategoriesAsync = ref.watch(subCategoriesProvider(selectedCategory.code ?? ''));
@@ -43,52 +36,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 一级分类 Tab
-        SizedBox(
-          height: 44,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: widget.categories.length,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemBuilder: (context, index) {
-              final category = widget.categories[index];
-              final isSelected = _selectedTabIndex == index;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedTabIndex = index;
-                    _selectedSubCategory = null; // 重置二级分类
-                    _selectedSubTabIndex = 0; // 重置子页签
-                  });
-                },
-                child: Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary : AppTheme.surface,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: isSelected ? Colors.transparent : Colors.white.withAlpha(13),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    category.title ?? '',
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : AppTheme.textSecondary,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
+        const SizedBox(height: 12),
         // 二级分类内容
         subCategoriesAsync.when(
           data: (subCategories) {
@@ -101,11 +49,11 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
 
             // 如果是一级分类是 "推荐"，直接显示（它们本身就是游戏/快速进入）
             if (selectedCategory.code == 'reco') {
-              return _buildSubCategoryGrid(subCategories, isReco: true);
+              return _buildSubCategoryGrid(context, ref, subCategories, isReco: true);
             }
 
             // 否则显示二级分类（提供商列表）
-            return _buildSubCategoryGrid(subCategories, isReco: false);
+            return _buildSubCategoryGrid(context, ref, subCategories, isReco: false);
           },
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 40),
@@ -120,33 +68,31 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     );
   }
 
-  Widget _buildSubCategoryGrid(List<SubCategory> items, {required bool isReco}) {
+  Widget _buildSubCategoryGrid(BuildContext context, WidgetRef ref, List<SubCategory> items, {required bool isReco}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: isReco ? 3 : 2,
+          crossAxisCount: 3,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          childAspectRatio: isReco ? 1.0 : 0.65, // 非推荐位采用纵向比例，显示更多内容
+          childAspectRatio: isReco ? 1.0 : 0.8,
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
-          return _buildItemCard(item, isReco);
+          return _buildItemCard(context, ref, item, isReco);
         },
       ),
     );
   }
 
-  Widget _buildItemCard(SubCategory item, bool isReco) {
-    // 补全图片 URL：如果不是完整 URL 且不是本地资源，则拼接基础 URL
+  Widget _buildItemCard(BuildContext context, WidgetRef ref, SubCategory item, bool isReco) {
     String imageUrl = item.h5Logo ?? item.img ?? '';
     if (imageUrl.isNotEmpty && !imageUrl.startsWith('http') && !imageUrl.startsWith('assets/')) {
-      // 统一处理，确保中间只有一个 /
-      final baseUrl = AppConstants.resourceBaseUrl.endsWith('/') 
+      final baseUrl = AppConstants.resourceBaseUrl.endsWith('/')
           ? AppConstants.resourceBaseUrl.substring(0, AppConstants.resourceBaseUrl.length - 1)
           : AppConstants.resourceBaseUrl;
       final path = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
@@ -156,31 +102,20 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     return GestureDetector(
       onTap: () {
         if (isReco) {
-          // 推荐分类下的点击直接启动
           ref.read(gameLauncherProvider).launchGame(context, item, isCategoryEntry: true, categoryCode: 'reco');
         } else {
-          final category = widget.categories[_selectedTabIndex];
-          // 根据 category 字段判断是进入二级页面还是直接启动
-          // category: 1 -> 有二级游戏列表
-          // category: 0 -> 直接启动游戏
-          // 调试日志
-          debugPrint('Tap Category: ${category.code}, Item Category: ${item.category}, Title: ${item.title}');
-
-          // 额外增加判断：只有 game/poker/fishing 分类才允许进入二级页面
-          // 忽略大小写和空格
+          final selectedTabIndex = ref.read(selectedCategoryIndexProvider);
+          final category = categories[selectedTabIndex];
           final code = (category.code ?? '').toLowerCase().trim();
           final isMultiGameCategory = ['game', 'poker', 'fishing'].contains(code);
-          
-          // 如果是一级分类，且不在 game/poker/fishing 中，强制直接启动
+
           if (!isMultiGameCategory) {
-             ref.read(gameLauncherProvider).launchGame(context, item, categoryCode: category.code);
-             return;
+            ref.read(gameLauncherProvider).launchGame(context, item, categoryCode: category.code);
+            return;
           }
 
           if (item.category == 1) {
-            setState(() {
-              _selectedSubCategory = item;
-            });
+            ref.read(selectedSubCategoryProvider.notifier).set(item);
           } else {
             ref.read(gameLauncherProvider).launchGame(context, item, categoryCode: category.code);
           }
@@ -188,19 +123,19 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.cardBackground,
+          color: AppTheme.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withAlpha(13), width: 0.5),
+          border: Border.all(color: AppTheme.getInputBorderColor(context), width: 0.5),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Stack(
-            fit: StackFit.expand, // 改回 expand 以确保填满
+            fit: StackFit.expand,
             children: [
               if (imageUrl.isNotEmpty)
                 WebSafeImage(
                   imageUrl: imageUrl,
-                  fit: isReco ? BoxFit.contain : BoxFit.cover, 
+                  fit: isReco ? BoxFit.contain : BoxFit.cover,
                   alignment: isReco ? Alignment.center : Alignment.topCenter,
                   placeholder: const Skeleton(),
                   errorWidget: Container(
@@ -208,23 +143,22 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                     child: const Icon(Icons.gamepad, color: AppTheme.textTertiary),
                   ),
                 ),
-              if (true) // 无论是推荐还是普通分类，都添加底部遮罩以增强文字可读性
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withAlpha(20),
-                          Colors.black.withAlpha(160),
-                        ],
-                        stops: const [0.5, 0.7, 1.0], // 文字处加深
-                      ),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withAlpha(20),
+                        Colors.black.withAlpha(160),
+                      ],
+                      stops: const [0.5, 0.7, 1.0],
                     ),
                   ),
                 ),
+              ),
               Positioned(
                 left: 4,
                 right: 4,
@@ -237,7 +171,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: isReco ? 11 : 13, // 字号微调
+                    fontSize: 11,
                     shadows: [
                       Shadow(
                         color: Colors.black.withAlpha(180),
@@ -254,24 +188,125 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
       ),
     );
   }
+}
 
-  Widget _buildGameList(GameCategory category, SubCategory subCategory) {
+/// 一级分类 Tab 组件 (可作为吸顶 Header)
+class GameCategoryTabs extends ConsumerWidget {
+  final List<GameCategory> categories;
+
+  const GameCategoryTabs({super.key, required this.categories});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (categories.isEmpty) return const SizedBox.shrink();
+
+    final selectedTabIndex = ref.watch(selectedCategoryIndexProvider);
+
+    return Container(
+      height: 56,
+      width: double.infinity,
+      color: AppTheme.getScaffoldBackgroundColor(context),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final isSelected = selectedTabIndex == index;
+
+          String imageUrl = (isSelected ? category.seImg : category.img) ?? '';
+          if (isSelected && imageUrl.isEmpty) {
+            imageUrl = category.img ?? '';
+          }
+
+          if (imageUrl.isNotEmpty && !imageUrl.startsWith('http') && !imageUrl.startsWith('assets/')) {
+            final baseUrl = AppConstants.resourceBaseUrl.endsWith('/')
+                ? AppConstants.resourceBaseUrl.substring(0, AppConstants.resourceBaseUrl.length - 1)
+                : AppConstants.resourceBaseUrl;
+            final path = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
+            imageUrl = '$baseUrl$path';
+          }
+
+          return GestureDetector(
+            onTap: () {
+              ref.read(selectedCategoryIndexProvider.notifier).set(index);
+              ref.read(selectedSubCategoryProvider.notifier).set(null);
+            },
+            child: Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.primary : AppTheme.getCardColor(context),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: isSelected ? Colors.transparent : AppTheme.getInputBorderColor(context),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (imageUrl.isNotEmpty) ...[
+                    WebSafeImage(
+                      imageUrl: imageUrl,
+                      width: 20,
+                      height: 20,
+                      fit: BoxFit.contain,
+                      errorWidget: const SizedBox.shrink(),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    category.title ?? '',
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : AppTheme.getSecondaryTextColor(context),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// 游戏列表内容
+class _GameListContent extends ConsumerStatefulWidget {
+  final GameCategory category;
+  final SubCategory subCategory;
+
+  const _GameListContent({
+    required this.category,
+    required this.subCategory,
+  });
+
+  @override
+  ConsumerState<_GameListContent> createState() => _GameListContentState();
+}
+
+class _GameListContentState extends ConsumerState<_GameListContent> {
+  int _selectedSubTabIndex = 0; // 0: 全部游戏, 1: 我的收藏
+
+  @override
+  Widget build(BuildContext context) {
     final params = GameListParams(
-      game: subCategory.gamecode ?? '',
-      code: category.code ?? '',
+      game: widget.subCategory.gamecode ?? '',
+      code: widget.category.code ?? '',
       size: 30,
     );
-    
-    // 获取 provider 状态
+
     final gameState = ref.watch(gameListProvider(params));
-    
-    // 获取当前一级分类下的所有二级分类，用于顶部导航
-    final subCategoriesAsync = ref.watch(subCategoriesProvider(category.code ?? ''));
-    
+    final subCategoriesAsync = ref.watch(subCategoriesProvider(widget.category.code ?? ''));
+
     // 监听滚动到底部事件
     ref.listen(scrollBottomProvider, (previous, next) {
       if (next == true) {
-        // 当滚动到底部时，加载更多
         ref.read(gameListProvider(params).notifier).loadMore();
       }
     });
@@ -279,7 +314,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 顶部二级分类切换导航 (任务二)
+        // 顶部二级分类切换导航
         subCategoriesAsync.when(
           data: (subCategories) => Container(
             height: 80,
@@ -290,8 +325,8 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               itemBuilder: (context, index) {
                 final item = subCategories[index];
-                final isSelected = item.gamecode == subCategory.gamecode;
-                
+                final isSelected = item.gamecode == widget.subCategory.gamecode;
+
                 String imageUrl = item.h5Logo ?? item.img ?? '';
                 if (imageUrl.startsWith('/')) {
                   imageUrl = '${AppConstants.resourceBaseUrl}$imageUrl';
@@ -300,10 +335,8 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                 return GestureDetector(
                   onTap: () {
                     if (!isSelected) {
-                      setState(() {
-                        _selectedSubCategory = item;
-                        _selectedSubTabIndex = 0; // 切换分类时重置为“全部游戏”
-                      });
+                      ref.read(selectedSubCategoryProvider.notifier).set(item);
+                      setState(() => _selectedSubTabIndex = 0);
                     }
                   },
                   child: Container(
@@ -313,7 +346,7 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                       color: isSelected ? AppTheme.primary.withOpacity(0.1) : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected ? AppTheme.primary : Colors.white.withOpacity(0.1),
+                        color: isSelected ? AppTheme.primary : AppTheme.getDividerColor(context),
                         width: 1,
                       ),
                     ),
@@ -328,17 +361,18 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
                               width: 32,
                               height: 32,
                               fit: BoxFit.contain,
+                              errorWidget: const SizedBox.shrink(),
                             ),
                           )
                         else
-                          const Icon(Icons.gamepad, size: 24, color: AppTheme.textTertiary),
+                          Icon(Icons.gamepad, size: 24, color: AppTheme.getTertiaryTextColor(context)),
                         const SizedBox(height: 4),
                         Text(
                           item.title ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+                            color: isSelected ? AppTheme.primary : AppTheme.getSecondaryTextColor(context),
                             fontSize: 11,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           ),
@@ -354,37 +388,29 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
           error: (_, __) => const SizedBox(height: 80),
         ),
 
-        const Divider(height: 1, color: Colors.white10),
+        Divider(height: 1, color: AppTheme.getDividerColor(context)),
 
-        // 搜索和子页签 (任务一)
+        // 搜索和子页签
         Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // 返回按钮
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.textSecondary, size: 20),
-                onPressed: () {
-                  setState(() {
-                    _selectedSubCategory = null;
-                    _selectedSubTabIndex = 0;
-                  });
-                },
+                icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.getSecondaryTextColor(context), size: 20),
+                onPressed: () => ref.read(selectedSubCategoryProvider.notifier).set(null),
               ),
-              // 搜索按钮
               IconButton(
-                icon: const Icon(Icons.search, color: AppTheme.textSecondary, size: 22),
+                icon: Icon(Icons.search, color: AppTheme.getSecondaryTextColor(context), size: 22),
                 onPressed: () {
                   // TODO: 实现子游戏搜索
                 },
               ),
               const SizedBox(width: 4),
-              // 全部游戏 / 我的收藏 页签
               Expanded(
                 child: Container(
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppTheme.surface,
+                    color: AppTheme.getInputFillColor(context),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -418,9 +444,9 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
           child: Text(
             title,
             style: TextStyle(
-              color: isSelected ? Colors.white : AppTheme.textSecondary,
+              color: isSelected ? Colors.white : AppTheme.getSecondaryTextColor(context),
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              fontSize: 14,
+              fontSize: 13,
             ),
           ),
         ),
@@ -429,15 +455,13 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
   }
 
   Widget _buildGameListContent(GameListPaginationState state, GameListParams params) {
-    // 如果是第一页加载中，显示骨架屏
     if (state.currentPage == 0 && state.isLoading) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 20),
         child: CategorySkeleton(),
       );
     }
-    
-    // 如果加载出错且没有数据
+
     if (state.error != null && state.items.isEmpty) {
       return ErrorStateWidget(
         message: '加载游戏失败: ${state.error}',
@@ -445,10 +469,10 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
       );
     }
 
-    final games = _selectedSubTabIndex == 1 
-        ? state.items.where((game) => game.isFavorite).toList() 
+    final games = _selectedSubTabIndex == 1
+        ? state.items.where((game) => game.isFavorite).toList()
         : state.items;
-        
+
     if (games.isEmpty && !state.isLoading) {
       return EmptyStateWidget(
         message: _selectedSubTabIndex == 1 ? '暂无收藏游戏' : '该分类下暂无游戏',
@@ -476,7 +500,6 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
             },
           ),
         ),
-        // 加载更多指示器
         if (state.isLoading)
           const Padding(
             padding: EdgeInsets.all(16.0),
@@ -488,14 +511,13 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
               ),
             ),
           ),
-        // 没有更多数据提示
         if (!state.hasMore && games.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
                 '没有更多游戏了',
-                style: TextStyle(color: AppTheme.textTertiary.withAlpha(128), fontSize: 12),
+                style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12),
               ),
             ),
           ),
@@ -503,10 +525,10 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     );
   }
 
-  Widget _buildGameCard(GameItem game, GameListParams? params) {
+  Widget _buildGameCard(GameItem game, GameListParams params) {
     String imageUrl = game.img ?? '';
     if (imageUrl.isNotEmpty && !imageUrl.startsWith('http') && !imageUrl.startsWith('assets/')) {
-      final baseUrl = AppConstants.resourceBaseUrl.endsWith('/') 
+      final baseUrl = AppConstants.resourceBaseUrl.endsWith('/')
           ? AppConstants.resourceBaseUrl.substring(0, AppConstants.resourceBaseUrl.length - 1)
           : AppConstants.resourceBaseUrl;
       final path = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
@@ -514,124 +536,37 @@ class _GameCategoriesWidgetState extends ConsumerState<GameCategoriesWidget> {
     }
 
     return GestureDetector(
-      onTap: () {
-        final category = widget.categories[_selectedTabIndex];
-        ref.read(gameLauncherProvider).launchGame(
-          context,
-          game, 
-          categoryCode: category.code,
-          isCategoryResult: game.isCategoryResult,
-          isHot: game.isHot,
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.cardBackground,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withAlpha(13), width: 0.5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
+      onTap: () => ref.read(gameLauncherProvider).launchGame(context, game, categoryCode: params.code),
+      child: Column(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.getCardColor(context),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.getDividerColor(context), width: 0.5),
+              ),
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (imageUrl.isNotEmpty)
-                      WebSafeImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: const Skeleton(),
-                        errorWidget: Container(
-                          color: AppTheme.surface,
-                          child: const Icon(Icons.gamepad, color: AppTheme.textTertiary),
-                        ),
-                      )
-                    else
-                      Container(
-                        color: AppTheme.surface,
-                        child: const Icon(Icons.gamepad, color: AppTheme.textTertiary),
-                      ),
-                    // 添加底部渐变，使文字更清晰
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withAlpha(128),
-                            ],
-                            stops: const [0.7, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // 收藏按钮
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: GestureDetector(
-                        onTap: () async {
-                            if (game.id != null) {
-                              // 检查登录状态
-                              if (!ref.read(authProvider).isLoggedIn) {
-                                ToastUtils.showInfo('请先登录以收藏游戏');
-                                return;
-                              }
-
-                              // 本地先切换，提供即时反馈
-                              if (params != null) {
-                                ref.read(gameListProvider(params).notifier).toggleFavoriteLocal(game.id!);
-                              }
-                              
-                              // 计算目标状态
-                              final targetStatus = game.isFavorite ? 0 : 1;
-                              final success = await ref.read(userProvider.notifier).toggleFavorite(game.id!, targetStatus);
-                              
-                              if (!success && params != null) {
-                                // 如果失败，回退本地状态
-                                ref.read(gameListProvider(params).notifier).toggleFavoriteLocal(game.id!);
-                              }
-                            }
-                          },
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(102),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            game.isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
-                            color: game.isFavorite ? AppTheme.primary : Colors.white,
-                            size: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                borderRadius: BorderRadius.circular(8),
+                child: WebSafeImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: const Skeleton(),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-              child: Text(
-                game.title ?? '',
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            game.title ?? '',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              color: AppTheme.getTextPrimary(context),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/providers/user_provider.dart';
 import 'package:my_flutter_app/providers/withdraw_provider.dart';
+import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 
 class WithdrawScreen extends ConsumerStatefulWidget {
@@ -236,7 +237,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
           const SizedBox(height: 24),
           LinearProgressIndicator(
             value: progress,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: AppTheme.getPlaceholderColor(context),
             color: theme.primaryColor,
             minHeight: 12,
             borderRadius: BorderRadius.circular(6),
@@ -552,13 +553,13 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange.withAlpha(26),
+        color: AppTheme.warning.withAlpha(26),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withAlpha(77)),
+        border: Border.all(color: AppTheme.warning.withAlpha(77)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber, color: Colors.orange),
+          Icon(Icons.warning_amber, color: AppTheme.warning),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -570,7 +571,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                 ),
                 Text(
                   '为了资金安全，提现前请先设置支付密码',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 12, color: AppTheme.getTextSecondary(context)),
                 ),
               ],
             ),

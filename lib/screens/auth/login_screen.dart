@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,6 +42,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   CaptchaData? _captchaData;
   bool _isLoadingCaptcha = false;
 
+  // SMS & Email code
+  bool _isSendingSmsCode = false;
+  int _smsCountdown = 0;
+  Timer? _smsTimer;
+
+  bool _isSendingEmailCode = false;
+  int _emailCountdown = 0;
+  Timer? _emailTimer;
+
   @override
   void initState() {
     super.initState();
@@ -67,11 +77,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   }
 
   void _handleTabChange() {
-    if (!_tabController.indexIsChanging) {
-      setState(() {
-        _loginType = _availableLoginTypes[_tabController.index];
-      });
-    }
+    setState(() {
+      _loginType = _availableLoginTypes[_tabController.index];
+    });
   }
 
   void _updateTabs(HomeData homeData) {
@@ -129,7 +137,98 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     _emailCodeController.dispose();
     _areaCodeController.dispose();
     _tabController.dispose();
+    _smsTimer?.cancel();
+    _emailTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _getSmsCode() async {
+    if (_isSendingSmsCode || _smsCountdown > 0) return;
+
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      ToastUtils.showWarning('请输入手机号');
+      return;
+    }
+
+    setState(() => _isSendingSmsCode = true);
+    
+    // Call SMS API
+    final response = await AuthService.sendSmsCode(phone, _areaCode, type: 1);
+    
+    if (mounted) {
+      setState(() => _isSendingSmsCode = false);
+      if (response.isSuccess) {
+        ToastUtils.showSuccess('验证码已发送');
+        _startSmsCountdown();
+      } else {
+        ToastUtils.showError(response.msg ?? '发送失败');
+      }
+    }
+  }
+
+  void _startSmsCountdown() {
+    setState(() => _smsCountdown = 60);
+    _smsTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_smsCountdown <= 0) {
+        timer.cancel();
+        setState(() => _smsCountdown = 0);
+      } else {
+        setState(() => _smsCountdown--);
+      }
+    });
+  }
+
+  Future<void> _getEmailCode() async {
+    if (_isSendingEmailCode || _emailCountdown > 0) return;
+
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ToastUtils.showWarning('请输入邮箱地址');
+      return;
+    }
+    
+    // Simple email validation
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      ToastUtils.showWarning('请输入有效的邮箱地址');
+      return;
+    }
+
+    setState(() => _isSendingEmailCode = true);
+    
+    // Call Email API
+    final response = await AuthService.sendEmailCode(email, type: 1);
+    
+    if (mounted) {
+      setState(() => _isSendingEmailCode = false);
+      if (response.isSuccess) {
+        ToastUtils.showSuccess('验证码已发送');
+        _startEmailCountdown();
+      } else {
+        ToastUtils.showError(response.msg ?? '发送失败');
+      }
+    }
+  }
+
+  void _startEmailCountdown() {
+    setState(() => _emailCountdown = 60);
+    _emailTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_emailCountdown <= 0) {
+        timer.cancel();
+        setState(() => _emailCountdown = 0);
+      } else {
+        setState(() => _emailCountdown--);
+      }
+    });
   }
 
   Future<void> _refreshCaptcha() async {
@@ -213,10 +312,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     });
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppTheme.textPrimary),
+          icon: Icon(Icons.close, color: AppTheme.getPrimaryTextColor(context)),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -239,7 +338,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                   }
                 }).toList(),
                 labelColor: AppTheme.primary,
-                unselectedLabelColor: AppTheme.textSecondary,
+                unselectedLabelColor: AppTheme.getSecondaryTextColor(context),
                 indicatorColor: AppTheme.primary,
               )
             : null,
@@ -264,45 +363,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
             _buildHeader(),
-            const SizedBox(height: 30),
+            const SizedBox(height: 32),
             if (_availableLoginTypes.length <= 1)
               _buildUsernameField()
             else
-              SizedBox(
-                height: 100, // Fixed height for fields to avoid layout shift
-                child: TabBarView(
-                  key: ValueKey('login_tab_view_${_tabController.length}_${_tabController.hashCode}'),
-                  controller: _tabController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: _availableLoginTypes.map((type) {
-                    switch (type) {
-                      case 1: return _buildUsernameField();
-                      case 3: return _buildPhoneField();
-                      case 2: return _buildEmailField();
-                      default: return const SizedBox.shrink();
-                    }
-                  }).toList(),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: KeyedSubtree(
+                  key: ValueKey<int>(_loginType),
+                  child: _buildCurrentLoginField(),
                 ),
               ),
             if (_loginType == 1) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _buildPasswordField(),
             ] else if (_loginType == 3) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _buildSmsCodeField(),
             ] else ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _buildEmailCodeField(),
             ],
             if (homeData.picConfig?.loginStatus == 1) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _buildCaptchaField(),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildForgotPassword(),
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
             _buildLoginButton(isLoading),
             const SizedBox(height: 24),
             _buildRegisterPrompt(),
@@ -312,12 +405,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     );
   }
 
+  Widget _buildCurrentLoginField() {
+    switch (_loginType) {
+      case 1: return _buildUsernameField();
+      case 3: return _buildPhoneField();
+      case 2: return _buildEmailField();
+      default: return const SizedBox.shrink();
+    }
+  }
+
   Widget _buildPhoneField() {
     return Row(
       children: [
         Container(
           width: 80,
-          margin: const EdgeInsets.only(right: 12),
+          margin: const EdgeInsets.only(right: 16),
           child: _buildTextField(
             controller: _areaCodeController,
             label: '区号',
@@ -360,57 +462,158 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   }
 
   Widget _buildSmsCodeField() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _buildTextField(
-            controller: _smsCodeController,
-            label: '验证码',
-            hint: '短信验证码',
-            prefixIcon: Icons.verified_user_outlined,
-            keyboardType: TextInputType.text,
-          ),
+        Text(
+          '验证码',
+          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
         ),
-        const SizedBox(width: 12),
-        _buildGetCodeButton(onPressed: () {
-          AuthService.sendSmsCode(_phoneController.text, _areaCode, type: 1);
-        }),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _smsCodeController,
+                decoration: InputDecoration(
+                  hintText: '短信验证码',
+                  hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
+                  prefixIcon: Icon(Icons.verified_user_outlined, color: AppTheme.getTertiaryTextColor(context), size: 20),
+                  filled: true,
+                  fillColor: AppTheme.getInputFillColor(context),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppTheme.primary, width: 1),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppTheme.error, width: 1),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                ),
+                keyboardType: TextInputType.number,
+                style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return '请输入验证码';
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            _buildGetCodeButton(
+              onPressed: _getSmsCode,
+              isLoading: _isSendingSmsCode,
+              countdown: _smsCountdown,
+              label: '获取验证码',
+            ),
+          ],
+        ),
       ],
     );
   }
 
   Widget _buildEmailCodeField() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _buildTextField(
-            controller: _emailCodeController,
-            label: '验证码',
-            hint: '邮箱验证码',
-            prefixIcon: Icons.verified_user_outlined,
-            keyboardType: TextInputType.text,
-          ),
+        Text(
+          '验证码',
+          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
         ),
-        const SizedBox(width: 12),
-        _buildGetCodeButton(onPressed: () {
-          AuthService.sendEmailCode(_emailController.text, type: 1);
-        }),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _emailCodeController,
+                decoration: InputDecoration(
+                  hintText: '请输入验证码',
+                  hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
+                  prefixIcon: Icon(Icons.verified_user_outlined, color: AppTheme.getTertiaryTextColor(context), size: 20),
+                  filled: true,
+                  fillColor: AppTheme.getInputFillColor(context),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppTheme.primary, width: 1),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppTheme.error, width: 1),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                ),
+                keyboardType: TextInputType.text,
+                style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return '请输入验证码';
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            _buildGetCodeButton(
+              onPressed: _getEmailCode,
+              isLoading: _isSendingEmailCode,
+              countdown: _emailCountdown,
+              label: '获取验证码',
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildGetCodeButton({required VoidCallback onPressed}) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: AppTheme.primary.withAlpha(26),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextButton(
-        onPressed: onPressed,
-        child: const Text('获取验证码', style: TextStyle(color: AppTheme.primary)),
+  Widget _buildGetCodeButton({
+    required VoidCallback onPressed,
+    bool isLoading = false,
+    int countdown = 0,
+    required String label,
+  }) {
+    return GestureDetector(
+      onTap: (isLoading || countdown > 0) ? null : onPressed,
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          color: (isLoading || countdown > 0) 
+              ? AppTheme.primary.withAlpha(13) 
+              : AppTheme.primary.withAlpha(26),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(
+                countdown > 0 ? '${countdown}s' : label,
+                style: TextStyle(
+                  color: (isLoading || countdown > 0) 
+                      ? AppTheme.textTertiary 
+                      : AppTheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }
@@ -419,32 +622,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.deepPurple.withAlpha(26),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.account_circle_outlined,
-            color: Colors.deepPurpleAccent,
-            size: 32,
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
+        Text(
           '欢迎回来',
           style: TextStyle(
-            color: AppTheme.textPrimary,
+            color: AppTheme.getPrimaryTextColor(context),
             fontSize: 28,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           '请登录您的账号以继续',
           style: TextStyle(
-            color: AppTheme.textSecondary,
+            color: AppTheme.getSecondaryTextColor(context),
             fontSize: 16,
           ),
         ),
@@ -488,43 +678,75 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   }
 
   Widget _buildCaptchaField() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 3,
-          child: _buildTextField(
-            controller: _captchaController,
-            label: '验证码',
-            hint: '请输入验证码',
-            prefixIcon: Icons.verified_user_outlined,
-            keyboardType: TextInputType.text,
-            validator: (value) {
-              if (value == null || value.isEmpty) return '请输入验证码';
-              return null;
-            },
-          ),
+        Text(
+          '验证码',
+          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 2,
-          child: GestureDetector(
-            onTap: _refreshCaptcha,
-            child: Container(
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withAlpha(13)),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(11),
-                child: _isLoadingCaptcha
-                    ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))
-                    : _buildCaptchaImage(),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: TextFormField(
+                controller: _captchaController,
+                decoration: InputDecoration(
+                  hintText: '请输入验证码',
+                  hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
+                  prefixIcon: Icon(Icons.verified_user_outlined, color: AppTheme.getTertiaryTextColor(context), size: 20),
+                  filled: true,
+                  fillColor: AppTheme.getInputFillColor(context),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppTheme.primary, width: 1),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppTheme.error, width: 1),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                ),
+                keyboardType: TextInputType.text,
+                style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return '请输入验证码';
+                  return null;
+                },
               ),
             ),
-          ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: GestureDetector(
+                onTap: _refreshCaptcha,
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppTheme.getInputFillColor(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.getInputBorderColor(context)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: _isLoadingCaptcha
+                        ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))
+                        : _buildCaptchaImage(),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -568,7 +790,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       children: [
         Text(
           label,
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -578,21 +800,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           readOnly: readOnly,
           onTap: onTap,
           inputFormatters: inputFormatters,
-          style: const TextStyle(color: AppTheme.textPrimary),
+          style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppTheme.textTertiary, fontSize: 14),
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppTheme.textTertiary, size: 20) : null,
+            hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppTheme.getTertiaryTextColor(context), size: 20) : null,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: AppTheme.surface,
+            fillColor: AppTheme.getInputFillColor(context),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withAlpha(13)),
+              borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -602,7 +824,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppTheme.error, width: 1),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
           ),
           validator: validator,
         ),
@@ -647,9 +869,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           '还没有账号?',
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
         ),
         TextButton(
           onPressed: () => context.push('/register'),

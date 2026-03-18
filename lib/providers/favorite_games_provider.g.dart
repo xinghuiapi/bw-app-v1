@@ -20,7 +20,7 @@ final class FavoriteGamesProvider
         argument: null,
         retry: null,
         name: r'favoriteGamesProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class FavoriteGamesProvider
   }
 }
 
-String _$favoriteGamesHash() => r'51ac6518e466d35460bea6c0743e6c1382311f95';
+String _$favoriteGamesHash() => r'13deee94a7304e83be9a4f9cb91d477d6bb29ed8';
 
 abstract class _$FavoriteGames extends $Notifier<PaginationState<GameItem>> {
   PaginationState<GameItem> build();

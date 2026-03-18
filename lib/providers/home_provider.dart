@@ -12,7 +12,7 @@ class ScrollBottomNotifier extends Notifier<bool> {
 final scrollBottomProvider = NotifierProvider<ScrollBottomNotifier, bool>(ScrollBottomNotifier.new);
 
 /// 首页数据提供
-final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
+final homeDataProvider = FutureProvider<HomeData>((ref) async {
   final response = await HomeService.getSystemConfig();
   if (response.isSuccess && response.data != null) {
     return response.data!;
@@ -21,7 +21,7 @@ final homeDataProvider = FutureProvider.autoDispose<HomeData>((ref) async {
 });
 
 /// 游戏分类提供
-final categoriesProvider = FutureProvider.autoDispose<List<GameCategory>>((ref) async {
+final categoriesProvider = FutureProvider<List<GameCategory>>((ref) async {
   final response = await HomeService.getGameCategories();
   if (response.isSuccess && response.data != null) {
     return response.data!;
@@ -36,28 +36,21 @@ class SelectedCategoryIndex extends Notifier<int> {
   void set(int index) => state = index;
 }
 
-final selectedCategoryIndexProvider = NotifierProvider.autoDispose<SelectedCategoryIndex, int>(SelectedCategoryIndex.new);
+final selectedCategoryIndexProvider = NotifierProvider<SelectedCategoryIndex, int>(SelectedCategoryIndex.new);
 
-/// 当前选中的二级分类索引
-class SelectedSubCategoryIndex extends Notifier<int> {
-  @override
-  int build() => 0;
-  void set(int index) => state = index;
-}
-
-final selectedSubCategoryIndexProvider = NotifierProvider.autoDispose<SelectedSubCategoryIndex, int>(SelectedSubCategoryIndex.new);
-
-/// 当前选中的二级分类对象
-class SelectedSubCategory extends Notifier<SubCategory?> {
+/// 每个一级分类选中的二级分类（独立记忆）
+class CategorySelectionNotifier extends Notifier<SubCategory?> {
   @override
   SubCategory? build() => null;
   void set(SubCategory? value) => state = value;
 }
 
-final selectedSubCategoryProvider = NotifierProvider.autoDispose<SelectedSubCategory, SubCategory?>(SelectedSubCategory.new);
+final categorySelectionProvider = NotifierProvider.family<CategorySelectionNotifier, SubCategory?, String>((arg) {
+  return CategorySelectionNotifier();
+});
 
 /// 二级分类提供
-final subCategoriesProvider = FutureProvider.autoDispose.family<List<SubCategory>, String>((ref, code) async {
+final subCategoriesProvider = FutureProvider.family<List<SubCategory>, String>((ref, code) async {
   if (code == 'reco') {
     final response = await HomeService.getRecommendedGames();
     if (response.isSuccess && response.data != null) {

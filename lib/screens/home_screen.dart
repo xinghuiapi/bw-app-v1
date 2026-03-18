@@ -43,10 +43,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: const AppHeader(),
       endDrawer: const UserDrawer(),
       body: homeDataAsync.when(
+        skipLoadingOnReload: true,
+        skipLoadingOnRefresh: true,
         data: (homeData) => RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(homeDataProvider);
             ref.invalidate(categoriesProvider);
+            try {
+              await Future.wait([
+                ref.read(homeDataProvider.future),
+                ref.read(categoriesProvider.future),
+              ]);
+            } catch (_) {}
           },
           child: NotificationListener<ScrollNotification>(
             onNotification: (scrollInfo) {
@@ -93,6 +101,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 
                 // 游戏分类吸顶 Header
                 categoriesAsync.when(
+                  skipLoadingOnReload: true,
+                  skipLoadingOnRefresh: true,
                   data: (categories) => SliverPersistentHeader(
                     pinned: true,
                     delegate: _SliverAppBarDelegate(
@@ -113,6 +123,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 // 游戏内容
                 SliverToBoxAdapter(
                   child: categoriesAsync.when(
+                    skipLoadingOnReload: true,
+                    skipLoadingOnRefresh: true,
                     data: (categories) => GameCategoriesWidget(categories: categories),
                     loading: () => const SizedBox.shrink(),
                     error: (err, stack) => const SizedBox.shrink(),

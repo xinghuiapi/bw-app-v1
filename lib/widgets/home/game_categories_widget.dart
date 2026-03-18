@@ -20,18 +20,42 @@ class GameCategoriesWidget extends ConsumerWidget {
     if (categories.isEmpty) return const SizedBox.shrink();
 
     final selectedTabIndex = ref.watch(selectedCategoryIndexProvider);
-    final selectedSubCategory = ref.watch(selectedSubCategoryProvider);
-    final selectedCategory = categories[selectedTabIndex];
+
+    if (selectedTabIndex < 0 || selectedTabIndex >= categories.length) {
+      return const SizedBox.shrink();
+    }
+
+    // 移除 IndexedStack，避免同时构建和渲染所有分类下的游戏列表（会创建大量 HtmlElementView 导致内存泄漏和崩溃）
+    return _CategoryContentView(
+      category: categories[selectedTabIndex],
+      categories: categories,
+    );
+  }
+}
+
+/// 单个分类的内容视图，负责处理该分类下的提供商列表或游戏列表
+class _CategoryContentView extends ConsumerWidget {
+  final GameCategory category;
+  final List<GameCategory> categories;
+
+  const _CategoryContentView({
+    required this.category,
+    required this.categories,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedSubCategory = ref.watch(categorySelectionProvider(category.code ?? ''));
 
     // 如果已经选择了二级分类且不是 "推荐"，则显示游戏列表
-    if (selectedSubCategory != null && selectedCategory.code != 'reco') {
+    if (selectedSubCategory != null && category.code != 'reco') {
       return _GameListContent(
-        category: selectedCategory,
+        category: category,
         subCategory: selectedSubCategory,
       );
     }
 
-    final subCategoriesAsync = ref.watch(subCategoriesProvider(selectedCategory.code ?? ''));
+    final subCategoriesAsync = ref.watch(subCategoriesProvider(category.code ?? ''));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,6 +63,8 @@ class GameCategoriesWidget extends ConsumerWidget {
         const SizedBox(height: 12),
         // 二级分类内容
         subCategoriesAsync.when(
+          skipLoadingOnReload: true,
+          skipLoadingOnRefresh: true,
           data: (subCategories) {
             if (subCategories.isEmpty) {
               return const EmptyStateWidget(
@@ -48,7 +74,7 @@ class GameCategoriesWidget extends ConsumerWidget {
             }
 
             // 如果是一级分类是 "推荐"，直接显示（它们本身就是游戏/快速进入）
-            if (selectedCategory.code == 'reco') {
+            if (category.code == 'reco') {
               return _buildSubCategoryGrid(context, ref, subCategories, isReco: true);
             }
 
@@ -61,7 +87,7 @@ class GameCategoriesWidget extends ConsumerWidget {
           ),
           error: (err, stack) => ErrorStateWidget(
             message: '加载二级分类失败: $err',
-            onRetry: () => ref.invalidate(subCategoriesProvider(selectedCategory.code ?? '')),
+            onRetry: () => ref.invalidate(subCategoriesProvider(category.code ?? '')),
           ),
         ),
       ],
@@ -104,8 +130,6 @@ class GameCategoriesWidget extends ConsumerWidget {
         if (isReco) {
           ref.read(gameLauncherProvider).launchGame(context, item, isCategoryEntry: true, categoryCode: 'reco');
         } else {
-          final selectedTabIndex = ref.read(selectedCategoryIndexProvider);
-          final category = categories[selectedTabIndex];
           final code = (category.code ?? '').toLowerCase().trim();
           final isMultiGameCategory = ['game', 'poker', 'fishing'].contains(code);
 
@@ -115,7 +139,7 @@ class GameCategoriesWidget extends ConsumerWidget {
           }
 
           if (item.category == 1) {
-            ref.read(selectedSubCategoryProvider.notifier).set(item);
+            ref.read(categorySelectionProvider(category.code ?? '').notifier).set(item);
           } else {
             ref.read(gameLauncherProvider).launchGame(context, item, categoryCode: category.code);
           }
@@ -231,7 +255,6 @@ class GameCategoryTabs extends ConsumerWidget {
           return GestureDetector(
             onTap: () {
               ref.read(selectedCategoryIndexProvider.notifier).set(index);
-              ref.read(selectedSubCategoryProvider.notifier).set(null);
             },
             child: Container(
               alignment: Alignment.center,
@@ -316,6 +339,8 @@ class _GameListContentState extends ConsumerState<_GameListContent> {
       children: [
         // 顶部二级分类切换导航
         subCategoriesAsync.when(
+          skipLoadingOnReload: true,
+          skipLoadingOnRefresh: true,
           data: (subCategories) => Container(
             height: 80,
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -335,7 +360,7 @@ class _GameListContentState extends ConsumerState<_GameListContent> {
                 return GestureDetector(
                   onTap: () {
                     if (!isSelected) {
-                      ref.read(selectedSubCategoryProvider.notifier).set(item);
+                      ref.read(categorySelectionProvider(widget.category.code ?? '').notifier).set(item);
                       setState(() => _selectedSubTabIndex = 0);
                     }
                   },
@@ -397,7 +422,9 @@ class _GameListContentState extends ConsumerState<_GameListContent> {
             children: [
               IconButton(
                 icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.getSecondaryTextColor(context), size: 20),
-                onPressed: () => ref.read(selectedSubCategoryProvider.notifier).set(null),
+                onPressed: () {
+                  ref.read(categorySelectionProvider(widget.category.code ?? '').notifier).set(null);
+                },
               ),
               IconButton(
                 icon: Icon(Icons.search, color: AppTheme.getSecondaryTextColor(context), size: 22),

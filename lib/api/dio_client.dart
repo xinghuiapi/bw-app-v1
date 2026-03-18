@@ -4,11 +4,13 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import '../utils/constants.dart';
 import './interceptors/auth_interceptor.dart';
 import './interceptors/error_interceptor.dart';
+import './interceptors/cache_interceptor.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
   late final Dio dio;
   late final AuthInterceptor authInterceptor;
+  late final CacheInterceptor cacheInterceptor;
 
   // 根据环境设置不同的 BaseURL
   static String get _baseUrl {
@@ -31,7 +33,17 @@ class DioClient {
     ));
 
     authInterceptor = AuthInterceptor();
+    cacheInterceptor = CacheInterceptor();
+    
+    // 拦截器顺序很重要：
+    // 1. Auth: 注入 token
+    // 2. Cache: 检查缓存 (如果命中直接返回，不走网络)
+    // 3. Error: 处理错误
+    // 4. Retry: 重试 (如果网络失败)
+    // 5. Log: 打印日志
+    
     dio.interceptors.add(authInterceptor);
+    dio.interceptors.add(cacheInterceptor);
     dio.interceptors.add(ErrorInterceptor());
     dio.interceptors.add(RetryInterceptor(
       dio: dio,
@@ -66,6 +78,6 @@ class DioClient {
 final api = DioClient().dio;
 
 /// Dio Options helper
-Options dioOptions({Map<String, dynamic>? headers}) {
-  return Options(headers: headers);
+Options dioOptions({Map<String, dynamic>? headers, Map<String, dynamic>? extra}) {
+  return Options(headers: headers, extra: extra);
 }

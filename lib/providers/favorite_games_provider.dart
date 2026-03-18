@@ -5,7 +5,7 @@ import 'package:my_flutter_app/models/pagination_state.dart';
 
 part 'favorite_games_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class FavoriteGames extends _$FavoriteGames {
   @override
   PaginationState<GameItem> build() {
@@ -17,7 +17,7 @@ class FavoriteGames extends _$FavoriteGames {
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await GameService.getFavoriteGames(page: 1, size: 20);
+      final response = await GameService.getFavoriteGames(page: 1, size: 20, forceRefresh: true);
       if (response.isSuccess && response.data != null) {
         final data = response.data!;
         // 过滤出响应里 favorites (Boolean): true 的游戏

@@ -199,6 +199,6 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
   }
 }
 
-final gameListProvider = NotifierProvider.autoDispose.family<GameListNotifier, GameListPaginationState, dynamic>((arg) {
+final gameListProvider = NotifierProvider.family<GameListNotifier, GameListPaginationState, dynamic>((arg) {
   return GameListNotifier(arg);
 });

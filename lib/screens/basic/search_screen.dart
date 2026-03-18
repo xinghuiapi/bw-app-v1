@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_flutter_app/models/home_data.dart';
 import 'package:my_flutter_app/utils/constants.dart';
 import 'package:my_flutter_app/services/game_service.dart';
@@ -24,14 +26,51 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
   final TextEditingController _controller = TextEditingController();
   late TabController _tabController;
   late ScrollController _scrollController;
-  List<String> _recentSearches = ['王者']; // 模拟最近搜索
+  List<String> _recentSearches = [];
+  static const String _historyKey = 'search_history';
 
   @override
   void initState() {
     super.initState();
+    _loadHistory();
     _tabController = TabController(length: 4, vsync: this, initialIndex: 1); // 初始选中全部热门
     _tabController.addListener(_handleTabChange);
     _scrollController = ScrollController()..addListener(_onScroll);
+  }
+
+  Future<void> _loadHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final historyJson = prefs.getString(_historyKey);
+      if (historyJson != null) {
+        setState(() {
+          _recentSearches = List<String>.from(json.decode(historyJson));
+        });
+      }
+    } catch (e) {
+      debugPrint('Load history failed: $e');
+    }
+  }
+
+  Future<void> _saveHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_historyKey, json.encode(_recentSearches));
+    } catch (e) {
+      debugPrint('Save history failed: $e');
+    }
+  }
+
+  Future<void> _clearHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_historyKey);
+      setState(() {
+        _recentSearches.clear();
+      });
+    } catch (e) {
+      debugPrint('Clear history failed: $e');
+    }
   }
 
   void _handleTabChange() {
@@ -76,7 +115,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
     if (!_recentSearches.contains(keyword)) {
       setState(() {
         _recentSearches.insert(0, keyword);
+        // Limit history size to 10
+        if (_recentSearches.length > 10) {
+          _recentSearches = _recentSearches.sublist(0, 10);
+        }
       });
+      _saveHistory();
+    } else {
+      // Move to top if already exists
+      setState(() {
+        _recentSearches.remove(keyword);
+        _recentSearches.insert(0, keyword);
+      });
+      _saveHistory();
     }
 
     _tabController.animateTo(0); // 搜索后跳转到结果页
@@ -146,7 +197,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
                     children: [
                       Text('最近搜索', style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontWeight: FontWeight.bold)),
                       TextButton(
-                        onPressed: () => setState(() => _recentSearches.clear()),
+                        onPressed: _clearHistory,
                         child: Text('清空', style: TextStyle(color: AppTheme.getTertiaryTextColor(context))),
                       ),
                     ],

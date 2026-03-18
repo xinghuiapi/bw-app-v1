@@ -7,7 +7,6 @@ import 'package:my_flutter_app/screens/auth/login_screen.dart';
 import 'package:my_flutter_app/screens/auth/register_screen.dart';
 import 'package:my_flutter_app/screens/basic/activities_screen.dart';
 import 'package:my_flutter_app/screens/basic/activities_detail_screen.dart';
-import 'package:my_flutter_app/screens/basic/games_screen.dart';
 import 'package:my_flutter_app/screens/basic/game_view_screen.dart';
 import 'package:my_flutter_app/screens/basic/search_screen.dart';
 import 'package:my_flutter_app/screens/basic/customer_service_screen.dart';
@@ -33,6 +32,10 @@ import 'package:my_flutter_app/screens/wallet/withdraw_screen.dart';
 import 'package:my_flutter_app/screens/wallet/transfer_screen.dart';
 import 'package:my_flutter_app/widgets/payment_webview/payment_webview.dart';
 import 'package:my_flutter_app/utils/auth_helper.dart';
+import 'package:my_flutter_app/widgets/common/deferred_loader.dart';
+
+// 延迟加载组件
+import 'package:my_flutter_app/screens/basic/games_screen.dart' deferred as games_screen;
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -247,7 +250,10 @@ class AppRouter {
       GoRoute(
         path: '/games',
         name: 'games',
-        builder: (context, state) => const GamesScreen(),
+        builder: (context, state) => DeferredWidget(
+          loader: games_screen.loadLibrary,
+          builder: () => games_screen.GamesScreen(),
+        ),
       ),
       GoRoute(
         path: '/game-view',

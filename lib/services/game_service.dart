@@ -104,14 +104,19 @@ class GameService {
     String typeCode = 'game',
     int page = 1,
     int size = 20,
+    bool forceRefresh = false,
   }) async {
     try {
-      final response = await api.post('/gamelist/getlist', data: {
-        'game': gameCode,
-        'code': typeCode,
-        'page': page,
-        'size': size,
-      });
+      final response = await api.post(
+        '/gamelist/getlist', 
+        data: {
+          'game': gameCode,
+          'code': typeCode,
+          'page': page,
+          'size': size,
+        },
+        options: dioOptions(extra: {'forceRefresh': forceRefresh}),
+      );
       
       return _parseResponse<GameListResponse>(
         response.data,
@@ -133,13 +138,18 @@ class GameService {
     required String keyword,
     int page = 1,
     int size = 20,
+    bool forceRefresh = false,
   }) async {
     try {
-      final response = await api.post('/gamelist/getlist', data: {
-        'search_word': keyword, // 修正字段名为 search_word
-        'page': page,
-        'size': size,
-      });
+      final response = await api.post(
+        '/gamelist/getlist', 
+        data: {
+          'search_word': keyword, // 修正字段名为 search_word
+          'page': page,
+          'size': size,
+        },
+        options: dioOptions(extra: {'forceRefresh': forceRefresh}),
+      );
       
       return _parseResponse<GameListResponse>(
         response.data,
@@ -160,16 +170,21 @@ class GameService {
   static Future<ApiResponse<GameListResponse>> getHotGames({
     int page = 1,
     int size = 20,
+    bool forceRefresh = false,
   }) async {
     try {
-      final response = await api.post('/gamelist/getlist', data: {
-        'page': page,
-        'size': size,
-        'game': '',
-        'code': '',
-        'search_word': '',
-        'label': 'hot',
-      });
+      final response = await api.post(
+        '/gamelist/getlist', 
+        data: {
+          'page': page,
+          'size': size,
+          'game': '',
+          'code': '',
+          'search_word': '',
+          'label': 'hot',
+        },
+        options: dioOptions(extra: {'forceRefresh': forceRefresh}),
+      );
       
       return _parseResponse<GameListResponse>(
         response.data,
@@ -190,13 +205,18 @@ class GameService {
   static Future<ApiResponse<GameListResponse>> getFavoriteGames({
     int page = 1,
     int size = 20,
+    bool forceRefresh = false,
   }) async {
     try {
-      final response = await api.post('/gamelist/getlist', data: {
-        'page': page,
-        'size': size,
-        'label': 'favorite',
-      });
+      final response = await api.post(
+        '/gamelist/getlist', 
+        data: {
+          'page': page,
+          'size': size,
+          'label': 'favorite',
+        },
+        options: dioOptions(extra: {'forceRefresh': forceRefresh}),
+      );
       
       return _parseResponse<GameListResponse>(
         response.data,

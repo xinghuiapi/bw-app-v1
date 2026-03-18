@@ -17,7 +17,7 @@ class HotGames extends _$HotGames {
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await GameService.getHotGames(page: 1, size: 20);
+      final response = await GameService.getHotGames(page: 1, size: 20, forceRefresh: true);
       if (response.isSuccess && response.data != null) {
         final data = response.data!;
         state = PaginationState(

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/providers/home_provider.dart';
 import 'package:my_flutter_app/providers/language_provider.dart';
+import 'package:my_flutter_app/utils/constants.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
 import 'package:my_flutter_app/gen/strings.g.dart';
@@ -103,13 +104,19 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       leading: Padding(
         padding: const EdgeInsets.only(left: 12),
         child: homeDataAsync.when(
-          data: (homeData) => homeData.siteConfig?.logo != null
+          data: (homeData) {
+            final logoUrl = homeData.siteConfig?.logo;
+            // 如果有本地 Logo 文件（需要在 assets 中存在），可以取消注释下面代码
+            // return WebSafeImage(imageUrl: AppConstants.localLogoPath, height: 32, fit: BoxFit.contain);
+            
+            return logoUrl != null
               ? WebSafeImage(
-                  imageUrl: homeData.siteConfig!.logo!,
+                  imageUrl: logoUrl,
                   height: 32,
                   fit: BoxFit.contain,
                 )
-              : const SizedBox.shrink(),
+              : const SizedBox.shrink();
+          },
           loading: () => const Skeleton(width: 100, height: 32),
           error: (err, _) => const SizedBox.shrink(),
         ),

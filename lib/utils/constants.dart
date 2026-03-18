@@ -8,6 +8,7 @@ class AppConstants {
 
   // 图片、资源相关配置
   static const String resourceBaseUrl = devBaseUrl;
+  static const String localLogoPath = 'assets/images/logo.png';
 
   // 样式、UI 相关常量
   static const double horizontalPadding = 20.0;

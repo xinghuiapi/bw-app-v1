@@ -32,7 +32,10 @@ class LanguageNotifier extends Notifier<AppLocale> {
     // 强制重置为中文
     const locale = AppLocale.zh;
     _updateSystem(locale);
-    state = locale;
+    // 使用 Future.microtask 避免 "Tried to modify a provider while the widget tree was building"
+    Future.microtask(() {
+      state = locale;
+    });
   }
 
   /// 切换语言

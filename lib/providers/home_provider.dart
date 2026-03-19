@@ -40,13 +40,16 @@ final selectedCategoryIndexProvider = NotifierProvider<SelectedCategoryIndex, in
 
 /// 每个一级分类选中的二级分类（独立记忆）
 class CategorySelectionNotifier extends Notifier<SubCategory?> {
+  final String categoryCode;
+  CategorySelectionNotifier(this.categoryCode);
+
   @override
   SubCategory? build() => null;
   void set(SubCategory? value) => state = value;
 }
 
-final categorySelectionProvider = NotifierProvider.family<CategorySelectionNotifier, SubCategory?, String>((arg) {
-  return CategorySelectionNotifier();
+final categorySelectionProvider = NotifierProvider.family<CategorySelectionNotifier, SubCategory?, String>((categoryCode) {
+  return CategorySelectionNotifier(categoryCode);
 });
 
 /// 二级分类提供

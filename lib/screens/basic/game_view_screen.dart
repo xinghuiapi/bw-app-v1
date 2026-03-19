@@ -56,6 +56,10 @@ class _GameViewScreenState extends State<GameViewScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: kIsWeb
           ? _buildWebFrame()

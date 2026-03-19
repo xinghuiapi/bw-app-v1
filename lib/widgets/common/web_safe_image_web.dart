@@ -27,6 +27,7 @@ Widget buildWebImage({
       element.style.height = '100%';
       element.style.objectFit = _getFitString(fit);
       element.style.objectPosition = _getAlignmentString(alignment);
+      element.style.pointerEvents = 'none'; // 防止 HTML 图片拦截 Flutter 层的点击事件
 
       element.onerror = (web.Event event) {
         debugPrint('WebSafeImage: Failed to load image: $url');
@@ -40,7 +41,16 @@ Widget buildWebImage({
   Widget image = SizedBox(
     width: width,
     height: height,
-    child: HtmlElementView(viewType: viewId),
+    child: Stack(
+      fit: StackFit.expand,
+      children: [
+        HtmlElementView(viewType: viewId),
+        // 添加透明遮罩层，防止 HtmlElementView 拦截外层的点击事件
+        Positioned.fill(
+          child: Container(color: Colors.transparent),
+        ),
+      ],
+    ),
   );
 
   if (borderRadius != null) {

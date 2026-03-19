@@ -41,7 +41,7 @@ final class HotGamesProvider
   }
 }
 
-String _$hotGamesHash() => r'7d9de3073d19d2738bb6c26bfc4d3c821e0f8434';
+String _$hotGamesHash() => r'921f132bf39448dd401598a9582f77f50553c110';
 
 abstract class _$HotGames extends $Notifier<PaginationState<GameItem>> {
   PaginationState<GameItem> build();

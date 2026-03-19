@@ -444,3 +444,6 @@ lib/
 - **`lib/widgets/`**: 颗粒化 UI 组件。遵循“高内聚低耦合”原则，方便在不同页面间复用。特别注意 `WebSafeImage` 用于解决 Web 端跨域图片显示问题。
 - **`lib/theme/`**: 维护全局视觉一致性。修改 `app_theme.dart` 即可实现一键换肤或全局样式调整。
 - **`lib/router/`**: 集中管理页面跳转逻辑，支持路径参数和查询参数。
+
+换logo命令
+dart run flutter_launcher_icons

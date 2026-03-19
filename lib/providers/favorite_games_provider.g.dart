@@ -41,7 +41,7 @@ final class FavoriteGamesProvider
   }
 }
 
-String _$favoriteGamesHash() => r'13deee94a7304e83be9a4f9cb91d477d6bb29ed8';
+String _$favoriteGamesHash() => r'4a4d60e78b060750f9ed5c86d60b9f04a41fc734';
 
 abstract class _$FavoriteGames extends $Notifier<PaginationState<GameItem>> {
   PaginationState<GameItem> build();

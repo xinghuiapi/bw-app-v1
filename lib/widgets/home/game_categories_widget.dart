@@ -6,6 +6,9 @@ import 'package:my_flutter_app/providers/game_launcher_provider.dart';
 import 'package:my_flutter_app/providers/game_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/user_provider.dart';
+import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:my_flutter_app/utils/constants.dart';
@@ -575,10 +578,59 @@ class _GameListContentState extends ConsumerState<_GameListContent> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: WebSafeImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: const Skeleton(),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    WebSafeImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: const Skeleton(),
+                    ),
+                    // 拦截 HtmlElementView 的点击事件，使其冒泡到外层的 GestureDetector
+                    Positioned.fill(
+                      child: Container(color: Colors.transparent),
+                    ),
+                    // 收藏按钮
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () async {
+                          if (game.id != null) {
+                            // 检查登录状态
+                            if (!ref.read(authProvider).isLoggedIn) {
+                              ToastUtils.showInfo('请先登录以收藏游戏');
+                              return;
+                            }
+
+                            // 本地先切换，提供即时反馈
+                            ref.read(gameListProvider(params).notifier).toggleFavoriteLocal(game.id!);
+                            
+                            // 计算目标状态
+                            final targetStatus = game.isFavorite ? 0 : 1;
+                            final success = await ref.read(userProvider.notifier).toggleFavorite(game.id!, targetStatus);
+                            
+                            if (!success) {
+                              // 如果失败，回退本地状态
+                              ref.read(gameListProvider(params).notifier).toggleFavoriteLocal(game.id!);
+                            }
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.4),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            game.isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+                            color: game.isFavorite ? AppTheme.primary : Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

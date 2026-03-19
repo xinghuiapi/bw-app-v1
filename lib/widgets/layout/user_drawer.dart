@@ -36,12 +36,42 @@ class UserDrawer extends ConsumerWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  _buildMenuItem(context, Icons.person_outline, '个人资料', '/personal-center-profile'),
-                  _buildMenuItem(context, Icons.account_balance_wallet_outlined, '钱包充值', '/wallet-recharge'),
-                  _buildMenuItem(context, Icons.account_balance_wallet_outlined, '钱包提现', '/wallet-withdraw'),
-                  _buildMenuItem(context, Icons.history, '投注记录', '/bet-records'),
-                  _buildMenuItem(context, Icons.card_giftcard, '活动中心', '/activities'),
-                  _buildMenuItem(context, Icons.headset_mic_outlined, '联系客服', '/customer-service'),
+                  _buildMenuItem(
+                    context,
+                    Icons.person_outline,
+                    '个人资料',
+                    '/personal-center-profile',
+                  ),
+                  _buildMenuItem(
+                    context,
+                    Icons.account_balance_wallet_outlined,
+                    '钱包充值',
+                    '/wallet-recharge',
+                  ),
+                  _buildMenuItem(
+                    context,
+                    Icons.account_balance_wallet_outlined,
+                    '钱包提现',
+                    '/wallet-withdraw',
+                  ),
+                  _buildMenuItem(
+                    context,
+                    Icons.history,
+                    '投注记录',
+                    '/bet-records',
+                  ),
+                  _buildMenuItem(
+                    context,
+                    Icons.card_giftcard,
+                    '活动中心',
+                    '/activities',
+                  ),
+                  _buildMenuItem(
+                    context,
+                    Icons.headset_mic_outlined,
+                    '联系客服',
+                    '/customer-service',
+                  ),
                 ],
               ),
             ),
@@ -66,7 +96,9 @@ class UserDrawer extends ConsumerWidget {
                       backgroundColor: AppTheme.surface,
                       foregroundColor: AppTheme.textPrimary,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: const Text('退出登录'),
                   ),
@@ -95,12 +127,20 @@ class UserDrawer extends ConsumerWidget {
               children: [
                 Text(
                   user?.username ?? '未登录',
-                  style: const TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '余额: ¥ ${user?.balance?.toStringAsFixed(2) ?? "0.00"}',
-                  style: const TextStyle(color: AppTheme.primary, fontSize: 14, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    color: AppTheme.primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -119,12 +159,15 @@ class UserDrawer extends ConsumerWidget {
       padding: const EdgeInsets.all(20.0),
       child: Row(
         children: [
-          Expanded(child: ElevatedButton(
+          Expanded(
+            child: ElevatedButton(
               onPressed: () => context.push('/login'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text('立即登录'),
             ),
@@ -139,7 +182,12 @@ class UserDrawer extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String title, String route) {
+  Widget _buildMenuItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String route,
+  ) {
     final String location = GoRouterState.of(context).uri.path;
     final bool isSelected = location == route;
 
@@ -147,11 +195,17 @@ class UserDrawer extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Container(
         decoration: BoxDecoration(
-        color: isSelected ? AppTheme.primary.withAlpha(25) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-      ),
+          color: isSelected
+              ? AppTheme.primary.withAlpha(25)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: ListTile(
-          leading: Icon(icon, color: isSelected ? AppTheme.primary : AppTheme.textSecondary, size: 22),
+          leading: Icon(
+            icon,
+            color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+            size: 22,
+          ),
           title: Text(
             title,
             style: TextStyle(
@@ -160,7 +214,11 @@ class UserDrawer extends ConsumerWidget {
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
-          trailing: Icon(Icons.chevron_right, color: isSelected ? AppTheme.primary : AppTheme.textTertiary, size: 18),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: isSelected ? AppTheme.primary : AppTheme.textTertiary,
+            size: 18,
+          ),
           onTap: () {
             Navigator.pop(context);
             context.push(route);

@@ -14,9 +14,20 @@ Widget buildWebImage({
   BorderRadius? borderRadius,
   Widget? errorWidget,
 }) {
+  // 解析圆角 (将其转化为 CSS 属性以避免使用 Flutter 的 ClipRRect，这在 Web 上极其耗费性能)
+  String borderRadiusCss = '';
+  if (borderRadius != null) {
+    final tl = borderRadius.topLeft.x;
+    final tr = borderRadius.topRight.x;
+    final br = borderRadius.bottomRight.x;
+    final bl = borderRadius.bottomLeft.x;
+    borderRadiusCss = '${tl}px ${tr}px ${br}px ${bl}px';
+  }
+
   // 使用 Base64 或简单的 URL 清理作为 ID，确保其在 DOM 中唯一且稳定
   final String encodedUrl = Uri.encodeComponent(url).replaceAll('%', '');
-  final String viewId = 'img-$encodedUrl-${fit.name}-${alignment.x}-${alignment.y}';
+  final String viewId =
+      'img-$encodedUrl-${fit.name}-${alignment.x}-${alignment.y}-$borderRadiusCss';
 
   if (!_registeredFactories.contains(viewId)) {
     ui_web.platformViewRegistry.registerViewFactory(viewId, (int viewId) {
@@ -29,6 +40,10 @@ Widget buildWebImage({
       element.style.objectPosition = _getAlignmentString(alignment);
       element.style.pointerEvents = 'none'; // 防止 HTML 图片拦截 Flutter 层的点击事件
 
+      if (borderRadiusCss.isNotEmpty) {
+        element.style.borderRadius = borderRadiusCss;
+      }
+
       element.onerror = (web.Event event) {
         debugPrint('WebSafeImage: Failed to load image: $url');
       }.toJS;
@@ -38,28 +53,11 @@ Widget buildWebImage({
     _registeredFactories.add(viewId);
   }
 
-  Widget image = SizedBox(
+  return SizedBox(
     width: width,
     height: height,
-    child: Stack(
-      fit: StackFit.expand,
-      children: [
-        HtmlElementView(viewType: viewId),
-        // 添加透明遮罩层，防止 HtmlElementView 拦截外层的点击事件
-        Positioned.fill(
-          child: Container(color: Colors.transparent),
-        ),
-      ],
-    ),
+    child: HtmlElementView(viewType: viewId),
   );
-
-  if (borderRadius != null) {
-    return ClipRRect(
-      borderRadius: borderRadius,
-      child: image,
-    );
-  }
-  return image;
 }
 
 String _getFitString(BoxFit fit) {

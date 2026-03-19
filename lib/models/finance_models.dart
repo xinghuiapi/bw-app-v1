@@ -20,7 +20,8 @@ class DepositCategory {
     this.code,
   });
 
-  factory DepositCategory.fromJson(Map<String, dynamic> json) => _$DepositCategoryFromJson(json);
+  factory DepositCategory.fromJson(Map<String, dynamic> json) =>
+      _$DepositCategoryFromJson(json);
   Map<String, dynamic> toJson() => _$DepositCategoryToJson(this);
 }
 
@@ -42,7 +43,8 @@ class TransferCategory {
     this.pcLogo,
   });
 
-  factory TransferCategory.fromJson(Map<String, dynamic> json) => _$TransferCategoryFromJson(json);
+  factory TransferCategory.fromJson(Map<String, dynamic> json) =>
+      _$TransferCategoryFromJson(json);
   Map<String, dynamic> toJson() => _$TransferCategoryToJson(this);
 }
 
@@ -52,15 +54,12 @@ class GameBalance {
   final dynamic money;
   final String? title;
 
-  GameBalance({
-    required this.id,
-    this.money,
-    this.title,
-  });
+  GameBalance({required this.id, this.money, this.title});
 
   double get balance => _stringToDouble(money);
 
-  factory GameBalance.fromJson(Map<String, dynamic> json) => _$GameBalanceFromJson(json);
+  factory GameBalance.fromJson(Map<String, dynamic> json) =>
+      _$GameBalanceFromJson(json);
   Map<String, dynamic> toJson() => _$GameBalanceToJson(this);
 }
 
@@ -68,12 +67,10 @@ class GameBalance {
 class TransferMoneyRequest {
   final int id; // 平台/分类 ID
   final int money; // 转账金额，通常为整数
-  TransferMoneyRequest({
-    required this.id,
-    required this.money,
-  });
+  TransferMoneyRequest({required this.id, required this.money});
 
-  factory TransferMoneyRequest.fromJson(Map<String, dynamic> json) => _$TransferMoneyRequestFromJson(json);
+  factory TransferMoneyRequest.fromJson(Map<String, dynamic> json) =>
+      _$TransferMoneyRequestFromJson(json);
   Map<String, dynamic> toJson() => _$TransferMoneyRequestToJson(this);
 }
 
@@ -112,7 +109,8 @@ class DepositChannel {
     this.giveMoney,
   });
 
-  factory DepositChannel.fromJson(Map<String, dynamic> json) => _$DepositChannelFromJson(json);
+  factory DepositChannel.fromJson(Map<String, dynamic> json) =>
+      _$DepositChannelFromJson(json);
   Map<String, dynamic> toJson() => _$DepositChannelToJson(this);
 }
 
@@ -121,12 +119,10 @@ class DepositOrderRequest {
   final int id; // 通道ID
   final double money;
 
-  DepositOrderRequest({
-    required this.id,
-    required this.money,
-  });
+  DepositOrderRequest({required this.id, required this.money});
 
-  factory DepositOrderRequest.fromJson(Map<String, dynamic> json) => _$DepositOrderRequestFromJson(json);
+  factory DepositOrderRequest.fromJson(Map<String, dynamic> json) =>
+      _$DepositOrderRequestFromJson(json);
   Map<String, dynamic> toJson() => _$DepositOrderRequestToJson(this);
 }
 
@@ -149,7 +145,8 @@ class DepositOrderResponse {
     this.data,
   });
 
-  factory DepositOrderResponse.fromJson(Map<String, dynamic> json) => _$DepositOrderResponseFromJson(json);
+  factory DepositOrderResponse.fromJson(Map<String, dynamic> json) =>
+      _$DepositOrderResponseFromJson(json);
   Map<String, dynamic> toJson() => _$DepositOrderResponseToJson(this);
 }
 
@@ -160,13 +157,10 @@ class WithdrawRequest {
   @JsonKey(name: 'pay_password')
   final String? payPassword; // 支付密码
 
-  WithdrawRequest({
-    required this.id,
-    required this.money,
-    this.payPassword,
-  });
+  WithdrawRequest({required this.id, required this.money, this.payPassword});
 
-  factory WithdrawRequest.fromJson(Map<String, dynamic> json) => _$WithdrawRequestFromJson(json);
+  factory WithdrawRequest.fromJson(Map<String, dynamic> json) =>
+      _$WithdrawRequestFromJson(json);
   Map<String, dynamic> toJson() => _$WithdrawRequestToJson(this);
 }
 
@@ -207,7 +201,8 @@ class PaymentMethod {
   String get displayCard => card ?? cardNumber ?? '';
   String get displayTitle => title ?? bankName ?? '';
 
-  factory PaymentMethod.fromJson(Map<String, dynamic> json) => _$PaymentMethodFromJson(json);
+  factory PaymentMethod.fromJson(Map<String, dynamic> json) =>
+      _$PaymentMethodFromJson(json);
   Map<String, dynamic> toJson() => _$PaymentMethodToJson(this);
 }
 
@@ -242,7 +237,8 @@ class TradeRecord {
     this.interfaceTitle,
   });
 
-  factory TradeRecord.fromJson(Map<String, dynamic> json) => _$TradeRecordFromJson(json);
+  factory TradeRecord.fromJson(Map<String, dynamic> json) =>
+      _$TradeRecordFromJson(json);
   Map<String, dynamic> toJson() => _$TradeRecordToJson(this);
 }
 
@@ -274,7 +270,8 @@ class TransferRecord {
     this.interfaceTitle,
   });
 
-  factory TransferRecord.fromJson(Map<String, dynamic> json) => _$TransferRecordFromJson(json);
+  factory TransferRecord.fromJson(Map<String, dynamic> json) =>
+      _$TransferRecordFromJson(json);
   Map<String, dynamic> toJson() => _$TransferRecordToJson(this);
 }
 
@@ -303,7 +300,8 @@ class RebateRecord {
     this.createdAt,
   });
 
-  factory RebateRecord.fromJson(Map<String, dynamic> json) => _$RebateRecordFromJson(json);
+  factory RebateRecord.fromJson(Map<String, dynamic> json) =>
+      _$RebateRecordFromJson(json);
   Map<String, dynamic> toJson() => _$RebateRecordToJson(this);
 }
 
@@ -329,7 +327,8 @@ class RebateData {
     required this.userAmount,
   });
 
-  factory RebateData.fromJson(Map<String, dynamic> json) => _$RebateDataFromJson(json);
+  factory RebateData.fromJson(Map<String, dynamic> json) =>
+      _$RebateDataFromJson(json);
   Map<String, dynamic> toJson() => _$RebateDataToJson(this);
 }
 
@@ -367,7 +366,8 @@ class RechargeParams {
     this.address,
   });
 
-  factory RechargeParams.fromJson(Map<String, dynamic> json) => _$RechargeParamsFromJson(json);
+  factory RechargeParams.fromJson(Map<String, dynamic> json) =>
+      _$RechargeParamsFromJson(json);
   Map<String, dynamic> toJson() => _$RechargeParamsToJson(this);
 }
 
@@ -375,18 +375,18 @@ class RechargeParams {
 class RechargeDetail {
   @JsonKey(includeFromJson: false)
   final int id; // 默认 0，Provider 负责填充
-  
+
   final RechargeParams? params;
 
   @JsonKey(fromJson: _stringToDouble)
-  final double money; 
-  
+  final double money;
+
   @JsonKey(fromJson: _stringToDoubleNullable)
   final double? hl; // 汇率?
-  
+
   @JsonKey(name: 'usdt_money', fromJson: _stringToDoubleNullable)
   final double? usdtMoney;
-  
+
   final String? img; // 二维码图片链接
   final String? currency;
   final String? msg; // 提示语
@@ -399,7 +399,7 @@ class RechargeDetail {
   String? get createdAt => null;
   String? get qrcode => img; // UI 使用 qrcode
   String? get bankName => params?.bankName ?? params?.bank;
-  String? get bankCard => params?.account ?? params?.card; 
+  String? get bankCard => params?.account ?? params?.card;
   String? get bankUser => params?.name;
   String? get bankAddr => params?.address ?? params?.addres;
   String? get remark => msg; // 提示语兼容旧字段
@@ -416,7 +416,8 @@ class RechargeDetail {
     this.type,
   });
 
-  factory RechargeDetail.fromJson(Map<String, dynamic> json) => _$RechargeDetailFromJson(json);
+  factory RechargeDetail.fromJson(Map<String, dynamic> json) =>
+      _$RechargeDetailFromJson(json);
   Map<String, dynamic> toJson() => _$RechargeDetailToJson(this);
 
   RechargeDetail copyWith({
@@ -456,15 +457,11 @@ class BankType {
 
   String get name => _name ?? title ?? '';
 
-  BankType({
-    required this.id,
-    String? name,
-    this.title,
-    this.code,
-    this.img,
-  }) : _name = name;
+  BankType({required this.id, String? name, this.title, this.code, this.img})
+    : _name = name;
 
-  factory BankType.fromJson(Map<String, dynamic> json) => _$BankTypeFromJson(json);
+  factory BankType.fromJson(Map<String, dynamic> json) =>
+      _$BankTypeFromJson(json);
   Map<String, dynamic> toJson() => _$BankTypeToJson(this);
 }
 
@@ -490,7 +487,8 @@ class BindPaymentRequest {
     this.payPassword,
   });
 
-  factory BindPaymentRequest.fromJson(Map<String, dynamic> json) => _$BindPaymentRequestFromJson(json);
+  factory BindPaymentRequest.fromJson(Map<String, dynamic> json) =>
+      _$BindPaymentRequestFromJson(json);
   Map<String, dynamic> toJson() => _$BindPaymentRequestToJson(this);
 }
 
@@ -512,7 +510,8 @@ class TradeRecordRequest {
     this.endDate,
   });
 
-  factory TradeRecordRequest.fromJson(Map<String, dynamic> json) => _$TradeRecordRequestFromJson(json);
+  factory TradeRecordRequest.fromJson(Map<String, dynamic> json) =>
+      _$TradeRecordRequestFromJson(json);
   Map<String, dynamic> toJson() => _$TradeRecordRequestToJson(this);
 }
 
@@ -548,7 +547,8 @@ class MoneyLog {
     this.rowid,
   });
 
-  factory MoneyLog.fromJson(Map<String, dynamic> json) => _$MoneyLogFromJson(json);
+  factory MoneyLog.fromJson(Map<String, dynamic> json) =>
+      _$MoneyLogFromJson(json);
   Map<String, dynamic> toJson() => _$MoneyLogToJson(this);
 }
 

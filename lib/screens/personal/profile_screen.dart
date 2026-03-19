@@ -33,7 +33,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final userState = ref.watch(userProvider);
     final user = userState.user;
-    
+
     // 如果正在全局加载用户信息，显示加载状态
     if (userState.isLoading && user == null) {
       return Scaffold(
@@ -45,7 +45,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
-        title: Text('个人资料', style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
+        title: Text(
+          '个人资料',
+          style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
+        ),
         backgroundColor: AppTheme.getCardColor(context),
         foregroundColor: AppTheme.getPrimaryTextColor(context),
         elevation: 0,
@@ -53,79 +56,89 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         iconTheme: IconThemeData(color: AppTheme.getPrimaryTextColor(context)),
       ),
       body: SafeArea(
-        child: _isLoading 
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => ref.read(userProvider.notifier).fetchUserInfo(),
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                children: [
-                  // 头像及基础信息
-                  _buildAvatarSection(user),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // 加密信息
-                  _buildSectionTitle('加密信息'),
-                  _buildSettingsGroup([
-                    _buildSettingsCell(
-                      label: '真实姓名',
-                      value: user?.realName ?? '未设置',
-                      onTap: () => context.push('/personal-center-profile-realname'),
-                    ),
-                    _buildSettingsCell(
-                      label: '支付密码',
-                      value: (user?.payPassword == true) ? '已设置' : '未设置',
-                      onTap: () => context.push('/personal-center-profile-paypassword'),
-                    ),
-                  ]),
-  
-                  const SizedBox(height: 16),
-  
-                  // 账号信息
-                  _buildSectionTitle('账号信息'),
-                  _buildSettingsGroup([
-                    _buildSettingsCell(
-                      label: '手机号码',
-                      value: user?.phone ?? '未设置',
-                      onTap: () => context.push('/personal-center-profile-phone'),
-                    ),
-                    _buildSettingsCell(
-                      label: '邮箱地址',
-                      value: user?.email ?? '未设置',
-                      onTap: () => context.push('/personal-center-profile-email'),
-                    ),
-                  ]),
-  
-                  const SizedBox(height: 16),
-  
-                  // 个人信息
-                  _buildSectionTitle('个人信息'),
-                  _buildSettingsGroup([
-                    _buildSettingsCell(
-                      label: '性别',
-                      value: user?.gender ?? '未设置',
-                      onTap: () => context.push('/personal-center-profile-gender'),
-                    ),
-                    _buildSettingsCell(
-                      label: '出生日期',
-                      value: user?.bornTime ?? '未设置',
-                      onTap: () => context.push('/personal-center-profile-borntime'),
-                    ),
-                    _buildSettingsCell(
-                      label: 'QQ号',
-                      value: user?.qq != null ? user!.qq.toString() : '未设置',
-                      onTap: () => context.push('/personal-center-profile-qq'),
-                    ),
-                    _buildSettingsCell(
-                      label: 'Telegram',
-                      value: user?.telegram ?? '未设置',
-                      onTap: () => context.push('/personal-center-profile-telegram'),
-                    ),
-                  ]),
-                ],
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: () =>
+                    ref.read(userProvider.notifier).fetchUserInfo(),
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  children: [
+                    // 头像及基础信息
+                    _buildAvatarSection(user),
+
+                    const SizedBox(height: 16),
+
+                    // 加密信息
+                    _buildSectionTitle('加密信息'),
+                    _buildSettingsGroup([
+                      _buildSettingsCell(
+                        label: '真实姓名',
+                        value: user?.realName ?? '未设置',
+                        onTap: () =>
+                            context.push('/personal-center-profile-realname'),
+                      ),
+                      _buildSettingsCell(
+                        label: '支付密码',
+                        value: (user?.payPassword == true) ? '已设置' : '未设置',
+                        onTap: () => context.push(
+                          '/personal-center-profile-paypassword',
+                        ),
+                      ),
+                    ]),
+
+                    const SizedBox(height: 16),
+
+                    // 账号信息
+                    _buildSectionTitle('账号信息'),
+                    _buildSettingsGroup([
+                      _buildSettingsCell(
+                        label: '手机号码',
+                        value: user?.phone ?? '未设置',
+                        onTap: () =>
+                            context.push('/personal-center-profile-phone'),
+                      ),
+                      _buildSettingsCell(
+                        label: '邮箱地址',
+                        value: user?.email ?? '未设置',
+                        onTap: () =>
+                            context.push('/personal-center-profile-email'),
+                      ),
+                    ]),
+
+                    const SizedBox(height: 16),
+
+                    // 个人信息
+                    _buildSectionTitle('个人信息'),
+                    _buildSettingsGroup([
+                      _buildSettingsCell(
+                        label: '性别',
+                        value: user?.gender ?? '未设置',
+                        onTap: () =>
+                            context.push('/personal-center-profile-gender'),
+                      ),
+                      _buildSettingsCell(
+                        label: '出生日期',
+                        value: user?.bornTime ?? '未设置',
+                        onTap: () =>
+                            context.push('/personal-center-profile-borntime'),
+                      ),
+                      _buildSettingsCell(
+                        label: 'QQ号',
+                        value: user?.qq != null ? user!.qq.toString() : '未设置',
+                        onTap: () =>
+                            context.push('/personal-center-profile-qq'),
+                      ),
+                      _buildSettingsCell(
+                        label: 'Telegram',
+                        value: user?.telegram ?? '未设置',
+                        onTap: () =>
+                            context.push('/personal-center-profile-telegram'),
+                      ),
+                    ]),
+                  ],
+                ),
               ),
-            ),
       ),
     );
   }
@@ -143,32 +156,40 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       color: AppTheme.getCardColor(context),
-      child: InkWell(
+      child: GestureDetector(
         onTap: _isUploading ? null : _pickAndUploadAvatar,
         child: Row(
           children: [
             Stack(
               children: [
                 ClipOval(
-                  child: finalUrl.isNotEmpty 
-                    ? WebSafeImage(
-                        imageUrl: finalUrl,
-                        width: 70,
-                        height: 70,
-                        fit: BoxFit.cover,
-                        errorWidget: Container(
+                  child: finalUrl.isNotEmpty
+                      ? WebSafeImage(
+                          imageUrl: finalUrl,
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.cover,
+                          errorWidget: Container(
+                            width: 70,
+                            height: 70,
+                            color: AppTheme.primary.withAlpha(26),
+                            child: const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                        )
+                      : Container(
                           width: 70,
                           height: 70,
                           color: AppTheme.primary.withAlpha(26),
-                          child: const Icon(Icons.person, size: 40, color: AppTheme.primary),
+                          child: const Icon(
+                            Icons.person,
+                            size: 40,
+                            color: AppTheme.primary,
+                          ),
                         ),
-                      )
-                    : Container(
-                        width: 70,
-                        height: 70,
-                        color: AppTheme.primary.withAlpha(26),
-                        child: const Icon(Icons.person, size: 40, color: AppTheme.primary),
-                      ),
                 ),
                 if (_isUploading)
                   Positioned.fill(
@@ -181,7 +202,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         child: SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -195,17 +219,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Text(
                     user?.realName ?? '未设置姓名',
-                    style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(context),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     user?.phone ?? user?.email ?? '未设置联系方式',
-                    style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+                    style: TextStyle(
+                      color: AppTheme.getSecondaryTextColor(context),
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: AppTheme.getTertiaryTextColor(context)),
+            Icon(
+              Icons.chevron_right,
+              color: AppTheme.getTertiaryTextColor(context),
+            ),
           ],
         ),
       ),
@@ -217,7 +251,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Text(
         title,
-        style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 13, fontWeight: FontWeight.w500),
+        style: TextStyle(
+          color: AppTheme.getTertiaryTextColor(context),
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -256,20 +294,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required String value,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Padding(
+      child: Container(
+        color: Colors.transparent, // Ensures the entire row is clickable
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
-            Text(label, style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 15)),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppTheme.getPrimaryTextColor(context),
+                fontSize: 15,
+              ),
+            ),
             const Spacer(),
             Text(
               value,
-              style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+              style: TextStyle(
+                color: AppTheme.getSecondaryTextColor(context),
+                fontSize: 14,
+              ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.chevron_right, color: AppTheme.getTertiaryTextColor(context), size: 18),
+            Icon(
+              Icons.chevron_right,
+              color: AppTheme.getTertiaryTextColor(context),
+              size: 18,
+            ),
           ],
         ),
       ),
@@ -302,23 +355,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           if (updateResponse.code == 200) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('头像更新成功')));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('头像更新成功')));
               ref.read(userProvider.notifier).fetchUserInfo();
             }
           } else {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(updateResponse.msg ?? '头像更新失败')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(updateResponse.msg ?? '头像更新失败')),
+              );
             }
           }
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response.msg ?? '图片上传失败')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(response.msg ?? '图片上传失败')));
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('操作失败: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
       }
     } finally {
       if (mounted) {

@@ -9,7 +9,9 @@ class ScrollBottomNotifier extends Notifier<bool> {
   void set(bool value) => state = value;
 }
 
-final scrollBottomProvider = NotifierProvider<ScrollBottomNotifier, bool>(ScrollBottomNotifier.new);
+final scrollBottomProvider = NotifierProvider<ScrollBottomNotifier, bool>(
+  ScrollBottomNotifier.new,
+);
 
 /// 首页数据提供
 final homeDataProvider = FutureProvider<HomeData>((ref) async {
@@ -36,7 +38,8 @@ class SelectedCategoryIndex extends Notifier<int> {
   void set(int index) => state = index;
 }
 
-final selectedCategoryIndexProvider = NotifierProvider<SelectedCategoryIndex, int>(SelectedCategoryIndex.new);
+final selectedCategoryIndexProvider =
+    NotifierProvider<SelectedCategoryIndex, int>(SelectedCategoryIndex.new);
 
 /// 每个一级分类选中的二级分类（独立记忆）
 class CategorySelectionNotifier extends Notifier<SubCategory?> {
@@ -48,12 +51,18 @@ class CategorySelectionNotifier extends Notifier<SubCategory?> {
   void set(SubCategory? value) => state = value;
 }
 
-final categorySelectionProvider = NotifierProvider.family<CategorySelectionNotifier, SubCategory?, String>((categoryCode) {
-  return CategorySelectionNotifier(categoryCode);
-});
+final categorySelectionProvider =
+    NotifierProvider.family<CategorySelectionNotifier, SubCategory?, String>((
+      categoryCode,
+    ) {
+      return CategorySelectionNotifier(categoryCode);
+    });
 
 /// 二级分类提供
-final subCategoriesProvider = FutureProvider.family<List<SubCategory>, String>((ref, code) async {
+final subCategoriesProvider = FutureProvider.family<List<SubCategory>, String>((
+  ref,
+  code,
+) async {
   if (code == 'reco') {
     final response = await HomeService.getRecommendedGames();
     if (response.isSuccess && response.data != null) {

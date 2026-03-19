@@ -32,60 +32,66 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       body: SafeArea(
         child: Column(
           children: [
-          // 活动分类
-          categoriesAsync.when(
-            data: (categories) => _buildCategoryTabs(context, categories, selectedCategoryId),
-            loading: () => const _CategoryTabsSkeleton(),
-            error: (err, stack) => const SizedBox.shrink(),
-          ),
-          
-          // 活动列表
-          Expanded(
-            child: activitiesAsync.when(
-              data: (activities) {
-                if (activities.isEmpty) {
-                  return const EmptyStateWidget(message: '暂无活动');
-                }
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(activityListProvider(selectedCategoryId));
-                  },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: activities.length,
-                    itemBuilder: (context, index) {
-                      final activity = activities[index];
-                      return _ActivityCard(activity: activity);
+            // 活动分类
+            categoriesAsync.when(
+              data: (categories) =>
+                  _buildCategoryTabs(context, categories, selectedCategoryId),
+              loading: () => const _CategoryTabsSkeleton(),
+              error: (err, stack) => const SizedBox.shrink(),
+            ),
+
+            // 活动列表
+            Expanded(
+              child: activitiesAsync.when(
+                data: (activities) {
+                  if (activities.isEmpty) {
+                    return const EmptyStateWidget(message: '暂无活动');
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      ref.invalidate(activityListProvider(selectedCategoryId));
                     },
-                  ),
-                );
-              },
-              loading: () => const _ActivitiesListSkeleton(),
-              error: (err, stack) => ErrorStateWidget(
-                message: '加载活动失败: $err',
-                onRetry: () => ref.invalidate(activityListProvider(selectedCategoryId)),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: activities.length,
+                      itemBuilder: (context, index) {
+                        final activity = activities[index];
+                        return _ActivityCard(activity: activity);
+                      },
+                    ),
+                  );
+                },
+                loading: () => const _ActivitiesListSkeleton(),
+                error: (err, stack) => ErrorStateWidget(
+                  message: '加载活动失败: $err',
+                  onRetry: () =>
+                      ref.invalidate(activityListProvider(selectedCategoryId)),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-    bottomNavigationBar: const AppFooter(),
-  );
-}
+      bottomNavigationBar: const AppFooter(),
+    );
+  }
 
-  Widget _buildCategoryTabs(BuildContext context, List<ActivityClass> categories, int? selectedId) {
-    final allCategories = [
-      ActivityClass(id: null, title: '全部'),
-      ...categories,
-    ];
+  Widget _buildCategoryTabs(
+    BuildContext context,
+    List<ActivityClass> categories,
+    int? selectedId,
+  ) {
+    final allCategories = [ActivityClass(id: null, title: '全部'), ...categories];
 
     return Container(
       height: 50,
       decoration: BoxDecoration(
         color: AppTheme.getCardColor(context),
         border: Border(
-          bottom: BorderSide(color: AppTheme.getDividerColor(context), width: 0.5),
+          bottom: BorderSide(
+            color: AppTheme.getDividerColor(context),
+            width: 0.5,
+          ),
         ),
       ),
       child: ListView.builder(
@@ -98,7 +104,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
 
           return GestureDetector(
             onTap: () {
-              ref.read(selectedActivityCategoryIdProvider.notifier).set(category.id);
+              ref
+                  .read(selectedActivityCategoryIdProvider.notifier)
+                  .set(category.id);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -114,7 +122,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
               child: Text(
                 category.title ?? '',
                 style: TextStyle(
-                  color: isSelected ? AppTheme.primary : AppTheme.getSecondaryTextColor(context),
+                  color: isSelected
+                      ? AppTheme.primary
+                      : AppTheme.getSecondaryTextColor(context),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 14,
                 ),
@@ -135,6 +145,7 @@ class _ActivityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         if (activity.id != null) {
           context.push('/activities-detail?id=${activity.id}');
@@ -145,13 +156,8 @@ class _ActivityCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(isSelectedThemeDark(context) ? 25 : 10),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(color: AppTheme.getDividerColor(context)),
+          // Removed BoxShadow for web optimization
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,18 +167,26 @@ class _ActivityCard extends StatelessWidget {
               WebSafeImage(
                 imageUrl: activity.img!,
                 height: 160,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
               )
             else
               Container(
                 height: 160,
                 decoration: BoxDecoration(
                   color: AppTheme.getTertiaryTextColor(context).withAlpha(25),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
                 ),
-                child: Icon(Icons.image_not_supported, size: 40, color: AppTheme.getTertiaryTextColor(context)),
+                child: Icon(
+                  Icons.image_not_supported,
+                  size: 40,
+                  color: AppTheme.getTertiaryTextColor(context),
+                ),
               ),
-            
+
             // 活动标题
             Padding(
               padding: const EdgeInsets.all(12),
@@ -207,10 +221,13 @@ class _CategoryTabsSkeleton extends StatelessWidget {
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
-        children: List.generate(4, (index) => const Padding(
-          padding: EdgeInsets.only(right: 20),
-          child: Skeleton(width: 60, height: 20, borderRadius: 10),
-        )),
+        children: List.generate(
+          4,
+          (index) => const Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: Skeleton(width: 60, height: 20, borderRadius: 10),
+          ),
+        ),
       ),
     );
   }

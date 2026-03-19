@@ -95,7 +95,8 @@ class User {
     if (payPassword == null) return false;
     if (payPassword is bool) return payPassword;
     if (payPassword is int) return payPassword == 1;
-    if (payPassword is String) return payPassword.isNotEmpty && payPassword != '0';
+    if (payPassword is String)
+      return payPassword.isNotEmpty && payPassword != '0';
     return false;
   }
 
@@ -140,6 +141,7 @@ class LevelData {
     this.nextVipLevel,
   });
 
-  factory LevelData.fromJson(Map<String, dynamic> json) => _$LevelDataFromJson(json);
+  factory LevelData.fromJson(Map<String, dynamic> json) =>
+      _$LevelDataFromJson(json);
   Map<String, dynamic> toJson() => _$LevelDataToJson(this);
 }

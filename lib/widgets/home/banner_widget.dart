@@ -21,20 +21,19 @@ class HomeBanner extends StatelessWidget {
         itemBuilder: (BuildContext context, int index) {
           final banner = banners[index];
           return GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => _handleBannerClick(context, banner),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 10),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: banner.img != null
-                    ? WebSafeImage(
-                        imageUrl: banner.img!,
-                        fit: BoxFit.cover,
-                        placeholder: const Skeleton(borderRadius: 15),
-                        errorWidget: _buildErrorPlaceholder(banner.title),
-                      )
-                    : _buildErrorPlaceholder(banner.title),
-              ),
+              child: banner.img != null
+                  ? WebSafeImage(
+                      imageUrl: banner.img!,
+                      fit: BoxFit.cover,
+                      borderRadius: BorderRadius.circular(15),
+                      placeholder: const Skeleton(borderRadius: 15),
+                      errorWidget: _buildErrorPlaceholder(banner.title),
+                    )
+                  : _buildErrorPlaceholder(banner.title),
             ),
           );
         },
@@ -54,9 +53,7 @@ class HomeBanner extends StatelessWidget {
 
   Widget _buildErrorPlaceholder(String? title) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-      ),
+      decoration: BoxDecoration(color: AppTheme.surface),
       child: Center(
         child: Text(
           title ?? "广告位",
@@ -71,7 +68,9 @@ class HomeBanner extends StatelessWidget {
   }
 
   void _handleBannerClick(BuildContext context, BannerModel banner) async {
-    if (banner.open == 1 && banner.openUrl != null && banner.openUrl!.isNotEmpty) {
+    if (banner.open == 1 &&
+        banner.openUrl != null &&
+        banner.openUrl!.isNotEmpty) {
       final Uri url = Uri.parse(banner.openUrl!);
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);

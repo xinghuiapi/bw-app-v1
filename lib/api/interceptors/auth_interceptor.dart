@@ -10,24 +10,29 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     final token = await AuthHelper.getToken();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
-    
+
     // 仅在未设置 lang 头时设置默认值
     if (!options.headers.containsKey('lang')) {
       options.headers['lang'] = _currentLang ?? 'CN';
     }
-    
+
     return handler.next(options);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     // 记录 API 错误到终端
-    debugPrint('=== API ERROR [${err.requestOptions.method}] ${err.requestOptions.path} ===');
+    debugPrint(
+      '=== API ERROR [${err.requestOptions.method}] ${err.requestOptions.path} ===',
+    );
     debugPrint('Status Code: ${err.response?.statusCode}');
     debugPrint('Error Message: ${err.message}');
     debugPrint('Response Data: ${err.response?.data}');

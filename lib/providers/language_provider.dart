@@ -48,10 +48,13 @@ class LanguageNotifier extends Notifier<AppLocale> {
   void _updateSystem(AppLocale locale) {
     // 1. 更新 Slang 全局状态
     LocaleSettings.setLocale(locale);
-    
+
     // 2. 更新 API 拦截器中的语言头
     DioClient().authInterceptor.updateLanguage(locale.apiCode);
   }
 }
 
-final languageProvider = NotifierProvider.autoDispose<LanguageNotifier, AppLocale>(LanguageNotifier.new);
+final languageProvider =
+    NotifierProvider.autoDispose<LanguageNotifier, AppLocale>(
+      LanguageNotifier.new,
+    );

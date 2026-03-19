@@ -5,10 +5,6 @@ class SystemMaintenanceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: const Center(
-        child: Text('系统维护中...'),
-      ),
-    );
+    return Scaffold(body: const Center(child: Text('系统维护中...')));
   }
 }

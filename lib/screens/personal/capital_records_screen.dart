@@ -10,7 +10,8 @@ class CapitalRecordsScreen extends ConsumerStatefulWidget {
   const CapitalRecordsScreen({super.key});
 
   @override
-  ConsumerState<CapitalRecordsScreen> createState() => _CapitalRecordsScreenState();
+  ConsumerState<CapitalRecordsScreen> createState() =>
+      _CapitalRecordsScreenState();
 }
 
 class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
@@ -48,7 +49,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       String? startDate;
       String? endDate;
       final now = DateTime.now();
-      
+
       if (_selectedDateRange != null) {
         startDate = DateFormat('yyyy-MM-dd').format(_selectedDateRange!.start);
         endDate = DateFormat('yyyy-MM-dd').format(_selectedDateRange!.end);
@@ -58,14 +59,20 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
             startDate = endDate = DateFormat('yyyy-MM-dd').format(now);
             break;
           case 'yesterday':
-            startDate = endDate = DateFormat('yyyy-MM-dd').format(now.subtract(const Duration(days: 1)));
+            startDate = endDate = DateFormat(
+              'yyyy-MM-dd',
+            ).format(now.subtract(const Duration(days: 1)));
             break;
           case 'week':
-            startDate = DateFormat('yyyy-MM-dd').format(now.subtract(const Duration(days: 7)));
+            startDate = DateFormat(
+              'yyyy-MM-dd',
+            ).format(now.subtract(const Duration(days: 7)));
             endDate = DateFormat('yyyy-MM-dd').format(now);
             break;
           case 'month':
-            startDate = DateFormat('yyyy-MM-dd').format(now.subtract(const Duration(days: 30)));
+            startDate = DateFormat(
+              'yyyy-MM-dd',
+            ).format(now.subtract(const Duration(days: 30)));
             endDate = DateFormat('yyyy-MM-dd').format(now);
             break;
         }
@@ -124,9 +131,7 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       body: Column(
         children: [
           _buildStatistics(),
-          Expanded(
-            child: _buildRecordList(),
-          ),
+          Expanded(child: _buildRecordList()),
         ],
       ),
     );
@@ -155,7 +160,11 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
   Widget _buildRecordList() {
     if (_records.isEmpty) {
       if (_isLoading) return const LoadingStateWidget();
-      if (_error != null) return ErrorStateWidget(message: _error!, onRetry: () => _loadData(isRefresh: true));
+      if (_error != null)
+        return ErrorStateWidget(
+          message: _error!,
+          onRetry: () => _loadData(isRefresh: true),
+        );
       return const EmptyStateWidget(message: '暂无资金记录');
     }
 
@@ -197,7 +206,11 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
             children: [
               Text(
                 record.typeName ?? '资金变动',
-                style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 '${isPositive ? "+" : ""}¥${amount.toStringAsFixed(2)}',
@@ -215,8 +228,14 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildInfoItem('前余额', '¥${double.tryParse(record.beforeMoney.toString())?.toStringAsFixed(2) ?? "0.00"}'),
-              _buildInfoItem('后余额', '¥${double.tryParse(record.afterMoney.toString())?.toStringAsFixed(2) ?? "0.00"}'),
+              _buildInfoItem(
+                '前余额',
+                '¥${double.tryParse(record.beforeMoney.toString())?.toStringAsFixed(2) ?? "0.00"}',
+              ),
+              _buildInfoItem(
+                '后余额',
+                '¥${double.tryParse(record.afterMoney.toString())?.toStringAsFixed(2) ?? "0.00"}',
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -225,11 +244,17 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
             children: [
               Text(
                 record.createdAt ?? '',
-                style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 12),
+                style: TextStyle(
+                  color: AppTheme.getTextTertiary(context),
+                  fontSize: 12,
+                ),
               ),
               Text(
                 '单号: ${record.rowid ?? "---"}',
-                style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 12),
+                style: TextStyle(
+                  color: AppTheme.getTextTertiary(context),
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -242,9 +267,22 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 12)),
+        Text(
+          label,
+          style: TextStyle(
+            color: AppTheme.getTextTertiary(context),
+            fontSize: 12,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(value, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14, fontWeight: FontWeight.w500)),
+        Text(
+          value,
+          style: TextStyle(
+            color: AppTheme.getTextSecondary(context),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }
@@ -269,15 +307,31 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('筛选', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(
+                        '筛选',
+                        style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       IconButton(
-                        icon: Icon(Icons.close, color: AppTheme.getTextTertiary(context)),
+                        icon: Icon(
+                          Icons.close,
+                          color: AppTheme.getTextTertiary(context),
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Text('快速时间选择', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
+                  Text(
+                    '快速时间选择',
+                    style: TextStyle(
+                      color: AppTheme.getTextSecondary(context),
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -290,7 +344,13 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Text('自定义时间段', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
+                  Text(
+                    '自定义时间段',
+                    style: TextStyle(
+                      color: AppTheme.getTextSecondary(context),
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: () async {
@@ -307,7 +367,9 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                                       primary: AppTheme.primary,
                                       onPrimary: Colors.white,
                                       surface: AppTheme.getCardColor(context),
-                                      onSurface: AppTheme.getTextPrimary(context),
+                                      onSurface: AppTheme.getTextPrimary(
+                                        context,
+                                      ),
                                     )
                                   : ColorScheme.light(
                                       primary: AppTheme.primary,
@@ -328,11 +390,18 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.getInputFillColor(context),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _selectedDateRange != null ? AppTheme.primary : AppTheme.getDividerColor(context)),
+                        border: Border.all(
+                          color: _selectedDateRange != null
+                              ? AppTheme.primary
+                              : AppTheme.getDividerColor(context),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -342,11 +411,17 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                                 ? '请选择时间范围'
                                 : '${DateFormat('yyyy-MM-dd').format(_selectedDateRange!.start)} - ${DateFormat('yyyy-MM-dd').format(_selectedDateRange!.end)}',
                             style: TextStyle(
-                              color: _selectedDateRange == null ? AppTheme.getTextTertiary(context) : AppTheme.getTextPrimary(context),
+                              color: _selectedDateRange == null
+                                  ? AppTheme.getTextTertiary(context)
+                                  : AppTheme.getTextPrimary(context),
                               fontSize: 14,
                             ),
                           ),
-                          Icon(Icons.calendar_today, size: 16, color: AppTheme.getTextTertiary(context)),
+                          Icon(
+                            Icons.calendar_today,
+                            size: 16,
+                            color: AppTheme.getTextTertiary(context),
+                          ),
                         ],
                       ),
                     ),
@@ -363,9 +438,17 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                         backgroundColor: AppTheme.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: const Text('应用筛选', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        '应用筛选',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -384,7 +467,10 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
                           _selectedType = null;
                         });
                       },
-                      child: const Text('重置筛选', style: TextStyle(color: AppTheme.textTertiary)),
+                      child: const Text(
+                        '重置筛选',
+                        style: TextStyle(color: AppTheme.textTertiary),
+                      ),
                     ),
                   ),
                 ],
@@ -396,9 +482,14 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
     );
   }
 
-  Widget _buildQuickDateOption(String value, String label, StateSetter setModalState) {
+  Widget _buildQuickDateOption(
+    String value,
+    String label,
+    StateSetter setModalState,
+  ) {
     final isActive = _activeQuickDate == value;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         setModalState(() {
           _activeQuickDate = value;
@@ -412,14 +503,20 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppTheme.primary.withAlpha(25) : AppTheme.getInputFillColor(context),
+          color: isActive
+              ? AppTheme.primary.withAlpha(25)
+              : AppTheme.getInputFillColor(context),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isActive ? AppTheme.primary : Colors.transparent),
+          border: Border.all(
+            color: isActive ? AppTheme.primary : Colors.transparent,
+          ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? AppTheme.primary : AppTheme.getTextSecondary(context),
+            color: isActive
+                ? AppTheme.primary
+                : AppTheme.getTextSecondary(context),
             fontSize: 14,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
@@ -434,17 +531,31 @@ class _StatItem extends StatelessWidget {
   final String value;
   final Color color;
 
-  const _StatItem({required this.label, required this.value, required this.color});
+  const _StatItem({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(label, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12)),
+        Text(
+          label,
+          style: TextStyle(
+            color: AppTheme.getTextSecondary(context),
+            fontSize: 12,
+          ),
+        ),
         const SizedBox(height: 8),
         Text(
           value,
-          style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: color,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );

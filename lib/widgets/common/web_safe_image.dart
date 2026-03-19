@@ -37,14 +37,17 @@ class WebSafeImage extends StatelessWidget {
     }
 
     // 判断是否为本地资源
-    final bool isAsset = imageUrl.startsWith('assets/') || !imageUrl.contains('://');
+    final bool isAsset =
+        imageUrl.startsWith('assets/') || !imageUrl.contains('://');
 
     if (isAsset) {
       return _buildAssetImage();
     }
 
-    final String correctedUrl = _optimizeUrl(_normalizeUrl(_correctProtocol(imageUrl)).trim());
-    
+    final String correctedUrl = _optimizeUrl(
+      _normalizeUrl(_correctProtocol(imageUrl)).trim(),
+    );
+
     if (!kIsWeb) {
       return _buildMobileImage(correctedUrl);
     }
@@ -64,7 +67,7 @@ class WebSafeImage extends StatelessWidget {
   String _optimizeUrl(String url) {
     // 1. 检查是否为网络图片
     if (!url.startsWith('http')) return url;
-    
+
     // 2. 检查是否为 svg，svg 不进行优化
     if (url.toLowerCase().endsWith('.svg')) return url;
 
@@ -72,7 +75,7 @@ class WebSafeImage extends StatelessWidget {
     try {
       final uri = Uri.parse(url);
       final queryParams = Map<String, String>.from(uri.queryParameters);
-      
+
       // 4. 添加优化参数 (复刻原项目 imageOptimizer.js 逻辑)
       // 如果已经有 _opt 参数，说明已经处理过，跳过
       if (queryParams.containsKey('_opt')) return url;
@@ -81,9 +84,9 @@ class WebSafeImage extends StatelessWidget {
       // 如果指定了宽高，则使用指定值 * 2 (高分屏优化)
       // 如果未指定，则不传 w/h 参数，让后端返回原尺寸（或者后续通过 LayoutBuilder 动态获取，但比较重）
       if (width != null && width!.isFinite && width! > 0) {
-        queryParams['w'] = (width! * 2).toInt().toString(); 
+        queryParams['w'] = (width! * 2).toInt().toString();
       }
-      
+
       if (height != null && height!.isFinite && height! > 0) {
         queryParams['h'] = (height! * 2).toInt().toString();
       }
@@ -92,13 +95,16 @@ class WebSafeImage extends StatelessWidget {
       if (!queryParams.containsKey('q')) {
         queryParams['q'] = '85';
       }
-      
+
       // 裁剪模式
       if (!queryParams.containsKey('m')) {
         String mode = 'contain';
-        if (fit == BoxFit.cover) mode = 'cover';
-        else if (fit == BoxFit.fill) mode = 'fill';
-        else if (fit == BoxFit.contain) mode = 'contain';
+        if (fit == BoxFit.cover)
+          mode = 'cover';
+        else if (fit == BoxFit.fill)
+          mode = 'fill';
+        else if (fit == BoxFit.contain)
+          mode = 'contain';
         queryParams['m'] = mode;
       }
 
@@ -106,7 +112,7 @@ class WebSafeImage extends StatelessWidget {
       if (!queryParams.containsKey('f')) {
         queryParams['f'] = 'webp';
       }
-      
+
       // 优化标记
       queryParams['_opt'] = '1';
 
@@ -124,12 +130,19 @@ class WebSafeImage extends StatelessWidget {
       processedUrl = 'https:$processedUrl';
     }
     // 如果没有协议且不带基础 URL 且不是本地资源，补全资源路径
-    else if (!processedUrl.startsWith('http') && !processedUrl.startsWith('assets/') && !processedUrl.contains('://')) {
-       final baseUrl = AppConstants.resourceBaseUrl.endsWith('/') 
-          ? AppConstants.resourceBaseUrl.substring(0, AppConstants.resourceBaseUrl.length - 1)
+    else if (!processedUrl.startsWith('http') &&
+        !processedUrl.startsWith('assets/') &&
+        !processedUrl.contains('://')) {
+      final baseUrl = AppConstants.resourceBaseUrl.endsWith('/')
+          ? AppConstants.resourceBaseUrl.substring(
+              0,
+              AppConstants.resourceBaseUrl.length - 1,
+            )
           : AppConstants.resourceBaseUrl;
-       final path = processedUrl.startsWith('/') ? processedUrl : '/$processedUrl';
-       processedUrl = '$baseUrl$path';
+      final path = processedUrl.startsWith('/')
+          ? processedUrl
+          : '/$processedUrl';
+      processedUrl = '$baseUrl$path';
     }
     return processedUrl;
   }
@@ -192,22 +205,20 @@ class WebSafeImage extends StatelessWidget {
   }
 
   Widget _buildErrorWidget() {
-    return errorWidget ?? Container(
-      width: width,
-      height: height,
-      color: Colors.grey[200],
-      child: const Center(
-        child: Icon(Icons.broken_image, color: Colors.grey),
-      ),
-    );
+    return errorWidget ??
+        Container(
+          width: width,
+          height: height,
+          color: Colors.grey[200],
+          child: const Center(
+            child: Icon(Icons.broken_image, color: Colors.grey),
+          ),
+        );
   }
 
   Widget _applyBorderRadius(Widget child) {
     if (borderRadius != null) {
-      return ClipRRect(
-        borderRadius: borderRadius!,
-        child: child,
-      );
+      return ClipRRect(borderRadius: borderRadius!, child: child);
     }
     return child;
   }

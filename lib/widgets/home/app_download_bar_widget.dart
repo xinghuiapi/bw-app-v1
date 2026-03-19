@@ -66,7 +66,10 @@ class _AppDownloadBarState extends State<AppDownloadBar> {
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            child: const Text('立即下载', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            child: const Text(
+              '立即下载',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),

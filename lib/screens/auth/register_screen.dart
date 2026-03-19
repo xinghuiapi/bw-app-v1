@@ -19,7 +19,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controllers for all possible fields
   final Map<String, TextEditingController> _controllers = {
     'username': TextEditingController(),
@@ -65,7 +65,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _refreshCaptcha() async {
     if (_isLoadingCaptcha) return;
     setState(() => _isLoadingCaptcha = true);
-    
+
     final response = await AuthService.getCaptcha();
     if (response.isSuccess && response.data != null) {
       setState(() {
@@ -103,14 +103,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (mounted) {
       if (response.isSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('注册成功')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('注册成功')));
         context.go('/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.msg ?? '注册失败')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.msg ?? '注册失败')));
         _refreshCaptcha();
         _controllers['captcha_code']?.clear();
       }
@@ -142,14 +142,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.getPrimaryTextColor(context)),
+          icon: Icon(
+            Icons.arrow_back,
+            color: AppTheme.getPrimaryTextColor(context),
+          ),
           onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
         child: homeDataAsync.when(
           data: (homeData) => _buildRegisterForm(homeData, authState.isLoading),
-          loading: () => homeDataAsync.hasValue 
+          loading: () => homeDataAsync.hasValue
               ? _buildRegisterForm(homeDataAsync.value!, authState.isLoading)
               : const Center(child: CircularProgressIndicator()),
           error: (err, stack) => Center(child: Text('加载配置失败: $err')),
@@ -160,7 +163,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildRegisterForm(HomeData homeData, bool isLoading) {
     // 初始化默认货币 (如果还未初始化)
-    if (_selectedCurrency == null && homeData.currConfig != null && homeData.currConfig!.isNotEmpty) {
+    if (_selectedCurrency == null &&
+        homeData.currConfig != null &&
+        homeData.currConfig!.isNotEmpty) {
       final defaultCurr = homeData.currConfig!.firstWhere(
         (c) => c.statusS == 1,
         orElse: () => homeData.currConfig!.first,
@@ -178,7 +183,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 20),
             _buildHeader(),
             const SizedBox(height: 32),
-            
+
             // Always required fields
             _buildUsernameField(),
             const SizedBox(height: 16),
@@ -187,7 +192,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             _buildConfirmPasswordField(),
             const SizedBox(height: 16),
             _buildCurrencyField(homeData),
-            
+
             // Dynamic fields from config
             if (homeData.regConfig != null)
               ...homeData.regConfig!.where((c) => c.status == 1).map((config) {
@@ -199,13 +204,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ],
                 );
               }),
-            
+
             // Captcha field if enabled
             if (homeData.picConfig?.regStatus == 1) ...[
               const SizedBox(height: 16),
               _buildCaptchaField(),
             ],
-            
+
             const SizedBox(height: 32),
             _buildRegisterButton(isLoading),
             const SizedBox(height: 24),
@@ -248,16 +253,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     switch (code) {
       case 'phone':
-        return _buildPhoneField(isRequired, label, regSendStatus: homeData.sendConfig?.regStatus);
+        return _buildPhoneField(
+          isRequired,
+          label,
+          regSendStatus: homeData.sendConfig?.regStatus,
+        );
       case 'email':
-        return _buildEmailField(isRequired, label, regMailStatus: homeData.mailConfig?.regStatus);
+        return _buildEmailField(
+          isRequired,
+          label,
+          regMailStatus: homeData.mailConfig?.regStatus,
+        );
       case 'name':
         return _buildTextField(
           controller: _controllers['name']!,
           label: label,
           hint: '请输入$label',
           prefixIcon: Icons.badge_outlined,
-          validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
+          validator: isRequired
+              ? (v) => v?.isEmpty == true ? '请输入$label' : null
+              : null,
         );
       case 'qq':
         return _buildTextField(
@@ -267,7 +282,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           prefixIcon: Icons.chat_bubble_outline,
           keyboardType: TextInputType.text,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
+          validator: isRequired
+              ? (v) => v?.isEmpty == true ? '请输入$label' : null
+              : null,
         );
       case 'telegram':
         return _buildTextField(
@@ -275,7 +292,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           label: label,
           hint: '请输入$label',
           prefixIcon: Icons.send_outlined,
-          validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
+          validator: isRequired
+              ? (v) => v?.isEmpty == true ? '请输入$label' : null
+              : null,
         );
       case 'invicode':
         return _buildTextField(
@@ -283,7 +302,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           label: label,
           hint: '请输入$label',
           prefixIcon: Icons.card_giftcard_outlined,
-          validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
+          validator: isRequired
+              ? (v) => v?.isEmpty == true ? '请输入$label' : null
+              : null,
         );
       case 'pay_password':
         return _buildPayPasswordField(isRequired, label);
@@ -319,7 +340,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 prefixIcon: Icons.phone_iphone,
                 keyboardType: TextInputType.text,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
+                validator: isRequired
+                    ? (v) => v?.isEmpty == true ? '请输入$label' : null
+                    : null,
               ),
             ),
           ],
@@ -340,9 +363,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              _buildGetCodeButton(onPressed: () {
-                AuthService.sendSmsCode(_controllers['phone']!.text, _areaCode);
-              }),
+              _buildGetCodeButton(
+                onPressed: () {
+                  AuthService.sendSmsCode(
+                    _controllers['phone']!.text,
+                    _areaCode,
+                  );
+                },
+              ),
             ],
           ),
         ],
@@ -360,7 +388,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           hint: '请输入$label',
           prefixIcon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
-          validator: isRequired ? (v) => v?.isEmpty == true ? '请输入$label' : null : null,
+          validator: isRequired
+              ? (v) => v?.isEmpty == true ? '请输入$label' : null
+              : null,
         ),
         if (showEmailCode) ...[
           const SizedBox(height: 16),
@@ -377,9 +407,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              _buildGetCodeButton(onPressed: () {
-                AuthService.sendEmailCode(_controllers['email']!.text);
-              }),
+              _buildGetCodeButton(
+                onPressed: () {
+                  AuthService.sendEmailCode(_controllers['email']!.text);
+                },
+              ),
             ],
           ),
         ],
@@ -435,7 +467,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       obscureText: _obscurePassword,
       suffixIcon: IconButton(
         icon: Icon(
-          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          _obscurePassword
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
           color: AppTheme.getTertiaryTextColor(context),
           size: 20,
         ),
@@ -457,11 +491,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       obscureText: _obscureConfirmPassword,
       suffixIcon: IconButton(
         icon: Icon(
-          _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          _obscureConfirmPassword
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
           color: AppTheme.getTertiaryTextColor(context),
           size: 20,
         ),
-        onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+        onPressed: () =>
+            setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) return '请确认密码';
@@ -477,13 +514,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     // Filter out items with null code to avoid DropdownButton errors
-    final validConfigs = homeData.currConfig!.where((c) => c.code != null).toList();
+    final validConfigs = homeData.currConfig!
+        .where((c) => c.code != null)
+        .toList();
     if (validConfigs.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('选择货币', style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14)),
+        Text(
+          '选择货币',
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -497,13 +542,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               value: _selectedCurrency,
               isExpanded: true,
               dropdownColor: AppTheme.getInputFillColor(context),
-              icon: Icon(Icons.keyboard_arrow_down, color: AppTheme.getSecondaryTextColor(context)),
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                color: AppTheme.getSecondaryTextColor(context),
+              ),
               items: validConfigs.map((curr) {
                 return DropdownMenuItem<String>(
                   value: curr.code!,
                   child: Text(
                     curr.title ?? curr.code!,
-                    style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 15),
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(context),
+                      fontSize: 15,
+                    ),
                   ),
                 );
               }).toList(),
@@ -527,20 +578,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       prefixIcon: Icons.security_outlined,
       obscureText: _obscurePayPassword,
       keyboardType: TextInputType.text, // 改为 text 以避免某些浏览器下的数字键盘延迟
-      inputFormatters: [
-        LengthLimitingTextInputFormatter(6),
-      ],
+      inputFormatters: [LengthLimitingTextInputFormatter(6)],
       suffixIcon: IconButton(
         icon: Icon(
-          _obscurePayPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          _obscurePayPassword
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
           color: AppTheme.getTertiaryTextColor(context),
           size: 20,
         ),
-        onPressed: () => setState(() => _obscurePayPassword = !_obscurePayPassword),
+        onPressed: () =>
+            setState(() => _obscurePayPassword = !_obscurePayPassword),
       ),
       validator: (value) {
         if (isRequired && (value == null || value.isEmpty)) return '请输入$label';
-        if (value != null && value.isNotEmpty && value.length != 6) return '支付密码必须是6位数字';
+        if (value != null && value.isNotEmpty && value.length != 6)
+          return '支付密码必须是6位数字';
         return null;
       },
     );
@@ -570,6 +623,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildCaptchaImage() {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: _refreshCaptcha,
       child: Container(
         width: 120,
@@ -579,17 +633,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppTheme.getInputBorderColor(context)),
         ),
+        clipBehavior: Clip.antiAlias,
         child: _isLoadingCaptcha
-            ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))
+            ? const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
             : _captchaData != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.memory(
-                      base64Decode(_captchaData!.captchaImageContent.split(',').last),
-                      fit: BoxFit.fill,
-                    ),
-                  )
-                : Icon(Icons.refresh, color: AppTheme.getTertiaryTextColor(context)),
+            ? Image.memory(
+                base64Decode(_captchaData!.captchaImageContent.split(',').last),
+                fit: BoxFit.fill,
+              )
+            : Icon(
+                Icons.refresh,
+                color: AppTheme.getTertiaryTextColor(context),
+              ),
       ),
     );
   }
@@ -613,7 +674,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -627,8 +691,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppTheme.getTertiaryTextColor(context), size: 20) : null,
+            hintStyle: TextStyle(
+              color: AppTheme.getTertiaryTextColor(context),
+              fontSize: 14,
+            ),
+            prefixIcon: prefixIcon != null
+                ? Icon(
+                    prefixIcon,
+                    color: AppTheme.getTertiaryTextColor(context),
+                    size: 20,
+                  )
+                : null,
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppTheme.getInputFillColor(context),
@@ -638,7 +711,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
+              borderSide: BorderSide(
+                color: AppTheme.getInputBorderColor(context),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -648,7 +723,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppTheme.error, width: 1),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 16,
+            ),
           ),
           validator: validator,
         ),
@@ -666,7 +744,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
               )
             : const Text(
                 '立即注册',
@@ -682,13 +763,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       children: [
         Text(
           '已有账号?',
-          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
         ),
         TextButton(
           onPressed: () => context.pop(),
           child: const Text(
             '返回登录',
-            style: TextStyle(color: AppTheme.primary, fontSize: 14, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppTheme.primary,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],

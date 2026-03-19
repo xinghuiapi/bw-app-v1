@@ -18,9 +18,19 @@ class SearchGames extends _$SearchGames {
       return;
     }
 
-    state = state.copyWith(isLoading: true, items: [], error: null, currentPage: 1, hasMore: false);
+    state = state.copyWith(
+      isLoading: true,
+      items: [],
+      error: null,
+      currentPage: 1,
+      hasMore: false,
+    );
     try {
-      final response = await GameService.searchGames(keyword: keyword, page: 1, size: 20);
+      final response = await GameService.searchGames(
+        keyword: keyword,
+        page: 1,
+        size: 20,
+      );
       if (response.isSuccess && response.data != null) {
         final data = response.data!;
         state = PaginationState(
@@ -39,12 +49,20 @@ class SearchGames extends _$SearchGames {
   }
 
   Future<void> loadMore(String keyword) async {
-    if (keyword.isEmpty || state.isLoading || state.isMoreLoading || !state.hasMore) return;
+    if (keyword.isEmpty ||
+        state.isLoading ||
+        state.isMoreLoading ||
+        !state.hasMore)
+      return;
 
     state = state.copyWith(isMoreLoading: true);
     try {
       final nextPage = state.currentPage + 1;
-      final response = await GameService.searchGames(keyword: keyword, page: nextPage, size: 20);
+      final response = await GameService.searchGames(
+        keyword: keyword,
+        page: nextPage,
+        size: 20,
+      );
       if (response.isSuccess && response.data != null) {
         final data = response.data!;
         state = state.copyWith(
@@ -52,7 +70,9 @@ class SearchGames extends _$SearchGames {
           currentPage: data.currentPage ?? nextPage,
           lastPage: data.lastPage ?? state.lastPage,
           isMoreLoading: false,
-          hasMore: (data.currentPage ?? nextPage) < (data.lastPage ?? state.lastPage),
+          hasMore:
+              (data.currentPage ?? nextPage) <
+              (data.lastPage ?? state.lastPage),
         );
       } else {
         state = state.copyWith(isMoreLoading: false, error: response.msg);

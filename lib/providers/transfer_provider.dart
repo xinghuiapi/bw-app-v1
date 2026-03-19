@@ -61,11 +61,8 @@ class TransferNotifier extends Notifier<TransferState> {
       if (response.code == 200) {
         final raw = response.data ?? [];
         final primaries = raw.where((item) => item.name != '推荐').toList();
-        
-        state = state.copyWith(
-          primaryCategories: primaries,
-          loading: false,
-        );
+
+        state = state.copyWith(primaryCategories: primaries, loading: false);
 
         if (primaries.isNotEmpty) {
           await selectPrimaryCategory(primaries.first);
@@ -83,10 +80,12 @@ class TransferNotifier extends Notifier<TransferState> {
     state = state.copyWith(selectedPrimary: primary, balanceLoading: true);
     try {
       // 获取二级分类 (平台列表)
-      final subResponse = await FinanceService.getTransferCategories(primary.code ?? '');
+      final subResponse = await FinanceService.getTransferCategories(
+        primary.code ?? '',
+      );
       if (subResponse.code == 200) {
         state = state.copyWith(subCategories: subResponse.data ?? []);
-        
+
         // 获取所有平台的余额
         await refreshPlatformBalances(primary.code ?? '');
       } else {
@@ -153,12 +152,16 @@ class TransferNotifier extends Notifier<TransferState> {
   }
 
   /// 转账操作
-  Future<String?> _doTransfer(int platformId, double amount, bool toPlatform) async {
+  Future<String?> _doTransfer(
+    int platformId,
+    double amount,
+    bool toPlatform,
+  ) async {
     state = state.copyWith(loading: true, error: null);
     try {
-      final response = toPlatform 
-        ? await FinanceService.depositToGame(platformId, amount)
-        : await FinanceService.withdrawFromGame(platformId, amount);
+      final response = toPlatform
+          ? await FinanceService.depositToGame(platformId, amount)
+          : await FinanceService.withdrawFromGame(platformId, amount);
 
       if (response.code == 200) {
         // 转账成功后刷新余额
@@ -204,4 +207,7 @@ class TransferNotifier extends Notifier<TransferState> {
   }
 }
 
-final transferProvider = NotifierProvider.autoDispose<TransferNotifier, TransferState>(TransferNotifier.new);
+final transferProvider =
+    NotifierProvider.autoDispose<TransferNotifier, TransferState>(
+      TransferNotifier.new,
+    );

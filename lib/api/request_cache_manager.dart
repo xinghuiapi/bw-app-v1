@@ -16,7 +16,8 @@ class CacheItem {
   });
 
   bool get isExpired {
-    return DateTime.now().millisecondsSinceEpoch - timestamp > ttl.inMilliseconds;
+    return DateTime.now().millisecondsSinceEpoch - timestamp >
+        ttl.inMilliseconds;
   }
 }
 
@@ -28,7 +29,7 @@ class CacheItem {
 /// 3. 自动清理过期缓存
 class RequestCacheManager {
   static final RequestCacheManager _instance = RequestCacheManager._internal();
-  
+
   factory RequestCacheManager() => _instance;
 
   RequestCacheManager._internal() {

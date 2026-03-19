@@ -99,29 +99,174 @@
 
    <script src="flutter_bootstrap.js" async></script>
    
+   <!-- 注入性能与 DOM 节点监控脚本 -->
    <script>
-    // 使用新的 flutter_bootstrap.js 配置方式
-    // 必须在 flutter_bootstrap.js 加载后执行配置（或者通过全局变量 _flutter 注入，取决于版本）
-    // 注意：Flutter 3.22+ 推荐直接在 script 标签中嵌入配置，或者修改 flutter_bootstrap.js 的调用方式
-    
-    // 由于我们使用了 flutter_bootstrap.js，它内部会读取 window.flutterConfiguration
-    // 但错误提示 "Using the (deprecated) window.flutterConfiguration and initializeEngine configuration simultaneously is not supported"
-    // 说明 flutter_bootstrap.js 内部可能已经包含了一套初始化逻辑，而我们又在外部设置了 window.flutterConfiguration 导致冲突
-    // 或者 flutter_bootstrap.js 是旧版构建产物，而我们用了新版配置方式
-    
-    // 解决方案：移除 window.flutterConfiguration，改用 {{flutter_bootstrap_js}} 模板注入或自定义加载流程
-    
-    // 如果是 Flutter 3.22+，flutter_bootstrap.js 会自动处理初始化。
-    // 我们需要自定义配置，应该通过自定义 _flutter.loader.loadEntrypoint 来实现。
-    
-    // 但是，flutter_bootstrap.js 通常是构建时生成的。
-    // 如果我们想覆盖配置，最稳妥的方式是：
-    // 1. 不定义 window.flutterConfiguration
-    // 2. 如果需要自定义 renderer，可以在 flutter run 时通过命令行参数传递 --web-renderer html
-    // 3. 或者，在 index.html 中完全自定义加载流程（不使用默认的 flutter_bootstrap.js），但这比较复杂。
-    
-    // 鉴于当前错误，最直接的修复是：删除 window.flutterConfiguration 的定义。
-    // 然后依靠 flutter run --web-renderer html 来控制渲染器。
+    (function() {
+      // 捕获全局 JS 错误并在屏幕上显示
+      window.onerror = function(message, source, lineno, colno, error) {
+        const errDiv = document.createElement('div');
+        errDiv.style.position = 'fixed';
+        errDiv.style.top = '10px';
+        errDiv.style.left = '10px';
+        errDiv.style.right = '10px';
+        errDiv.style.backgroundColor = 'rgba(255,0,0,0.9)';
+        errDiv.style.color = 'white';
+        errDiv.style.padding = '10px';
+        errDiv.style.zIndex = '9999999';
+        errDiv.style.fontSize = '12px';
+        errDiv.style.wordWrap = 'break-word';
+        errDiv.innerHTML = `<b>JS Error:</b> ${message}<br>Source: ${source}:${lineno}:${colno}<br>${error ? error.stack : ''}`;
+        document.body.appendChild(errDiv);
+        return false;
+      };
+
+      window.addEventListener('unhandledrejection', function(event) {
+        const errDiv = document.createElement('div');
+        errDiv.style.position = 'fixed';
+        errDiv.style.top = '100px';
+        errDiv.style.left = '10px';
+        errDiv.style.right = '10px';
+        errDiv.style.backgroundColor = 'rgba(255,165,0,0.9)';
+        errDiv.style.color = 'black';
+        errDiv.style.padding = '10px';
+        errDiv.style.zIndex = '9999999';
+        errDiv.style.fontSize = '12px';
+        errDiv.style.wordWrap = 'break-word';
+        errDiv.innerHTML = `<b>Unhandled Promise Rejection:</b> ${event.reason}`;
+        document.body.appendChild(errDiv);
+      });
+
+      const monitor = document.createElement('div');
+      monitor.style.position = 'fixed';
+      monitor.style.bottom = '10px';
+      monitor.style.left = '10px';
+      monitor.style.backgroundColor = 'rgba(0,0,0,0.8)';
+      monitor.style.color = 'lime';
+      monitor.style.padding = '8px 12px';
+      monitor.style.borderRadius = '8px';
+      monitor.style.fontSize = '12px';
+      monitor.style.lineHeight = '1.5';
+      monitor.style.zIndex = '999999';
+      monitor.style.pointerEvents = 'none';
+      monitor.style.boxShadow = '0 2px 10px rgba(0,0,0,0.5)';
+      document.body.appendChild(monitor);
+
+      let lastTime = performance.now();
+      let frames = 0;
+      let fps = 0;
+      let lastReportTime = 0;
+
+      function updateMonitor() {
+        frames++;
+        const now = performance.now();
+        if (now - lastTime >= 1000) {
+          fps = Math.round((frames * 1000) / (now - lastTime));
+          frames = 0;
+          lastTime = now;
+          
+          // 统计 DOM 节点数
+          const allNodes = document.querySelectorAll('*');
+          const domCount = allNodes.length;
+          const imgCount = document.querySelectorAll('img').length;
+          const canvasCount = document.querySelectorAll('canvas').length;
+          const fltPictureCount = document.querySelectorAll('flt-picture').length;
+          const fltTransformCount = document.querySelectorAll('flt-transform').length;
+          const fltClipCount = document.querySelectorAll('flt-clip').length;
+          const fltOpacityCount = document.querySelectorAll('flt-opacity').length;
+          const fltSemanticsCount = document.querySelectorAll('flt-semantics').length;
+          const fltParagraphCount = document.querySelectorAll('flt-paragraph').length;
+          
+          const tagCounts = {};
+          allNodes.forEach(node => {
+              const tag = node.tagName.toLowerCase();
+              tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          });
+          const topTags = Object.entries(tagCounts)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 4)
+              .map(e => `${e[0]}:${e[1]}`)
+              .join(' ');
+
+          let maxDepth = 0;
+          function getDepth(el, currentDepth) {
+             if (currentDepth > maxDepth) maxDepth = currentDepth;
+             for (let child of el.children) {
+                 getDepth(child, currentDepth + 1);
+             }
+          }
+          if (document.body) {
+              getDepth(document.body, 1);
+          }
+
+          monitor.innerHTML = `
+            <b>FPS: ${fps}</b> | <b>DOM: ${domCount}</b> | <b>Depth: ${maxDepth}</b><br>
+            Top: ${topTags}<br>
+            IMG: ${imgCount} | TXT: ${fltParagraphCount} | Canvas: ${canvasCount}<br>
+            PIC: ${fltPictureCount} | TSF: ${fltTransformCount} | CLP: ${fltClipCount}<br>
+            OPC: ${fltOpacityCount} | SEM: ${fltSemanticsCount}
+          `;
+          
+          // 警告阈值：Safari 中 DOM 过多极易崩溃
+          if (domCount > 1000 || maxDepth > 50) {
+            monitor.style.color = '#ff4444';
+            if (now - lastReportTime > 5000) {
+              console.warn(`⚠️ [性能警告] 当前 DOM 节点数: ${domCount}, 最大深度: ${maxDepth}，超过阈值可能导致 Safari 崩溃发热！`);
+              console.warn(`分布详情 -> PIC(绘制): ${fltPictureCount}, TSF(变换): ${fltTransformCount}, CLP(裁剪): ${fltClipCount}, OPC(透明): ${fltOpacityCount}, SEM(语义): ${fltSemanticsCount}, TXT(文本): ${fltParagraphCount}`);
+              
+              // 寻找 DOM 树最深的节点
+              let deepestNode = null;
+              let currentMaxDepth = 0;
+              function findDeepest(el, depth) {
+                 if (depth > currentMaxDepth) {
+                    currentMaxDepth = depth;
+                    deepestNode = el;
+                 }
+                 for (let child of el.children) {
+                     findDeepest(child, depth + 1);
+                 }
+              }
+              if (document.body) {
+                  findDeepest(document.body, 1);
+                  if (deepestNode) {
+                      console.warn('最深节点路径:', getPath(deepestNode));
+                  }
+              }
+              
+              lastReportTime = now;
+            }
+          } else if (domCount > 800) {
+            monitor.style.color = '#ffaa00';
+          } else {
+            monitor.style.color = '#00ff00';
+          }
+        }
+        requestAnimationFrame(updateMonitor);
+      }
+      
+      function getPath(el) {
+          if (!el) return '';
+          let path = [];
+          while (el && el.nodeType === Node.ELEMENT_NODE) {
+              let selector = el.nodeName.toLowerCase();
+              if (el.id) {
+                  selector += '#' + el.id;
+                  path.unshift(selector);
+                  break;
+              } else {
+                  let sib = el, nth = 1;
+                  while (sib = sib.previousElementSibling) {
+                      if (sib.nodeName.toLowerCase() == selector) nth++;
+                  }
+                  if (nth != 1) selector += ":nth-of-type("+nth+")";
+              }
+              path.unshift(selector);
+              el = el.parentNode;
+          }
+          return path.join(' > ');
+      }
+      
+      requestAnimationFrame(updateMonitor);
+    })();
    </script>
 </body>
 </html>

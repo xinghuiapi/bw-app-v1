@@ -35,13 +35,8 @@ class UpdateDialog extends StatelessWidget {
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardBackground : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            border: Border.all(color: AppTheme.getDividerColor(context)),
+            // Removed BoxShadow for web optimization
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

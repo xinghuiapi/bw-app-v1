@@ -60,7 +60,7 @@ class ActivitiesDetailScreen extends ConsumerWidget {
               width: double.infinity,
               fit: BoxFit.fitWidth,
             ),
-          
+
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -75,9 +75,9 @@ class ActivitiesDetailScreen extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 // 时间
                 if (activity.startAt != null || activity.endAt != null)
                   Text(
@@ -87,9 +87,9 @@ class ActivitiesDetailScreen extends ConsumerWidget {
                       fontSize: 12,
                     ),
                   ),
-                
+
                 const Divider(height: 32, color: Colors.white10),
-                
+
                 // 富文本内容
                 HtmlWidget(
                   activity.content ?? '',
@@ -99,9 +99,9 @@ class ActivitiesDetailScreen extends ConsumerWidget {
                     return true;
                   },
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // 立即参与按钮 (如果需要)
                 SizedBox(
                   width: double.infinity,
@@ -117,10 +117,13 @@ class ActivitiesDetailScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('立即参与', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      '立即参与',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
               ],
             ),

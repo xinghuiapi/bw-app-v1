@@ -33,7 +33,8 @@ class LoginRequest {
     this.captchaKey,
   });
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) => _$LoginRequestFromJson(json);
+  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
+      _$LoginRequestFromJson(json);
   Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
 }
 
@@ -82,7 +83,8 @@ class RegisterRequest {
     this.payPassword,
   });
 
-  factory RegisterRequest.fromJson(Map<String, dynamic> json) => _$RegisterRequestFromJson(json);
+  factory RegisterRequest.fromJson(Map<String, dynamic> json) =>
+      _$RegisterRequestFromJson(json);
   Map<String, dynamic> toJson() => _$RegisterRequestToJson(this);
 }
 
@@ -110,7 +112,8 @@ class AuthResponseData {
     this.isOneLogin,
   });
 
-  factory AuthResponseData.fromJson(Map<String, dynamic> json) => _$AuthResponseDataFromJson(json);
+  factory AuthResponseData.fromJson(Map<String, dynamic> json) =>
+      _$AuthResponseDataFromJson(json);
   Map<String, dynamic> toJson() => _$AuthResponseDataToJson(this);
 }
 
@@ -120,12 +123,10 @@ class TelegramLoginRequest {
   final String userId;
   final String username;
 
-  TelegramLoginRequest({
-    required this.userId,
-    required this.username,
-  });
+  TelegramLoginRequest({required this.userId, required this.username});
 
-  factory TelegramLoginRequest.fromJson(Map<String, dynamic> json) => _$TelegramLoginRequestFromJson(json);
+  factory TelegramLoginRequest.fromJson(Map<String, dynamic> json) =>
+      _$TelegramLoginRequestFromJson(json);
   Map<String, dynamic> toJson() => _$TelegramLoginRequestToJson(this);
 }
 
@@ -141,7 +142,8 @@ class SetTelegramPasswordRequest {
     required this.confirmPass,
   });
 
-  factory SetTelegramPasswordRequest.fromJson(Map<String, dynamic> json) => _$SetTelegramPasswordRequestFromJson(json);
+  factory SetTelegramPasswordRequest.fromJson(Map<String, dynamic> json) =>
+      _$SetTelegramPasswordRequestFromJson(json);
   Map<String, dynamic> toJson() => _$SetTelegramPasswordRequestToJson(this);
 }
 
@@ -163,7 +165,8 @@ class CaptchaData {
     this.captchaCode,
   });
 
-  factory CaptchaData.fromJson(Map<String, dynamic> json) => _$CaptchaDataFromJson(json);
+  factory CaptchaData.fromJson(Map<String, dynamic> json) =>
+      _$CaptchaDataFromJson(json);
   Map<String, dynamic> toJson() => _$CaptchaDataToJson(this);
 }
 
@@ -192,6 +195,7 @@ class ResetPasswordRequest {
     required this.password,
   });
 
-  factory ResetPasswordRequest.fromJson(Map<String, dynamic> json) => _$ResetPasswordRequestFromJson(json);
+  factory ResetPasswordRequest.fromJson(Map<String, dynamic> json) =>
+      _$ResetPasswordRequestFromJson(json);
   Map<String, dynamic> toJson() => _$ResetPasswordRequestToJson(this);
 }

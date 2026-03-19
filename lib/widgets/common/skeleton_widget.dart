@@ -53,28 +53,28 @@ class CategorySkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    return Padding(
       padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: 10,
-      itemBuilder: (context, index) {
-        return Column(
-          children: [
-            const Expanded(
-              child: Skeleton(borderRadius: 12),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: List.generate(10, (index) {
+          final width = (MediaQuery.of(context).size.width - 24 - 20) / 3;
+          return SizedBox(
+            width: width,
+            height: width / 0.8,
+            child: Column(
+              children: [
+                const Expanded(
+                  child: Skeleton(borderRadius: 12),
+                ),
+                const SizedBox(height: 4),
+                const Skeleton(width: 40, height: 12, borderRadius: 2),
+              ],
             ),
-            const SizedBox(height: 4),
-            const Skeleton(width: 40, height: 12, borderRadius: 2),
-          ],
-        );
-      },
+          );
+        }),
+      ),
     );
   }
 }

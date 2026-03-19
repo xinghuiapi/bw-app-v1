@@ -59,26 +59,23 @@ class UserNotifier extends Notifier<UserState> {
   /// 获取用户信息
   Future<void> fetchUserInfo() async {
     if (state.isLoading) return;
-    
+
     state = state.copyWith(isLoading: true, error: null);
     try {
       // 对接原项目接口 /token/user
       debugPrint('Fetching user info from /token/user...');
       final response = await api.post('/token/user');
       debugPrint('User info response: ${response.data}');
-      
-      final apiResponse = ApiResponse.fromJson(
-        response.data,
-        (json) => json,
-      );
+
+      final apiResponse = ApiResponse.fromJson(response.data, (json) => json);
 
       if (apiResponse.isSuccess && apiResponse.data != null) {
         // 原项目返回的可能是数组或对象，如果是数组则取第一个
         final data = apiResponse.data;
-        final userData = data is List 
+        final userData = data is List
             ? (data.isNotEmpty ? data[0] as Map<String, dynamic> : null)
             : data as Map<String, dynamic>;
-            
+
         if (userData == null) {
           state = state.copyWith(isLoading: false, error: '获取用户信息为空');
           return;
@@ -87,18 +84,12 @@ class UserNotifier extends Notifier<UserState> {
         debugPrint('Parsing user data: $userData');
         try {
           final user = User.fromJson(userData);
-          state = state.copyWith(
-            user: user,
-            isLoading: false,
-          );
+          state = state.copyWith(user: user, isLoading: false);
           debugPrint('User data parsed successfully: ${user.username}');
         } catch (e, stack) {
           debugPrint('Error parsing User model: $e');
           debugPrint('Stack trace: $stack');
-          state = state.copyWith(
-            isLoading: false,
-            error: '数据解析失败: $e',
-          );
+          state = state.copyWith(isLoading: false, error: '数据解析失败: $e');
         }
       } else {
         debugPrint('User info failed: ${apiResponse.msg}');
@@ -108,17 +99,14 @@ class UserNotifier extends Notifier<UserState> {
         );
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
   /// 刷新余额
   Future<void> refreshBalance() async {
     if (state.isBalanceLoading) return;
-    
+
     state = state.copyWith(isBalanceLoading: true);
     await fetchUserInfo();
     state = state.copyWith(isBalanceLoading: false);
@@ -127,13 +115,13 @@ class UserNotifier extends Notifier<UserState> {
   /// 一键回收余额
   Future<void> allTrans() async {
     if (state.isAllTransLoading) return;
-    
+
     state = state.copyWith(isAllTransLoading: true);
     try {
       // 对接原项目接口 /game/all_trans
       final response = await api.post('/game/all_trans');
       final apiResponse = ApiResponse.fromJson(response.data, (json) => json);
-      
+
       if (apiResponse.isSuccess) {
         // 回收成功后刷新用户信息获取最新余额
         await fetchUserInfo();
@@ -172,4 +160,6 @@ class UserNotifier extends Notifier<UserState> {
 }
 
 /// 用户 Provider
-final userProvider = NotifierProvider<UserNotifier, UserState>(UserNotifier.new);
+final userProvider = NotifierProvider<UserNotifier, UserState>(
+  UserNotifier.new,
+);

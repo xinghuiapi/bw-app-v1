@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +23,8 @@ class SearchScreen extends ConsumerStatefulWidget {
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerProviderStateMixin {
+class _SearchScreenState extends ConsumerState<SearchScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   late TabController _tabController;
   late ScrollController _scrollController;
@@ -33,7 +35,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
   void initState() {
     super.initState();
     _loadHistory();
-    _tabController = TabController(length: 4, vsync: this, initialIndex: 1); // 初始选中全部热门
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: 1,
+    ); // 初始选中全部热门
     _tabController.addListener(_handleTabChange);
     _scrollController = ScrollController()..addListener(_onScroll);
   }
@@ -91,7 +97,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (_tabController.index == 0) {
         // 搜索结果分页
         final keyword = _controller.text.trim();
@@ -140,10 +147,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
       backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppTheme.getPrimaryTextColor(context)),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppTheme.getPrimaryTextColor(context),
+          ),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
         ),
-        title: Text('搜索', style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text(
+          '搜索',
+          style: TextStyle(
+            color: AppTheme.getPrimaryTextColor(context),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -157,30 +180,38 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
               decoration: BoxDecoration(
                 color: AppTheme.getInputFillColor(context),
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  if (!AppTheme.isDark(context))
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                ],
+                // Removed BoxShadow for web optimization
               ),
               child: TextField(
                 controller: _controller,
                 style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
+                textInputAction: TextInputAction.search, // 明确指定为搜索动作
                 decoration: InputDecoration(
                   hintText: '搜索',
-                  hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context)),
+                  hintStyle: TextStyle(
+                    color: AppTheme.getTertiaryTextColor(context),
+                  ),
                   prefixIcon: null,
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.search, color: AppTheme.getTertiaryTextColor(context)),
-                    onPressed: _handleSearch,
+                    icon: Icon(
+                      Icons.search,
+                      color: AppTheme.getTertiaryTextColor(context),
+                    ),
+                    onPressed: () {
+                      FocusScope.of(context).unfocus(); // 收起键盘
+                      _handleSearch();
+                    },
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                 ),
-                onSubmitted: (_) => _handleSearch(),
+                onSubmitted: (_) {
+                  FocusScope.of(context).unfocus(); // 收起键盘
+                  _handleSearch();
+                },
               ),
             ),
           ),
@@ -195,16 +226,29 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('最近搜索', style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontWeight: FontWeight.bold)),
+                      Text(
+                        '最近搜索',
+                        style: TextStyle(
+                          color: AppTheme.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       TextButton(
                         onPressed: _clearHistory,
-                        child: Text('清空', style: TextStyle(color: AppTheme.getTertiaryTextColor(context))),
+                        child: Text(
+                          '清空',
+                          style: TextStyle(
+                            color: AppTheme.getTertiaryTextColor(context),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   Wrap(
                     spacing: 8,
-                    children: _recentSearches.map((tag) => _buildSearchTag(tag)).toList(),
+                    children: _recentSearches
+                        .map((tag) => _buildSearchTag(tag))
+                        .toList(),
                   ),
                 ],
               ),
@@ -223,7 +267,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
             unselectedLabelColor: AppTheme.getTertiaryTextColor(context),
             indicatorColor: AppTheme.primary,
             indicatorSize: TabBarIndicatorSize.label,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
             tabs: const [
               Tab(
                 child: Row(
@@ -294,16 +341,29 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppTheme.getDividerColor(context)),
         ),
-        child: Text(text, style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 12)),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildSearchResults() {
     final searchState = ref.watch(searchGamesProvider);
-    
-    if (searchState.isLoading) return const Center(child: CircularProgressIndicator());
-    if (searchState.error != null) return Center(child: Text(searchState.error!, style: const TextStyle(color: Colors.red)));
+
+    if (searchState.isLoading)
+      return const Center(child: CircularProgressIndicator());
+    if (searchState.error != null)
+      return Center(
+        child: Text(
+          searchState.error!,
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
     if (searchState.items.isEmpty) return const Center(child: Text('没有找到相关游戏'));
 
     return _buildGameGrid(searchState.items, searchState.isMoreLoading);
@@ -312,8 +372,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
   Widget _buildHotGames() {
     final hotGamesState = ref.watch(hotGamesProvider);
 
-    if (hotGamesState.isLoading) return const Center(child: CircularProgressIndicator());
-    if (hotGamesState.error != null) return Center(child: Text('加载失败: ${hotGamesState.error}'));
+    if (hotGamesState.isLoading)
+      return const Center(child: CircularProgressIndicator());
+    if (hotGamesState.error != null)
+      return Center(child: Text('加载失败: ${hotGamesState.error}'));
     if (hotGamesState.items.isEmpty) return const Center(child: Text('暂无热门游戏'));
 
     return _buildGameGrid(hotGamesState.items, hotGamesState.isMoreLoading);
@@ -333,7 +395,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
               onPressed: () => Navigator.of(context).pushNamed('/login'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
               child: const Text('去登录', style: TextStyle(color: Colors.white)),
             ),
@@ -344,11 +408,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
 
     final favoriteGamesState = ref.watch(favoriteGamesProvider);
 
-    if (favoriteGamesState.isLoading) return const Center(child: CircularProgressIndicator());
-    if (favoriteGamesState.error != null) return Center(child: Text('加载失败: ${favoriteGamesState.error}'));
-    if (favoriteGamesState.items.isEmpty) return const Center(child: Text('暂无收藏游戏'));
+    if (favoriteGamesState.isLoading)
+      return const Center(child: CircularProgressIndicator());
+    if (favoriteGamesState.error != null)
+      return Center(child: Text('加载失败: ${favoriteGamesState.error}'));
+    if (favoriteGamesState.items.isEmpty)
+      return const Center(child: Text('暂无收藏游戏'));
 
-    return _buildGameGrid(favoriteGamesState.items, favoriteGamesState.isMoreLoading);
+    return _buildGameGrid(
+      favoriteGamesState.items,
+      favoriteGamesState.isMoreLoading,
+    );
   }
 
   Widget _buildGameGrid(List<GameItem> games, bool isMoreLoading) {
@@ -365,8 +435,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
               childAspectRatio: 0.75,
             ),
             itemCount: games.length,
+            // 优化性能，使用 findChildIndexCallback 避免不必要的重建
+            findChildIndexCallback: (Key key) {
+              final ValueKey<String> valueKey = key as ValueKey<String>;
+              final String id = valueKey.value;
+              final index = games.indexWhere((game) => game.id?.toString() == id);
+              return index >= 0 ? index : null;
+            },
             itemBuilder: (context, index) {
-              return _buildGameCard(games[index]);
+              return KeyedSubtree(
+                key: ValueKey(games[index].id?.toString() ?? index.toString()),
+                child: _buildGameCard(games[index]),
+              );
             },
           ),
         ),
@@ -393,8 +473,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
-        ref.read(gameLauncherProvider).launchGame(
+        ref
+            .read(gameLauncherProvider)
+            .launchGame(
               context,
               game,
               isCategoryResult: game.isCategoryResult ?? false,
@@ -404,97 +487,122 @@ class _SearchScreenState extends ConsumerState<SearchScreen> with SingleTickerPr
       child: Column(
         children: [
           Expanded(
-            child: Stack(
+            child: Column(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: WebSafeImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                ),
-                // 收藏按钮
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: GestureDetector(
-                    onTap: () async {
-                      if (game.id != null) {
-                        // 检查登录状态
-                        if (!ref.read(authProvider).isLoggedIn) {
-                          ToastUtils.showInfo('请先登录以收藏游戏');
-                          return;
-                        }
-
-                        // 本地先切换，提供即时反馈
-                        if (_tabController.index == 0) {
-                          ref.read(searchGamesProvider.notifier).toggleFavoriteLocal(game.id!);
-                        } else if (_tabController.index == 1) {
-                          ref.read(hotGamesProvider.notifier).toggleFavoriteLocal(game.id!);
-                        } else if (_tabController.index == 3) {
-                          ref.read(favoriteGamesProvider.notifier).toggleFavoriteLocal(game.id!);
-                        }
-                        
-                        // 计算目标状态
-                        final targetStatus = game.isFavorite ? 0 : 1;
-                        final success = await ref.read(userProvider.notifier).toggleFavorite(game.id!, targetStatus);
-                        
-                        if (!success) {
-                          // 如果失败，回退本地状态
-                          if (_tabController.index == 0) {
-                            ref.read(searchGamesProvider.notifier).toggleFavoriteLocal(game.id!);
-                          } else if (_tabController.index == 1) {
-                            ref.read(hotGamesProvider.notifier).toggleFavoriteLocal(game.id!);
-                          } else if (_tabController.index == 3) {
-                            // 在收藏页如果是失败了，其实应该刷新一下或者重新添加回来
-                            // 这里简单处理为刷新
-                            ref.read(favoriteGamesProvider.notifier).refresh();
-                          }
-                        } else {
-                          ToastUtils.showSuccess(targetStatus == 1 ? '已加入收藏' : '已取消收藏');
-                          // 成功后，如果是从其他页面收藏/取消，可能需要同步收藏页
-                          if (_tabController.index != 3) {
-                            ref.read(favoriteGamesProvider.notifier).refresh();
-                          }
-                        }
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        game.isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
-                        color: game.isFavorite ? AppTheme.primary : Colors.white,
-                        size: 18,
-                      ),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: WebSafeImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-                // 平台标签
-                if (game.interfaceTitle != null)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(8),
-                          bottomRight: Radius.circular(12),
+                // 平台标签与收藏移至下方，避免使用 Stack 叠加 DOM
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (game.interfaceTitle != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white10 : Colors.black12,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            game.interfaceTitle!,
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontSize: 10,
+                            ),
+                          ),
+                        )
+                      else
+                        const SizedBox.shrink(),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () async {
+                          if (game.id != null) {
+                            // 检查登录状态
+                            if (!ref.read(authProvider).isLoggedIn) {
+                              ToastUtils.showInfo('请先登录以收藏游戏');
+                              return;
+                            }
+
+                            // 本地先切换，提供即时反馈
+                            if (_tabController.index == 0) {
+                              ref
+                                  .read(searchGamesProvider.notifier)
+                                  .toggleFavoriteLocal(game.id!);
+                            } else if (_tabController.index == 1) {
+                              ref
+                                  .read(hotGamesProvider.notifier)
+                                  .toggleFavoriteLocal(game.id!);
+                            } else if (_tabController.index == 3) {
+                              ref
+                                  .read(favoriteGamesProvider.notifier)
+                                  .toggleFavoriteLocal(game.id!);
+                            }
+
+                            // 计算目标状态
+                            final targetStatus = game.isFavorite ? 0 : 1;
+                            final success = await ref
+                                .read(userProvider.notifier)
+                                .toggleFavorite(game.id!, targetStatus);
+
+                            if (!success) {
+                              // 如果失败，回退本地状态
+                              if (_tabController.index == 0) {
+                                ref
+                                    .read(searchGamesProvider.notifier)
+                                    .toggleFavoriteLocal(game.id!);
+                              } else if (_tabController.index == 1) {
+                                ref
+                                    .read(hotGamesProvider.notifier)
+                                    .toggleFavoriteLocal(game.id!);
+                              } else if (_tabController.index == 3) {
+                                // 在收藏页如果是失败了，其实应该刷新一下或者重新添加回来
+                                // 这里简单处理为刷新
+                                ref
+                                    .read(favoriteGamesProvider.notifier)
+                                    .refresh();
+                              }
+                            } else {
+                              ToastUtils.showSuccess(
+                                targetStatus == 1 ? '已加入收藏' : '已取消收藏',
+                              );
+                              // 成功后，如果是从其他页面收藏/取消，可能需要同步收藏页
+                              if (_tabController.index != 3) {
+                                ref
+                                    .read(favoriteGamesProvider.notifier)
+                                    .refresh();
+                              }
+                            }
+                          }
+                        },
+                        child: Icon(
+                          game.isFavorite
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
+                          color: game.isFavorite
+                              ? AppTheme.primary
+                              : AppTheme.getTertiaryTextColor(context),
+                          size: 18,
                         ),
                       ),
-                      child: Text(
-                        game.interfaceTitle!,
-                        style: const TextStyle(color: Colors.white, fontSize: 10),
-                      ),
-                    ),
+                    ],
                   ),
+                ),
               ],
             ),
           ),

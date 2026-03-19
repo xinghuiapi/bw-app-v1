@@ -52,12 +52,15 @@ class RechargeState {
   // 快捷金额列表（从选中的通道中获取）
   List<double> get quickAmounts {
     if (selectedChannel?.amount == null) return [];
-    
-    return selectedChannel!.amount!.map((e) {
-      if (e is num) return e.toDouble();
-      if (e is String) return double.tryParse(e) ?? 0.0;
-      return 0.0;
-    }).where((e) => e > 0).toList();
+
+    return selectedChannel!.amount!
+        .map((e) {
+          if (e is num) return e.toDouble();
+          if (e is String) return double.tryParse(e) ?? 0.0;
+          return 0.0;
+        })
+        .where((e) => e > 0)
+        .toList();
   }
 }
 
@@ -76,12 +79,14 @@ class RechargeNotifier extends Notifier<RechargeState> {
       if (response.isSuccess) {
         final categories = response.data ?? [];
         state = state.copyWith(categories: categories);
-        
+
         // 默认选中第一个分类
         if (categories.isNotEmpty) {
           // 优先选中包含“推荐”或“热门”的分类
           final recommended = categories.firstWhere(
-            (c) => (c.name?.contains('推荐') ?? false) || (c.name?.contains('热门') ?? false),
+            (c) =>
+                (c.name?.contains('推荐') ?? false) ||
+                (c.name?.contains('热门') ?? false),
             orElse: () => categories.first,
           );
           await selectCategory(recommended);
@@ -99,9 +104,9 @@ class RechargeNotifier extends Notifier<RechargeState> {
   // 选择分类并加载通道
   Future<void> selectCategory(DepositCategory category) async {
     if (state.selectedCategory?.id == category.id) return;
-    
+
     state = state.copyWith(
-      selectedCategory: category, 
+      selectedCategory: category,
       isLoadingChannels: true,
       channels: [],
       selectedChannel: null,
@@ -113,7 +118,7 @@ class RechargeNotifier extends Notifier<RechargeState> {
       if (response.isSuccess) {
         final channels = response.data ?? [];
         state = state.copyWith(channels: channels);
-        
+
         // 默认选中第一个通道
         if (channels.isNotEmpty) {
           selectChannel(channels.first);
@@ -182,4 +187,7 @@ class RechargeNotifier extends Notifier<RechargeState> {
   }
 }
 
-final rechargeProvider = NotifierProvider.autoDispose<RechargeNotifier, RechargeState>(RechargeNotifier.new);
+final rechargeProvider =
+    NotifierProvider.autoDispose<RechargeNotifier, RechargeState>(
+      RechargeNotifier.new,
+    );

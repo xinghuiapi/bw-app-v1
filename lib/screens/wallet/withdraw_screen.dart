@@ -97,7 +97,11 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
     );
   }
 
-  Widget _buildBalanceCard(BuildContext context, UserState userState, WithdrawState withdrawState) {
+  Widget _buildBalanceCard(
+    BuildContext context,
+    UserState userState,
+    WithdrawState withdrawState,
+  ) {
     final theme = Theme.of(context);
     final balance = userState.user?.balance?.toString() ?? '0.00';
     final symbol = userState.user?.symbol ?? 'CNY';
@@ -107,13 +111,8 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(13),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppTheme.getDividerColor(context)),
+        // Removed BoxShadow for web optimization
       ),
       child: Column(
         children: [
@@ -136,9 +135,14 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
-                    InkWell(
-                      onTap: () => ref.read(withdrawProvider.notifier).refreshBalance(),
-                      child: Icon(Icons.refresh, size: 18, color: theme.hintColor),
+                    GestureDetector(
+                      onTap: () =>
+                          ref.read(withdrawProvider.notifier).refreshBalance(),
+                      child: Icon(
+                        Icons.refresh,
+                        size: 18,
+                        color: theme.hintColor,
+                      ),
                     ),
                 ],
               ),
@@ -146,7 +150,9 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                 onPressed: withdrawState.allTransLoading
                     ? null
                     : () async {
-                        final error = await ref.read(withdrawProvider.notifier).recycleAll();
+                        final error = await ref
+                            .read(withdrawProvider.notifier)
+                            .recycleAll();
                         if (error == null) {
                           ToastUtils.showSuccess('归户成功');
                         }
@@ -157,7 +163,10 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                 ),
                 child: withdrawState.allTransLoading
                     ? const SizedBox(
@@ -195,21 +204,21 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
     );
   }
 
-  Widget _buildWaterProgressCard(BuildContext context, double sum, double ok, double progress) {
+  Widget _buildWaterProgressCard(
+    BuildContext context,
+    double sum,
+    double ok,
+    double progress,
+  ) {
     final theme = Theme.of(context);
-    
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(13),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppTheme.getDividerColor(context)),
+        // Removed BoxShadow for web optimization
       ),
       child: Column(
         children: [
@@ -220,11 +229,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
               color: theme.primaryColor.withAlpha(26),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(
-              Icons.bar_chart,
-              size: 40,
-              color: theme.primaryColor,
-            ),
+            child: Icon(Icons.bar_chart, size: 40, color: theme.primaryColor),
           ),
           const SizedBox(height: 24),
           Text(
@@ -245,16 +250,18 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
           const SizedBox(height: 12),
           Text(
             '当前进度: ¥${ok.toStringAsFixed(2)} / ¥${sum.toStringAsFixed(2)}',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.hintColor,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWithdrawForm(BuildContext context, UserState userState, WithdrawState withdrawState) {
+  Widget _buildWithdrawForm(
+    BuildContext context,
+    UserState userState,
+    WithdrawState withdrawState,
+  ) {
     final theme = Theme.of(context);
     final hasPayPassword = userState.user?.hasPayPassword ?? false;
 
@@ -283,7 +290,8 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      final balance = userState.user?.balance?.toString() ?? '0';
+                      final balance =
+                          userState.user?.balance?.toString() ?? '0';
                       _amountController.text = balance;
                     },
                     child: Text(
@@ -309,7 +317,9 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                   Expanded(
                     child: TextField(
                       controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -328,7 +338,9 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                 children: [
                   Text(
                     '单笔最低 ¥1.00',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
                   ),
                   // 如果有手续费逻辑可以在这里显示
                 ],
@@ -404,7 +416,9 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                     fillColor: theme.scaffoldBackgroundColor,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: theme.hintColor,
                       ),
                       onPressed: () {
@@ -426,7 +440,10 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
           child: ElevatedButton(
             onPressed: withdrawState.submitting || !hasPayPassword
                 ? null
-                : () => _handleSubmit(context, ref.read(withdrawProvider.notifier)),
+                : () => _handleSubmit(
+                    context,
+                    ref.read(withdrawProvider.notifier),
+                  ),
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.primaryColor,
               foregroundColor: Colors.white,
@@ -439,7 +456,10 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                 ? const SizedBox(
                     width: 24,
                     height: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   )
                 : const Text(
                     '立即提现',
@@ -457,10 +477,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          Text(
-            '暂无收款方式',
-            style: TextStyle(color: Theme.of(context).hintColor),
-          ),
+          Text('暂无收款方式', style: TextStyle(color: Theme.of(context).hintColor)),
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: () async {
@@ -480,24 +497,27 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
 
   Widget _buildPaymentMethodList(BuildContext context, WithdrawState state) {
     final theme = Theme.of(context);
-    
+
     return Column(
       children: [
         ...state.displayedMethods.map((method) {
           final isSelected = state.selectedMethod?.id == method.id;
-          return InkWell(
-            onTap: () => ref.read(withdrawProvider.notifier).selectMethod(method),
-            borderRadius: BorderRadius.circular(12),
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () =>
+                ref.read(withdrawProvider.notifier).selectMethod(method),
             child: Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-              color: isSelected ? theme.primaryColor.withAlpha(13) : theme.scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? theme.primaryColor : Colors.transparent,
+                color: isSelected
+                    ? theme.primaryColor.withAlpha(13)
+                    : theme.scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? theme.primaryColor : Colors.transparent,
+                ),
               ),
-            ),
               child: Row(
                 children: [
                   Container(
@@ -507,7 +527,10 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                       color: theme.cardColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.credit_card, color: Colors.blue), // 暂时用图标代替图片
+                    child: const Icon(
+                      Icons.credit_card,
+                      color: Colors.blue,
+                    ), // 暂时用图标代替图片
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -538,9 +561,12 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
         }),
         if (state.paymentMethods.length > 3)
           TextButton.icon(
-            onPressed: () => ref.read(withdrawProvider.notifier).toggleMethodsExpanded(),
+            onPressed: () =>
+                ref.read(withdrawProvider.notifier).toggleMethodsExpanded(),
             icon: Icon(
-              state.methodsExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+              state.methodsExpanded
+                  ? Icons.keyboard_arrow_up
+                  : Icons.keyboard_arrow_down,
               size: 16,
             ),
             label: Text(state.methodsExpanded ? '收起' : '展开更多'),
@@ -571,7 +597,10 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                 ),
                 Text(
                   '为了资金安全，提现前请先设置支付密码',
-                  style: TextStyle(fontSize: 12, color: AppTheme.getTextSecondary(context)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.getTextSecondary(context),
+                  ),
                 ),
               ],
             ),
@@ -591,27 +620,33 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
     );
   }
 
-  Future<void> _handleSubmit(BuildContext context, WithdrawNotifier notifier) async {
+  Future<void> _handleSubmit(
+    BuildContext context,
+    WithdrawNotifier notifier,
+  ) async {
     final amountText = _amountController.text;
     final password = _passwordController.text;
-    
+
     if (amountText.isEmpty) {
       ToastUtils.showWarning('请输入提现金额');
       return;
     }
-    
+
     final amount = double.tryParse(amountText);
     if (amount == null || amount <= 0) {
       ToastUtils.showWarning('请输入有效的金额');
       return;
     }
-    
+
     if (password.length != 6) {
       ToastUtils.showWarning('请输入6位支付密码');
       return;
     }
-    
-    final error = await notifier.submitWithdraw(amount: amount, payPassword: password);
+
+    final error = await notifier.submitWithdraw(
+      amount: amount,
+      payPassword: password,
+    );
     if (error == null) {
       ToastUtils.showSuccess('提现申请已提交');
       _amountController.clear();

@@ -54,7 +54,8 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (!_isLoading && _hasMore) {
         _loadData();
       }
@@ -159,7 +160,11 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
         backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppTheme.getTextPrimary(context), size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppTheme.getTextPrimary(context),
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         bottom: PreferredSize(
@@ -168,7 +173,7 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
             height: 40,
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             // _filters is not defined in the provided code snippet, likely intended to be part of the screen
-            // But since this file was partially read or the previous content was confusing, 
+            // But since this file was partially read or the previous content was confusing,
             // I will just replace the colors I see in the provided content.
             // The provided content for BetRecordsScreen was 20KB truncated.
             // I need to be careful with SearchReplace.
@@ -227,15 +232,11 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: _buildInfoItem('投注金额', '¥100.00'),
-              ),
+              Expanded(child: _buildInfoItem('投注金额', '¥100.00')),
               Expanded(
                 child: _buildInfoItem('输赢金额', '+98.00', isPositive: true),
               ),
-              Expanded(
-                child: _buildInfoItem('投注时间', '12:30:45'),
-              ),
+              Expanded(child: _buildInfoItem('投注时间', '12:30:45')),
             ],
           ),
           const SizedBox(height: 12),
@@ -263,7 +264,11 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                     ),
                   ),
                 ),
-                Icon(Icons.copy, size: 14, color: AppTheme.getTextSecondary(context)),
+                Icon(
+                  Icons.copy,
+                  size: 14,
+                  color: AppTheme.getTextSecondary(context),
+                ),
               ],
             ),
           ),
@@ -287,7 +292,9 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
         Text(
           value,
           style: TextStyle(
-            color: isPositive ? AppTheme.success : AppTheme.getTextPrimary(context),
+            color: isPositive
+                ? AppTheme.success
+                : AppTheme.getTextPrimary(context),
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -328,7 +335,11 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
       ),
       child: Text(
         text,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -353,19 +364,35 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('筛选记录', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      const Text(
+                        '筛选记录',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
                       IconButton(
-                        icon: Icon(Icons.close, color: AppTheme.getTextSecondary(context)),
+                        icon: Icon(
+                          Icons.close,
+                          color: AppTheme.getTextSecondary(context),
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // 日期选择
-                  Text('选择日期', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
+                  Text(
+                    '选择日期',
+                    style: TextStyle(
+                      color: AppTheme.getTextSecondary(context),
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  InkWell(
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
@@ -380,7 +407,9 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                                       primary: AppTheme.primary,
                                       onPrimary: Colors.white,
                                       surface: AppTheme.getCardColor(context),
-                                      onSurface: AppTheme.getTextPrimary(context),
+                                      onSurface: AppTheme.getTextPrimary(
+                                        context,
+                                      ),
                                     )
                                   : ColorScheme.light(
                                       primary: AppTheme.primary,
@@ -399,35 +428,57 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.getInputFillColor(context),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.getDividerColor(context)),
+                        border: Border.all(
+                          color: AppTheme.getDividerColor(context),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             DateFormat('yyyy-MM-dd').format(_selectedDate),
-                            style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                            style: TextStyle(
+                              color: AppTheme.getTextPrimary(context),
+                            ),
                           ),
-                          Icon(Icons.calendar_today, color: AppTheme.getTertiaryTextColor(context), size: 18),
+                          Icon(
+                            Icons.calendar_today,
+                            color: AppTheme.getTertiaryTextColor(context),
+                            size: 18,
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // 分类选择
-                  Text('游戏分类', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
+                  Text(
+                    '游戏分类',
+                    style: TextStyle(
+                      color: AppTheme.getTextSecondary(context),
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   _buildDropdown<String>(
                     value: _selectedCategoryCode,
                     items: [
                       const DropdownMenuItem(value: null, child: Text('全部分类')),
-                      ..._categories.map((c) => DropdownMenuItem(value: c.code, child: Text(c.title ?? ''))),
+                      ..._categories.map(
+                        (c) => DropdownMenuItem(
+                          value: c.code,
+                          child: Text(c.title ?? ''),
+                        ),
+                      ),
                     ],
                     onChanged: (val) {
                       setModalState(() {
@@ -443,7 +494,7 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                       }
                     },
                   ),
-                  
+
                   if (_subCategories.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     const Text('二级游戏', style: TextStyle(fontSize: 14)),
@@ -451,8 +502,16 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                     _buildDropdown<int>(
                       value: _selectedSubCategoryId,
                       items: [
-                        const DropdownMenuItem(value: null, child: Text('全部游戏')),
-                        ..._subCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title ?? ''))),
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('全部游戏'),
+                        ),
+                        ..._subCategories.map(
+                          (c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.title ?? ''),
+                          ),
+                        ),
                       ],
                       onChanged: (val) {
                         setModalState(() => _selectedSubCategoryId = val);
@@ -460,11 +519,17 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                       },
                     ),
                   ],
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // 状态选择
-                  Text('结算状态', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
+                  Text(
+                    '结算状态',
+                    style: TextStyle(
+                      color: AppTheme.getTextSecondary(context),
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   _buildDropdown<int>(
                     value: _selectedStatus,
@@ -480,9 +545,9 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                       setState(() {});
                     },
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   Row(
                     children: [
                       Expanded(
@@ -499,7 +564,9 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                           },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppTheme.getTextSecondary(context),
-                            side: BorderSide(color: AppTheme.getDividerColor(context)),
+                            side: BorderSide(
+                              color: AppTheme.getDividerColor(context),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           child: const Text('重置'),
@@ -551,8 +618,14 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
           onChanged: onChanged,
           isExpanded: true,
           dropdownColor: AppTheme.getCardColor(context),
-          icon: Icon(Icons.keyboard_arrow_down, color: AppTheme.getTertiaryTextColor(context)),
-          style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 14),
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            color: AppTheme.getTertiaryTextColor(context),
+          ),
+          style: TextStyle(
+            color: AppTheme.getTextPrimary(context),
+            fontSize: 14,
+          ),
         ),
       ),
     );

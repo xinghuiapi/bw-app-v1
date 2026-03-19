@@ -59,88 +59,97 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
             );
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (needsRealName)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.getCardColor(context),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.isDark(context) ? Colors.black.withAlpha(13) : Colors.black.withAlpha(5),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    if (needsRealName)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.getCardColor(context),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.getDividerColor(context)),
+                          // Removed BoxShadow for web optimization
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            color: AppTheme.error,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            '!',
-                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            '为了您的资金安全，请先完成实名认证',
-                            style: TextStyle(fontSize: 12, color: AppTheme.getTextPrimary(context), fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            context.push('/personal-center-profile-realname');
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: AppTheme.error,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 18,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                color: AppTheme.error,
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                '!',
+                                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-                          child: const Text('去认证', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                '为了您的资金安全，请先完成实名认证',
+                                style: TextStyle(fontSize: 12, color: AppTheme.getTextPrimary(context), fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                context.push('/personal-center-profile-realname');
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: AppTheme.error,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('去认证', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                _buildSectionTitle(context, '选择充值方式'),
-                const SizedBox(height: 12),
-                _buildCategoryGrid(context, state),
-                
-                if (state.selectedCategory != null) ...[
-                  const SizedBox(height: 20),
-                  _buildSectionTitle(context, '选择充值通道'),
-                  const SizedBox(height: 12),
-                  _buildChannelList(context, state),
-                ],
-
-                if (state.selectedChannel != null) ...[
-                  const SizedBox(height: 20),
-                  _buildSectionTitle(context, '充值金额'),
-                  const SizedBox(height: 12),
-                  _buildAmountInput(context, state),
-                  const SizedBox(height: 32),
-                  _buildSubmitButton(context, state),
-                ],
+                      ),
+                    _buildSectionTitle(context, '选择充值方式'),
+                    const SizedBox(height: 12),
+                  ]),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: _buildCategoryGrid(context, state),
+              ),
+              if (state.selectedCategory != null) ...[
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20).copyWith(bottom: 12),
+                  sliver: SliverToBoxAdapter(child: _buildSectionTitle(context, '选择充值通道')),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: _buildChannelList(context, state),
+                ),
               ],
-            ),
+              if (state.selectedChannel != null) ...[
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20).copyWith(bottom: 12),
+                  sliver: SliverToBoxAdapter(child: _buildSectionTitle(context, '充值金额')),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: _buildAmountInput(context, state),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.all(16).copyWith(top: 32),
+                  sliver: SliverToBoxAdapter(child: _buildSubmitButton(context, state)),
+                ),
+              ],
+            ],
           );
         }
       ),
@@ -172,9 +181,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
   }
 
   Widget _buildCategoryGrid(BuildContext context, RechargeState state) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    return SliverGrid.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         childAspectRatio: 3.2,
@@ -186,76 +193,78 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
         final category = state.categories[index];
         final isSelected = state.selectedCategory?.id == category.id;
         
-        return InkWell(
+        return GestureDetector(
           onTap: () => ref.read(rechargeProvider.notifier).selectCategory(category),
-          borderRadius: BorderRadius.circular(8),
-          child: Stack(
-            children: [
-              Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isSelected ? Theme.of(context).primaryColor.withAlpha(20) : Theme.of(context).cardColor,
-                  border: Border.all(
-                    color: isSelected ? Theme.of(context).primaryColor : AppTheme.getDividerColor(context),
-                    width: isSelected ? 1.5 : 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (category.icon != null && category.icon!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: WebSafeImage(
-                            imageUrl: category.icon!,
-                            width: 18,
-                            height: 18,
-                            errorWidget: const Icon(Icons.payment, size: 18),
-                          ),
-                        ),
-                      Flexible(
-                        child: Text(
-                          category.name ?? '',
-                          style: TextStyle(
-                            color: isSelected ? Theme.of(context).primaryColor : null,
-                            fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isSelected ? Theme.of(context).primaryColor.withAlpha(20) : Theme.of(context).cardColor,
+              border: Border.all(
+                color: isSelected ? Theme.of(context).primaryColor : AppTheme.getDividerColor(context),
+                width: isSelected ? 1.5 : 1.0,
               ),
-              if (category.msg != null && category.msg!.isNotEmpty)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(8),
-                        bottomLeft: Radius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      category.msg!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 7,
-                        fontWeight: FontWeight.bold,
-                      ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (category.icon != null && category.icon!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: WebSafeImage(
+                              imageUrl: category.icon!,
+                              width: 18,
+                              height: 18,
+                              errorWidget: const Icon(Icons.payment, size: 18),
+                            ),
+                          ),
+                        Flexible(
+                          child: Text(
+                            category.name ?? '',
+                            style: TextStyle(
+                              color: isSelected ? Theme.of(context).primaryColor : null,
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-            ],
+                if (category.msg != null && category.msg!.isNotEmpty)
+                  Positioned(
+                    top: -1,
+                    right: -1,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(8),
+                          bottomLeft: Radius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        category.msg!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 7,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -264,16 +273,14 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
 
   Widget _buildChannelList(BuildContext context, RechargeState state) {
     if (state.isLoadingChannels) {
-      return const Center(child: CircularProgressIndicator());
+      return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
     }
 
     if (state.channels.isEmpty) {
-      return const Center(child: Text('暂无可用通道'));
+      return const SliverToBoxAdapter(child: Center(child: Text('暂无可用通道')));
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    return SliverGrid.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 3.5,
@@ -285,9 +292,8 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
         final channel = state.channels[index];
         final isSelected = state.selectedChannel?.id == channel.id;
         
-        return InkWell(
+        return GestureDetector(
           onTap: () => ref.read(rechargeProvider.notifier).selectChannel(channel),
-          borderRadius: BorderRadius.circular(8),
           child: Container(
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -339,68 +345,72 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
     final quickAmounts = state.quickAmounts;
     final isFixedAmount = channel.amountType == 2;
 
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            border: Border.all(color: AppTheme.getDividerColor(context)),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
             children: [
-              const Text(
-                '¥',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  readOnly: isFixedAmount,
-                  decoration: InputDecoration(
-                    hintText: isFixedAmount ? '请选择下方金额' : '请输入充值金额',
-                    border: InputBorder.none,
-                    isDense: true,
-                    errorText: state.errorMsg,
-                  ),
-                  onChanged: (value) {
-                    if (value.isNotEmpty) {
-                      ref.read(rechargeProvider.notifier).setAmount(double.tryParse(value) ?? 0);
-                    } else {
-                      ref.read(rechargeProvider.notifier).setAmount(0);
-                    }
-                  },
-                  controller: TextEditingController(
-                    text: state.inputAmount != null && state.inputAmount! > 0 
-                        ? state.inputAmount.toString() 
-                        : ''
-                  )..selection = TextSelection.fromPosition(
-                      TextPosition(offset: state.inputAmount != null && state.inputAmount! > 0 
-                          ? state.inputAmount.toString().length 
-                          : 0)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  border: Border.all(color: AppTheme.getDividerColor(context)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Text(
+                      '¥',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        readOnly: isFixedAmount,
+                        decoration: InputDecoration(
+                          hintText: isFixedAmount ? '请选择下方金额' : '请输入充值金额',
+                          border: InputBorder.none,
+                          isDense: true,
+                          errorText: state.errorMsg,
+                        ),
+                        onChanged: (value) {
+                          if (value.isNotEmpty) {
+                            ref.read(rechargeProvider.notifier).setAmount(double.tryParse(value) ?? 0);
+                          } else {
+                            ref.read(rechargeProvider.notifier).setAmount(0);
+                          }
+                        },
+                        controller: TextEditingController(
+                          text: state.inputAmount != null && state.inputAmount! > 0 
+                              ? state.inputAmount.toString() 
+                              : ''
+                        )..selection = TextSelection.fromPosition(
+                            TextPosition(offset: state.inputAmount != null && state.inputAmount! > 0 
+                                ? state.inputAmount.toString().length 
+                                : 0)
+                          ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '单笔限额: ¥${channel.min} - ¥${channel.max}',
+                    style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '单笔限额: ¥${channel.min} - ¥${channel.max}',
-              style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12),
-            ),
-          ],
-        ),
-        if (quickAmounts.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+        if (quickAmounts.isNotEmpty)
+          SliverGrid.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
               childAspectRatio: 2,
@@ -412,9 +422,8 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
               final amount = quickAmounts[index];
               final isSelected = state.inputAmount == amount;
               
-              return InkWell(
+              return GestureDetector(
                 onTap: () => ref.read(rechargeProvider.notifier).setAmount(amount),
-                borderRadius: BorderRadius.circular(4),
                 child: Container(
                   decoration: BoxDecoration(
                     color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
@@ -435,7 +444,6 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
               );
             },
           ),
-        ],
       ],
     );
   }

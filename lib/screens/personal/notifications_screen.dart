@@ -8,7 +8,8 @@ class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
@@ -17,7 +18,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(notificationsProvider.notifier).fetchMessages(refresh: true));
+    Future.microtask(
+      () =>
+          ref.read(notificationsProvider.notifier).fetchMessages(refresh: true),
+    );
     _scrollController.addListener(_onScroll);
   }
 
@@ -28,7 +32,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       ref.read(notificationsProvider.notifier).fetchMessages();
     }
   }
@@ -40,14 +45,19 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       appBar: AppBar(
-        title: Text('站内通知', style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
+        title: Text(
+          '站内通知',
+          style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
+        ),
         backgroundColor: AppTheme.getCardColor(context),
         foregroundColor: AppTheme.getPrimaryTextColor(context),
         elevation: 0,
         iconTheme: IconThemeData(color: AppTheme.getPrimaryTextColor(context)),
       ),
       body: RefreshIndicator(
-        onRefresh: () => ref.read(notificationsProvider.notifier).fetchMessages(refresh: true),
+        onRefresh: () => ref
+            .read(notificationsProvider.notifier)
+            .fetchMessages(refresh: true),
         child: _buildBody(state),
       ),
     );
@@ -63,12 +73,21 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: AppTheme.getTertiaryTextColor(context)),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: AppTheme.getTertiaryTextColor(context),
+            ),
             const SizedBox(height: 16),
-            Text(state.error!, style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
+            Text(
+              state.error!,
+              style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => ref.read(notificationsProvider.notifier).fetchMessages(refresh: true),
+              onPressed: () => ref
+                  .read(notificationsProvider.notifier)
+                  .fetchMessages(refresh: true),
               child: const Text('重试'),
             ),
           ],
@@ -81,9 +100,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.notifications_none, size: 64, color: AppTheme.getTertiaryTextColor(context)),
+            Icon(
+              Icons.notifications_none,
+              size: 64,
+              color: AppTheme.getTertiaryTextColor(context),
+            ),
             const SizedBox(height: 16),
-            Text('暂无通知', style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
+            Text(
+              '暂无通知',
+              style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
+            ),
           ],
         ),
       );
@@ -111,7 +137,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Widget _buildNotificationCard(UserMessage message) {
-    return InkWell(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         if (!message.isRead) {
           ref.read(notificationsProvider.notifier).markAsRead(message.id);
@@ -123,13 +150,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         decoration: BoxDecoration(
           color: AppTheme.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(13),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: Border.all(color: AppTheme.getDividerColor(context)),
+          // Removed BoxShadow for web optimization
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +173,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     message.title ?? '系统通知',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: message.isRead ? FontWeight.normal : FontWeight.bold,
+                      fontWeight: message.isRead
+                          ? FontWeight.normal
+                          : FontWeight.bold,
                       color: AppTheme.getPrimaryTextColor(context),
                     ),
                   ),
@@ -187,11 +211,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.getCardColor(context),
-        title: Text(message.title ?? '系统通知', style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
+        title: Text(
+          message.title ?? '系统通知',
+          style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
+        ),
         content: SingleChildScrollView(
           child: Text(
             message.content ?? '',
-            style: TextStyle(fontSize: 15, height: 1.6, color: AppTheme.getSecondaryTextColor(context)),
+            style: TextStyle(
+              fontSize: 15,
+              height: 1.6,
+              color: AppTheme.getSecondaryTextColor(context),
+            ),
           ),
         ),
         actions: [

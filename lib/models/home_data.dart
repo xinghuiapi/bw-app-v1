@@ -35,7 +35,8 @@ class HomeData {
     this.currConfig,
   });
 
-  factory HomeData.fromJson(Map<String, dynamic> json) => _$HomeDataFromJson(json);
+  factory HomeData.fromJson(Map<String, dynamic> json) =>
+      _$HomeDataFromJson(json);
   Map<String, dynamic> toJson() => _$HomeDataToJson(this);
 }
 
@@ -49,7 +50,8 @@ class RegConfig {
 
   RegConfig({this.code, this.title, this.status, this.statusS});
 
-  factory RegConfig.fromJson(Map<String, dynamic> json) => _$RegConfigFromJson(json);
+  factory RegConfig.fromJson(Map<String, dynamic> json) =>
+      _$RegConfigFromJson(json);
   Map<String, dynamic> toJson() => _$RegConfigToJson(this);
 }
 
@@ -91,7 +93,8 @@ class PicConfig {
     this.picDigit,
   });
 
-  factory PicConfig.fromJson(Map<String, dynamic> json) => _$PicConfigFromJson(json);
+  factory PicConfig.fromJson(Map<String, dynamic> json) =>
+      _$PicConfigFromJson(json);
   Map<String, dynamic> toJson() => _$PicConfigToJson(this);
 }
 
@@ -121,7 +124,8 @@ class MailConfig {
     this.frequency,
   });
 
-  factory MailConfig.fromJson(Map<String, dynamic> json) => _$MailConfigFromJson(json);
+  factory MailConfig.fromJson(Map<String, dynamic> json) =>
+      _$MailConfigFromJson(json);
   Map<String, dynamic> toJson() => _$MailConfigToJson(this);
 }
 
@@ -151,7 +155,8 @@ class SendConfig {
     this.frequency,
   });
 
-  factory SendConfig.fromJson(Map<String, dynamic> json) => _$SendConfigFromJson(json);
+  factory SendConfig.fromJson(Map<String, dynamic> json) =>
+      _$SendConfigFromJson(json);
   Map<String, dynamic> toJson() => _$SendConfigToJson(this);
 }
 
@@ -163,7 +168,8 @@ class LangConfig {
 
   LangConfig({this.name, this.code, this.img});
 
-  factory LangConfig.fromJson(Map<String, dynamic> json) => _$LangConfigFromJson(json);
+  factory LangConfig.fromJson(Map<String, dynamic> json) =>
+      _$LangConfigFromJson(json);
   Map<String, dynamic> toJson() => _$LangConfigToJson(this);
 }
 
@@ -177,7 +183,8 @@ class CurrConfig {
 
   CurrConfig({this.code, this.title, this.symbol, this.statusS});
 
-  factory CurrConfig.fromJson(Map<String, dynamic> json) => _$CurrConfigFromJson(json);
+  factory CurrConfig.fromJson(Map<String, dynamic> json) =>
+      _$CurrConfigFromJson(json);
   Map<String, dynamic> toJson() => _$CurrConfigToJson(this);
 }
 
@@ -191,7 +198,8 @@ class BannerModel {
 
   BannerModel({this.img, this.title, this.openUrl, this.open});
 
-  factory BannerModel.fromJson(Map<String, dynamic> json) => _$BannerModelFromJson(json);
+  factory BannerModel.fromJson(Map<String, dynamic> json) =>
+      _$BannerModelFromJson(json);
   Map<String, dynamic> toJson() => _$BannerModelToJson(this);
 }
 
@@ -204,7 +212,8 @@ class NoticeModel {
 
   NoticeModel({this.id, this.title, this.content});
 
-  factory NoticeModel.fromJson(Map<String, dynamic> json) => _$NoticeModelFromJson(json);
+  factory NoticeModel.fromJson(Map<String, dynamic> json) =>
+      _$NoticeModelFromJson(json);
   Map<String, dynamic> toJson() => _$NoticeModelToJson(this);
 }
 
@@ -223,7 +232,7 @@ class SiteConfig {
   final int? terminalLogin;
   @JsonKey(name: 'app_version')
   final String? appVersion;
-  
+
   // tg_link 可能是字符串，也可能是数组，所以这里使用 dynamic，然后在 getter 中处理
   @JsonKey(name: 'tg_link')
   final dynamic tgLink;
@@ -232,10 +241,17 @@ class SiteConfig {
     if (tgLink == null) return [];
     if (tgLink is String) {
       if (tgLink.toString().isEmpty) return [];
-      return tgLink.toString().split(RegExp(r'[,\n]')).where((e) => e.trim().isNotEmpty).toList();
+      return tgLink
+          .toString()
+          .split(RegExp(r'[,\n]'))
+          .where((e) => e.trim().isNotEmpty)
+          .toList();
     }
     if (tgLink is List) {
-      return (tgLink as List).map((e) => e.toString()).where((e) => e.trim().isNotEmpty).toList();
+      return (tgLink as List)
+          .map((e) => e.toString())
+          .where((e) => e.trim().isNotEmpty)
+          .toList();
     }
     return [];
   }
@@ -253,7 +269,8 @@ class SiteConfig {
     this.tgLink,
   });
 
-  factory SiteConfig.fromJson(Map<String, dynamic> json) => _$SiteConfigFromJson(json);
+  factory SiteConfig.fromJson(Map<String, dynamic> json) =>
+      _$SiteConfigFromJson(json);
   Map<String, dynamic> toJson() => _$SiteConfigToJson(this);
 }
 
@@ -267,9 +284,17 @@ class GameCategory {
   final String? code;
   final List<SubCategory>? subCategories;
 
-  GameCategory({this.id, this.title, this.img, this.seImg, this.code, this.subCategories});
+  GameCategory({
+    this.id,
+    this.title,
+    this.img,
+    this.seImg,
+    this.code,
+    this.subCategories,
+  });
 
-  factory GameCategory.fromJson(Map<String, dynamic> json) => _$GameCategoryFromJson(json);
+  factory GameCategory.fromJson(Map<String, dynamic> json) =>
+      _$GameCategoryFromJson(json);
   Map<String, dynamic> toJson() => _$GameCategoryToJson(this);
 }
 
@@ -300,7 +325,8 @@ class SubCategory {
     this.label,
   });
 
-  factory SubCategory.fromJson(Map<String, dynamic> json) => _$SubCategoryFromJson(json);
+  factory SubCategory.fromJson(Map<String, dynamic> json) =>
+      _$SubCategoryFromJson(json);
   Map<String, dynamic> toJson() => _$SubCategoryToJson(this);
 }
 
@@ -332,7 +358,11 @@ class GameItem {
     this.label,
   });
 
-  bool get isFavorite => favorites == 1 || favorites == true || favorites == '1' || favorites == 'true';
+  bool get isFavorite =>
+      favorites == 1 ||
+      favorites == true ||
+      favorites == '1' ||
+      favorites == 'true';
 
   // 手动实现 fromJson 以处理数据类型不一致的问题
   factory GameItem.fromJson(Map<String, dynamic> json) {
@@ -345,7 +375,10 @@ class GameItem {
       favorites: json['favorites'],
       // 兼容 bool 和 int (0/1)
       isCategoryResult: _toBool(json['is_category_result']),
-      isHot: _toBool(json['is_hot'] ?? (json['label'] is List && (json['label'] as List).contains('hot'))),
+      isHot: _toBool(
+        json['is_hot'] ??
+            (json['label'] is List && (json['label'] as List).contains('hot')),
+      ),
       interfaceTitle: json['interface_title'] as String?,
       label: (json['label'] as List?)?.map((e) => e as String).toList(),
     );
@@ -370,7 +403,8 @@ class ActivityClass {
 
   ActivityClass({this.id, this.title, this.img});
 
-  factory ActivityClass.fromJson(Map<String, dynamic> json) => _$ActivityClassFromJson(json);
+  factory ActivityClass.fromJson(Map<String, dynamic> json) =>
+      _$ActivityClassFromJson(json);
   Map<String, dynamic> toJson() => _$ActivityClassToJson(this);
 }
 
@@ -386,9 +420,18 @@ class Activity {
   final String? endAt;
   final int? status;
 
-  Activity({this.id, this.title, this.img, this.content, this.startAt, this.endAt, this.status});
+  Activity({
+    this.id,
+    this.title,
+    this.img,
+    this.content,
+    this.startAt,
+    this.endAt,
+    this.status,
+  });
 
-  factory Activity.fromJson(Map<String, dynamic> json) => _$ActivityFromJson(json);
+  factory Activity.fromJson(Map<String, dynamic> json) =>
+      _$ActivityFromJson(json);
   Map<String, dynamic> toJson() => _$ActivityToJson(this);
 }
 
@@ -399,7 +442,8 @@ class FeedbackType {
 
   FeedbackType({this.id, this.title});
 
-  factory FeedbackType.fromJson(Map<String, dynamic> json) => _$FeedbackTypeFromJson(json);
+  factory FeedbackType.fromJson(Map<String, dynamic> json) =>
+      _$FeedbackTypeFromJson(json);
   Map<String, dynamic> toJson() => _$FeedbackTypeToJson(this);
 }
 
@@ -410,7 +454,8 @@ class SinglePageClass {
 
   SinglePageClass({this.id, this.title});
 
-  factory SinglePageClass.fromJson(Map<String, dynamic> json) => _$SinglePageClassFromJson(json);
+  factory SinglePageClass.fromJson(Map<String, dynamic> json) =>
+      _$SinglePageClassFromJson(json);
   Map<String, dynamic> toJson() => _$SinglePageClassToJson(this);
 }
 
@@ -421,6 +466,7 @@ class SinglePageContent {
 
   SinglePageContent({this.title, this.content});
 
-  factory SinglePageContent.fromJson(Map<String, dynamic> json) => _$SinglePageContentFromJson(json);
+  factory SinglePageContent.fromJson(Map<String, dynamic> json) =>
+      _$SinglePageContentFromJson(json);
   Map<String, dynamic> toJson() => _$SinglePageContentToJson(this);
 }

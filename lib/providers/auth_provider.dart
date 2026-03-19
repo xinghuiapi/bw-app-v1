@@ -47,7 +47,11 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> _init() async {
     final token = await AuthHelper.getToken();
-    state = AuthState(isLoggedIn: token != null && token.isNotEmpty, token: token, isLoading: false);
+    state = AuthState(
+      isLoggedIn: token != null && token.isNotEmpty,
+      token: token,
+      isLoading: false,
+    );
   }
 
   /// 更新登录状态 (用于外部登录流程，如 Telegram 登录)
@@ -58,9 +62,9 @@ class AuthNotifier extends Notifier<AuthState> {
   /// 登录
   Future<ApiResponse<AuthResponseData>> login(LoginRequest request) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     final response = await AuthService.login(request);
-    
+
     if (response.isSuccess && response.data != null) {
       final token = response.data!.accessToken;
       await AuthHelper.setToken(token);
@@ -68,16 +72,18 @@ class AuthNotifier extends Notifier<AuthState> {
     } else {
       state = state.copyWith(isLoading: false, error: response.msg);
     }
-    
+
     return response;
   }
 
   /// 注册
-  Future<ApiResponse<AuthResponseData>> register(RegisterRequest request) async {
+  Future<ApiResponse<AuthResponseData>> register(
+    RegisterRequest request,
+  ) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     final response = await AuthService.register(request);
-    
+
     if (response.isSuccess && response.data != null) {
       final token = response.data!.accessToken;
       await AuthHelper.setToken(token);
@@ -85,7 +91,7 @@ class AuthNotifier extends Notifier<AuthState> {
     } else {
       state = state.copyWith(isLoading: false, error: response.msg);
     }
-    
+
     return response;
   }
 
@@ -108,4 +114,6 @@ class AuthNotifier extends Notifier<AuthState> {
 }
 
 /// 身份验证 Provider
-final authProvider = NotifierProvider.autoDispose<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider = NotifierProvider.autoDispose<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

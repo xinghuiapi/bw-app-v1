@@ -18,9 +18,9 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
 
   void _copyText(String text, String message) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -36,7 +36,10 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
       backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('全民返利', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          '全民返利',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         foregroundColor: AppTheme.getTextPrimary(context),
         elevation: 0,
@@ -50,14 +53,17 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    isDark ? const Color(0xFF1A1D21) : AppTheme.getScaffoldBackgroundColor(context), 
-                    AppTheme.getScaffoldBackgroundColor(context)
+                    isDark
+                        ? const Color(0xFF1A1D21)
+                        : AppTheme.getScaffoldBackgroundColor(context),
+                    AppTheme.getScaffoldBackgroundColor(context),
                   ],
                   stops: const [0.0, 0.3],
                 ),
               ),
               child: RefreshIndicator(
-                onRefresh: () => ref.read(referralProvider.notifier).fetchReferralData(),
+                onRefresh: () =>
+                    ref.read(referralProvider.notifier).fetchReferralData(),
                 child: ListView(
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top + 60,
@@ -69,15 +75,15 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
                     // 返利统计卡片
                     _buildStatsCard(referralState),
                     const SizedBox(height: 16),
-                    
+
                     // 邀请码与二维码卡片
                     _buildInviteCard(inviteCode, referralUrl),
                     const SizedBox(height: 16),
-                    
+
                     // 邀请链接卡片
                     _buildLinkCard(referralUrl),
                     const SizedBox(height: 16),
-                    
+
                     // 规则卡片
                     _buildRulesCard(),
                   ],
@@ -90,7 +96,8 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
 
   Widget _buildStatsCard(ReferralState state) {
     final rebateData = state.data;
-    final dailingqu = double.tryParse(rebateData?.dailingqu.toString() ?? '0') ?? 0;
+    final dailingqu =
+        double.tryParse(rebateData?.dailingqu.toString() ?? '0') ?? 0;
     final userYouxiao = rebateData?.userYouxiao ?? 0;
     final canClaim = dailingqu > 0 && userYouxiao >= 1;
 
@@ -103,7 +110,13 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
       ),
       child: Column(
         children: [
-          Text('待领返利金额', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
+          Text(
+            '待领返利金额',
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
+              fontSize: 14,
+            ),
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -112,10 +125,17 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
             children: [
               Text(
                 dailingqu.toStringAsFixed(2),
-                style: const TextStyle(color: AppTheme.primary, fontSize: 36, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: AppTheme.primary,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(width: 4),
-              const Text('元', style: TextStyle(color: AppTheme.primary, fontSize: 14)),
+              const Text(
+                '元',
+                style: TextStyle(color: AppTheme.primary, fontSize: 14),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -123,26 +143,44 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: (state.isClaiming || !canClaim) 
-                  ? null 
+              onPressed: (state.isClaiming || !canClaim)
+                  ? null
                   : () => ref.read(referralProvider.notifier).claimRebate(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Colors.white10,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: state.isClaiming
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('立即领取', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      '立即领取',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
           const SizedBox(height: 12),
           Text(
             '总有效会员≥1人即可领取',
-            style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 12),
+            style: TextStyle(
+              color: AppTheme.getTextTertiary(context),
+              fontSize: 12,
+            ),
           ),
-          
+
           if (rebateData != null && rebateData.userMax > 0) ...[
             const SizedBox(height: 16),
             Container(
@@ -153,17 +191,27 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
               ),
               child: RichText(
                 text: TextSpan(
-                  style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12),
+                  style: TextStyle(
+                    color: AppTheme.getTextSecondary(context),
+                    fontSize: 12,
+                  ),
                   children: [
                     const TextSpan(text: '再邀请 '),
                     TextSpan(
-                      text: '${(rebateData.userMax - rebateData.userYouxiao).clamp(0, 999999)}',
-                      style: const TextStyle(color: AppTheme.warning, fontWeight: FontWeight.bold),
+                      text:
+                          '${(rebateData.userMax - rebateData.userYouxiao).clamp(0, 999999)}',
+                      style: const TextStyle(
+                        color: AppTheme.warning,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const TextSpan(text: ' 人即可多领取 '),
                     TextSpan(
                       text: '${rebateData.userAmount}',
-                      style: const TextStyle(color: AppTheme.warning, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: AppTheme.warning,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const TextSpan(text: ' 元返利'),
                   ],
@@ -171,15 +219,35 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
               ),
             ),
           ],
-          
+
           const SizedBox(height: 24),
           Row(
             children: [
-              _buildStatItem('已领总额', '${rebateData?.userSum ?? 0}', AppTheme.getTextPrimary(context)),
-              Container(width: 1, height: 24, color: AppTheme.getDividerColor(context)),
-              _buildStatItem('有效会员', '${rebateData?.userYouxiao ?? 0}', AppTheme.success),
-              Container(width: 1, height: 24, color: AppTheme.getDividerColor(context)),
-              _buildStatItem('邀请总人数', '${rebateData?.userSum ?? 0}', AppTheme.getTextPrimary(context)),
+              _buildStatItem(
+                '已领总额',
+                '${rebateData?.userSum ?? 0}',
+                AppTheme.getTextPrimary(context),
+              ),
+              Container(
+                width: 1,
+                height: 24,
+                color: AppTheme.getDividerColor(context),
+              ),
+              _buildStatItem(
+                '有效会员',
+                '${rebateData?.userYouxiao ?? 0}',
+                AppTheme.success,
+              ),
+              Container(
+                width: 1,
+                height: 24,
+                color: AppTheme.getDividerColor(context),
+              ),
+              _buildStatItem(
+                '邀请总人数',
+                '${rebateData?.userSum ?? 0}',
+                AppTheme.getTextPrimary(context),
+              ),
             ],
           ),
         ],
@@ -191,9 +259,22 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
     return Expanded(
       child: Column(
         children: [
-          Text(label, style: TextStyle(color: AppTheme.getTextTertiary(context), fontSize: 12)),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.getTextTertiary(context),
+              fontSize: 12,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: TextStyle(color: valueColor, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -215,7 +296,14 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
               Container(width: 20, height: 1, color: AppTheme.primary),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text('您的邀请码', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(
+                  '您的邀请码',
+                  style: TextStyle(
+                    color: AppTheme.getTextPrimary(context),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               Container(width: 20, height: 1, color: AppTheme.primary),
             ],
@@ -223,7 +311,12 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
           const SizedBox(height: 16),
           Text(
             inviteCode,
-            style: const TextStyle(color: AppTheme.primary, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 2),
+            style: const TextStyle(
+              color: AppTheme.primary,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+            ),
           ),
           const SizedBox(height: 24),
           Container(
@@ -247,7 +340,9 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppTheme.primary,
                 side: const BorderSide(color: AppTheme.primary),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: const Text('复制邀请码'),
             ),
@@ -268,7 +363,13 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('邀请链接', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14)),
+          Text(
+            '邀请链接',
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
+              fontSize: 14,
+            ),
+          ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -281,15 +382,25 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
                 Expanded(
                   child: Text(
                     referralUrl,
-                    style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 13),
+                    style: TextStyle(
+                      color: AppTheme.getTextPrimary(context),
+                      fontSize: 13,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 12),
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () => _copyText(referralUrl, '邀请链接已复制'),
-                  child: const Text('复制', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    '复制',
+                    style: TextStyle(
+                      color: AppTheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -310,7 +421,13 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
         children: [
           ListTile(
             onTap: () => setState(() => _rulesExpanded = !_rulesExpanded),
-            title: Text('邀请规则', style: TextStyle(color: AppTheme.getTextPrimary(context), fontWeight: FontWeight.bold)),
+            title: Text(
+              '邀请规则',
+              style: TextStyle(
+                color: AppTheme.getTextPrimary(context),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             trailing: Icon(
               _rulesExpanded ? Icons.expand_less : Icons.expand_more,
               color: AppTheme.getTextSecondary(context),
@@ -339,12 +456,18 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
 
   Widget _buildBottomBar(String referralUrl) {
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        MediaQuery.of(context).padding.bottom + 12,
+      ),
       decoration: BoxDecoration(
         color: AppTheme.getCardColor(context),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withAlpha(51), blurRadius: 10, offset: const Offset(0, -2)),
-        ],
+        border: Border(
+          top: BorderSide(color: AppTheme.getDividerColor(context)),
+        ),
+        // Removed BoxShadow for web optimization
       ),
       child: ElevatedButton(
         onPressed: () => _copyText(referralUrl, '邀请链接已复制'),
@@ -352,9 +475,14 @@ class _ShareInviteScreenState extends ConsumerState<ShareInviteScreen> {
           backgroundColor: AppTheme.primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 50),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
-        child: const Text('立即分享', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        child: const Text(
+          '立即分享',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
@@ -381,14 +509,22 @@ class _RuleItem extends StatelessWidget {
           ),
           child: Text(
             number,
-            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13, height: 1.4),
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
+              fontSize: 13,
+              height: 1.4,
+            ),
           ),
         ),
       ],

@@ -38,7 +38,8 @@ class UserMessage {
 
   bool get isRead => type == 2;
 
-  factory UserMessage.fromJson(Map<String, dynamic> json) => _$UserMessageFromJson(json);
+  factory UserMessage.fromJson(Map<String, dynamic> json) =>
+      _$UserMessageFromJson(json);
   Map<String, dynamic> toJson() => _$UserMessageToJson(this);
 }
 
@@ -71,7 +72,8 @@ class UserProfileUpdateRequest {
     this.code,
   });
 
-  factory UserProfileUpdateRequest.fromJson(Map<String, dynamic> json) => _$UserProfileUpdateRequestFromJson(json);
+  factory UserProfileUpdateRequest.fromJson(Map<String, dynamic> json) =>
+      _$UserProfileUpdateRequestFromJson(json);
   Map<String, dynamic> toJson() => _$UserProfileUpdateRequestToJson(this);
 }
 
@@ -82,7 +84,8 @@ class SetPayPasswordRequest {
 
   SetPayPasswordRequest({required this.payPassword});
 
-  factory SetPayPasswordRequest.fromJson(Map<String, dynamic> json) => _$SetPayPasswordRequestFromJson(json);
+  factory SetPayPasswordRequest.fromJson(Map<String, dynamic> json) =>
+      _$SetPayPasswordRequestFromJson(json);
   Map<String, dynamic> toJson() => _$SetPayPasswordRequestToJson(this);
 }
 
@@ -93,7 +96,8 @@ class FavoriteToggleRequest {
 
   FavoriteToggleRequest({required this.gameId});
 
-  factory FavoriteToggleRequest.fromJson(Map<String, dynamic> json) => _$FavoriteToggleRequestFromJson(json);
+  factory FavoriteToggleRequest.fromJson(Map<String, dynamic> json) =>
+      _$FavoriteToggleRequestFromJson(json);
   Map<String, dynamic> toJson() => _$FavoriteToggleRequestToJson(this);
 }
 
@@ -122,7 +126,8 @@ class BetRecord {
     this.createdAt,
   });
 
-  factory BetRecord.fromJson(Map<String, dynamic> json) => _$BetRecordFromJson(json);
+  factory BetRecord.fromJson(Map<String, dynamic> json) =>
+      _$BetRecordFromJson(json);
   Map<String, dynamic> toJson() => _$BetRecordToJson(this);
 }
 
@@ -150,7 +155,8 @@ class UserTransaction {
     this.createdAt,
   });
 
-  factory UserTransaction.fromJson(Map<String, dynamic> json) => _$UserTransactionFromJson(json);
+  factory UserTransaction.fromJson(Map<String, dynamic> json) =>
+      _$UserTransactionFromJson(json);
   Map<String, dynamic> toJson() => _$UserTransactionToJson(this);
 }
 

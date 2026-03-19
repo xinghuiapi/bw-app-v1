@@ -17,7 +17,10 @@ class GameService {
       } else if (responseData is String) {
         jsonMap = jsonDecode(responseData) as Map<String, dynamic>;
       } else {
-        return ApiResponse(code: -1, msg: '未知响应格式: ${responseData.runtimeType}');
+        return ApiResponse(
+          code: -1,
+          msg: '未知响应格式: ${responseData.runtimeType}',
+        );
       }
 
       return ApiResponse<T>.fromJson(jsonMap, fromJsonT);
@@ -37,10 +40,7 @@ class GameService {
     int? status,
   }) async {
     try {
-      final Map<String, dynamic> data = {
-        'page': page,
-        'size': size,
-      };
+      final Map<String, dynamic> data = {'page': page, 'size': size};
 
       if (code != null) data['code'] = code;
       if (apiCode != null) data['api_code'] = apiCode;
@@ -48,7 +48,7 @@ class GameService {
       if (status != null) data['status'] = status;
 
       final response = await api.post('/gamerecord/getlist', data: data);
-      
+
       return _parseResponse<BettingRecordsResponse>(
         response.data,
         (json) => BettingRecordsResponse.fromJson(json as Map<String, dynamic>),
@@ -60,19 +60,22 @@ class GameService {
 
   /// 获取一级分类列表 (用于投注记录筛选)
   /// 接口: /api/interface/class
-  static Future<ApiResponse<List<BettingCategory>>> getPrimaryCategories() async {
+  static Future<ApiResponse<List<BettingCategory>>>
+  getPrimaryCategories() async {
     try {
       final response = await api.post('/interface/class');
-      
-      return _parseResponse<List<BettingCategory>>(
-        response.data,
-        (json) {
-          if (json is List) {
-            return json.map((item) => BettingCategory.fromJson(item as Map<String, dynamic>)).toList();
-          }
-          return [];
-        },
-      );
+
+      return _parseResponse<List<BettingCategory>>(response.data, (json) {
+        if (json is List) {
+          return json
+              .map(
+                (item) =>
+                    BettingCategory.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+        }
+        return [];
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -80,23 +83,28 @@ class GameService {
 
   /// 获取二级分类列表 (用于投注记录筛选)
   /// 接口: /api/interface/list
-  static Future<ApiResponse<List<BettingCategory>>> getSubCategories(String code) async {
+  static Future<ApiResponse<List<BettingCategory>>> getSubCategories(
+    String code,
+  ) async {
     try {
       final response = await api.post('/interface/list', data: {'code': code});
-      
-      return _parseResponse<List<BettingCategory>>(
-        response.data,
-        (json) {
-          if (json is List) {
-            return json.map((item) => BettingCategory.fromJson(item as Map<String, dynamic>)).toList();
-          }
-          return [];
-        },
-      );
+
+      return _parseResponse<List<BettingCategory>>(response.data, (json) {
+        if (json is List) {
+          return json
+              .map(
+                (item) =>
+                    BettingCategory.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+        }
+        return [];
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
   }
+
   /// 获取子游戏列表
   /// 接口: /api/gamelist/getlist
   static Future<ApiResponse<GameListResponse>> getSubGameList({
@@ -108,25 +116,17 @@ class GameService {
   }) async {
     try {
       final response = await api.post(
-        '/gamelist/getlist', 
-        data: {
-          'game': gameCode,
-          'code': typeCode,
-          'page': page,
-          'size': size,
-        },
+        '/gamelist/getlist',
+        data: {'game': gameCode, 'code': typeCode, 'page': page, 'size': size},
         options: dioOptions(extra: {'forceRefresh': forceRefresh}),
       );
-      
-      return _parseResponse<GameListResponse>(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return GameListResponse.fromJson(json);
-          }
-          return GameListResponse();
-        },
-      );
+
+      return _parseResponse<GameListResponse>(response.data, (json) {
+        if (json is Map<String, dynamic>) {
+          return GameListResponse.fromJson(json);
+        }
+        return GameListResponse();
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -142,7 +142,7 @@ class GameService {
   }) async {
     try {
       final response = await api.post(
-        '/gamelist/getlist', 
+        '/gamelist/getlist',
         data: {
           'search_word': keyword, // 修正字段名为 search_word
           'page': page,
@@ -150,16 +150,13 @@ class GameService {
         },
         options: dioOptions(extra: {'forceRefresh': forceRefresh}),
       );
-      
-      return _parseResponse<GameListResponse>(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return GameListResponse.fromJson(json);
-          }
-          return GameListResponse();
-        },
-      );
+
+      return _parseResponse<GameListResponse>(response.data, (json) {
+        if (json is Map<String, dynamic>) {
+          return GameListResponse.fromJson(json);
+        }
+        return GameListResponse();
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -174,7 +171,7 @@ class GameService {
   }) async {
     try {
       final response = await api.post(
-        '/gamelist/getlist', 
+        '/gamelist/getlist',
         data: {
           'page': page,
           'size': size,
@@ -185,16 +182,13 @@ class GameService {
         },
         options: dioOptions(extra: {'forceRefresh': forceRefresh}),
       );
-      
-      return _parseResponse<GameListResponse>(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return GameListResponse.fromJson(json);
-          }
-          return GameListResponse();
-        },
-      );
+
+      return _parseResponse<GameListResponse>(response.data, (json) {
+        if (json is Map<String, dynamic>) {
+          return GameListResponse.fromJson(json);
+        }
+        return GameListResponse();
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -209,24 +203,17 @@ class GameService {
   }) async {
     try {
       final response = await api.post(
-        '/gamelist/getlist', 
-        data: {
-          'page': page,
-          'size': size,
-          'label': 'favorite',
-        },
+        '/gamelist/getlist',
+        data: {'page': page, 'size': size, 'label': 'favorite'},
         options: dioOptions(extra: {'forceRefresh': forceRefresh}),
       );
-      
-      return _parseResponse<GameListResponse>(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return GameListResponse.fromJson(json);
-          }
-          return GameListResponse();
-        },
-      );
+
+      return _parseResponse<GameListResponse>(response.data, (json) {
+        if (json is Map<String, dynamic>) {
+          return GameListResponse.fromJson(json);
+        }
+        return GameListResponse();
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -240,23 +227,20 @@ class GameService {
   }) async {
     try {
       final response = await api.post(
-        '/game/login', 
+        '/game/login',
         data: {
           'id': id,
           'mobile': 1, // mobile值固定为1
         },
         options: dioOptions(headers: {'lang': lang}),
       );
-      
-      return _parseResponse<GameLoginResponse>(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return GameLoginResponse.fromJson(json);
-          }
-          return GameLoginResponse();
-        },
-      );
+
+      return _parseResponse<GameLoginResponse>(response.data, (json) {
+        if (json is Map<String, dynamic>) {
+          return GameLoginResponse.fromJson(json);
+        }
+        return GameLoginResponse();
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -264,29 +248,26 @@ class GameService {
 
   /// 游戏登录 (备用接口)
   /// 接口: /api/game_code/login
-  static Future<ApiResponse<GameLoginResponse>> gameLogin2({ 
+  static Future<ApiResponse<GameLoginResponse>> gameLogin2({
     required dynamic id,
     String lang = 'zh-cn',
   }) async {
     try {
       final response = await api.post(
-        '/game_code/login', 
+        '/game_code/login',
         data: {
           'id': id,
           'mobile': 1, // mobile值固定为1
         },
         options: dioOptions(headers: {'lang': lang}),
       );
-      
-      return _parseResponse<GameLoginResponse>(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return GameLoginResponse.fromJson(json);
-          }
-          return GameLoginResponse();
-        },
-      );
+
+      return _parseResponse<GameLoginResponse>(response.data, (json) {
+        if (json is Map<String, dynamic>) {
+          return GameLoginResponse.fromJson(json);
+        }
+        return GameLoginResponse();
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }
@@ -297,20 +278,17 @@ class GameService {
   static Future<ApiResponse<BalanceResponse>> refreshBalance() async {
     try {
       final response = await api.post('/game/balance');
-      
-      return _parseResponse<BalanceResponse>(
-        response.data,
-        (json) {
-          if (json is Map<String, dynamic>) {
-            return BalanceResponse.fromJson(json);
-          }
-          // 如果返回的是直接的余额字符串或其他格式
-          if (json is String) {
-            return BalanceResponse(balance: json);
-          }
-          return BalanceResponse();
-        },
-      );
+
+      return _parseResponse<BalanceResponse>(response.data, (json) {
+        if (json is Map<String, dynamic>) {
+          return BalanceResponse.fromJson(json);
+        }
+        // 如果返回的是直接的余额字符串或其他格式
+        if (json is String) {
+          return BalanceResponse(balance: json);
+        }
+        return BalanceResponse();
+      });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
     }

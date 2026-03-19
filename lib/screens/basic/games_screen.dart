@@ -6,12 +6,8 @@ class GamesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('游戏列表'),
-      ),
-      body: const Center(
-        child: Text('游戏列表页面'),
-      ),
+      appBar: AppBar(title: const Text('游戏列表')),
+      body: const Center(child: Text('游戏列表页面')),
     );
   }
 }

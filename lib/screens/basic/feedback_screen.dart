@@ -8,6 +8,7 @@ import 'package:my_flutter_app/providers/feedback_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/models/home_data.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+
 class FeedbackScreen extends ConsumerStatefulWidget {
   const FeedbackScreen({super.key});
 
@@ -40,31 +41,29 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('选择图片失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
       }
     }
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    
+
     final selectedTypeId = ref.read(selectedFeedbackTypeIdProvider);
     if (selectedTypeId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请选择反馈分类')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请选择反馈分类')));
       return;
     }
 
     final imagePath = ref.read(feedbackImageProvider);
 
-    ref.read(feedbackSubmitProvider.notifier).submit(
-      selectedTypeId,
-      _contentController.text,
-      imagePath: imagePath,
-    );
+    ref
+        .read(feedbackSubmitProvider.notifier)
+        .submit(selectedTypeId, _contentController.text, imagePath: imagePath);
   }
 
   @override
@@ -78,27 +77,24 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     ref.listen(feedbackSubmitProvider, (previous, next) {
       if (next.isSuccess) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('反馈提交成功')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('反馈提交成功')));
           context.pop();
         }
         ref.read(feedbackSubmitProvider.notifier).reset();
         ref.read(selectedFeedbackTypeIdProvider.notifier).set(null);
       } else if (next.error != null) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('提交失败: ${next.error}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('提交失败: ${next.error}')));
         }
       }
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('问题反馈'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('问题反馈'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -190,7 +186,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
         errorWidget: const Center(child: Icon(Icons.broken_image)),
       );
     }
-    
+
     // 如果是 Web 环境，即使不是 blob 开头也强制使用 WebSafeImage (防止意外路径)
     if (kIsWeb) {
       return WebSafeImage(
@@ -208,7 +204,8 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       width: 100,
       height: 100,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image)),
+      errorBuilder: (context, error, stackTrace) =>
+          const Center(child: Icon(Icons.broken_image)),
     );
   }
 
@@ -226,14 +223,20 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
         child: imagePath != null
             ? Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    clipBehavior: Clip.antiAlias,
                     child: _buildPreviewImage(imagePath),
                   ),
                   Positioned(
                     top: 4,
                     right: 4,
                     child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () {
                         ref.read(feedbackImageProvider.notifier).clear();
                       },

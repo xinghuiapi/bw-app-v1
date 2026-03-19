@@ -11,15 +11,16 @@ class CustomerServiceScreen extends ConsumerStatefulWidget {
   const CustomerServiceScreen({super.key});
 
   @override
-  ConsumerState<CustomerServiceScreen> createState() => _CustomerServiceScreenState();
+  ConsumerState<CustomerServiceScreen> createState() =>
+      _CustomerServiceScreenState();
 }
 
 class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
   Future<void> _openCustomerService(BuildContext context, String? link) async {
     if (link == null || link.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('客服链接未配置')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('客服链接未配置')));
       return;
     }
 
@@ -29,16 +30,16 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('无法打开客服链接')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('无法打开客服链接')));
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开链接出错: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('打开链接出错: $e')));
       }
     }
   }
@@ -87,79 +88,85 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
       body: SafeArea(
         child: homeDataAsync.when(
           data: (homeData) {
-          final serviceLink = homeData.siteConfig?.serviceLink;
+            final serviceLink = homeData.siteConfig?.serviceLink;
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(homeDataProvider);
-            },
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildServiceCard(
-                  context,
-                  icon: Icons.chat_bubble_outline,
-                  iconColor: Colors.blue,
-                  title: '在线客服',
-                  description: '7x24小时全天候为您服务',
-                  onTap: () => _openCustomerService(context, serviceLink),
-                ),
-                const SizedBox(height: 16),
-                _buildServiceCard(
-                  context,
-                  icon: Icons.edit_note,
-                  iconColor: Colors.purple,
-                  title: '问题反馈',
-                  description: '您的建议是我们进步的动力',
-                  onTap: () => _openFeedback(context, ref),
-                ),
-                ..._buildTgCards(context, homeData.siteConfig?.tgLinks ?? []),
-              ],
-            ),
-          );
-        },
-        loading: () => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(color: AppTheme.primary),
-              const SizedBox(height: 16),
-              Text(
-                '正在加载客服信息...',
-                style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
-              ),
-            ],
-          ),
-        ),
-        error: (err, stack) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(homeDataProvider);
+              },
+              child: ListView(
+                padding: const EdgeInsets.all(16),
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
-                  const SizedBox(height: 16),
-                  Text(
-                    '加载失败: $err',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                  _buildServiceCard(
+                    context,
+                    icon: Icons.chat_bubble_outline,
+                    iconColor: Colors.blue,
+                    title: '在线客服',
+                    description: '7x24小时全天候为您服务',
+                    onTap: () => _openCustomerService(context, serviceLink),
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => ref.invalidate(homeDataProvider),
-                    child: const Text('重试'),
+                  _buildServiceCard(
+                    context,
+                    icon: Icons.edit_note,
+                    iconColor: Colors.purple,
+                    title: '问题反馈',
+                    description: '您的建议是我们进步的动力',
+                    onTap: () => _openFeedback(context, ref),
                   ),
+                  ..._buildTgCards(context, homeData.siteConfig?.tgLinks ?? []),
                 ],
               ),
+            );
+          },
+          loading: () => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(color: AppTheme.primary),
+                const SizedBox(height: 16),
+                Text(
+                  '正在加载客服信息...',
+                  style: TextStyle(
+                    color: AppTheme.getSecondaryTextColor(context),
+                  ),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+          error: (err, stack) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: AppTheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '加载失败: $err',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => ref.invalidate(homeDataProvider),
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
-    ),
-    bottomNavigationBar: const AppFooter(),
-  );
-}
+      bottomNavigationBar: const AppFooter(),
+    );
+  }
 
   Widget _buildServiceCard(
     BuildContext context, {
@@ -175,55 +182,52 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: iconColor.withAlpha(25),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 28),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: iconColor.withAlpha(25),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          color: AppTheme.getTextPrimary(context),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                child: Icon(icon, color: iconColor, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: AppTheme.getTextPrimary(context),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.getSecondaryTextColor(context),
-                        ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.getSecondaryTextColor(context),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: AppTheme.getTertiaryTextColor(context),
-                ),
-              ],
-            ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: AppTheme.getTertiaryTextColor(context),
+              ),
+            ],
           ),
         ),
       ),

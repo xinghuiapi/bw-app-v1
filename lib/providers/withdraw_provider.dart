@@ -59,11 +59,11 @@ class WithdrawNotifier extends Notifier<WithdrawState> {
   WithdrawState build() {
     return WithdrawState();
   }
-  
+
   // 获取收款方式列表
   Future<void> fetchPaymentMethods() async {
     state = state.copyWith(loading: true);
-    
+
     try {
       final response = await FinanceService.getPaymentMethods();
       if (response.code == 200 && response.data != null) {
@@ -84,17 +84,17 @@ class WithdrawNotifier extends Notifier<WithdrawState> {
       state = state.copyWith(paymentMethods: [], loading: false);
     }
   }
-  
+
   // 选择收款方式
   void selectMethod(PaymentMethod method) {
     state = state.copyWith(selectedMethod: method);
   }
-  
+
   // 切换收款方式展开状态
   void toggleMethodsExpanded() {
     state = state.copyWith(methodsExpanded: !state.methodsExpanded);
   }
-  
+
   // 刷新余额
   Future<void> refreshBalance() async {
     state = state.copyWith(balanceLoading: true);
@@ -104,7 +104,7 @@ class WithdrawNotifier extends Notifier<WithdrawState> {
       state = state.copyWith(balanceLoading: false);
     }
   }
-  
+
   // 一键回收
   Future<String?> recycleAll() async {
     state = state.copyWith(allTransLoading: true, error: null);
@@ -124,16 +124,19 @@ class WithdrawNotifier extends Notifier<WithdrawState> {
       state = state.copyWith(allTransLoading: false);
     }
   }
-  
+
   // 提交提现
-  Future<String?> submitWithdraw({required double amount, required String payPassword}) async {
+  Future<String?> submitWithdraw({
+    required double amount,
+    required String payPassword,
+  }) async {
     if (state.selectedMethod == null) {
       state = state.copyWith(error: '请选择收款方式');
       return '请选择收款方式';
     }
-    
+
     state = state.copyWith(submitting: true, error: null);
-    
+
     try {
       final request = WithdrawRequest(
         id: state.selectedMethod!.id,
@@ -141,7 +144,7 @@ class WithdrawNotifier extends Notifier<WithdrawState> {
         payPassword: payPassword,
       );
       final response = await FinanceService.submitWithdraw(request);
-      
+
       if (response.code == 200) {
         state = state.copyWith(submitting: false);
         return null;
@@ -160,4 +163,7 @@ class WithdrawNotifier extends Notifier<WithdrawState> {
   }
 }
 
-final withdrawProvider = NotifierProvider.autoDispose<WithdrawNotifier, WithdrawState>(WithdrawNotifier.new);
+final withdrawProvider =
+    NotifierProvider.autoDispose<WithdrawNotifier, WithdrawState>(
+      WithdrawNotifier.new,
+    );

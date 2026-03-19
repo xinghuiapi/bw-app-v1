@@ -12,12 +12,12 @@ class PaymentWebView extends PaymentWebViewBase {
 
 class _PaymentWebViewState extends State<PaymentWebView> {
   late final String _viewId;
-  
+
   @override
   void initState() {
     super.initState();
     _viewId = 'payment-webview-${widget.url.hashCode}';
-    
+
     // Register view factory
     ui.platformViewRegistry.registerViewFactory(_viewId, (int viewId) {
       final element = web.HTMLIFrameElement()
@@ -32,10 +32,7 @@ class _PaymentWebViewState extends State<PaymentWebView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(widget.title), centerTitle: true),
       body: HtmlElementView(viewType: _viewId),
     );
   }

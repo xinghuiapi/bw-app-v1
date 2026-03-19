@@ -17,12 +17,18 @@ class FavoriteGames extends _$FavoriteGames {
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await GameService.getFavoriteGames(page: 1, size: 20, forceRefresh: true);
+      final response = await GameService.getFavoriteGames(
+        page: 1,
+        size: 20,
+        forceRefresh: true,
+      );
       if (response.isSuccess && response.data != null) {
         final data = response.data!;
         // 过滤出响应里 favorites (Boolean): true 的游戏
-        final filteredItems = (data.data ?? []).where((item) => item.isFavorite).toList();
-        
+        final filteredItems = (data.data ?? [])
+            .where((item) => item.isFavorite)
+            .toList();
+
         state = PaginationState(
           items: filteredItems,
           currentPage: data.currentPage ?? 1,
@@ -44,18 +50,25 @@ class FavoriteGames extends _$FavoriteGames {
     state = state.copyWith(isMoreLoading: true);
     try {
       final nextPage = state.currentPage + 1;
-      final response = await GameService.getFavoriteGames(page: nextPage, size: 20);
+      final response = await GameService.getFavoriteGames(
+        page: nextPage,
+        size: 20,
+      );
       if (response.isSuccess && response.data != null) {
         final data = response.data!;
         // 过滤出响应里 favorites (Boolean): true 的游戏
-        final filteredItems = (data.data ?? []).where((item) => item.isFavorite).toList();
-        
+        final filteredItems = (data.data ?? [])
+            .where((item) => item.isFavorite)
+            .toList();
+
         state = state.copyWith(
           items: [...state.items, ...filteredItems],
           currentPage: data.currentPage ?? nextPage,
           lastPage: data.lastPage ?? state.lastPage,
           isMoreLoading: false,
-          hasMore: (data.currentPage ?? nextPage) < (data.lastPage ?? state.lastPage),
+          hasMore:
+              (data.currentPage ?? nextPage) <
+              (data.lastPage ?? state.lastPage),
         );
       } else {
         state = state.copyWith(isMoreLoading: false, error: response.msg);

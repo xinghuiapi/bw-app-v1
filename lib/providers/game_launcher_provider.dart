@@ -24,7 +24,7 @@ class GameLauncher {
     bool useBackup = false,
   }) async {
     try {
-      final response = useBackup 
+      final response = useBackup
           ? await GameService.gameLogin2(id: id, lang: lang)
           : await GameService.gameLogin(id: id, lang: lang);
 
@@ -65,9 +65,11 @@ class GameLauncher {
       final gameId = game.id;
       final gameTitle = game.title ?? '游戏';
       final String code = categoryCode ?? '';
-      
+
       debugPrint('--- Game Launch Debug ---');
-      debugPrint('Game Title: $gameTitle, ID: $gameId, Type: ${game.runtimeType}');
+      debugPrint(
+        'Game Title: $gameTitle, ID: $gameId, Type: ${game.runtimeType}',
+      );
       debugPrint('Category: $code, isEntry: $isCategoryEntry');
       debugPrint('-------------------------');
 
@@ -79,14 +81,22 @@ class GameLauncher {
         startWithBackup = (isCategoryResult == false) || (isHot == true);
       } else {
         // 对齐 Vue 逻辑：['game', 'poker', 'fishing'] 分类下使用 gameLogin2
-        startWithBackup = ['game', 'poker', 'fishing'].contains(code.toLowerCase().trim());
+        startWithBackup = [
+          'game',
+          'poker',
+          'fishing',
+        ].contains(code.toLowerCase().trim());
       }
-      
+
       debugPrint('Using Backup Interface: $startWithBackup');
 
       final lang = _ref.read(languageProvider);
-      final apiResponse = await smartGameLogin(gameId, lang: lang.apiCode, useBackup: startWithBackup);
-      
+      final apiResponse = await smartGameLogin(
+        gameId,
+        lang: lang.apiCode,
+        useBackup: startWithBackup,
+      );
+
       debugPrint('Game Login Response Success: ${apiResponse.isSuccess}');
       if (apiResponse.isSuccess) {
         debugPrint('Game URL: ${apiResponse.data?.url}');
@@ -103,10 +113,10 @@ class GameLauncher {
         final loginData = apiResponse.data!;
         if (loginData.url != null) {
           // 跳转到内置 GameViewScreen 展现游戏
-          AppRouter.router.push('/game-view', extra: {
-            'url': loginData.url,
-            'title': gameTitle,
-          });
+          AppRouter.router.push(
+            '/game-view',
+            extra: {'url': loginData.url, 'title': gameTitle},
+          );
         }
       } else {
         throw apiResponse.msg ?? '获取游戏链接失败';
@@ -115,7 +125,7 @@ class GameLauncher {
       // 隐藏加载提示
       if (context.mounted) {
         GlobalLoadingDialog.hide(context);
-        
+
         // 显示错误提示
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

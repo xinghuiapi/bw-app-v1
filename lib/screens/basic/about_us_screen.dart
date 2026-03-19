@@ -6,12 +6,8 @@ class AboutUsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('关于我们'),
-      ),
-      body: const Center(
-        child: Text('关于我们页面'),
-      ),
+      appBar: AppBar(title: const Text('关于我们')),
+      body: const Center(child: Text('关于我们页面')),
     );
   }
 }

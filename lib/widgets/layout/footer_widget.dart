@@ -18,7 +18,10 @@ class AppFooter extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppTheme.getCardColor(context),
           border: Border(
-            top: BorderSide(color: AppTheme.getDividerColor(context), width: 0.5),
+            top: BorderSide(
+              color: AppTheme.getDividerColor(context),
+              width: 0.5,
+            ),
           ),
         ),
         child: BottomNavigationBar(
@@ -32,22 +35,13 @@ class AppFooter extends ConsumerWidget {
           selectedFontSize: 12,
           unselectedFontSize: 12,
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: '首页',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
             BottomNavigationBarItem(
               icon: Icon(Icons.card_giftcard),
               label: '活动',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.headset_mic),
-              label: '客服',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: '我的',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.headset_mic), label: '客服'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
           ],
         ),
       ),
@@ -62,7 +56,12 @@ class AppFooter extends ConsumerWidget {
     return 0;
   }
 
-  void _onItemTapped(BuildContext context, WidgetRef ref, int index, bool isLoggedIn) {
+  void _onItemTapped(
+    BuildContext context,
+    WidgetRef ref,
+    int index,
+    bool isLoggedIn,
+  ) {
     // 未登录时，点击底部任何导航都跳转登录页
     if (!isLoggedIn) {
       context.push('/login');

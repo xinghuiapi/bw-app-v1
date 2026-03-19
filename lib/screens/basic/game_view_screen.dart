@@ -7,11 +7,7 @@ class GameViewScreen extends StatefulWidget {
   final String url;
   final String? title;
 
-  const GameViewScreen({
-    super.key, 
-    required this.url,
-    this.title,
-  });
+  const GameViewScreen({super.key, required this.url, this.title});
 
   @override
   State<GameViewScreen> createState() => _GameViewScreenState();

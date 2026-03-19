@@ -43,12 +43,19 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     if (!refresh && !state.hasMore) return;
 
     if (refresh) {
-      state = state.copyWith(isLoading: true, page: 1, messages: [], hasMore: true);
+      state = state.copyWith(
+        isLoading: true,
+        page: 1,
+        messages: [],
+        hasMore: true,
+      );
     } else {
       state = state.copyWith(isLoading: true);
     }
 
-    final response = await UserService.getUserMessages(page: refresh ? 1 : state.page);
+    final response = await UserService.getUserMessages(
+      page: refresh ? 1 : state.page,
+    );
 
     if (response.isSuccess) {
       final newMessages = response.data ?? [];
@@ -95,4 +102,7 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
   }
 }
 
-final notificationsProvider = NotifierProvider.autoDispose<NotificationsNotifier, NotificationsState>(NotificationsNotifier.new);
+final notificationsProvider =
+    NotifierProvider.autoDispose<NotificationsNotifier, NotificationsState>(
+      NotificationsNotifier.new,
+    );

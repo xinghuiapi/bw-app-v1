@@ -11,7 +11,7 @@ import 'package:my_flutter_app/gen/strings.g.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
     debugPrint('=== FLUTTER FRAMEWORK ERROR ===');
@@ -33,7 +33,11 @@ void main() {
               const SizedBox(height: 20),
               const Text(
                 'Render Error',
-                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 10),
               Text(
@@ -60,12 +64,10 @@ void main() {
     debugPrint('===================');
     return true;
   };
-  
+
   runApp(
     ProviderScope(
-      child: TranslationProvider(
-        child: const MyApp(),
-      ),
+      child: TranslationProvider(child: const MyApp()),
     ),
   );
 }

@@ -4,7 +4,7 @@ class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     String message;
-    
+
     switch (err.type) {
       case DioExceptionType.connectionTimeout:
         message = '连接服务器超时，请检查网络设置';
@@ -57,10 +57,8 @@ class ErrorInterceptor extends Interceptor {
     }
 
     // 将友好提示存入 error 对象，方便 UI 层读取
-    final customError = err.copyWith(
-      message: message,
-    );
-    
+    final customError = err.copyWith(message: message);
+
     return handler.next(customError);
   }
 }

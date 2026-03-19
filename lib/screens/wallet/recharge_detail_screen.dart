@@ -308,7 +308,7 @@ class _RechargeDetailContent extends ConsumerWidget {
             style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          InkWell(
+          GestureDetector(
             onTap: () => ref.read(rechargeDetailProvider.notifier).pickImage(),
             child: Container(
               height: 160,
@@ -319,9 +319,14 @@ class _RechargeDetailContent extends ConsumerWidget {
                 border: Border.all(color: AppTheme.getDividerColor(context)),
               ),
               child: state.localImageBytes != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.memory(state.localImageBytes!, fit: BoxFit.contain),
+                  ? Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        image: DecorationImage(
+                          image: MemoryImage(state.localImageBytes!),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,

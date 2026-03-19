@@ -11,14 +11,11 @@ class TelegramLoginScreen extends ConsumerStatefulWidget {
   final String? userId;
   final String? username;
 
-  const TelegramLoginScreen({
-    super.key,
-    this.userId,
-    this.username,
-  });
+  const TelegramLoginScreen({super.key, this.userId, this.username});
 
   @override
-  ConsumerState<TelegramLoginScreen> createState() => _TelegramLoginScreenState();
+  ConsumerState<TelegramLoginScreen> createState() =>
+      _TelegramLoginScreenState();
 }
 
 class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
@@ -35,7 +32,10 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
     final userId = widget.userId;
     final username = widget.username;
 
-    if (userId == null || username == null || userId.isEmpty || username.isEmpty) {
+    if (userId == null ||
+        username == null ||
+        userId.isEmpty ||
+        username.isEmpty) {
       context.go('/home');
       return;
     }
@@ -51,7 +51,9 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
     ref.listen<TelegramLoginState>(telegramLoginProvider, (previous, next) {
       if (next.step == TelegramLoginStep.success) {
         if (next.isFirstLogin) {
-          ToastUtils.showSuccess(t.telegramLogin.passwordSetDefault(password: '123456'));
+          ToastUtils.showSuccess(
+            t.telegramLogin.passwordSetDefault(password: '123456'),
+          );
         }
         context.go('/home');
       } else if (next.step == TelegramLoginStep.failed) {
@@ -63,9 +65,9 @@ class _TelegramLoginScreenState extends ConsumerState<TelegramLoginScreen> {
     String loadingText = '';
     switch (state.step) {
       case TelegramLoginStep.loggingIn:
-        loadingText = state.isFirstLogin 
-          ? t.telegramLogin.firstLoginProcessing 
-          : t.telegramLogin.secureLoginProcessing;
+        loadingText = state.isFirstLogin
+            ? t.telegramLogin.firstLoginProcessing
+            : t.telegramLogin.secureLoginProcessing;
         break;
       case TelegramLoginStep.settingPassword:
         loadingText = t.telegramLogin.firstLoginProcessing;

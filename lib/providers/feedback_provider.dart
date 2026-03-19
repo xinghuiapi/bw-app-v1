@@ -7,7 +7,9 @@ import 'package:my_flutter_app/services/home_service.dart';
 import 'package:my_flutter_app/providers/language_provider.dart';
 
 /// 反馈分类提供者
-final feedbackTypesProvider = FutureProvider.autoDispose<List<FeedbackType>>((ref) async {
+final feedbackTypesProvider = FutureProvider.autoDispose<List<FeedbackType>>((
+  ref,
+) async {
   final lang = ref.watch(languageProvider);
   final response = await HomeService.getFeedbackTypes(lang: lang.apiCode);
   if (response.isSuccess) {
@@ -23,7 +25,10 @@ class SelectedFeedbackTypeId extends Notifier<int?> {
   void set(int? id) => state = id;
 }
 
-final selectedFeedbackTypeIdProvider = NotifierProvider.autoDispose<SelectedFeedbackTypeId, int?>(SelectedFeedbackTypeId.new);
+final selectedFeedbackTypeIdProvider =
+    NotifierProvider.autoDispose<SelectedFeedbackTypeId, int?>(
+      SelectedFeedbackTypeId.new,
+    );
 
 /// 选中的反馈图片
 class FeedbackImage extends Notifier<String?> {
@@ -33,7 +38,8 @@ class FeedbackImage extends Notifier<String?> {
   void clear() => state = null;
 }
 
-final feedbackImageProvider = NotifierProvider.autoDispose<FeedbackImage, String?>(FeedbackImage.new);
+final feedbackImageProvider =
+    NotifierProvider.autoDispose<FeedbackImage, String?>(FeedbackImage.new);
 
 /// 反馈提交状态
 class FeedbackSubmitState {
@@ -66,39 +72,46 @@ class FeedbackSubmitNotifier extends Notifier<FeedbackSubmitState> {
 
   Future<void> submit(int typeId, String content, {String? imagePath}) async {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
-    
+
     try {
       String? uploadedImageUrl;
       final lang = ref.read(languageProvider);
-      
+
       // 如果有图片，先上传图片
       if (imagePath != null && imagePath.isNotEmpty) {
         final fileName = imagePath.split('/').last;
         final FormData formData = FormData();
-        
+
         if (kIsWeb) {
           // Web 环境使用字节流
           final bytes = await XFile(imagePath).readAsBytes();
-          formData.files.add(MapEntry(
-            'file',
-            MultipartFile.fromBytes(bytes, filename: fileName),
-          ));
+          formData.files.add(
+            MapEntry(
+              'file',
+              MultipartFile.fromBytes(bytes, filename: fileName),
+            ),
+          );
         } else {
           // 移动端环境使用文件路径
-          formData.files.add(MapEntry(
-            'file',
-            await MultipartFile.fromFile(imagePath, filename: fileName),
-          ));
+          formData.files.add(
+            MapEntry(
+              'file',
+              await MultipartFile.fromFile(imagePath, filename: fileName),
+            ),
+          );
         }
-        
+
         formData.fields.add(const MapEntry('name', 'feedback'));
-        
-        final uploadResponse = await HomeService.uploadImage(formData, lang: lang.apiCode);
+
+        final uploadResponse = await HomeService.uploadImage(
+          formData,
+          lang: lang.apiCode,
+        );
         if (uploadResponse.isSuccess && uploadResponse.data != null) {
           uploadedImageUrl = uploadResponse.data;
         } else {
           state = state.copyWith(
-            isLoading: false, 
+            isLoading: false,
             error: uploadResponse.msg ?? '图片上传失败',
           );
           return;
@@ -128,4 +141,7 @@ class FeedbackSubmitNotifier extends Notifier<FeedbackSubmitState> {
   }
 }
 
-final feedbackSubmitProvider = NotifierProvider.autoDispose<FeedbackSubmitNotifier, FeedbackSubmitState>(FeedbackSubmitNotifier.new);
+final feedbackSubmitProvider =
+    NotifierProvider.autoDispose<FeedbackSubmitNotifier, FeedbackSubmitState>(
+      FeedbackSubmitNotifier.new,
+    );

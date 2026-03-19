@@ -26,5 +26,6 @@ class PaginatedData<T> {
     T Function(Object? json) fromJsonT,
   ) => _$PaginatedDataFromJson(json, fromJsonT);
 
-  Map<String, dynamic> toJson(Object? Function(T value) toJsonT) => _$PaginatedDataToJson(this, toJsonT);
+  Map<String, dynamic> toJson(Object? Function(T value) toJsonT) =>
+      _$PaginatedDataToJson(this, toJsonT);
 }

@@ -38,7 +38,8 @@ class BettingRecord {
     this.apiCode,
   });
 
-  factory BettingRecord.fromJson(Map<String, dynamic> json) => _$BettingRecordFromJson(json);
+  factory BettingRecord.fromJson(Map<String, dynamic> json) =>
+      _$BettingRecordFromJson(json);
   Map<String, dynamic> toJson() => _$BettingRecordToJson(this);
 }
 
@@ -101,10 +102,6 @@ class BettingCategory {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'code': code,
-    };
+    return {'id': id, 'title': title, 'code': code};
   }
 }

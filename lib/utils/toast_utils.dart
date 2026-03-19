@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ToastUtils {
-  static final GlobalKey<ScaffoldMessengerState> messengerKey = GlobalKey<ScaffoldMessengerState>();
+  static final GlobalKey<ScaffoldMessengerState> messengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   static void showInfo(String message) {
     _showToast(message, Colors.blue);
@@ -34,7 +35,9 @@ class ToastUtils {
         ),
       );
     } else {
-      debugPrint('ToastUtils: ScaffoldMessengerState is null. Message: $message');
+      debugPrint(
+        'ToastUtils: ScaffoldMessengerState is null. Message: $message',
+      );
     }
   }
 }

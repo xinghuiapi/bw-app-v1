@@ -9,7 +9,8 @@ class GameLoginResponse {
 
   GameLoginResponse({this.url});
 
-  factory GameLoginResponse.fromJson(Map<String, dynamic> json) => _$GameLoginResponseFromJson(json);
+  factory GameLoginResponse.fromJson(Map<String, dynamic> json) =>
+      _$GameLoginResponseFromJson(json);
   Map<String, dynamic> toJson() => _$GameLoginResponseToJson(this);
 }
 
@@ -32,7 +33,8 @@ class GameListResponse {
 
   GameListResponse({this.data, this.currentPage, this.total, this.lastPage});
 
-  factory GameListResponse.fromJson(Map<String, dynamic> json) => _$GameListResponseFromJson(json);
+  factory GameListResponse.fromJson(Map<String, dynamic> json) =>
+      _$GameListResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$GameListResponseToJson(this);
 }
@@ -43,6 +45,7 @@ class BalanceResponse {
 
   BalanceResponse({this.balance});
 
-  factory BalanceResponse.fromJson(Map<String, dynamic> json) => _$BalanceResponseFromJson(json);
+  factory BalanceResponse.fromJson(Map<String, dynamic> json) =>
+      _$BalanceResponseFromJson(json);
   Map<String, dynamic> toJson() => _$BalanceResponseToJson(this);
 }

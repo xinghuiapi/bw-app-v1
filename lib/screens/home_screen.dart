@@ -82,23 +82,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // 轮播图
                       if (homeData.banners != null)
                         HomeBanner(banners: homeData.banners!),
-                      
+
                       const SizedBox(height: 12),
-                      
+
                       // 通知栏
                       if (homeData.notices != null)
                         HomeNotices(notices: homeData.notices!),
-                      
+
                       const SizedBox(height: 12),
-                      
+
                       // 快捷入口
                       const QuickAccess(),
-                      
+
                       const SizedBox(height: 12),
                     ],
                   ),
                 ),
-                
+
                 // 游戏分类吸顶 Header
                 categoriesAsync.when(
                   skipLoadingOnReload: true,
@@ -111,7 +111,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       maxHeight: 56,
                     ),
                   ),
-                  loading: () => const SliverToBoxAdapter(child: CategorySkeleton()),
+                  loading: () =>
+                      const SliverToBoxAdapter(child: CategorySkeleton()),
                   error: (err, stack) => SliverToBoxAdapter(
                     child: ErrorStateWidget(
                       message: '加载分类失败: $err',
@@ -119,18 +120,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                 ),
-                
+
                 // 游戏内容
-                SliverToBoxAdapter(
-                  child: categoriesAsync.when(
-                    skipLoadingOnReload: true,
-                    skipLoadingOnRefresh: true,
-                    data: (categories) => GameCategoriesWidget(categories: categories),
-                    loading: () => const SizedBox.shrink(),
-                    error: (err, stack) => const SizedBox.shrink(),
-                  ),
+                categoriesAsync.when(
+                  skipLoadingOnReload: true,
+                  skipLoadingOnRefresh: true,
+                  data: (categories) =>
+                      GameCategoriesWidget(categories: categories),
+                  loading: () =>
+                      const SliverToBoxAdapter(child: SizedBox.shrink()),
+                  error: (err, stack) =>
+                      const SliverToBoxAdapter(child: SizedBox.shrink()),
                 ),
-                
+
                 const SliverToBoxAdapter(child: SizedBox(height: 30)),
               ],
             ),
@@ -146,7 +148,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Future<void> _checkVersionUpdate(String serverVersion, String? downloadUrl) async {
+  Future<void> _checkVersionUpdate(
+    String serverVersion,
+    String? downloadUrl,
+  ) async {
     _hasCheckedUpdate = true;
     try {
       final packageInfo = await PackageInfo.fromPlatform();
@@ -167,7 +172,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final serverParts = serverVersion.split('.').map(int.parse).toList();
       final currentParts = currentVersion.split('.').map(int.parse).toList();
 
-      final length = serverParts.length > currentParts.length ? serverParts.length : currentParts.length;
+      final length = serverParts.length > currentParts.length
+          ? serverParts.length
+          : currentParts.length;
 
       for (var i = 0; i < length; i++) {
         final serverPart = i < serverParts.length ? serverParts[i] : 0;
@@ -240,7 +247,11 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => maxHeight;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return child;
   }
 

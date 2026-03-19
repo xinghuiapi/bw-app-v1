@@ -34,4 +34,6 @@ class ThemeNotifier extends Notifier<ThemeMode> {
   }
 }
 
-final themeProvider = NotifierProvider.autoDispose<ThemeNotifier, ThemeMode>(ThemeNotifier.new);
+final themeProvider = NotifierProvider.autoDispose<ThemeNotifier, ThemeMode>(
+  ThemeNotifier.new,
+);

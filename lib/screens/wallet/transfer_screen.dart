@@ -38,35 +38,41 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     final user = ref.watch(userProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('额度转账'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('额度转账'), centerTitle: true),
       body: state.loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: () async {
                 await ref.read(transferProvider.notifier).init();
               },
-              child: SingleChildScrollView(
+              child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 主账户余额卡片
-                    _buildMainBalanceCard(user, state),
-                    const SizedBox(height: 16),
-                    
-                    // 分类 Tabs
-                    _buildPrimaryTabs(state),
-                    const SizedBox(height: 16),
-                    
-                    // 平台网格
-                    _buildPlatformGrid(state),
-                    const SizedBox(height: 80), // 为底部留白
-                  ],
-                ),
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // 主账户余额卡片
+                        _buildMainBalanceCard(user, state),
+                        const SizedBox(height: 16),
+
+                        // 分类 Tabs
+                        _buildPrimaryTabs(state),
+                        const SizedBox(height: 16),
+                      ]),
+                    ),
+                  ),
+
+                  // 平台网格
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: _buildPlatformGrid(state),
+                  ),
+
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 80), // 为底部留白
+                  ),
+                ],
               ),
             ),
       bottomSheet: _buildModeSelector(user, state),
@@ -79,13 +85,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.isDark(context) ? Colors.black.withAlpha(26) : Colors.black.withAlpha(10),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppTheme.getDividerColor(context)),
+        // Removed BoxShadow for web optimization
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -97,15 +98,21 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                 children: [
                   Text(
                     '主账户余额',
-                    style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+                    style: TextStyle(
+                      color: AppTheme.getSecondaryTextColor(context),
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () => ref.read(userProvider.notifier).fetchUserInfo(),
+                    onTap: () =>
+                        ref.read(userProvider.notifier).fetchUserInfo(),
                     child: Icon(
                       Icons.refresh,
                       size: 16,
-                      color: user.isLoading ? AppTheme.primary : AppTheme.getSecondaryTextColor(context),
+                      color: user.isLoading
+                          ? AppTheme.primary
+                          : AppTheme.getSecondaryTextColor(context),
                     ),
                   ),
                 ],
@@ -125,7 +132,10 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                   const SizedBox(width: 4),
                   Text(
                     '元',
-                    style: TextStyle(fontSize: 14, color: AppTheme.getSecondaryTextColor(context)),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.getSecondaryTextColor(context),
+                    ),
                   ),
                 ],
               ),
@@ -135,7 +145,9 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
             onPressed: state.recoveryLoading
                 ? null
                 : () async {
-                    final error = await ref.read(transferProvider.notifier).recoveryAll();
+                    final error = await ref
+                        .read(transferProvider.notifier)
+                        .recoveryAll();
                     if (error != null) {
                       ToastUtils.showError(error);
                     } else {
@@ -155,7 +167,10 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppTheme.primary,
+                    ),
                   )
                 : const Text('一键归户'),
           ),
@@ -177,13 +192,17 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
               selected: isSelected,
               onSelected: (selected) {
                 if (selected) {
-                  ref.read(transferProvider.notifier).selectPrimaryCategory(cat);
+                  ref
+                      .read(transferProvider.notifier)
+                      .selectPrimaryCategory(cat);
                 }
               },
               backgroundColor: AppTheme.getDividerColor(context),
               selectedColor: AppTheme.primary,
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppTheme.getTextSecondary(context),
+                color: isSelected
+                    ? Colors.white
+                    : AppTheme.getTextSecondary(context),
               ),
               showCheckmark: false,
               shape: RoundedRectangleBorder(
@@ -198,24 +217,31 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
 
   Widget _buildPlatformGrid(TransferState state) {
     if (state.balanceLoading && state.subCategories.isEmpty) {
-      return const Center(child: Padding(
-        padding: EdgeInsets.all(40.0),
-        child: CircularProgressIndicator(),
-      ));
-    }
-
-    if (state.subCategories.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(40.0),
-          child: Text('暂无游戏平台', style: TextStyle(color: AppTheme.getTertiaryTextColor(context))),
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(40.0),
+            child: CircularProgressIndicator(),
+          ),
         ),
       );
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    if (state.subCategories.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(40.0),
+            child: Text(
+              '暂无游戏平台',
+              style: TextStyle(color: AppTheme.getTertiaryTextColor(context)),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SliverGrid.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 10,
@@ -226,8 +252,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       itemBuilder: (context, index) {
         final platform = state.subCategories[index];
         final balance = state.platformBalances[platform.id] ?? 0.00;
-        
-        return InkWell(
+
+        return GestureDetector(
           onTap: () => _showTransferDialog(platform),
           child: Container(
             decoration: BoxDecoration(
@@ -240,8 +266,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
               children: [
                 if (platform.pcLogo != null)
                   WebSafeImage(
-                    imageUrl: platform.pcLogo!.startsWith('http') 
-                        ? platform.pcLogo! 
+                    imageUrl: platform.pcLogo!.startsWith('http')
+                        ? platform.pcLogo!
                         : '${AppConstants.resourceBaseUrl}${platform.pcLogo}',
                     width: 40,
                     height: 40,
@@ -252,13 +278,19 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                 const SizedBox(height: 8),
                 Text(
                   platform.name ?? '',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${balance.toStringAsFixed(2)}元',
-                  style: TextStyle(fontSize: 12, color: AppTheme.getTertiaryTextColor(context)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.getTertiaryTextColor(context),
+                  ),
                 ),
               ],
             ),
@@ -279,7 +311,10 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       alignment: Alignment.center,
       child: Text(
         platform.name?.characters.first ?? '?',
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -295,10 +330,10 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
         controller: _amountController,
         onTransfer: (isDeposit, amount) async {
           final notifier = ref.read(transferProvider.notifier);
-          final error = isDeposit 
-            ? await notifier.depositToGame(platform.id, amount)
-            : await notifier.withdrawFromGame(platform.id, amount);
-          
+          final error = isDeposit
+              ? await notifier.depositToGame(platform.id, amount)
+              : await notifier.withdrawFromGame(platform.id, amount);
+
           if (error != null) {
             ToastUtils.showError(error);
           } else {
@@ -316,11 +351,19 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        border: Border(top: BorderSide(color: AppTheme.getDividerColor(context))),
+        border: Border(
+          top: BorderSide(color: AppTheme.getDividerColor(context)),
+        ),
       ),
       child: Row(
         children: [
-          Text('转账模式:', style: TextStyle(fontSize: 13, color: AppTheme.getTextSecondary(context))),
+          Text(
+            '转账模式:',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppTheme.getTextSecondary(context),
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Row(
@@ -339,9 +382,12 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
   Widget _buildModeRadio(int value, String label, int currentMode) {
     final isSelected = currentMode == value;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () async {
         if (!isSelected) {
-          final error = await ref.read(transferProvider.notifier).setTransferMode(value);
+          final error = await ref
+              .read(transferProvider.notifier)
+              .setTransferMode(value);
           if (error != null) {
             ToastUtils.showError(error);
           } else {
@@ -354,14 +400,18 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
           Icon(
             isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
             size: 18,
-            color: isSelected ? AppTheme.primary : AppTheme.getTextSecondary(context),
+            color: isSelected
+                ? AppTheme.primary
+                : AppTheme.getTextSecondary(context),
           ),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
               fontSize: 13,
-              color: isSelected ? AppTheme.primary : AppTheme.getTextSecondary(context),
+              color: isSelected
+                  ? AppTheme.primary
+                  : AppTheme.getTextSecondary(context),
             ),
           ),
         ],
@@ -407,11 +457,18 @@ class _TransferDialog extends ConsumerWidget {
             children: [
               Text(
                 '${platform.name} 钱包',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.getTextPrimary(context)),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.getTextPrimary(context),
+                ),
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: Icon(Icons.close, color: AppTheme.getTextSecondary(context)),
+                icon: Icon(
+                  Icons.close,
+                  color: AppTheme.getTextSecondary(context),
+                ),
               ),
             ],
           ),
@@ -430,8 +487,13 @@ class _TransferDialog extends ConsumerWidget {
                     style: TextStyle(color: AppTheme.getTextPrimary(context)),
                     decoration: InputDecoration(
                       hintText: '最低1元，只能为整数',
-                      hintStyle: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 14),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      hintStyle: TextStyle(
+                        color: AppTheme.getTextSecondary(context),
+                        fontSize: 14,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
                       border: InputBorder.none,
                     ),
                   ),
@@ -441,7 +503,10 @@ class _TransferDialog extends ConsumerWidget {
                     // 转入全部余额，向下取整
                     controller.text = balance.floor().toString();
                   },
-                  child: const Text('全部转入', style: TextStyle(color: AppTheme.primary)),
+                  child: const Text(
+                    '全部转入',
+                    style: TextStyle(color: AppTheme.primary),
+                  ),
                 ),
               ],
             ),
@@ -456,7 +521,9 @@ class _TransferDialog extends ConsumerWidget {
                     foregroundColor: AppTheme.error,
                     side: const BorderSide(color: AppTheme.error),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text('转出'),
                 ),
@@ -469,7 +536,9 @@ class _TransferDialog extends ConsumerWidget {
                     backgroundColor: AppTheme.error,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text('转入'),
                 ),

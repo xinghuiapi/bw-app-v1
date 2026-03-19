@@ -21,12 +21,15 @@ class QuickAccess extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.getDividerColor(context), width: 0.5),
+        border: Border.all(
+          color: AppTheme.getDividerColor(context),
+          width: 0.5,
+        ),
       ),
-      child: authState.isLoggedIn 
+      child: authState.isLoggedIn
           ? (userState.isLoading && user == null
-              ? const _QuickAccessSkeleton()
-              : _buildLoggedIn(context, ref, user, userState))
+                ? const _QuickAccessSkeleton()
+                : _buildLoggedIn(context, ref, user, userState))
           : _buildLoggedOut(context),
     );
   }
@@ -39,13 +42,22 @@ class QuickAccess extends ConsumerWidget {
           children: [
             Text(
               '下午好',
-              style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: AppTheme.getTextPrimary(context),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Row(
               children: [
-                _buildButton('注册', AppTheme.getInputFillColor(context), AppTheme.getTextPrimary(context), () {
-                  context.push('/register');
-                }),
+                _buildButton(
+                  '注册',
+                  AppTheme.getInputFillColor(context),
+                  AppTheme.getTextPrimary(context),
+                  () {
+                    context.push('/register');
+                  },
+                ),
                 const SizedBox(width: 8),
                 _buildButton('登录', AppTheme.primary, Colors.white, () {
                   context.push('/login');
@@ -63,11 +75,28 @@ class QuickAccess extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              Icon(Icons.language, color: AppTheme.getTertiaryTextColor(context), size: 16),
+              Icon(
+                Icons.language,
+                color: AppTheme.getTertiaryTextColor(context),
+                size: 16,
+              ),
               const SizedBox(width: 8),
-              Text('官方域名', style: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 12)),
+              Text(
+                '官方域名',
+                style: TextStyle(
+                  color: AppTheme.getTertiaryTextColor(context),
+                  fontSize: 12,
+                ),
+              ),
               const SizedBox(width: 8),
-              const Text('xh-bet.com', style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.w500)),
+              const Text(
+                'xh-bet.com',
+                style: TextStyle(
+                  color: AppTheme.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ),
@@ -75,7 +104,12 @@ class QuickAccess extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoggedIn(BuildContext context, WidgetRef ref, dynamic user, UserState userState) {
+  Widget _buildLoggedIn(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic user,
+    UserState userState,
+  ) {
     return Column(
       children: [
         Row(
@@ -86,26 +120,53 @@ class QuickAccess extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Text(user?.username ?? '...', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                      user?.username ?? '...',
+                      style: TextStyle(
+                        color: AppTheme.getTextPrimary(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primary.withAlpha(25),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppTheme.primary.withAlpha(76)),
+                        border: Border.all(
+                          color: AppTheme.primary.withAlpha(76),
+                        ),
                       ),
-                      child: const Text('主钱包', style: TextStyle(color: AppTheme.primary, fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        '主钱包',
+                        style: TextStyle(
+                          color: AppTheme.primary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
-                      onTap: () => ref.read(userProvider.notifier).refreshBalance(),
+                      onTap: () =>
+                          ref.read(userProvider.notifier).refreshBalance(),
                       child: SizedBox(
                         width: 16,
                         height: 16,
                         child: userState.isBalanceLoading
-                            ? CircularProgressIndicator(strokeWidth: 2, color: AppTheme.getTertiaryTextColor(context))
-                            : Icon(Icons.refresh, color: AppTheme.getTertiaryTextColor(context), size: 16),
+                            ? CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppTheme.getTertiaryTextColor(context),
+                              )
+                            : Icon(
+                                Icons.refresh,
+                                color: AppTheme.getTertiaryTextColor(context),
+                                size: 16,
+                              ),
                       ),
                     ),
                   ],
@@ -124,9 +185,21 @@ class QuickAccess extends ConsumerWidget {
             ),
             Row(
               children: [
-                _buildActionButton(context, '充值', Icons.add_circle_outline, AppTheme.info, () => context.push('/wallet-recharge')),
+                _buildActionButton(
+                  context,
+                  '充值',
+                  Icons.add_circle_outline,
+                  AppTheme.info,
+                  () => context.push('/wallet-recharge'),
+                ),
                 const SizedBox(width: 12),
-                _buildActionButton(context, '提现', Icons.account_balance_wallet_outlined, AppTheme.success, () => context.push('/wallet-withdraw')),
+                _buildActionButton(
+                  context,
+                  '提现',
+                  Icons.account_balance_wallet_outlined,
+                  AppTheme.success,
+                  () => context.push('/wallet-withdraw'),
+                ),
               ],
             ),
           ],
@@ -135,8 +208,15 @@ class QuickAccess extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Column(
         children: [
@@ -162,7 +242,12 @@ class QuickAccess extends ConsumerWidget {
     );
   }
 
-  Widget _buildButton(String label, Color bgColor, Color textColor, VoidCallback onTap) {
+  Widget _buildButton(
+    String label,
+    Color bgColor,
+    Color textColor,
+    VoidCallback onTap,
+  ) {
     return ElevatedButton(
       onPressed: onTap,
       style: ElevatedButton.styleFrom(
@@ -174,7 +259,10 @@ class QuickAccess extends ConsumerWidget {
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+      ),
     );
   }
 }

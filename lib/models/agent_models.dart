@@ -31,7 +31,8 @@ class AgentInfo {
     this.subUserCount,
   });
 
-  factory AgentInfo.fromJson(Map<String, dynamic> json) => _$AgentInfoFromJson(json);
+  factory AgentInfo.fromJson(Map<String, dynamic> json) =>
+      _$AgentInfoFromJson(json);
   Map<String, dynamic> toJson() => _$AgentInfoToJson(this);
 }
 
@@ -62,6 +63,7 @@ class TeamReport {
     this.newUserCount,
   });
 
-  factory TeamReport.fromJson(Map<String, dynamic> json) => _$TeamReportFromJson(json);
+  factory TeamReport.fromJson(Map<String, dynamic> json) =>
+      _$TeamReportFromJson(json);
   Map<String, dynamic> toJson() => _$TeamReportToJson(this);
 }

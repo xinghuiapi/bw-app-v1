@@ -20,7 +20,8 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _accountController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -30,14 +31,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   final _smsCodeController = TextEditingController();
   final _emailCodeController = TextEditingController();
   final _areaCodeController = TextEditingController(text: '+86');
-  
+
   late TabController _tabController;
   int _loginType = 1; // 1: Username, 2: Email, 3: Phone
   final String _areaCode = '86';
-  
+
   // 动态保存当前可用的登录类型
   List<int> _availableLoginTypes = [1];
-  
+
   bool _obscurePassword = true;
   CaptchaData? _captchaData;
   bool _isLoadingCaptcha = false;
@@ -54,12 +55,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    
+
     // 强制刷新配置数据，确保获取到最新的登录配置
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.invalidate(homeDataProvider);
     });
-    
+
     // 获取当前已有的配置数据来初始化 Tab
     final homeDataState = ref.read(homeDataProvider);
     final initialHomeData = homeDataState.asData?.value;
@@ -71,7 +72,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       _loginType = _availableLoginTypes[0];
     }
 
-    _tabController = TabController(length: _availableLoginTypes.length, vsync: this);
+    _tabController = TabController(
+      length: _availableLoginTypes.length,
+      vsync: this,
+    );
     _tabController.addListener(_handleTabChange);
     _refreshCaptcha();
   }
@@ -85,7 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   void _updateTabs(HomeData homeData) {
     print('Updating tabs with homeData: ${homeData.sendConfig?.loginStatus}');
     final newTypes = [1]; // 账号登录始终开启
-    
+
     // 根据配置决定手机和邮箱登录是否开启
     if (homeData.sendConfig?.loginStatus == 1) {
       newTypes.add(3); // 手机登录
@@ -95,7 +99,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
     print('New available login types: $newTypes');
 
-    if (newTypes.length != _availableLoginTypes.length || 
+    if (newTypes.length != _availableLoginTypes.length ||
         !newTypes.every((t) => _availableLoginTypes.contains(t))) {
       // 在下一帧更新，避免在 build 过程中更新状态
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -105,21 +109,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             final oldIndex = _tabController.index;
             _tabController.removeListener(_handleTabChange);
             _tabController.dispose();
-            
+
             // 使用 initialIndex 来避免同步问题
             int initialIndex = 0;
             if (oldIndex < _availableLoginTypes.length) {
               initialIndex = oldIndex;
             }
-            
+
             _tabController = TabController(
-              length: _availableLoginTypes.length, 
+              length: _availableLoginTypes.length,
               vsync: this,
               initialIndex: initialIndex,
             );
             _tabController.addListener(_handleTabChange);
             _loginType = _availableLoginTypes[_tabController.index];
-            print('State updated: _availableLoginTypes=$_availableLoginTypes, _loginType=$_loginType');
+            print(
+              'State updated: _availableLoginTypes=$_availableLoginTypes, _loginType=$_loginType',
+            );
           });
         }
       });
@@ -152,10 +158,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
 
     setState(() => _isSendingSmsCode = true);
-    
+
     // Call SMS API
     final response = await AuthService.sendSmsCode(phone, _areaCode, type: 1);
-    
+
     if (mounted) {
       setState(() => _isSendingSmsCode = false);
       if (response.isSuccess) {
@@ -191,7 +197,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       ToastUtils.showWarning('请输入邮箱地址');
       return;
     }
-    
+
     // Simple email validation
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
@@ -200,10 +206,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
 
     setState(() => _isSendingEmailCode = true);
-    
+
     // Call Email API
     final response = await AuthService.sendEmailCode(email, type: 1);
-    
+
     if (mounted) {
       setState(() => _isSendingEmailCode = false);
       if (response.isSuccess) {
@@ -234,7 +240,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   Future<void> _refreshCaptcha() async {
     if (_isLoadingCaptcha) return;
     setState(() => _isLoadingCaptcha = true);
-    
+
     final response = await AuthService.getCaptcha();
     if (response.isSuccess && response.data != null) {
       setState(() {
@@ -282,7 +288,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
 
     final response = await ref.read(authProvider.notifier).login(request);
-    
+
     if (mounted) {
       if (response.isSuccess) {
         ToastUtils.showSuccess('登录成功');
@@ -327,14 +333,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         backgroundColor: Colors.transparent,
         bottom: (_availableLoginTypes.length > 1)
             ? TabBar(
-                key: ValueKey('login_tab_bar_${_tabController.length}_${_tabController.hashCode}'),
+                key: ValueKey(
+                  'login_tab_bar_${_tabController.length}_${_tabController.hashCode}',
+                ),
                 controller: _tabController,
                 tabs: _availableLoginTypes.map((type) {
                   switch (type) {
-                    case 1: return const Tab(text: '账号登录');
-                    case 3: return const Tab(text: '手机登录');
-                    case 2: return const Tab(text: '邮箱登录');
-                    default: return const Tab(text: '');
+                    case 1:
+                      return const Tab(text: '账号登录');
+                    case 3:
+                      return const Tab(text: '手机登录');
+                    case 2:
+                      return const Tab(text: '邮箱登录');
+                    default:
+                      return const Tab(text: '');
                   }
                 }).toList(),
                 labelColor: AppTheme.primary,
@@ -346,7 +358,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       body: SafeArea(
         child: homeDataAsync.when(
           data: (homeData) => _buildLoginForm(homeData, authState.isLoading),
-          loading: () => homeDataAsync.hasValue 
+          loading: () => homeDataAsync.hasValue
               ? _buildLoginForm(homeDataAsync.value!, authState.isLoading)
               : const Center(child: CircularProgressIndicator()),
           error: (err, stack) => Center(child: Text('加载配置失败: $err')),
@@ -407,10 +419,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
 
   Widget _buildCurrentLoginField() {
     switch (_loginType) {
-      case 1: return _buildUsernameField();
-      case 3: return _buildPhoneField();
-      case 2: return _buildEmailField();
-      default: return const SizedBox.shrink();
+      case 1:
+        return _buildUsernameField();
+      case 3:
+        return _buildPhoneField();
+      case 2:
+        return _buildEmailField();
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -438,7 +454,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             prefixIcon: Icons.phone_iphone,
             keyboardType: TextInputType.text,
             validator: (value) {
-              if (_loginType == 3 && (value == null || value.isEmpty)) return '请输入手机号';
+              if (_loginType == 3 && (value == null || value.isEmpty))
+                return '请输入手机号';
               return null;
             },
           ),
@@ -467,7 +484,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       children: [
         Text(
           '验证码',
-          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
         ),
         const SizedBox(height: 8),
         Row(
@@ -478,8 +498,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 controller: _smsCodeController,
                 decoration: InputDecoration(
                   hintText: '短信验证码',
-                  hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
-                  prefixIcon: Icon(Icons.verified_user_outlined, color: AppTheme.getTertiaryTextColor(context), size: 20),
+                  hintStyle: TextStyle(
+                    color: AppTheme.getTertiaryTextColor(context),
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.verified_user_outlined,
+                    color: AppTheme.getTertiaryTextColor(context),
+                    size: 20,
+                  ),
                   filled: true,
                   fillColor: AppTheme.getInputFillColor(context),
                   border: OutlineInputBorder(
@@ -488,17 +515,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
+                    borderSide: BorderSide(
+                      color: AppTheme.getInputBorderColor(context),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.primary, width: 1),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primary,
+                      width: 1,
+                    ),
                   ),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.error, width: 1),
+                    borderSide: const BorderSide(
+                      color: AppTheme.error,
+                      width: 1,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 18,
+                    horizontal: 16,
+                  ),
                 ),
                 keyboardType: TextInputType.number,
                 style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
@@ -527,7 +565,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       children: [
         Text(
           '验证码',
-          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
         ),
         const SizedBox(height: 8),
         Row(
@@ -538,8 +579,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 controller: _emailCodeController,
                 decoration: InputDecoration(
                   hintText: '请输入验证码',
-                  hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
-                  prefixIcon: Icon(Icons.verified_user_outlined, color: AppTheme.getTertiaryTextColor(context), size: 20),
+                  hintStyle: TextStyle(
+                    color: AppTheme.getTertiaryTextColor(context),
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.verified_user_outlined,
+                    color: AppTheme.getTertiaryTextColor(context),
+                    size: 20,
+                  ),
                   filled: true,
                   fillColor: AppTheme.getInputFillColor(context),
                   border: OutlineInputBorder(
@@ -548,17 +596,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
+                    borderSide: BorderSide(
+                      color: AppTheme.getInputBorderColor(context),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.primary, width: 1),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primary,
+                      width: 1,
+                    ),
                   ),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.error, width: 1),
+                    borderSide: const BorderSide(
+                      color: AppTheme.error,
+                      width: 1,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 18,
+                    horizontal: 16,
+                  ),
                 ),
                 keyboardType: TextInputType.text,
                 style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
@@ -593,8 +652,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         height: 56,
         padding: const EdgeInsets.symmetric(horizontal: 24),
         decoration: BoxDecoration(
-          color: (isLoading || countdown > 0) 
-              ? AppTheme.primary.withAlpha(13) 
+          color: (isLoading || countdown > 0)
+              ? AppTheme.primary.withAlpha(13)
               : AppTheme.primary.withAlpha(26),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -608,8 +667,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             : Text(
                 countdown > 0 ? '${countdown}s' : label,
                 style: TextStyle(
-                  color: (isLoading || countdown > 0) 
-                      ? AppTheme.textTertiary 
+                  color: (isLoading || countdown > 0)
+                      ? AppTheme.textTertiary
                       : AppTheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
@@ -664,7 +723,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       obscureText: _obscurePassword,
       suffixIcon: IconButton(
         icon: Icon(
-          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          _obscurePassword
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
           color: AppTheme.textTertiary,
           size: 20,
         ),
@@ -683,7 +744,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       children: [
         Text(
           '验证码',
-          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
         ),
         const SizedBox(height: 8),
         Row(
@@ -695,8 +759,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 controller: _captchaController,
                 decoration: InputDecoration(
                   hintText: '请输入验证码',
-                  hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
-                  prefixIcon: Icon(Icons.verified_user_outlined, color: AppTheme.getTertiaryTextColor(context), size: 20),
+                  hintStyle: TextStyle(
+                    color: AppTheme.getTertiaryTextColor(context),
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.verified_user_outlined,
+                    color: AppTheme.getTertiaryTextColor(context),
+                    size: 20,
+                  ),
                   filled: true,
                   fillColor: AppTheme.getInputFillColor(context),
                   border: OutlineInputBorder(
@@ -705,17 +776,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
+                    borderSide: BorderSide(
+                      color: AppTheme.getInputBorderColor(context),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.primary, width: 1),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primary,
+                      width: 1,
+                    ),
                   ),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.error, width: 1),
+                    borderSide: const BorderSide(
+                      color: AppTheme.error,
+                      width: 1,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 18,
+                    horizontal: 16,
+                  ),
                 ),
                 keyboardType: TextInputType.text,
                 style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
@@ -729,20 +811,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             Expanded(
               flex: 2,
               child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: _refreshCaptcha,
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
                     color: AppTheme.getInputFillColor(context),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.getInputBorderColor(context)),
+                    border: Border.all(
+                      color: AppTheme.getInputBorderColor(context),
+                    ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(11),
-                    child: _isLoadingCaptcha
-                        ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))
-                        : _buildCaptchaImage(),
-                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _isLoadingCaptcha
+                      ? const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : _buildCaptchaImage(),
                 ),
               ),
             ),
@@ -753,18 +842,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   }
 
   Widget _buildCaptchaImage() {
-    if (_captchaData == null) return const Icon(Icons.refresh, color: AppTheme.textTertiary);
-    
-    final content = _captchaData!.captchaCode ?? _captchaData!.captchaImg ?? _captchaData!.captchaImageContent;
-    if (content.isEmpty) return const Icon(Icons.refresh, color: AppTheme.textTertiary);
+    if (_captchaData == null)
+      return const Icon(Icons.refresh, color: AppTheme.textTertiary);
+
+    final content =
+        _captchaData!.captchaCode ??
+        _captchaData!.captchaImg ??
+        _captchaData!.captchaImageContent;
+    if (content.isEmpty)
+      return const Icon(Icons.refresh, color: AppTheme.textTertiary);
 
     try {
       // Handle data:image/png;base64, prefix if present
-      final base64String = content.contains(',') ? content.split(',').last : content;
+      final base64String = content.contains(',')
+          ? content.split(',').last
+          : content;
       return Image.memory(
         base64Decode(base64String),
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => const Icon(Icons.error_outline, color: AppTheme.error),
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.error_outline, color: AppTheme.error),
       );
     } catch (e) {
       debugPrint('Captcha decode error: $e');
@@ -790,7 +887,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       children: [
         Text(
           label,
-          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -803,8 +903,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: AppTheme.getTertiaryTextColor(context), fontSize: 14),
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppTheme.getTertiaryTextColor(context), size: 20) : null,
+            hintStyle: TextStyle(
+              color: AppTheme.getTertiaryTextColor(context),
+              fontSize: 14,
+            ),
+            prefixIcon: prefixIcon != null
+                ? Icon(
+                    prefixIcon,
+                    color: AppTheme.getTertiaryTextColor(context),
+                    size: 20,
+                  )
+                : null,
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppTheme.getInputFillColor(context),
@@ -814,7 +923,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppTheme.getInputBorderColor(context)),
+              borderSide: BorderSide(
+                color: AppTheme.getInputBorderColor(context),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -824,7 +935,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppTheme.error, width: 1),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 18,
+              horizontal: 16,
+            ),
           ),
           validator: validator,
         ),
@@ -855,7 +969,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
               )
             : const Text(
                 '立即登录',
@@ -871,13 +988,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       children: [
         Text(
           '还没有账号?',
-          style: TextStyle(color: AppTheme.getSecondaryTextColor(context), fontSize: 14),
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
         ),
         TextButton(
           onPressed: () => context.push('/register'),
           child: const Text(
             '立即注册',
-            style: TextStyle(color: AppTheme.primary, fontSize: 14, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppTheme.primary,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],

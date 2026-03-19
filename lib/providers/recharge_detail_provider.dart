@@ -73,7 +73,7 @@ class RechargeDetailNotifier extends Notifier<RechargeDetailState> {
   Future<void> pickImage() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       try {
         // 读取图片字节数据用于显示（Web/Mobile 通用）
@@ -122,12 +122,17 @@ class RechargeDetailNotifier extends Notifier<RechargeDetailState> {
       // 1. 如果有本地图片且未上传，先上传
       String? imageUrl = state.uploadedImageUrl;
       if (imageUrl == null && state.localImageBytes != null) {
-        final uploadResponse = await FinanceService.uploadImage(state.localImageBytes!);
+        final uploadResponse = await FinanceService.uploadImage(
+          state.localImageBytes!,
+        );
         if (uploadResponse.isSuccess && uploadResponse.data != null) {
           imageUrl = uploadResponse.data;
           state = state.copyWith(uploadedImageUrl: imageUrl);
         } else {
-          state = state.copyWith(errorMsg: uploadResponse.msg, isUploading: false);
+          state = state.copyWith(
+            errorMsg: uploadResponse.msg,
+            isUploading: false,
+          );
           return false;
         }
       }
@@ -149,7 +154,7 @@ class RechargeDetailNotifier extends Notifier<RechargeDetailState> {
           return false;
         }
       }
-      
+
       return false;
     } catch (e) {
       state = state.copyWith(errorMsg: e.toString(), isUploading: false);
@@ -162,4 +167,7 @@ class RechargeDetailNotifier extends Notifier<RechargeDetailState> {
   }
 }
 
-final rechargeDetailProvider = NotifierProvider.autoDispose<RechargeDetailNotifier, RechargeDetailState>(RechargeDetailNotifier.new);
+final rechargeDetailProvider =
+    NotifierProvider.autoDispose<RechargeDetailNotifier, RechargeDetailState>(
+      RechargeDetailNotifier.new,
+    );

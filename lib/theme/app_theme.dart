@@ -4,18 +4,18 @@ class AppTheme {
   // 品牌色
   static const Color primary = Color(0xFFFF4D4D);
   static const Color secondary = Color(0xFF1E2228);
-  
+
   // 背景色
   static const Color background = Color(0xFF0F1216);
   static const Color cardBackground = Color(0xFF1A1D23);
   static const Color surface = Color(0xFF252930);
-  
+
   // 文本色
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Colors.white70;
   static const Color textTertiary = Colors.white54;
   static const Color divider = Colors.white10;
-  
+
   // 辅助色
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFFC107);
@@ -43,17 +43,20 @@ class AppTheme {
   }
 
   static Color getAppBarBackgroundColor(BuildContext context) {
-    return Theme.of(context).appBarTheme.backgroundColor ?? getScaffoldBackgroundColor(context);
+    return Theme.of(context).appBarTheme.backgroundColor ??
+        getScaffoldBackgroundColor(context);
   }
 
   static Color getPrimaryTextColor(BuildContext context) {
-    return Theme.of(context).textTheme.bodyLarge?.color ?? (isDark(context) ? textPrimary : Colors.black87);
+    return Theme.of(context).textTheme.bodyLarge?.color ??
+        (isDark(context) ? textPrimary : Colors.black87);
   }
 
   static Color getSecondaryTextColor(BuildContext context) {
-    return Theme.of(context).textTheme.bodyMedium?.color ?? (isDark(context) ? textSecondary : Colors.black54);
+    return Theme.of(context).textTheme.bodyMedium?.color ??
+        (isDark(context) ? textSecondary : Colors.black54);
   }
-  
+
   static Color getTertiaryTextColor(BuildContext context) {
     return isDark(context) ? textTertiary : Colors.black38;
   }
@@ -61,14 +64,19 @@ class AppTheme {
   static Color getInputFillColor(BuildContext context) {
     return isDark(context) ? surface : Colors.white;
   }
-  
+
   static Color getInputBorderColor(BuildContext context) {
-    return isDark(context) ? Colors.white.withAlpha(13) : const Color(0xFFE0E0E0);
+    return isDark(context)
+        ? Colors.white.withAlpha(13)
+        : const Color(0xFFE0E0E0);
   }
 
-  static Color getTextPrimary(BuildContext context) => getPrimaryTextColor(context);
-  static Color getTextSecondary(BuildContext context) => getSecondaryTextColor(context);
-  static Color getTextTertiary(BuildContext context) => getTertiaryTextColor(context);
+  static Color getTextPrimary(BuildContext context) =>
+      getPrimaryTextColor(context);
+  static Color getTextSecondary(BuildContext context) =>
+      getSecondaryTextColor(context);
+  static Color getTextTertiary(BuildContext context) =>
+      getTertiaryTextColor(context);
 
   static Color getPlaceholderColor(BuildContext context) {
     return isDark(context) ? Colors.white24 : Colors.black26;
@@ -108,7 +116,9 @@ class AppTheme {
           backgroundColor: primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
@@ -136,7 +146,11 @@ class AppTheme {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+        titleTextStyle: TextStyle(
+          color: Colors.black,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
         iconTheme: IconThemeData(color: Colors.black),
       ),
       textTheme: const TextTheme(
@@ -148,7 +162,9 @@ class AppTheme {
           backgroundColor: primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),

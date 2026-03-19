@@ -74,7 +74,7 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
       size: map['size'] as int? ?? 30,
     );
   }
-  
+
   final dynamic arg;
   GameListNotifier(this.arg);
 
@@ -87,7 +87,7 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
 
   Future<void> loadMore() async {
     final currentState = state;
-    
+
     // 如果正在加载，或者已经没有更多数据，则返回
     if (currentState.isLoading || !currentState.hasMore) return;
 
@@ -108,8 +108,11 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
 
       if (response.isSuccess && response.data != null) {
         final newData = response.data!;
-        final List<GameItem> newItems = [...currentState.items, ...(newData.data ?? [])];
-        
+        final List<GameItem> newItems = [
+          ...currentState.items,
+          ...(newData.data ?? []),
+        ];
+
         final currentPage = newData.currentPage ?? nextPage;
         final lastPage = newData.lastPage ?? currentPage;
 
@@ -121,17 +124,11 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
           hasMore: currentPage < lastPage,
         );
       } else {
-        state = currentState.copyWith(
-          isLoading: false,
-          error: response.msg,
-        );
+        state = currentState.copyWith(isLoading: false, error: response.msg);
       }
     } catch (e) {
       if (!ref.mounted) return;
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -139,7 +136,7 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final p = params;
-      
+
       final response = await GameService.getSubGameList(
         gameCode: p.game,
         typeCode: p.code,
@@ -162,17 +159,11 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
           hasMore: currentPage < lastPage,
         );
       } else {
-        state = state.copyWith(
-          isLoading: false,
-          error: response.msg,
-        );
+        state = state.copyWith(isLoading: false, error: response.msg);
       }
     } catch (e) {
       if (!ref.mounted) return;
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -194,11 +185,14 @@ class GameListNotifier extends Notifier<GameListPaginationState> {
       }
       return item;
     }).toList();
-    
+
     state = state.copyWith(items: newItems);
   }
 }
 
-final gameListProvider = NotifierProvider.family<GameListNotifier, GameListPaginationState, dynamic>((arg) {
-  return GameListNotifier(arg);
-});
+final gameListProvider =
+    NotifierProvider.family<GameListNotifier, GameListPaginationState, dynamic>(
+      (arg) {
+        return GameListNotifier(arg);
+      },
+    );

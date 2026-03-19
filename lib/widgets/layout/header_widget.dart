@@ -44,45 +44,46 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
                 ),
                 const Divider(height: 1),
                 Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: languages.length,
-                    itemBuilder: (context, index) {
-                      final lang = languages[index];
-                      // 映射 API 返回的语言代码到 AppLocale
-                      AppLocale? targetLocale;
-                      if (lang.code == 'CN') targetLocale = AppLocale.zh;
-                      if (lang.code == 'EN') targetLocale = AppLocale.en;
-                      if (lang.code == 'PT') targetLocale = AppLocale.pt;
-                      
-                      final isSelected = targetLocale == currentLocale;
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(languages.length, (index) {
+                        final lang = languages[index];
+                        // 映射 API 返回的语言代码到 AppLocale
+                        AppLocale? targetLocale;
+                        if (lang.code == 'CN') targetLocale = AppLocale.zh;
+                        if (lang.code == 'EN') targetLocale = AppLocale.en;
+                        if (lang.code == 'PT') targetLocale = AppLocale.pt;
+                        
+                        final isSelected = targetLocale == currentLocale;
 
-                      return ListTile(
-                        leading: lang.img != null
-                            ? WebSafeImage(
-                                imageUrl: lang.img!,
-                                width: 24,
-                                height: 24,
-                              )
-                            : const Icon(Icons.language, size: 24),
-                        title: Text(
-                          lang.name ?? '',
-                          style: TextStyle(
-                            color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        return ListTile(
+                          leading: lang.img != null
+                              ? WebSafeImage(
+                                  imageUrl: lang.img!,
+                                  width: 24,
+                                  height: 24,
+                                )
+                              : const Icon(Icons.language, size: 24),
+                          title: Text(
+                            lang.name ?? '',
+                            style: TextStyle(
+                              color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
                           ),
-                        ),
-                        trailing: isSelected
-                            ? const Icon(Icons.check, color: AppTheme.primary)
-                            : null,
-                        onTap: () {
-                          if (targetLocale != null) {
-                            ref.read(languageProvider.notifier).setLanguage(targetLocale);
-                          }
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
+                          trailing: isSelected
+                              ? const Icon(Icons.check, color: AppTheme.primary)
+                              : null,
+                          onTap: () {
+                            if (targetLocale != null) {
+                              ref.read(languageProvider.notifier).setLanguage(targetLocale);
+                            }
+                            Navigator.pop(context);
+                          },
+                        );
+                      }),
+                    ),
                   ),
                 ),
               ],

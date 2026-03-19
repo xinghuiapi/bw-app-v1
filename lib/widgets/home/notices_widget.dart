@@ -12,9 +12,12 @@ class HomeNotices extends StatelessWidget {
   Widget build(BuildContext context) {
     if (notices.isEmpty) return const SizedBox.shrink();
 
-    final String combinedNotices = notices.map((n) => n.title ?? '').join('   |   ');
+    final String combinedNotices = notices
+        .map((n) => n.title ?? '')
+        .join('   |   ');
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => _showNoticeList(context),
       child: Container(
         height: 40,
@@ -23,7 +26,10 @@ class HomeNotices extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.getInputFillColor(context),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.getInputBorderColor(context), width: 0.5),
+          border: Border.all(
+            color: AppTheme.getInputBorderColor(context),
+            width: 0.5,
+          ),
         ),
         child: Row(
           children: [
@@ -32,7 +38,10 @@ class HomeNotices extends StatelessWidget {
             Expanded(
               child: Marquee(
                 text: combinedNotices,
-                style: TextStyle(fontSize: 13, color: AppTheme.getSecondaryTextColor(context)),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.getSecondaryTextColor(context),
+                ),
                 scrollAxis: Axis.horizontal,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 blankSpace: 100.0,
@@ -69,11 +78,18 @@ class HomeNotices extends StatelessWidget {
               children: [
                 Text(
                   '公告列表',
-                  style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: AppTheme.getPrimaryTextColor(context),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close, color: AppTheme.getSecondaryTextColor(context)),
+                  icon: Icon(
+                    Icons.close,
+                    color: AppTheme.getSecondaryTextColor(context),
+                  ),
                 ),
               ],
             ),
@@ -86,15 +102,23 @@ class HomeNotices extends StatelessWidget {
                   return ListTile(
                     title: Text(
                       notice.title ?? "无标题",
-                      style: TextStyle(color: AppTheme.getPrimaryTextColor(context), fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: AppTheme.getPrimaryTextColor(context),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     subtitle: Text(
                       notice.content ?? "暂无内容",
-                      style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
+                      style: TextStyle(
+                        color: AppTheme.getSecondaryTextColor(context),
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: Icon(Icons.chevron_right, color: AppTheme.getTertiaryTextColor(context)),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppTheme.getTertiaryTextColor(context),
+                    ),
                     onTap: () => _showNoticeDetail(context, notice),
                   );
                 },
@@ -111,9 +135,15 @@ class HomeNotices extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.getCardColor(context),
-        title: Text(notice.title ?? '公告详情', style: TextStyle(color: AppTheme.getPrimaryTextColor(context))),
+        title: Text(
+          notice.title ?? '公告详情',
+          style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
+        ),
         content: SingleChildScrollView(
-          child: Text(notice.content ?? '', style: TextStyle(color: AppTheme.getSecondaryTextColor(context))),
+          child: Text(
+            notice.content ?? '',
+            style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
+          ),
         ),
         actions: [
           TextButton(

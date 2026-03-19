@@ -5,11 +5,7 @@ class ErrorStateWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  const ErrorStateWidget({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+  const ErrorStateWidget({super.key, required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -97,11 +93,7 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: AppTheme.textTertiary,
-              size: 64,
-            ),
+            Icon(icon, color: AppTheme.textTertiary, size: 64),
             const SizedBox(height: 16),
             Text(
               message,
@@ -132,10 +124,7 @@ class EmptyStateWidget extends StatelessWidget {
 class LoadingStateWidget extends StatelessWidget {
   final String message;
 
-  const LoadingStateWidget({
-    super.key,
-    this.message = '正在加载...',
-  });
+  const LoadingStateWidget({super.key, this.message = '正在加载...'});
 
   @override
   Widget build(BuildContext context) {
@@ -149,10 +138,7 @@ class LoadingStateWidget extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
           ),
         ],
       ),
@@ -163,10 +149,7 @@ class LoadingStateWidget extends StatelessWidget {
 class GlobalLoadingDialog extends StatelessWidget {
   final String message;
 
-  const GlobalLoadingDialog({
-    super.key,
-    this.message = '正在加载...',
-  });
+  const GlobalLoadingDialog({super.key, this.message = '正在加载...'});
 
   static void show(BuildContext context, {String message = '正在加载...'}) {
     showDialog(
@@ -194,13 +177,8 @@ class GlobalLoadingDialog extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppTheme.cardBackground.withAlpha(242),
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(77),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
+            border: Border.all(color: AppTheme.getDividerColor(context)),
+            // Removed BoxShadow for web optimization
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

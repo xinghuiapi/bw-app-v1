@@ -36,11 +36,8 @@ class _DeferredWidgetState extends State<DeferredWidget> {
         if (snapshot.connectionState == ConnectionState.done) {
           return widget.builder();
         }
-        return widget.placeholder ?? const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
+        return widget.placeholder ??
+            const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }

@@ -67,7 +67,7 @@ class ReferralNotifier extends _$ReferralNotifier {
 
     state = state.copyWith(isClaiming: true);
     final response = await FinanceService.claimReferralRebate();
-    
+
     if (response.isSuccess) {
       ToastUtils.showSuccess(response.msg ?? '领取成功');
       // 领取成功后刷新数据

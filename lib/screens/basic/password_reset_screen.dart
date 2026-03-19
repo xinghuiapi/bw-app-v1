@@ -9,10 +9,12 @@ class PasswordResetScreen extends ConsumerStatefulWidget {
   const PasswordResetScreen({super.key});
 
   @override
-  ConsumerState<PasswordResetScreen> createState() => _PasswordResetScreenState();
+  ConsumerState<PasswordResetScreen> createState() =>
+      _PasswordResetScreenState();
 }
 
-class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with SingleTickerProviderStateMixin {
+class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
 
@@ -36,8 +38,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
 
   Future<void> _handleReset() async {
     if (!_formKey.currentState!.validate()) return;
-    
-    final success = await ref.read(passwordResetProvider.notifier).resetPassword();
+
+    final success = await ref
+        .read(passwordResetProvider.notifier)
+        .resetPassword();
     if (success && mounted) {
       context.pop();
     }
@@ -51,11 +55,18 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('重置密码', style: TextStyle(color: AppTheme.textPrimary)),
+        title: const Text(
+          '重置密码',
+          style: TextStyle(color: AppTheme.textPrimary),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppTheme.textPrimary,
+            size: 20,
+          ),
           onPressed: () => context.pop(),
         ),
         bottom: TabBar(
@@ -109,16 +120,16 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
         const SizedBox(height: 8),
         Text(
           _tabController.index == 2 ? '请输入您的真实姓名和支付密码' : '我们将向您的账号发送验证码',
-          style: const TextStyle(
-            color: AppTheme.textSecondary,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
         ),
       ],
     );
   }
 
-  Widget _buildFields(PasswordResetState state, PasswordResetNotifier notifier) {
+  Widget _buildFields(
+    PasswordResetState state,
+    PasswordResetNotifier notifier,
+  ) {
     if (state.type == PasswordResetType.phone) {
       return Column(
         children: [
@@ -166,7 +177,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
     }
   }
 
-  Widget _buildPhoneField(PasswordResetState state, PasswordResetNotifier notifier) {
+  Widget _buildPhoneField(
+    PasswordResetState state,
+    PasswordResetNotifier notifier,
+  ) {
     return Row(
       children: [
         Container(
@@ -196,7 +210,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
     );
   }
 
-  Widget _buildCodeField(PasswordResetState state, PasswordResetNotifier notifier) {
+  Widget _buildCodeField(
+    PasswordResetState state,
+    PasswordResetNotifier notifier,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -214,13 +231,17 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
         SizedBox(
           height: 52,
           child: ElevatedButton(
-            onPressed: (state.countdown > 0 || state.isLoading) ? null : () => notifier.sendCode(),
+            onPressed: (state.countdown > 0 || state.isLoading)
+                ? null
+                : () => notifier.sendCode(),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primary.withAlpha(26),
               foregroundColor: AppTheme.primary,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: Text(
               state.countdown > 0 ? '${state.countdown}s' : '获取验证码',
@@ -232,7 +253,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
     );
   }
 
-  Widget _buildPasswordFields(PasswordResetState state, PasswordResetNotifier notifier) {
+  Widget _buildPasswordFields(
+    PasswordResetState state,
+    PasswordResetNotifier notifier,
+  ) {
     return Column(
       children: [
         _buildTextField(
@@ -279,7 +303,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+        Text(
+          label,
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           initialValue: initialValue,
@@ -292,8 +319,13 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
           style: const TextStyle(color: AppTheme.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppTheme.textTertiary, fontSize: 14),
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppTheme.textTertiary, size: 20) : null,
+            hintStyle: const TextStyle(
+              color: AppTheme.textTertiary,
+              fontSize: 14,
+            ),
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, color: AppTheme.textTertiary, size: 20)
+                : null,
             filled: true,
             fillColor: AppTheme.surface,
             border: OutlineInputBorder(
@@ -312,7 +344,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppTheme.error, width: 1),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 16,
+            ),
           ),
         ),
       ],
@@ -326,13 +361,18 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> with 
       child: ElevatedButton(
         onPressed: isLoading ? null : _handleReset,
         style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         child: isLoading
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
               )
             : const Text(
                 '重置密码',

@@ -65,7 +65,8 @@ class TelegramLoginNotifier extends _$TelegramLoginNotifier {
       }
 
       final authData = loginResponse.data!;
-      final bool isFirstLogin = authData.oneLogin == true || authData.isOneLogin == true;
+      final bool isFirstLogin =
+          authData.oneLogin == true || authData.isOneLogin == true;
 
       // 2. Save Token
       await AuthHelper.setToken(authData.accessToken);
@@ -82,7 +83,7 @@ class TelegramLoginNotifier extends _$TelegramLoginNotifier {
         final pwdResponse = await AuthService.setTelegramPassword(
           SetTelegramPasswordRequest(newPass: '123456', confirmPass: '123456'),
         );
-        
+
         if (!pwdResponse.isSuccess) {
           // Even if password setting fails, we might still be logged in.
           // But according to original project, we should handle it.

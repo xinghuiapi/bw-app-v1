@@ -35,7 +35,8 @@ import 'package:my_flutter_app/utils/auth_helper.dart';
 import 'package:my_flutter_app/widgets/common/deferred_loader.dart';
 
 // 延迟加载组件
-import 'package:my_flutter_app/screens/basic/games_screen.dart' deferred as games_screen;
+import 'package:my_flutter_app/screens/basic/games_screen.dart'
+    deferred as games_screen;
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -49,7 +50,21 @@ class AppRouter {
       GoRoute(
         path: '/search',
         name: 'search',
-        builder: (context, state) => const SearchScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SearchScreen(),
+          opaque: true, // 改为 true，避免底层 HomeScreen 继续渲染消耗性能
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
       ),
       GoRoute(
         path: '/telegram-login',
@@ -65,7 +80,9 @@ class AppRouter {
         name: 'login',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
-          final redirectPath = extra?['redirect'] as String? ?? state.uri.queryParameters['redirect'];
+          final redirectPath =
+              extra?['redirect'] as String? ??
+              state.uri.queryParameters['redirect'];
           return LoginScreen(redirectPath: redirectPath);
         },
       ),
@@ -89,7 +106,7 @@ class AppRouter {
         name: 'activities-detail',
         builder: (context, state) => const ActivitiesDetailScreen(),
       ),
-      
+
       // 个人中心模块 (需要登录)
       GoRoute(
         path: '/personal-center',
@@ -106,56 +123,65 @@ class AppRouter {
       GoRoute(
         path: '/personal-center-profile-phone',
         name: 'personal-center-profile-phone',
-        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.phone),
+        builder: (context, state) =>
+            const ProfileEditScreen(type: ProfileEditType.phone),
         redirect: _authGuard,
       ),
       GoRoute(
         path: '/personal-center-profile-email',
         name: 'personal-center-profile-email',
-        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.email),
+        builder: (context, state) =>
+            const ProfileEditScreen(type: ProfileEditType.email),
         redirect: _authGuard,
       ),
       GoRoute(
         path: '/personal-center-profile-realname',
         name: 'personal-center-profile-realname',
-        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.realName),
+        builder: (context, state) =>
+            const ProfileEditScreen(type: ProfileEditType.realName),
         redirect: _authGuard,
       ),
       GoRoute(
         path: '/personal-center-profile-qq',
         name: 'personal-center-profile-qq',
-        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.qq),
+        builder: (context, state) =>
+            const ProfileEditScreen(type: ProfileEditType.qq),
         redirect: _authGuard,
       ),
       GoRoute(
         path: '/personal-center-profile-telegram',
         name: 'personal-center-profile-telegram',
-        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.telegram),
+        builder: (context, state) =>
+            const ProfileEditScreen(type: ProfileEditType.telegram),
         redirect: _authGuard,
       ),
       GoRoute(
         path: '/personal-center-profile-gender',
         name: 'personal-center-profile-gender',
-        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.gender),
+        builder: (context, state) =>
+            const ProfileEditScreen(type: ProfileEditType.gender),
         redirect: _authGuard,
       ),
       GoRoute(
         path: '/personal-center-profile-borntime',
         name: 'personal-center-profile-borntime',
-        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.bornTime),
+        builder: (context, state) =>
+            const ProfileEditScreen(type: ProfileEditType.bornTime),
         redirect: _authGuard,
       ),
       GoRoute(
         path: '/personal-center-profile-paypassword',
         name: 'personal-center-profile-paypassword',
-        builder: (context, state) => const ProfileEditScreen(type: ProfileEditType.payPassword),
+        builder: (context, state) =>
+            const ProfileEditScreen(type: ProfileEditType.payPassword),
         redirect: _authGuard,
       ),
       GoRoute(
         path: '/personal-center-transaction-records',
         name: 'personal-center-transaction-records',
         builder: (context, state) {
-          final index = int.tryParse(state.uri.queryParameters['index'] ?? '0') ?? 0;
+          final index =
+              int.tryParse(state.uri.queryParameters['index'] ?? '0') ?? 0;
           return TransactionRecordsScreen(initialIndex: index);
         },
         redirect: _authGuard,
@@ -208,7 +234,7 @@ class AppRouter {
         builder: (context, state) => const AgentCooperationScreen(),
         redirect: _authGuard,
       ),
-      
+
       // 钱包模块 (需要登录)
       GoRoute(
         path: '/wallet-recharge',
@@ -245,7 +271,7 @@ class AppRouter {
         },
         redirect: _authGuard,
       ),
-      
+
       // 游戏模块
       GoRoute(
         path: '/games',
@@ -287,13 +313,17 @@ class AppRouter {
         builder: (context, state) => const SystemMaintenanceScreen(),
       ),
     ],
-    
+
     // 全局重定向或错误处理
-    errorBuilder: (context, state) => const PlaceholderScreen(title: '404 Not Found'),
+    errorBuilder: (context, state) =>
+        const PlaceholderScreen(title: '404 Not Found'),
   );
 
   /// 简单的登录拦截器 (对标 Vue 路由中的 requiresAuth)
-  static Future<String?> _authGuard(BuildContext context, GoRouterState state) async {
+  static Future<String?> _authGuard(
+    BuildContext context,
+    GoRouterState state,
+  ) async {
     final bool loggedIn = await AuthHelper.hasToken();
     if (!loggedIn) {
       // 如果未登录，跳转到登录页，并带上当前路径作为重定向参数

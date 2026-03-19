@@ -202,6 +202,7 @@ SiteConfig _$SiteConfigFromJson(Map<String, dynamic> json) => SiteConfig(
   appDownload: json['app_download'] as String?,
   terminalLogin: (json['terminal_login'] as num?)?.toInt(),
   appVersion: json['app_version'] as String?,
+  tgLink: json['tg_link'],
 );
 
 Map<String, dynamic> _$SiteConfigToJson(SiteConfig instance) =>
@@ -215,6 +216,7 @@ Map<String, dynamic> _$SiteConfigToJson(SiteConfig instance) =>
       'app_download': instance.appDownload,
       'terminal_login': instance.terminalLogin,
       'app_version': instance.appVersion,
+      'tg_link': instance.tgLink,
     };
 
 GameCategory _$GameCategoryFromJson(Map<String, dynamic> json) => GameCategory(

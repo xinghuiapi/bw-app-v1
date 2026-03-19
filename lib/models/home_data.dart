@@ -223,6 +223,22 @@ class SiteConfig {
   final int? terminalLogin;
   @JsonKey(name: 'app_version')
   final String? appVersion;
+  
+  // tg_link 可能是字符串，也可能是数组，所以这里使用 dynamic，然后在 getter 中处理
+  @JsonKey(name: 'tg_link')
+  final dynamic tgLink;
+
+  List<String> get tgLinks {
+    if (tgLink == null) return [];
+    if (tgLink is String) {
+      if (tgLink.toString().isEmpty) return [];
+      return tgLink.toString().split(RegExp(r'[,\n]')).where((e) => e.trim().isNotEmpty).toList();
+    }
+    if (tgLink is List) {
+      return (tgLink as List).map((e) => e.toString()).where((e) => e.trim().isNotEmpty).toList();
+    }
+    return [];
+  }
 
   SiteConfig({
     this.title,
@@ -234,6 +250,7 @@ class SiteConfig {
     this.appDownload,
     this.terminalLogin,
     this.appVersion,
+    this.tgLink,
   });
 
   factory SiteConfig.fromJson(Map<String, dynamic> json) => _$SiteConfigFromJson(json);

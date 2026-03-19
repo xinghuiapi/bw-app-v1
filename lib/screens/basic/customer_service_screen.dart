@@ -52,6 +52,25 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
     context.push('/feedback');
   }
 
+  List<Widget> _buildTgCards(BuildContext context, List<String> links) {
+    if (links.isEmpty) return [];
+
+    return List.generate(links.length, (index) {
+      final title = links.length == 1 ? 'tg客服' : 'tg客服${index + 1}';
+      return Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: _buildServiceCard(
+          context,
+          icon: Icons.telegram,
+          iconColor: Colors.blueAccent,
+          title: title,
+          description: '点击跳转Telegram在线客服',
+          onTap: () => _openCustomerService(context, links[index].trim()),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final homeDataAsync = ref.watch(homeDataProvider);
@@ -94,6 +113,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                   description: '您的建议是我们进步的动力',
                   onTap: () => _openFeedback(context, ref),
                 ),
+                ..._buildTgCards(context, homeData.siteConfig?.tgLinks ?? []),
               ],
             ),
           );

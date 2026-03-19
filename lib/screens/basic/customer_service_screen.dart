@@ -56,7 +56,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
     if (links.isEmpty) return [];
 
     return List.generate(links.length, (index) {
-      final title = links.length == 1 ? 'tg客服' : 'tg客服${index + 1}';
+      final title = links.length == 1 ? 'Telegram客服' : 'Telegram客服${index + 1}';
       return Padding(
         padding: const EdgeInsets.only(top: 16),
         child: _buildServiceCard(

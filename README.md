@@ -447,3 +447,16 @@ lib/
 
 换logo命令
 dart run flutter_launcher_icons
+
+作为资深架构师，项目中经常使用 json_serializable 或 riverpod_generator 。如果你修改了 Model 或 Provider，需要运行以下命令来更新生成的 .g.dart 文件：
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+# 1. 清理构建缓存（解决莫名其妙的编译错误）
+flutter clean
+
+# 2. 重新获取依赖包
+flutter pub get
+
+# 3. 重新运行项目
+flutter run

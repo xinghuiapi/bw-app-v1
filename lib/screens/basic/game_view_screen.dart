@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_web/webview_flutter_web.dart';
 
 class GameViewScreen extends StatefulWidget {
   final String url;
@@ -20,8 +20,15 @@ class _GameViewScreenState extends State<GameViewScreen> {
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) {
+      WebViewPlatform.instance = WebWebViewPlatform();
+    }
+    
+    final controller = WebViewController();
+    
+    // Web 平台的 iframe 默认就是支持 JS 的，不需要也不支持调用 setJavaScriptMode 和 setBackgroundColor
     if (!kIsWeb) {
-      _controller = WebViewController()
+      controller
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setBackgroundColor(Colors.black)
         ..setNavigationDelegate(
@@ -36,11 +43,15 @@ class _GameViewScreenState extends State<GameViewScreen> {
               debugPrint('WebView Error: ${error.description}');
             },
           ),
-        )
-        ..loadRequest(Uri.parse(widget.url));
+        );
     } else {
-      _controller = null;
+      // Web 端虽然不需要 NavigationDelegate 控制加载状态，但我们可以默认让 isLoading = false，避免一直转圈
+      setState(() => _isLoading = false);
     }
+
+    controller.loadRequest(Uri.parse(widget.url));
+      
+    _controller = controller;
   }
 
   @override
@@ -57,29 +68,15 @@ class _GameViewScreenState extends State<GameViewScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: kIsWeb
-          ? _buildWebFrame()
-          : Stack(
-              children: [
-                WebViewWidget(controller: _controller!),
-                if (_isLoading)
-                  const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
-              ],
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller!),
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(color: Colors.white),
             ),
+        ],
+      ),
     );
   }
-
-  Widget _buildWebFrame() {
-    // Web 环境下，直接渲染 iframe
-    return HtmlWidget(
-      '<iframe src="${widget.url}" style="width:100%; height:100vh; border:none;"></iframe>',
-      factoryBuilder: () => MyHtmlWidgetFactory(),
-    );
-  }
-}
-
-class MyHtmlWidgetFactory extends WidgetFactory {
-  // 可以在这里自定义 iframe 的宽高或其他属性
 }

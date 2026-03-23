@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:my_flutter_app/router/app_router.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/providers/language_provider.dart';
@@ -10,7 +11,8 @@ import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/gen/strings.g.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
@@ -99,6 +101,17 @@ class _MyAppState extends ConsumerState<MyApp> {
       if (mounted) {
         setState(() {
           _isInitialized = true;
+        });
+        
+        // 确保第一帧渲染完成后，再移除启动图
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          FlutterNativeSplash.remove();
+          
+          // 同时也移除 HTML 中自定义的 loading 元素
+          // ignore: avoid_web_libraries_in_flutter
+          // js.context.callMethod('removeLoading'); 
+          // 实际上不需要调用 JS，因为 flutter_native_splash 自动移除了 id="splash"
+          // 但是我们还有 loading-indicator，我们需要隐藏它。
         });
       }
     }

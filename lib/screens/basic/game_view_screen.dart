@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_web/webview_flutter_web.dart';
 
 class GameViewScreen extends StatefulWidget {
   final String url;
@@ -14,44 +12,33 @@ class GameViewScreen extends StatefulWidget {
 }
 
 class _GameViewScreenState extends State<GameViewScreen> {
-  late final WebViewController? _controller;
+  late final WebViewController _controller;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    if (kIsWeb) {
-      WebViewPlatform.instance = WebWebViewPlatform();
-    }
     
-    final controller = WebViewController();
+    _controller = WebViewController();
     
-    // Web 平台的 iframe 默认就是支持 JS 的，不需要也不支持调用 setJavaScriptMode 和 setBackgroundColor
-    if (!kIsWeb) {
-      controller
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setBackgroundColor(Colors.black)
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onPageStarted: (String url) {
-              if (mounted) setState(() => _isLoading = true);
-            },
-            onPageFinished: (String url) {
-              if (mounted) setState(() => _isLoading = false);
-            },
-            onWebResourceError: (WebResourceError error) {
-              debugPrint('WebView Error: ${error.description}');
-            },
-          ),
-        );
-    } else {
-      // Web 端虽然不需要 NavigationDelegate 控制加载状态，但我们可以默认让 isLoading = false，避免一直转圈
-      setState(() => _isLoading = false);
-    }
+    _controller
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.black)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            if (mounted) setState(() => _isLoading = true);
+          },
+          onPageFinished: (String url) {
+            if (mounted) setState(() => _isLoading = false);
+          },
+          onWebResourceError: (WebResourceError error) {
+            debugPrint('WebView Error: ${error.description}');
+          },
+        ),
+      );
 
-    controller.loadRequest(Uri.parse(widget.url));
-      
-    _controller = controller;
+    _controller.loadRequest(Uri.parse(widget.url));
   }
 
   @override

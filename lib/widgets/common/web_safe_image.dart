@@ -5,8 +5,7 @@ import 'package:my_flutter_app/utils/constants.dart';
 
 // 使用条件导入来处理多平台
 import 'web_safe_image_stub.dart'
-    if (dart.library.js_util) 'web_safe_image_web.dart'
-    if (dart.library.html) 'web_safe_image_web.dart';
+    if (dart.library.js_interop) 'web_safe_image_web.dart';
 
 class WebSafeImage extends StatelessWidget {
   final String imageUrl;

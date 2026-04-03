@@ -460,3 +460,42 @@ flutter pub get
 
 # 3. 重新运行项目
 flutter run
+
+# 打包发布指南 (Packaging Guide)
+
+按照以下步骤进行应用发布前的配置与打包：
+
+### **第一步：更换应用 Logo**
+1. 将新的 Logo 图片放入 `assets/images/` 目录下，并命名为 `logo.png`。
+2. 在终端执行以下命令自动生成各平台图标：
+   ```bash
+   dart run flutter_launcher_icons
+   ```
+
+### **第二步：更换应用名称**
+使用项目提供的脚本一键修改各平台的应用显示名称：
+```bash
+# 将 "你的平台名字" 替换为实际名称
+dart run scripts/update_app_name.dart "你的平台名字"
+
+# 建议在修改名称后清理缓存并重新获取依赖
+flutter clean
+flutter pub get
+```
+
+### **第三步：配置服务器域名**
+在 [constants.dart](lib/utils/constants.dart) 中配置生产环境域名：
+- 修改 `AppConstants.devBaseUrl` 变量。
+- 取消注释对应的正式域名，并确保同时只有一个域名处于启用状态。
+
+### **第四步：执行打包命令**
+运行以下命令生成分架构的 Release APK：
+```bash
+flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols
+```
+
+**关于分架构打包 (`--split-per-abi`)：**
+默认情况下，Flutter 会将所有 CPU 架构（arm64, arm-v7a, x86_64）打包进一个 APK。使用该参数后会生成独立的 APK，显著减小安装包体积：
+- `app-arm64-v8a-release.apk`: 主流 Android 手机使用。
+- `app-armeabi-v7a-release.apk`: 旧款 Android 手机使用。
+- `app-x86_64-release.apk`: 部分平板和模拟器使用。

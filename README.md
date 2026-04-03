@@ -494,6 +494,10 @@ flutter pub get
 flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols
 ```
 
+**打包产物路径：**
+生成的 APK 文件位于以下目录：
+`build/app/outputs/flutter-apk/`
+
 **关于分架构打包 (`--split-per-abi`)：**
 默认情况下，Flutter 会将所有 CPU 架构（arm64, arm-v7a, x86_64）打包进一个 APK。使用该参数后会生成独立的 APK，显著减小安装包体积：
 - `app-arm64-v8a-release.apk`: 主流 Android 手机使用。

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/screens/home_screen.dart';
+import 'package:my_flutter_app/screens/splash/splash_screen.dart';
 import 'package:my_flutter_app/screens/placeholder_screen.dart';
 import 'package:my_flutter_app/screens/auth/telegram_login_screen.dart';
 import 'package:my_flutter_app/screens/auth/login_screen.dart';
@@ -40,8 +41,13 @@ import 'package:my_flutter_app/screens/basic/games_screen.dart'
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/home',
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/splash',
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/home',
         name: 'home',

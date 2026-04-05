@@ -112,6 +112,7 @@ flutter:
   assets:
     - assets/translations/
     - assets/images/
+    - assets/splash/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -140,8 +141,6 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 flutter_native_splash:
   color: "#ffffff"
-  image: "assets/splash/splash.png"
-  web_image_mode: cover
+  fullscreen: true
   android_12:
-    image: "assets/splash/splash.png"
-    icon_background_color: "#ffffff"
+    color: "#ffffff"

@@ -105,9 +105,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         
         // 确保第一帧渲染完成后，再移除启动图
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          FlutterNativeSplash.remove();
-          
-          // 同时也移除 HTML 中自定义的 loading 元素
+          // 现在原生的启动图由 SplashScreen 去移除，这里不再全局移除
+          // 移除 HTML 中自定义的 loading 元素
           // ignore: avoid_web_libraries_in_flutter
           // js.context.callMethod('removeLoading'); 
           // 实际上不需要调用 JS，因为 flutter_native_splash 自动移除了 id="splash"

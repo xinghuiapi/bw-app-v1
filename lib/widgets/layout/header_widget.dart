@@ -99,7 +99,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
     final homeDataAsync = ref.watch(homeDataProvider);
 
     return AppBar(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getAppBarBackgroundColor(context),
       elevation: 0,
       leadingWidth: 140,
       leading: Padding(

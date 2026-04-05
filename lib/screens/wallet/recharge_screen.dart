@@ -15,16 +15,51 @@ class RechargeScreen extends ConsumerStatefulWidget {
 }
 
 class _RechargeScreenState extends ConsumerState<RechargeScreen> {
+  late final TextEditingController _amountController;
+
   @override
   void initState() {
     super.initState();
+    final initialAmount = ref.read(rechargeProvider).inputAmount;
+    final initialText = initialAmount != null && initialAmount > 0
+        ? (initialAmount == initialAmount.truncateToDouble()
+            ? initialAmount.toInt().toString()
+            : initialAmount.toString())
+        : '';
+    _amountController = TextEditingController(text: initialText);
+
     Future.microtask(() {
       ref.read(rechargeProvider.notifier).fetchCategories();
     });
   }
 
   @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    ref.listen<RechargeState>(rechargeProvider, (previous, next) {
+      final currentAmount = double.tryParse(_amountController.text) ?? 0.0;
+      final nextAmount = next.inputAmount ?? 0.0;
+      
+      if (currentAmount != nextAmount) {
+        if (nextAmount == 0) {
+          _amountController.clear();
+        } else {
+          final newText = nextAmount == nextAmount.truncateToDouble()
+              ? nextAmount.toInt().toString()
+              : nextAmount.toString();
+          _amountController.text = newText;
+          _amountController.selection = TextSelection.fromPosition(
+            TextPosition(offset: newText.length),
+          );
+        }
+      }
+    });
+
     final state = ref.watch(rechargeProvider);
     final userState = ref.watch(userProvider);
     final user = userState.user;
@@ -381,15 +416,7 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
                             ref.read(rechargeProvider.notifier).setAmount(0);
                           }
                         },
-                        controller: TextEditingController(
-                          text: state.inputAmount != null && state.inputAmount! > 0 
-                              ? state.inputAmount.toString() 
-                              : ''
-                        )..selection = TextSelection.fromPosition(
-                            TextPosition(offset: state.inputAmount != null && state.inputAmount! > 0 
-                                ? state.inputAmount.toString().length 
-                                : 0)
-                          ),
+                        controller: _amountController,
                       ),
                     ),
                   ],

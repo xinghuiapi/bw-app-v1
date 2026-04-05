@@ -104,6 +104,7 @@ class AppTheme {
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: background,
+        foregroundColor: textPrimary,
         elevation: 0,
         centerTitle: true,
       ),
@@ -144,6 +145,7 @@ class AppTheme {
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(

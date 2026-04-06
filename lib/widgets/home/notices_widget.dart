@@ -13,7 +13,8 @@ class HomeNotices extends StatelessWidget {
     if (notices.isEmpty) return const SizedBox.shrink();
 
     final String combinedNotices = notices
-        .map((n) => n.title ?? '')
+        .map((n) => _stripHtml(n.content ?? n.title ?? ''))
+        .where((text) => text.isNotEmpty)
         .join('   |   ');
 
     return GestureDetector(
@@ -108,7 +109,7 @@ class HomeNotices extends StatelessWidget {
                       ),
                     ),
                     subtitle: Text(
-                      notice.content ?? "暂无内容",
+                      _stripHtml(notice.content ?? "暂无内容"),
                       style: TextStyle(
                         color: AppTheme.getSecondaryTextColor(context),
                       ),
@@ -141,7 +142,7 @@ class HomeNotices extends StatelessWidget {
         ),
         content: SingleChildScrollView(
           child: Text(
-            notice.content ?? '',
+            _stripHtml(notice.content ?? ''),
             style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
           ),
         ),
@@ -153,5 +154,9 @@ class HomeNotices extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _stripHtml(String html) {
+    return html.replaceAll(RegExp(r'<[^>]*>|&nbsp;'), '').trim();
   }
 }

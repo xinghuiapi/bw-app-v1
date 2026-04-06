@@ -232,6 +232,22 @@ class SiteConfig {
   final int? terminalLogin;
   @JsonKey(name: 'app_version')
   final String? appVersion;
+  final String? domain;
+  @JsonKey(name: 'pc_url')
+  final String? pcUrl;
+  @JsonKey(name: 'h5_url')
+  final String? h5Url;
+  @JsonKey(name: 'agent_url')
+  final String? agentUrl;
+  @JsonKey(name: 'apk_download')
+  final String? apkDownload;
+  @JsonKey(name: 'ios_download')
+  final String? iosDownload;
+  final String? description;
+  @JsonKey(name: 'app_icon')
+  final String? appIcon;
+  @JsonKey(name: 'app_desc')
+  final String? appDesc;
 
   // tg_link 可能是字符串，也可能是数组，所以这里使用 dynamic，然后在 getter 中处理
   @JsonKey(name: 'tg_link')
@@ -266,6 +282,15 @@ class SiteConfig {
     this.appDownload,
     this.terminalLogin,
     this.appVersion,
+    this.domain,
+    this.pcUrl,
+    this.h5Url,
+    this.agentUrl,
+    this.apkDownload,
+    this.iosDownload,
+    this.description,
+    this.appIcon,
+    this.appDesc,
     this.tgLink,
   });
 

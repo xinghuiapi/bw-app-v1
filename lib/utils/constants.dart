@@ -1,8 +1,8 @@
 class AppConstants {
   // API 相关配置
-  static const String devBaseUrl = "https://229382.xh-bw.com";
+  // static const String devBaseUrl = "https://229382.xh-bw.com";
   // static const String devBaseUrl = "https://apis.xh-demo.com";
-  // static const String devBaseUrl = "https://147258.xh-bw.com";
+  static const String devBaseUrl = "https://147258.xh-bw.com";
   // static const String devBaseUrl = "https://uu8com.xh-bw.com";
   static const String devApiPrefix = "/api";
   static const String apiBaseUrl = "$devBaseUrl$devApiPrefix";

@@ -202,6 +202,15 @@ SiteConfig _$SiteConfigFromJson(Map<String, dynamic> json) => SiteConfig(
   appDownload: json['app_download'] as String?,
   terminalLogin: (json['terminal_login'] as num?)?.toInt(),
   appVersion: json['app_version'] as String?,
+  domain: json['domain'] as String?,
+  pcUrl: json['pc_url'] as String?,
+  h5Url: json['h5_url'] as String?,
+  agentUrl: json['agent_url'] as String?,
+  apkDownload: json['apk_download'] as String?,
+  iosDownload: json['ios_download'] as String?,
+  description: json['description'] as String?,
+  appIcon: json['app_icon'] as String?,
+  appDesc: json['app_desc'] as String?,
   tgLink: json['tg_link'],
 );
 
@@ -216,6 +225,15 @@ Map<String, dynamic> _$SiteConfigToJson(SiteConfig instance) =>
       'app_download': instance.appDownload,
       'terminal_login': instance.terminalLogin,
       'app_version': instance.appVersion,
+      'domain': instance.domain,
+      'pc_url': instance.pcUrl,
+      'h5_url': instance.h5Url,
+      'agent_url': instance.agentUrl,
+      'apk_download': instance.apkDownload,
+      'ios_download': instance.iosDownload,
+      'description': instance.description,
+      'app_icon': instance.appIcon,
+      'app_desc': instance.appDesc,
       'tg_link': instance.tgLink,
     };
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/home_provider.dart';
 import 'package:my_flutter_app/providers/user_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
@@ -30,11 +31,14 @@ class QuickAccess extends ConsumerWidget {
           ? (userState.isLoading && user == null
                 ? const _QuickAccessSkeleton()
                 : _buildLoggedIn(context, ref, user, userState))
-          : _buildLoggedOut(context),
+          : _buildLoggedOut(context, ref),
     );
   }
 
-  Widget _buildLoggedOut(BuildContext context) {
+  Widget _buildLoggedOut(BuildContext context, WidgetRef ref) {
+    final homeDataState = ref.watch(homeDataProvider);
+    final domain = homeDataState.value?.siteConfig?.domain ?? 'xh-bet.com';
+
     return Column(
       children: [
         Row(
@@ -89,9 +93,9 @@ class QuickAccess extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'xh-bet.com',
-                style: TextStyle(
+              Text(
+                domain.isNotEmpty ? domain : 'xh-bet.com',
+                style: const TextStyle(
                   color: AppTheme.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

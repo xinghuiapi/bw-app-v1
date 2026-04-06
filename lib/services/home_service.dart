@@ -12,7 +12,11 @@ class HomeService {
       return ApiResponse<HomeData>.fromJson(response.data, (json) {
         // 响应数据在 data.data 字段中
         if (json is Map<String, dynamic> && json.containsKey('data')) {
-          return HomeData.fromJson(json['data'] as Map<String, dynamic>);
+          final innerData = json['data'];
+          if (innerData is Map<String, dynamic> && innerData.containsKey('data')) {
+            return HomeData.fromJson(innerData['data'] as Map<String, dynamic>);
+          }
+          return HomeData.fromJson(innerData as Map<String, dynamic>);
         }
         return HomeData.fromJson(json as Map<String, dynamic>);
       });

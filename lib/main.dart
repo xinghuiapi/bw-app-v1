@@ -10,6 +10,9 @@ import 'package:my_flutter_app/providers/theme_provider.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/gen/strings.g.dart';
 
+import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/api/interceptors/error_interceptor.dart';
+
 void main() {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
@@ -91,6 +94,46 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   Future<void> _initApp() async {
+    // 借鉴参考代码：重定向锁，防止并发请求导致的多次跳转和弹窗
+    bool isRedirecting = false;
+
+    // 注册全局 401 登出回调
+    ErrorInterceptor.onUnauthorized = () {
+      if (mounted && !isRedirecting) {
+        isRedirecting = true;
+        
+        try {
+          // 检查当前是否已经在登录或注册页，避免死循环
+          final currentPath = AppRouter.router.routerDelegate.currentConfiguration.uri.path;
+          if (currentPath == '/login' || currentPath == '/register') {
+            isRedirecting = false;
+            return;
+          }
+        } catch (e) {
+          debugPrint('Error getting current path: $e');
+        }
+
+        // 先清理状态
+        ref.read(authProvider.notifier).logout().then((_) {
+          if (mounted) {
+            ToastUtils.showError('登录已过期，请重新登录');
+            // 跳转到登录页
+            AppRouter.router.go('/login');
+          }
+        }).catchError((e) {
+          // 即使登出接口失败，也强制跳转
+          if (mounted) {
+            AppRouter.router.go('/login');
+          }
+        }).whenComplete(() {
+          // 800ms 后释放锁，允许下次可能的重定向 (对标参考代码)
+          Future.delayed(const Duration(milliseconds: 800), () {
+            isRedirecting = false;
+          });
+        });
+      }
+    };
+
     try {
       await Future.wait([
         ref.read(languageProvider.notifier).init(),

@@ -68,6 +68,9 @@ class AuthNotifier extends Notifier<AuthState> {
     if (response.isSuccess && response.data != null) {
       final token = response.data!.accessToken;
       await AuthHelper.setToken(token);
+      if (response.data!.refreshToken != null) {
+        await AuthHelper.setRefreshToken(response.data!.refreshToken!);
+      }
       state = AuthState(isLoggedIn: true, token: token);
     } else {
       state = state.copyWith(isLoading: false, error: response.msg);
@@ -87,6 +90,9 @@ class AuthNotifier extends Notifier<AuthState> {
     if (response.isSuccess && response.data != null) {
       final token = response.data!.accessToken;
       await AuthHelper.setToken(token);
+      if (response.data!.refreshToken != null) {
+        await AuthHelper.setRefreshToken(response.data!.refreshToken!);
+      }
       state = AuthState(isLoggedIn: true, token: token);
     } else {
       state = state.copyWith(isLoading: false, error: response.msg);

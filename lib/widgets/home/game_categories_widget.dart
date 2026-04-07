@@ -20,8 +20,9 @@ class GameCategoriesWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (categories.isEmpty)
+    if (categories.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     final selectedTabIndex = ref.watch(selectedCategoryIndexProvider);
 
@@ -147,7 +148,7 @@ class _CategoryContentView extends ConsumerWidget {
     SubCategory item,
     bool isReco,
   ) {
-    String imageUrl = item.h5Logo ?? item.img ?? '';
+    String imageUrl = item.pcLogo ?? item.img ?? '';
     if (imageUrl.isNotEmpty &&
         !imageUrl.startsWith('http') &&
         !imageUrl.startsWith('assets/')) {
@@ -247,15 +248,10 @@ class _CategoryContentView extends ConsumerWidget {
                     return;
                   }
 
-                  if (item.category == 1) {
-                    ref
-                        .read(categorySelectionProvider(category.code ?? '').notifier)
-                        .set(item);
-                  } else {
-                    ref
-                        .read(gameLauncherProvider)
-                        .launchGame(context, item, categoryCode: category.code);
-                  }
+                  // 对于电子、棋牌、捕鱼等包含多游戏的分类，点击二级分类（平台）直接进入其游戏列表
+                  ref
+                      .read(categorySelectionProvider(category.code ?? '').notifier)
+                      .set(item);
                 }
               },
             ),
@@ -415,10 +411,14 @@ class _GameListContentState extends ConsumerState<_GameListContent> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 itemBuilder: (context, index) {
                   final item = subCategories[index];
-                  final isSelected =
-                      item.gamecode == widget.subCategory.gamecode;
+                  // 优先通过 gamecode 匹配，如果没有 gamecode 则通过 id 匹配，以防部分数据不完整
+                  final isSelected = (item.gamecode != null &&
+                          item.gamecode == widget.subCategory.gamecode) ||
+                      (item.id != null && item.id == widget.subCategory.id) ||
+                      // 兜底：如果两者都没有，且是同一个对象实例
+                      identical(item, widget.subCategory);
 
-                  String imageUrl = item.h5Logo ?? item.img ?? '';
+                  String imageUrl = item.pcLogo ?? item.img ?? '';
                   if (imageUrl.startsWith('/')) {
                     imageUrl = '${AppConstants.resourceBaseUrl}$imageUrl';
                   }

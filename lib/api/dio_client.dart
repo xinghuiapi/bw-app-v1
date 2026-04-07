@@ -32,7 +32,7 @@ class DioClient {
       ),
     );
 
-    authInterceptor = AuthInterceptor();
+    authInterceptor = AuthInterceptor(dio);
     cacheInterceptor = CacheInterceptor();
 
     // 拦截器顺序很重要：

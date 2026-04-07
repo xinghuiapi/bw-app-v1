@@ -1,14 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/router/app_router.dart';
+import 'package:my_flutter_app/api/interceptors/error_interceptor.dart';
 
 class ErrorStateWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
+  final VoidCallback? onLogout;
 
-  const ErrorStateWidget({super.key, required this.message, this.onRetry});
+  const ErrorStateWidget({
+    super.key,
+    required this.message,
+    this.onRetry,
+    this.onLogout,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // 检测是否为认证错误
+    final RegExp authFailPattern = RegExp(
+      r'token|登录|认证|鉴权|unauthorized|forbidden|未授权|过期',
+      caseSensitive: false,
+    );
+    final bool isAuthError = authFailPattern.hasMatch(message);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -45,25 +60,59 @@ class ErrorStateWidget extends StatelessWidget {
                 fontSize: 14,
               ),
             ),
-            if (onRetry != null) ...[
+            if (onRetry != null || isAuthError) ...[
               const SizedBox(height: 32),
-              SizedBox(
-                width: 160,
-                child: ElevatedButton(
-                  onPressed: onRetry,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 16,
+                runSpacing: 16,
+                children: [
+                  if (onRetry != null)
+                    SizedBox(
+                      width: 140,
+                      child: ElevatedButton(
+                        onPressed: onRetry,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: const Text(
+                          '点击重试',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    '点击重试',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
+                  if (isAuthError)
+                    SizedBox(
+                      width: 140,
+                      child: ElevatedButton(
+                        onPressed: onLogout ??
+                            () {
+                              if (ErrorInterceptor.onUnauthorized != null) {
+                                ErrorInterceptor.onUnauthorized!();
+                              } else {
+                                AppRouter.router.go('/login');
+                              }
+                            },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.error,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: const Text(
+                          '重新登录',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
           ],

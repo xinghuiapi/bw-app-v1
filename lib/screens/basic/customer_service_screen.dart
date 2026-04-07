@@ -6,6 +6,7 @@ import 'package:my_flutter_app/providers/home_provider.dart';
 import 'package:my_flutter_app/providers/auth_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/layout/footer_widget.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class CustomerServiceScreen extends ConsumerStatefulWidget {
   const CustomerServiceScreen({super.key});
@@ -135,31 +136,9 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
             ),
           ),
           error: (err, stack) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: AppTheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '加载失败: $err',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppTheme.getTextPrimary(context)),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => ref.invalidate(homeDataProvider),
-                      child: const Text('重试'),
-                    ),
-                  ],
-                ),
-              ),
+            return ErrorStateWidget(
+              message: '加载失败: $err',
+              onRetry: () => ref.invalidate(homeDataProvider),
             );
           },
         ),

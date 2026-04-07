@@ -54,11 +54,12 @@ class ActivitiesDetailScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 活动横幅
-          if (activity.img != null)
+          if (activity.displayImg != null)
             WebSafeImage(
-              imageUrl: activity.img!,
+              imageUrl: activity.displayImg!,
               width: double.infinity,
-              fit: BoxFit.fitWidth,
+              height: 200, // 增加固定高度，防止 Web 端 HTML 图片由于无内容撑开导致高度为 0
+              fit: BoxFit.cover,
             ),
 
           Padding(

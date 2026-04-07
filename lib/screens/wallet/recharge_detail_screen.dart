@@ -7,6 +7,7 @@ import 'package:my_flutter_app/models/finance_models.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class RechargeDetailScreen extends ConsumerWidget {
   const RechargeDetailScreen({super.key});
@@ -52,24 +53,13 @@ class _RechargeDetailContent extends ConsumerWidget {
           }
 
           if (detail == null) {
-             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  Text(state.errorMsg ?? '加载失败'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                       final orderIdStr = GoRouterState.of(context).uri.queryParameters['id'];
-                       final orderId = int.tryParse(orderIdStr ?? '') ?? 0;
-                       if(orderId != 0) ref.read(rechargeDetailProvider.notifier).fetchDetail(orderId);
-                    },
-                    child: const Text('重试'),
-                  ),
-                ],
-              ),
+             return ErrorStateWidget(
+              message: state.errorMsg ?? '加载失败',
+              onRetry: () {
+                final orderIdStr = GoRouterState.of(context).uri.queryParameters['id'];
+                final orderId = int.tryParse(orderIdStr ?? '') ?? 0;
+                if(orderId != 0) ref.read(rechargeDetailProvider.notifier).fetchDetail(orderId);
+              },
             );
           }
 

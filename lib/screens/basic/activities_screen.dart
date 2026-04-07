@@ -163,9 +163,9 @@ class _ActivityCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 活动图片
-            if (activity.img != null)
+            if (activity.displayImg != null)
               WebSafeImage(
-                imageUrl: activity.img!,
+                imageUrl: activity.displayImg!,
                 height: 160,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),

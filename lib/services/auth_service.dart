@@ -1,6 +1,7 @@
 import 'package:my_flutter_app/api/dio_client.dart';
 import 'package:my_flutter_app/models/api_response.dart';
 import 'package:my_flutter_app/models/auth_models.dart';
+import 'package:my_flutter_app/utils/auth_helper.dart';
 
 class AuthService {
   static Future<ApiResponse<AuthResponseData>> login(
@@ -8,18 +9,34 @@ class AuthService {
   ) async {
     try {
       final response = await api.post('/user/login', data: request.toJson());
+      final Map<String, dynamic> responseData = response.data;
 
-      return ApiResponse<AuthResponseData>.fromJson(response.data, (json) {
-        // 根据响应示例，数据在 data 字段中
-        if (json is Map<String, dynamic> && json.containsKey('access_token')) {
-          return AuthResponseData.fromJson(json);
-        }
-        // 如果响应结构是 { code: 200, data: { ... } }
-        final map = json as Map<String, dynamic>;
-        if (map.containsKey('data') && map['data'] is Map<String, dynamic>) {
-          return AuthResponseData.fromJson(map['data'] as Map<String, dynamic>);
-        }
-        return AuthResponseData.fromJson(map);
+      // 统一解析逻辑：尝试从 root 或 data 字段提取 token 信息
+      final dynamic dataField = responseData['data'];
+      Map<String, dynamic> combinedData = {};
+
+      if (dataField is Map<String, dynamic>) {
+        combinedData.addAll(dataField);
+      }
+      
+      // 如果 root 层有这些字段，覆盖 data 层（对标原项目逻辑）
+      if (responseData.containsKey('access_token')) combinedData['access_token'] = responseData['access_token'];
+      if (responseData.containsKey('refresh_token')) combinedData['refresh_token'] = responseData['refresh_token'];
+      if (responseData.containsKey('expires_in')) combinedData['expires_in'] = responseData['expires_in'];
+      if (responseData.containsKey('token_type')) combinedData['token_type'] = responseData['token_type'];
+
+      // 如果找到了 access_token，则认为解析成功
+      if (combinedData.containsKey('access_token')) {
+        return ApiResponse<AuthResponseData>(
+          code: responseData['code'] ?? 200,
+          msg: responseData['msg'] ?? 'success',
+          data: AuthResponseData.fromJson(combinedData),
+        );
+      }
+
+      // 降级处理
+      return ApiResponse<AuthResponseData>.fromJson(responseData, (json) {
+        return AuthResponseData.fromJson(json as Map<String, dynamic>);
       });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());
@@ -31,7 +48,45 @@ class AuthService {
   ) async {
     try {
       final response = await api.post('/user/register', data: request.toJson());
+      final Map<String, dynamic> responseData = response.data;
 
+      final dynamic dataField = responseData['data'];
+      Map<String, dynamic> combinedData = {};
+
+      if (dataField is Map<String, dynamic>) {
+        combinedData.addAll(dataField);
+      }
+      
+      if (responseData.containsKey('access_token')) combinedData['access_token'] = responseData['access_token'];
+      if (responseData.containsKey('refresh_token')) combinedData['refresh_token'] = responseData['refresh_token'];
+      if (responseData.containsKey('expires_in')) combinedData['expires_in'] = responseData['expires_in'];
+
+      if (combinedData.containsKey('access_token')) {
+        return ApiResponse<AuthResponseData>(
+          code: responseData['code'] ?? 200,
+          msg: responseData['msg'] ?? 'success',
+          data: AuthResponseData.fromJson(combinedData),
+        );
+      }
+
+      return ApiResponse<AuthResponseData>.fromJson(responseData, (json) {
+        return AuthResponseData.fromJson(json as Map<String, dynamic>);
+      });
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
+  static Future<ApiResponse<AuthResponseData>> refreshToken() async {
+    try {
+      final refreshToken = await AuthHelper.getRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) {
+        return ApiResponse(code: -1, msg: 'No refresh token available');
+      }
+      final response = await api.post(
+        '/token/refresh',
+        data: {'refresh_token': refreshToken},
+      );
       return ApiResponse<AuthResponseData>.fromJson(response.data, (json) {
         final map = json as Map<String, dynamic>;
         if (map.containsKey('data') && map['data'] is Map<String, dynamic>) {
@@ -120,13 +175,29 @@ class AuthService {
         '/telegram/login',
         data: request.toJson(),
       );
+      final Map<String, dynamic> responseData = response.data;
 
-      return ApiResponse<AuthResponseData>.fromJson(response.data, (json) {
-        final map = json as Map<String, dynamic>;
-        if (map.containsKey('data') && map['data'] is Map<String, dynamic>) {
-          return AuthResponseData.fromJson(map['data'] as Map<String, dynamic>);
-        }
-        return AuthResponseData.fromJson(map);
+      final dynamic dataField = responseData['data'];
+      Map<String, dynamic> combinedData = {};
+
+      if (dataField is Map<String, dynamic>) {
+        combinedData.addAll(dataField);
+      }
+      
+      if (responseData.containsKey('access_token')) combinedData['access_token'] = responseData['access_token'];
+      if (responseData.containsKey('refresh_token')) combinedData['refresh_token'] = responseData['refresh_token'];
+      if (responseData.containsKey('expires_in')) combinedData['expires_in'] = responseData['expires_in'];
+
+      if (combinedData.containsKey('access_token')) {
+        return ApiResponse<AuthResponseData>(
+          code: responseData['code'] ?? 200,
+          msg: responseData['msg'] ?? 'success',
+          data: AuthResponseData.fromJson(combinedData),
+        );
+      }
+
+      return ApiResponse<AuthResponseData>.fromJson(responseData, (json) {
+        return AuthResponseData.fromJson(json as Map<String, dynamic>);
       });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());

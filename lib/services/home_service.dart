@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:my_flutter_app/api/dio_client.dart';
 import 'package:my_flutter_app/models/api_response.dart';
 import 'package:my_flutter_app/models/home_data.dart';
@@ -153,13 +154,21 @@ class HomeService {
   static Future<ApiResponse<Activity>> getActivityDetails(int id) async {
     try {
       final response = await api.post('/activity/details', data: {'id': id});
+      
+      dynamic responseData = response.data;
+      if (responseData is String) {
+        responseData = jsonDecode(responseData);
+      }
 
-      return ApiResponse<Activity>.fromJson(response.data, (json) {
-        if (json is Map<String, dynamic>) {
+      return ApiResponse<Activity>.fromJson(responseData, (json) {
+        if (json is List && json.isNotEmpty) {
+          return Activity.fromJson(Map<String, dynamic>.from(json.first as Map));
+        }
+        if (json is Map) {
           if (json.containsKey('data')) {
-            return Activity.fromJson(json['data'] as Map<String, dynamic>);
+            return Activity.fromJson(Map<String, dynamic>.from(json['data'] as Map));
           }
-          return Activity.fromJson(json);
+          return Activity.fromJson(Map<String, dynamic>.from(json));
         }
         return Activity();
       });

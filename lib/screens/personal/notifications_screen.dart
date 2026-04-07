@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/models/user_models.dart';
 import 'package:my_flutter_app/providers/notifications_provider.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -69,29 +70,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
 
     if (state.error != null && state.messages.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: AppTheme.getTertiaryTextColor(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              state.error!,
-              style: TextStyle(color: AppTheme.getSecondaryTextColor(context)),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref
-                  .read(notificationsProvider.notifier)
-                  .fetchMessages(refresh: true),
-              child: const Text('重试'),
-            ),
-          ],
-        ),
+      return ErrorStateWidget(
+        message: state.error!,
+        onRetry: () => ref
+            .read(notificationsProvider.notifier)
+            .fetchMessages(refresh: true),
       );
     }
 

@@ -15,6 +15,7 @@ import 'package:my_flutter_app/providers/auth_provider.dart';
 import 'package:my_flutter_app/providers/user_provider.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -375,7 +376,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
     if (hotGamesState.isLoading)
       return const Center(child: CircularProgressIndicator());
     if (hotGamesState.error != null)
-      return Center(child: Text('加载失败: ${hotGamesState.error}'));
+      return ErrorStateWidget(
+        message: '加载失败: ${hotGamesState.error}',
+        onRetry: () => ref.read(hotGamesProvider.notifier).refresh(),
+      );
     if (hotGamesState.items.isEmpty) return const Center(child: Text('暂无热门游戏'));
 
     return _buildGameGrid(hotGamesState.items, hotGamesState.isMoreLoading);
@@ -411,7 +415,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
     if (favoriteGamesState.isLoading)
       return const Center(child: CircularProgressIndicator());
     if (favoriteGamesState.error != null)
-      return Center(child: Text('加载失败: ${favoriteGamesState.error}'));
+      return ErrorStateWidget(
+        message: '加载失败: ${favoriteGamesState.error}',
+        onRetry: () => ref.read(favoriteGamesProvider.notifier).refresh(),
+      );
     if (favoriteGamesState.items.isEmpty)
       return const Center(child: Text('暂无收藏游戏'));
 

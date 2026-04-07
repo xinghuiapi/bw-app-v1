@@ -13,6 +13,7 @@ import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
 import 'package:my_flutter_app/utils/constants.dart';
 import 'package:my_flutter_app/screens/personal/card_packages_screen.dart';
 import 'package:my_flutter_app/providers/withdraw_provider.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class SelectedTypeNotifier extends Notifier<int> {
   @override
@@ -470,22 +471,10 @@ class _AddCardPackageScreenState extends ConsumerState<AddCardPackageScreen> {
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
       ),
-      error: (err, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const Icon(Icons.error_outline, color: AppTheme.error, size: 40),
-              const SizedBox(height: 10),
-              Text('加载失败: $err', textAlign: TextAlign.center),
-              TextButton(
-                onPressed: () => ref.refresh(
-                  bankTypesProvider(ref.read(selectedTypeProvider)),
-                ),
-                child: const Text('重试'),
-              ),
-            ],
-          ),
+      error: (err, _) => ErrorStateWidget(
+        message: '加载失败: $err',
+        onRetry: () => ref.refresh(
+          bankTypesProvider(ref.read(selectedTypeProvider)),
         ),
       ),
     );

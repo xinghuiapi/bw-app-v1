@@ -5,6 +5,7 @@ import 'package:my_flutter_app/providers/recharge_provider.dart';
 import 'package:my_flutter_app/providers/user_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RechargeScreen extends ConsumerStatefulWidget {
@@ -77,20 +78,9 @@ class _RechargeScreenState extends ConsumerState<RechargeScreen> {
           }
           
           if (state.categories.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: AppTheme.getPlaceholderColor(context)),
-                  const SizedBox(height: 16),
-                  Text(state.errorMsg ?? '暂无充值方式'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => ref.read(rechargeProvider.notifier).fetchCategories(),
-                    child: const Text('重试'),
-                  ),
-                ],
-              ),
+            return ErrorStateWidget(
+              message: state.errorMsg ?? '暂无充值方式',
+              onRetry: () => ref.read(rechargeProvider.notifier).fetchCategories(),
             );
           }
 

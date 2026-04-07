@@ -11,6 +11,7 @@ import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/models/user.dart';
 import 'package:my_flutter_app/widgets/layout/footer_widget.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 import 'package:my_flutter_app/utils/constants.dart';
 
 class PersonalCenterScreen extends ConsumerWidget {
@@ -36,26 +37,9 @@ class PersonalCenterScreen extends ConsumerWidget {
     if (userState.error != null && user == null) {
       return Scaffold(
         backgroundColor: AppTheme.getScaffoldBackgroundColor(context),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 60, color: AppTheme.error),
-              const SizedBox(height: 16),
-              Text(
-                '加载失败: ${userState.error}',
-                style: TextStyle(
-                  color: AppTheme.getSecondaryTextColor(context),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () =>
-                    ref.read(userProvider.notifier).fetchUserInfo(),
-                child: const Text('重试'),
-              ),
-            ],
-          ),
+        body: ErrorStateWidget(
+          message: '加载失败: ${userState.error}',
+          onRetry: () => ref.read(userProvider.notifier).fetchUserInfo(),
         ),
       );
     }

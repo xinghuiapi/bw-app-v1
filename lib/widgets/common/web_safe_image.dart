@@ -35,9 +35,8 @@ class WebSafeImage extends StatelessWidget {
       return _buildErrorWidget();
     }
 
-    // 判断是否为本地资源
-    final bool isAsset =
-        imageUrl.startsWith('assets/') || !imageUrl.contains('://');
+    // 判断是否为本地资源 (仅以 assets/ 开头才被视为本地资源)
+    final bool isAsset = imageUrl.startsWith('assets/');
 
     if (isAsset) {
       return _buildAssetImage();

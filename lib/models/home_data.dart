@@ -331,6 +331,11 @@ class SubCategory {
   final String? h5Logo;
   @JsonKey(name: 'pc_logo')
   final String? pcLogo;
+  static String? _readGameCode(Map json, String key) {
+    return json['gamecode'] ?? json['game_code'] ?? json['code'];
+  }
+
+  @JsonKey(readValue: _readGameCode)
   final String? gamecode;
   final int? category;
   @JsonKey(name: 'status_s')
@@ -438,22 +443,41 @@ class Activity {
   final int? id;
   final String? title;
   final String? img;
+  @JsonKey(name: 'app_img')
+  final String? appImg;
+  @JsonKey(name: 'h5_img')
+  final String? h5Img;
+  @JsonKey(name: 'pc_img')
+  final String? pcImg;
   final String? content;
-  @JsonKey(name: 'start_at')
+  @JsonKey(name: 'start_at', readValue: _readStartAt)
   final String? startAt;
-  @JsonKey(name: 'end_at')
+  @JsonKey(name: 'end_at', readValue: _readEndAt)
   final String? endAt;
   final int? status;
+
+  static String? _readStartAt(Map json, String key) {
+    return json['start_at'] as String? ?? json['start_time'] as String?;
+  }
+
+  static String? _readEndAt(Map json, String key) {
+    return json['end_at'] as String? ?? json['end_time'] as String?;
+  }
 
   Activity({
     this.id,
     this.title,
     this.img,
+    this.appImg,
+    this.h5Img,
+    this.pcImg,
     this.content,
     this.startAt,
     this.endAt,
     this.status,
   });
+
+  String? get displayImg => img ?? h5Img ?? appImg ?? pcImg;
 
   factory Activity.fromJson(Map<String, dynamic> json) =>
       _$ActivityFromJson(json);

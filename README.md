@@ -487,6 +487,8 @@ flutter pub get
 ```bash
 flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols
 ```
+安装到手机
+flutter run --release
 
 **打包产物路径：**
 生成的 APK 文件位于以下目录：
@@ -497,3 +499,37 @@ flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build
 - `app-arm64-v8a-release.apk`: 主流 Android 手机使用。
 - `app-armeabi-v7a-release.apk`: 旧款 Android 手机使用。
 - `app-x86_64-release.apk`: 部分平板和模拟器使用。
+
+# 开发运行指南 (Development Guide)
+
+### **1. 查看已连接设备**
+列出当前所有可用的真机、模拟器或浏览器：
+```bash
+flutter devices
+```
+
+### **2. 运行项目**
+- **默认运行（单一设备）：**
+  ```bash
+  flutter run
+  ```
+- **指定设备运行：**
+  ```bash
+  # 将 <Device_ID> 替换为 flutter devices 输出的 ID
+  flutter run -d <Device_ID>
+  ```
+
+### **3. Web 局域网调试（手机浏览器访问）**
+为了方便在手机浏览器预览 Web 版，需指定主机地址和端口：
+```bash
+flutter run -d chrome --web-hostname 0.0.0.0 --web-port 8080
+```
+*提示：手机需与电脑处于同一局域网，通过 `http://电脑IP:8080` 访问。*
+
+### **4. 编译 Debug APK**
+快速生成一个调试用的 APK 安装包：
+```bash
+flutter build apk --debug
+```
+*产物路径：`build/app/outputs/flutter-apk/app-debug.apk`*
+

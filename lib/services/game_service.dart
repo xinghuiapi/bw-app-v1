@@ -35,8 +35,9 @@ class GameService {
     int page = 1,
     int size = 10,
     String? code,
-    int? apiCode,
-    String? date,
+    dynamic apiCode,
+    String? startDate,
+    String? endDate,
     int? status,
   }) async {
     try {
@@ -44,7 +45,8 @@ class GameService {
 
       if (code != null) data['code'] = code;
       if (apiCode != null) data['api_code'] = apiCode;
-      if (date != null) data['date'] = date;
+      if (startDate != null) data['start_date'] = startDate;
+      if (endDate != null) data['end_date'] = endDate;
       if (status != null) data['status'] = status;
 
       final response = await api.post('/gamerecord/getlist', data: data);

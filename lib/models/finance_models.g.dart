@@ -233,8 +233,10 @@ Map<String, dynamic> _$TransferRecordToJson(TransferRecord instance) =>
 
 RebateRecord _$RebateRecordFromJson(Map<String, dynamic> json) => RebateRecord(
   id: (json['id'] as num).toInt(),
+  username: json['username'] as String?,
   code: json['code'] as String?,
   apiCode: json['api_code'] as String?,
+  apiCodeTitle: json['api_code_title'] as String?,
   fsMoney: json['fs_money'],
   money: json['money'],
   bl: json['bl'],
@@ -245,8 +247,10 @@ RebateRecord _$RebateRecordFromJson(Map<String, dynamic> json) => RebateRecord(
 Map<String, dynamic> _$RebateRecordToJson(RebateRecord instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'username': instance.username,
       'code': instance.code,
       'api_code': instance.apiCode,
+      'api_code_title': instance.apiCodeTitle,
       'fs_money': instance.fsMoney,
       'money': instance.money,
       'bl': instance.bl,
@@ -394,11 +398,14 @@ MoneyLog _$MoneyLogFromJson(Map<String, dynamic> json) => MoneyLog(
   after: json['after'],
   beforeMoney: json['before_money'],
   afterMoney: json['after_money'],
-  type: json['type'] as String?,
-  typeName: json['type_name'] as String?,
-  remark: json['remark'] as String?,
-  createdAt: json['created_at'] as String?,
-  rowid: json['rowid'] as String?,
+  type: json['type'],
+  typeName: json['type_name'],
+  moneyTypeId: json['money_type_id'],
+  remark: json['remark'],
+  note: json['note'],
+  createdAt: json['created_at'],
+  rowid: json['rowid'],
+  order: json['order'],
 );
 
 Map<String, dynamic> _$MoneyLogToJson(MoneyLog instance) => <String, dynamic>{
@@ -410,7 +417,10 @@ Map<String, dynamic> _$MoneyLogToJson(MoneyLog instance) => <String, dynamic>{
   'after_money': instance.afterMoney,
   'type': instance.type,
   'type_name': instance.typeName,
+  'money_type_id': instance.moneyTypeId,
   'remark': instance.remark,
+  'note': instance.note,
   'created_at': instance.createdAt,
   'rowid': instance.rowid,
+  'order': instance.order,
 };

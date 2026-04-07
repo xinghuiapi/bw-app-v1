@@ -21,7 +21,9 @@ class BettingRecord {
   @JsonKey(name: 'interface_title')
   final String? interfaceTitle;
   @JsonKey(name: 'api_code')
-  final int? apiCode;
+  final dynamic apiCode;
+  @JsonKey(name: 'gameCode')
+  final String? gameCode;
 
   BettingRecord({
     this.id,
@@ -36,6 +38,7 @@ class BettingRecord {
     this.code,
     this.interfaceTitle,
     this.apiCode,
+    this.gameCode,
   });
 
   factory BettingRecord.fromJson(Map<String, dynamic> json) =>
@@ -53,6 +56,9 @@ class BettingRecordsResponse {
   final dynamic totalBetAmount;
   @JsonKey(name: 'total_netAmount')
   final dynamic totalNetAmount;
+  @JsonKey(name: 'total_validBetAmount')
+  final dynamic totalValidBetAmount;
+  final int? lastPage;
 
   BettingRecordsResponse({
     this.data,
@@ -60,6 +66,8 @@ class BettingRecordsResponse {
     this.currentPage,
     this.totalBetAmount,
     this.totalNetAmount,
+    this.totalValidBetAmount,
+    this.lastPage,
   });
 
   factory BettingRecordsResponse.fromJson(Map<String, dynamic> json) {
@@ -71,6 +79,8 @@ class BettingRecordsResponse {
       currentPage: json['current_page'] as int?,
       totalBetAmount: json['total_betAmount'],
       totalNetAmount: json['total_netAmount'],
+      totalValidBetAmount: json['total_validBetAmount'],
+      lastPage: json['lastPage'] as int?,
     );
   }
 
@@ -81,6 +91,8 @@ class BettingRecordsResponse {
       'current_page': currentPage,
       'total_betAmount': totalBetAmount,
       'total_netAmount': totalNetAmount,
+      'total_validBetAmount': totalValidBetAmount,
+      'lastPage': lastPage,
     };
   }
 }

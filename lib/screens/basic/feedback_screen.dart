@@ -82,8 +82,6 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
           ).showSnackBar(const SnackBar(content: Text('反馈提交成功')));
           context.pop();
         }
-        ref.read(feedbackSubmitProvider.notifier).reset();
-        ref.read(selectedFeedbackTypeIdProvider.notifier).set(null);
       } else if (next.error != null) {
         if (context.mounted) {
           ScaffoldMessenger.of(

@@ -6,7 +6,6 @@ import 'package:my_flutter_app/services/finance_service.dart';
 import 'package:my_flutter_app/models/finance_models.dart';
 import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
-import 'package:my_flutter_app/models/api_response.dart';
 
 class TransactionRecordsScreen extends ConsumerStatefulWidget {
   final int initialIndex;
@@ -33,6 +32,9 @@ class _TransactionRecordsScreenState
   // 下注记录筛选相关
   String? _betCode; // 游戏类型
   int? _betStatus; // 状态
+  // 账变记录筛选相关
+  String? _moneyLogType;
+  String? _moneyLogMoneyTypeId;
   // 数据状态
   final Map<int, List<dynamic>> _records = {};
   final Map<int, int> _currentPage = {};
@@ -168,7 +170,13 @@ class _TransactionRecordsScreenState
           );
           break;
         case 5: // 账变
-          response = await FinanceService.getMoneyLogList(page: page);
+          response = await FinanceService.getMoneyLogList(
+            page: page,
+            startDate: startDate,
+            endDate: endDate,
+            type: _moneyLogType,
+            moneyTypeId: _moneyLogMoneyTypeId,
+          );
           break;
       }
 
@@ -236,7 +244,7 @@ class _TransactionRecordsScreenState
 
     setState(() => _isClaiming = true);
     try {
-      final response = await FinanceService.claimRebate(0);
+      final response = await FinanceService.claimAllRebate();
       if (response.code == 200) {
         if (mounted) {
           ScaffoldMessenger.of(
@@ -272,6 +280,9 @@ class _TransactionRecordsScreenState
         title: const Text('往来记录'),
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          labelPadding: const EdgeInsets.symmetric(horizontal: 20),
           tabs: _tabs.map((t) => Tab(text: t)).toList(),
           indicatorColor: AppTheme.primary,
           labelColor: AppTheme.primary,
@@ -397,7 +408,7 @@ class _TransactionRecordsScreenState
                     options: {
                       null: '所有类型',
                       'live': '真人',
-                      'egame': '电子',
+                      'game': '电子',
                       'sport': '体育',
                       'chess': '棋牌',
                       'lottery': '彩票',
@@ -437,7 +448,7 @@ class _TransactionRecordsScreenState
                     options: {
                       null: '所有类型',
                       'live': '真人',
-                      'egame': '电子',
+                      'game': '电子',
                       'sport': '体育',
                       'chess': '棋牌',
                       'lottery': '彩票',
@@ -465,9 +476,70 @@ class _TransactionRecordsScreenState
               ),
             ),
           ],
+          if (_tabController.index == 5) ...[
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildRebateFilterDropdown(
+                    label: _moneyLogType == null
+                        ? '所有类型'
+                        : (_moneyLogType == '1' ? '增加' : '减少'),
+                    options: {null: '所有类型', '1': '增加', '2': '减少'},
+                    value: _moneyLogType,
+                    onChanged: (val) => setState(() {
+                      _moneyLogType = val;
+                      _loadData(5, isRefresh: true);
+                    }),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildRebateFilterDropdown(
+                    label: _getMoneyLogTypeName(_moneyLogMoneyTypeId),
+                    options: {
+                      null: '所有账变类型',
+                      '9': '后台增加',
+                      '10': '后台扣除',
+                      '11': '反水',
+                      '12': '升级赠送',
+                      '13': '生日礼金',
+                      '14': '周红包',
+                      '15': '月红包',
+                      '16': '流水佣金',
+                      '17': '盈亏佣金',
+                      '18': '全民返利',
+                    },
+                    value: _moneyLogMoneyTypeId,
+                    onChanged: (val) => setState(() {
+                      _moneyLogMoneyTypeId = val;
+                      _loadData(5, isRefresh: true);
+                    }),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  String _getMoneyLogTypeName(String? id) {
+    if (id == null) return '所有账变类型';
+    switch (id) {
+      case '9': return '后台增加';
+      case '10': return '后台扣除';
+      case '11': return '反水';
+      case '12': return '升级赠送';
+      case '13': return '生日礼金';
+      case '14': return '周红包';
+      case '15': return '月红包';
+      case '16': return '流水佣金';
+      case '17': return '盈亏佣金';
+      case '18': return '全民返利';
+      default: return '未知类型';
+    }
   }
 
   Widget _buildRebateFilterDropdown<T>({
@@ -697,7 +769,7 @@ class _TransactionRecordsScreenState
     switch (code) {
       case 'live':
         return '真人';
-      case 'egame':
+      case 'game':
         return '电子';
       case 'sport':
         return '体育';
@@ -710,6 +782,18 @@ class _TransactionRecordsScreenState
       default:
         return code ?? '游戏';
     }
+  }
+
+  String _formatAmount(double value) {
+    if (value == 0) return '0.00';
+    String str = value.toStringAsFixed(4);
+    str = str.replaceAll(RegExp(r'0*$'), '');
+    if (str.endsWith('.')) {
+      str += '00';
+    } else if (str.contains('.') && str.split('.').last.length == 1) {
+      str += '0';
+    }
+    return str;
   }
 
   Widget _buildRecordItem(int index, dynamic item) {
@@ -768,17 +852,43 @@ class _TransactionRecordsScreenState
           statusColor = AppTheme.warning;
       }
     } else if (item is MoneyLog) {
-      title = item.remark ?? '资金流水';
-      subtitle = item.createdAt?.split(' ')[1] ?? '';
+      final noteStr = item.note?.toString() ?? '';
+      final remarkStr = item.remark?.toString() ?? '';
+      
+      if (noteStr.isNotEmpty && noteStr != 'null') {
+        title = noteStr;
+      } else if (remarkStr.isNotEmpty && remarkStr != 'null') {
+        title = remarkStr;
+      } else {
+        title = '资金流水';
+      }
+      
+      final String createdAtStr = item.createdAt?.toString() ?? '';
+      final timeStr = createdAtStr.contains(' ') ? createdAtStr.split(' ')[1] : createdAtStr;
+      
+      final beforeMoneyVal = double.tryParse(item.beforeMoney?.toString() ?? item.before?.toString() ?? '0') ?? 0;
+      final afterMoneyVal = double.tryParse(item.afterMoney?.toString() ?? item.after?.toString() ?? '0') ?? 0;
+       
+      subtitle = '$timeStr | 变前: ¥${_formatAmount(beforeMoneyVal)} | 变后: ¥${_formatAmount(afterMoneyVal)}';
+      
       final money = double.tryParse(item.money?.toString() ?? '0') ?? 0;
-      amount = '${money >= 0 ? '+' : ''}¥${money.toStringAsFixed(2)}';
+      amount = '${money >= 0 ? '+' : ''}¥${_formatAmount(money)}';
       amountColor = money >= 0 ? AppTheme.success : AppTheme.error;
-      status = item.typeName ?? item.type ?? '账变';
+      
+      final typeName = _getMoneyLogTypeName(item.moneyTypeId?.toString());
+      status = typeName != '所有账变类型' ? typeName : (item.typeName?.toString() ?? item.type?.toString() ?? '账变');
+      
+      final orderStr = item.order?.toString() ?? item.rowid?.toString();
+      orderNo = (orderStr != null && orderStr.isNotEmpty && orderStr != 'null') ? orderStr : null;
     } else if (item is RebateRecord) {
-      title = '返水 - ${item.apiCode ?? item.code ?? ''}';
-      subtitle = '${item.createdAt?.split(' ')[1] ?? ''} | 比例: ${item.bl}%';
-      final money = double.tryParse(item.fsMoney?.toString() ?? '0') ?? 0;
-      amount = '+¥${money.toStringAsFixed(2)}';
+      final name = item.apiCodeTitle ?? item.apiCode ?? item.code ?? '返水';
+      title = '返水 - $name';
+      
+      final moneyVal = double.tryParse(item.money?.toString() ?? '0') ?? 0;
+      subtitle = '${item.createdAt?.split(' ')[1] ?? ''} | 投注: ¥${_formatAmount(moneyVal)} | 比例: ${item.bl}%';
+      
+      final fsMoney = double.tryParse(item.fsMoney?.toString() ?? '0') ?? 0;
+      amount = '+¥${_formatAmount(fsMoney)}';
       amountColor = AppTheme.success;
 
       switch (item.status) {
@@ -795,8 +905,8 @@ class _TransactionRecordsScreenState
           statusColor = AppTheme.getTextSecondary(context);
       }
     } else if (item is BettingRecord) {
-      final categoryName = _getBetCategoryName(item.code);
-      final subTitle = item.interfaceTitle ?? item.title ?? '未知游戏';
+      final categoryName = item.interfaceTitle ?? _getBetCategoryName(item.code);
+      final subTitle = item.gameName ?? item.title ?? '未知游戏';
       title = '$categoryName - $subTitle';
       subtitle = item.betTime?.split(' ')[1] ?? '';
 
@@ -847,6 +957,8 @@ class _TransactionRecordsScreenState
                           color: AppTheme.getTertiaryTextColor(context),
                           fontSize: 12,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),

@@ -107,8 +107,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           setState(() {
             _availableLoginTypes = newTypes;
             final oldIndex = _tabController.index;
-            _tabController.removeListener(_handleTabChange);
-            _tabController.dispose();
+            final oldController = _tabController;
+            oldController.removeListener(_handleTabChange);
 
             // 使用 initialIndex 来避免同步问题
             int initialIndex = 0;
@@ -123,6 +123,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             );
             _tabController.addListener(_handleTabChange);
             _loginType = _availableLoginTypes[_tabController.index];
+            
+            // 延迟销毁旧的控制器，防止 TabBar 正在清理时访问已销毁的资源导致 ancestor == this
+            Future.microtask(() => oldController.dispose());
             print(
               'State updated: _availableLoginTypes=$_availableLoginTypes, _loginType=$_loginType',
             );
@@ -242,13 +245,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     setState(() => _isLoadingCaptcha = true);
 
     final response = await AuthService.getCaptcha();
-    if (response.isSuccess && response.data != null) {
-      setState(() {
-        _captchaData = response.data;
-        _isLoadingCaptcha = false;
-      });
-    } else {
-      setState(() => _isLoadingCaptcha = false);
+    if (mounted) {
+      if (response.isSuccess && response.data != null) {
+        setState(() {
+          _captchaData = response.data;
+          _isLoadingCaptcha = false;
+        });
+      } else {
+        setState(() => _isLoadingCaptcha = false);
+      }
     }
   }
 
@@ -333,9 +338,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         backgroundColor: Colors.transparent,
         bottom: (_availableLoginTypes.length > 1)
             ? TabBar(
-                key: ValueKey(
-                  'login_tab_bar_${_tabController.length}_${_tabController.hashCode}',
-                ),
                 controller: _tabController,
                 tabs: _availableLoginTypes.map((type) {
                   switch (type) {
@@ -378,19 +380,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             const SizedBox(height: 32),
             _buildHeader(),
             const SizedBox(height: 32),
-            if (_availableLoginTypes.length <= 1)
-              _buildUsernameField()
-            else
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                child: KeyedSubtree(
-                  key: ValueKey<int>(_loginType),
-                  child: _buildCurrentLoginField(),
-                ),
-              ),
+            _buildCurrentLoginField(),
             if (_loginType == 1) ...[
               const SizedBox(height: 24),
               _buildPasswordField(),

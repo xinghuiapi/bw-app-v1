@@ -339,6 +339,7 @@ class FinanceService {
     int page = 1,
     int size = 20,
     String? code,
+    String? apiCode,
     String? startDate,
     String? endDate,
     int? status,
@@ -346,6 +347,7 @@ class FinanceService {
     try {
       final Map<String, dynamic> data = {'page': page, 'size': size};
       if (code != null && code.isNotEmpty) data['code'] = code;
+      if (apiCode != null && apiCode.isNotEmpty) data['api_code'] = apiCode;
       if (startDate != null && startDate.isNotEmpty)
         data['start_date'] = startDate;
       if (endDate != null && endDate.isNotEmpty) data['end_date'] = endDate;
@@ -368,6 +370,17 @@ class FinanceService {
     }
   }
 
+  /// 一键领取返水
+  /// 接口: /api/member_fs_log/claim
+  static Future<ApiResponse<void>> claimAllRebate() async {
+    try {
+      final response = await api.post('/member_fs_log/claim');
+      return ApiResponse<void>.fromJson(response.data, (_) => null);
+    } catch (e) {
+      return ApiResponse(code: -1, msg: e.toString());
+    }
+  }
+
   /// 领取返水
   /// 接口: /api/member_fs_log/claim
   static Future<ApiResponse<dynamic>> claimRebate(int id) async {
@@ -385,14 +398,18 @@ class FinanceService {
     int page = 1,
     int size = 20,
     String? type,
+    String? moneyTypeId,
+    String? order,
     String? startDate,
     String? endDate,
   }) async {
     try {
       final Map<String, dynamic> data = {'page': page, 'size': size};
-      if (type != null) data['type'] = type;
-      if (startDate != null) data['start_date'] = startDate;
-      if (endDate != null) data['end_date'] = endDate;
+      if (type != null && type.isNotEmpty) data['type'] = type;
+      if (moneyTypeId != null && moneyTypeId.isNotEmpty) data['money_type_id'] = moneyTypeId;
+      if (order != null && order.isNotEmpty) data['order'] = order;
+      if (startDate != null && startDate.isNotEmpty) data['start_date'] = startDate;
+      if (endDate != null && endDate.isNotEmpty) data['end_date'] = endDate;
 
       final response = await api.post('/money_log/getlist', data: data);
 

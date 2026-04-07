@@ -160,11 +160,12 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
   Widget _buildRecordList() {
     if (_records.isEmpty) {
       if (_isLoading) return const LoadingStateWidget();
-      if (_error != null)
+      if (_error != null) {
         return ErrorStateWidget(
           message: _error!,
           onRetry: () => _loadData(isRefresh: true),
         );
+      }
       return const EmptyStateWidget(message: '暂无资金记录');
     }
 
@@ -188,8 +189,24 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
   }
 
   Widget _buildRecordCard(MoneyLog record) {
-    final amount = double.tryParse(record.money.toString()) ?? 0;
+    final amount = double.tryParse(record.money?.toString() ?? '0') ?? 0;
     final isPositive = amount > 0;
+
+    final noteStr = record.note?.toString() ?? '';
+    final remarkStr = record.remark?.toString() ?? '';
+    final typeNameStr = record.typeName?.toString() ?? '';
+    
+    String title = '资金变动';
+    if (noteStr.isNotEmpty && noteStr != 'null') {
+      title = noteStr;
+    } else if (remarkStr.isNotEmpty && remarkStr != 'null') {
+      title = remarkStr;
+    } else if (typeNameStr.isNotEmpty && typeNameStr != 'null') {
+      title = typeNameStr;
+    }
+
+    final orderStr = record.order?.toString() ?? record.rowid?.toString() ?? '---';
+    final displayOrder = (orderStr.isNotEmpty && orderStr != 'null') ? orderStr : '---';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -200,18 +217,24 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
         border: Border.all(color: AppTheme.getDividerColor(context)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                record.typeName ?? '资金变动',
-                style: TextStyle(
-                  color: AppTheme.getTextPrimary(context),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: AppTheme.getTextPrimary(context),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '${isPositive ? "+" : ""}¥${amount.toStringAsFixed(2)}',
                 style: TextStyle(
@@ -230,11 +253,11 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
             children: [
               _buildInfoItem(
                 '前余额',
-                '¥${double.tryParse(record.beforeMoney.toString())?.toStringAsFixed(2) ?? "0.00"}',
+                '¥${double.tryParse(record.beforeMoney?.toString() ?? record.before?.toString() ?? '0')?.toStringAsFixed(2) ?? "0.00"}',
               ),
               _buildInfoItem(
                 '后余额',
-                '¥${double.tryParse(record.afterMoney.toString())?.toStringAsFixed(2) ?? "0.00"}',
+                '¥${double.tryParse(record.afterMoney?.toString() ?? record.after?.toString() ?? '0')?.toStringAsFixed(2) ?? "0.00"}',
               ),
             ],
           ),
@@ -243,14 +266,14 @@ class _CapitalRecordsScreenState extends ConsumerState<CapitalRecordsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                record.createdAt ?? '',
+                record.createdAt?.toString() ?? '',
                 style: TextStyle(
                   color: AppTheme.getTextTertiary(context),
                   fontSize: 12,
                 ),
               ),
               Text(
-                '单号: ${record.rowid ?? "---"}',
+                '单号: $displayOrder',
                 style: TextStyle(
                   color: AppTheme.getTextTertiary(context),
                   fontSize: 12,

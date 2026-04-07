@@ -278,9 +278,12 @@ class TransferRecord {
 @JsonSerializable()
 class RebateRecord {
   final int id;
+  final String? username;
   final String? code;
   @JsonKey(name: 'api_code')
   final String? apiCode;
+  @JsonKey(name: 'api_code_title')
+  final String? apiCodeTitle;
   @JsonKey(name: 'fs_money')
   final dynamic fsMoney;
   final dynamic money;
@@ -291,8 +294,10 @@ class RebateRecord {
 
   RebateRecord({
     required this.id,
+    this.username,
     this.code,
     this.apiCode,
+    this.apiCodeTitle,
     this.fsMoney,
     this.money,
     this.bl,
@@ -525,13 +530,17 @@ class MoneyLog {
   final dynamic beforeMoney;
   @JsonKey(name: 'after_money')
   final dynamic afterMoney;
-  final String? type;
+  final dynamic type;
   @JsonKey(name: 'type_name')
-  final String? typeName;
-  final String? remark;
+  final dynamic typeName;
+  @JsonKey(name: 'money_type_id')
+  final dynamic moneyTypeId;
+  final dynamic remark;
+  final dynamic note;
   @JsonKey(name: 'created_at')
-  final String? createdAt;
-  final String? rowid;
+  final dynamic createdAt;
+  final dynamic rowid;
+  final dynamic order;
 
   MoneyLog({
     this.id,
@@ -542,9 +551,12 @@ class MoneyLog {
     this.afterMoney,
     this.type,
     this.typeName,
+    this.moneyTypeId,
     this.remark,
+    this.note,
     this.createdAt,
     this.rowid,
+    this.order,
   });
 
   factory MoneyLog.fromJson(Map<String, dynamic> json) =>
@@ -571,6 +583,8 @@ class BettingRecord {
   final String? interfaceTitle;
   final String? title;
   final String? rowid;
+  @JsonKey(name: 'api_code')
+  final dynamic apiCode;
 
   BettingRecord({
     required this.id,
@@ -584,37 +598,40 @@ class BettingRecord {
     this.interfaceTitle,
     this.title,
     this.rowid,
+    this.apiCode,
   });
 
   factory BettingRecord.fromJson(Map<String, dynamic> json) {
     return BettingRecord(
       id: json['id'] as int? ?? 0,
-      gameName: json['game_name'] as String?,
-      betAmount: _stringToDouble(json['bet_amount']),
-      winAmount: _stringToDouble(json['win_amount']),
-      netAmount: _stringToDouble(json['net_amount']),
-      betTime: json['bet_time'] as String?,
+      gameName: json['gameCode'] as String? ?? json['game_name'] as String?,
+      betAmount: _stringToDouble(json['betAmount'] ?? json['bet_amount']),
+      winAmount: _stringToDouble(json['winAmount'] ?? json['win_amount']),
+      netAmount: _stringToDouble(json['netAmount'] ?? json['net_amount']),
+      betTime: json['betTime'] as String? ?? json['bet_time'] as String?,
       status: json['status'] as int? ?? 0,
       code: json['code'] as String?,
-      interfaceTitle: json['interface_title'] as String?,
+      interfaceTitle: json['interfaceTitle'] as String? ?? json['interface_title'] as String?,
       title: json['title'] as String?,
       rowid: json['rowid'] as String?,
+      apiCode: json['apiCode'] ?? json['api_code'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'game_name': gameName,
-      'bet_amount': betAmount,
-      'win_amount': winAmount,
-      'net_amount': netAmount,
-      'bet_time': betTime,
+      'gameCode': gameName,
+      'betAmount': betAmount,
+      'winAmount': winAmount,
+      'netAmount': netAmount,
+      'betTime': betTime,
       'status': status,
       'code': code,
-      'interface_title': interfaceTitle,
+      'interfaceTitle': interfaceTitle,
       'title': title,
       'rowid': rowid,
+      'apiCode': apiCode,
     };
   }
 }

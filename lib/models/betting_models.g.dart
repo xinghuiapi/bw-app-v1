@@ -19,7 +19,8 @@ BettingRecord _$BettingRecordFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String?,
       code: json['code'] as String?,
       interfaceTitle: json['interface_title'] as String?,
-      apiCode: (json['api_code'] as num?)?.toInt(),
+      apiCode: json['api_code'],
+      gameCode: json['gameCode'] as String?,
     );
 
 Map<String, dynamic> _$BettingRecordToJson(BettingRecord instance) =>
@@ -36,6 +37,7 @@ Map<String, dynamic> _$BettingRecordToJson(BettingRecord instance) =>
       'code': instance.code,
       'interface_title': instance.interfaceTitle,
       'api_code': instance.apiCode,
+      'gameCode': instance.gameCode,
     };
 
 BettingRecordsResponse _$BettingRecordsResponseFromJson(
@@ -48,6 +50,8 @@ BettingRecordsResponse _$BettingRecordsResponseFromJson(
   currentPage: (json['current_page'] as num?)?.toInt(),
   totalBetAmount: json['total_betAmount'],
   totalNetAmount: json['total_netAmount'],
+  totalValidBetAmount: json['total_validBetAmount'],
+  lastPage: (json['lastPage'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$BettingRecordsResponseToJson(
@@ -58,4 +62,6 @@ Map<String, dynamic> _$BettingRecordsResponseToJson(
   'current_page': instance.currentPage,
   'total_betAmount': instance.totalBetAmount,
   'total_netAmount': instance.totalNetAmount,
+  'total_validBetAmount': instance.totalValidBetAmount,
+  'lastPage': instance.lastPage,
 };

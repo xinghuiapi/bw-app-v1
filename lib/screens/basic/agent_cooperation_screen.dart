@@ -72,8 +72,8 @@ class AgentCooperationScreen extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            WebSafeImage(
-              imageUrl: 'assets/images/agent/sport-banner.png',
+            const WebSafeImage(
+              imageUrl: 'assets/images/agent/sport-banner.jpg',
               fit: BoxFit.cover,
             ),
             Container(

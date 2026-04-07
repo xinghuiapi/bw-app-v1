@@ -256,11 +256,24 @@ class HomeService {
         ),
       );
 
-      return ApiResponse<String>.fromJson(response.data, (json) {
-        if (json is Map<String, dynamic> && json.containsKey('data')) {
-          return json['data'] as String;
+      return ApiResponse<String>.fromJson(
+        response.data is Map<String, dynamic> 
+            ? response.data as Map<String, dynamic> 
+            : Map<String, dynamic>.from(response.data),
+        (json) {
+        if (json is Map) {
+          if (json.containsKey('url')) {
+            return json['url']?.toString() ?? '';
+          } else if (json.containsKey('data')) {
+            final innerData = json['data'];
+            if (innerData is Map && innerData.containsKey('url')) {
+              return innerData['url']?.toString() ?? '';
+            } else if (innerData is String) {
+              return innerData;
+            }
+          }
         }
-        return json.toString();
+        return json?.toString() ?? '';
       });
     } catch (e) {
       return ApiResponse(code: -1, msg: e.toString());

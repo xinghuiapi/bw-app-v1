@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/models/user_models.dart';
 import 'package:my_flutter_app/providers/notifications_provider.dart';
@@ -174,7 +175,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              message.content ?? '',
+              _stripHtml(message.content ?? ''),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -189,6 +190,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
+  String _stripHtml(String html) {
+    return html.replaceAll(RegExp(r'<[^>]*>|&nbsp;'), '').trim();
+  }
+
   void _showNotificationDetail(UserMessage message) {
     showDialog(
       context: context,
@@ -199,9 +204,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           style: TextStyle(color: AppTheme.getPrimaryTextColor(context)),
         ),
         content: SingleChildScrollView(
-          child: Text(
+          child: HtmlWidget(
             message.content ?? '',
-            style: TextStyle(
+            textStyle: TextStyle(
               fontSize: 15,
               height: 1.6,
               color: AppTheme.getSecondaryTextColor(context),

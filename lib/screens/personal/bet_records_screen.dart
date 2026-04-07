@@ -107,11 +107,13 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
     });
 
     try {
+      final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
       final response = await GameService.getBettingRecords(
         page: _currentPage,
         code: _selectedCategoryCode,
         apiCode: _selectedSubCategoryId,
-        date: DateFormat('yyyy-MM-dd').format(_selectedDate),
+        startDate: dateStr,
+        endDate: dateStr,
         status: _selectedStatus,
       );
 
@@ -189,16 +191,40 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
           ),
         ),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: 10,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) => _buildBetItem(index),
-      ),
+      body: _isLoading && _records.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null && _records.isEmpty
+              ? Center(child: Text(_error!))
+              : _records.isEmpty
+                  ? const Center(child: Text('暂无投注记录'))
+                  : ListView.separated(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _records.length + (_hasMore ? 1 : 0),
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        if (index == _records.length) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                        return _buildBetItem(index);
+                      },
+                    ),
     );
   }
 
   Widget _buildBetItem(int index) {
+    final record = _records[index];
+    final gameName = record.gameCode ?? record.interfaceTitle ?? record.title ?? '未知游戏';
+    final statusText = _getStatusText(record.status);
+    final statusColor = _getStatusColor(record.status);
+    final betAmount = double.tryParse(record.betAmount?.toString() ?? '0') ?? 0;
+    final netAmount = double.tryParse(record.netAmount?.toString() ?? '0') ?? 0;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -212,7 +238,7 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '百家乐 - 经典厅',
+                gameName,
                 style: TextStyle(
                   color: AppTheme.getTextPrimary(context),
                   fontSize: 16,
@@ -220,9 +246,9 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                 ),
               ),
               Text(
-                '已结算',
+                statusText,
                 style: TextStyle(
-                  color: const Color(0xFF00C853),
+                  color: statusColor,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -232,11 +258,15 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildInfoItem('投注金额', '¥100.00')),
+              Expanded(child: _buildInfoItem('投注金额', '¥${betAmount.toStringAsFixed(2)}')),
               Expanded(
-                child: _buildInfoItem('输赢金额', '+98.00', isPositive: true),
+                child: _buildInfoItem(
+                  '输赢金额',
+                  '${netAmount >= 0 ? '+' : ''}${netAmount.toStringAsFixed(2)}',
+                  isPositive: netAmount > 0,
+                ),
               ),
-              Expanded(child: _buildInfoItem('投注时间', '12:30:45')),
+              Expanded(child: _buildInfoItem('投注时间', record.betTime ?? '')),
             ],
           ),
           const SizedBox(height: 12),
@@ -257,7 +287,7 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    '202403151230458888',
+                    record.rowid ?? record.id?.toString() ?? '',
                     style: TextStyle(
                       color: AppTheme.getTextPrimary(context),
                       fontSize: 12,
@@ -275,6 +305,36 @@ class _BetRecordsScreenState extends ConsumerState<BetRecordsScreen> {
         ],
       ),
     );
+  }
+
+  String _getStatusText(int? status) {
+    switch (status) {
+      case 1:
+        return '已结算';
+      case 2:
+        return '未结算';
+      case 3:
+        return '已取消';
+      case 4:
+        return '已回滚';
+      default:
+        return '未知状态';
+    }
+  }
+
+  Color _getStatusColor(int? status) {
+    switch (status) {
+      case 1:
+        return const Color(0xFF00C853);
+      case 2:
+        return AppTheme.warning;
+      case 3:
+        return AppTheme.error;
+      case 4:
+        return AppTheme.info;
+      default:
+        return AppTheme.getTertiaryTextColor(context);
+    }
   }
 
   Widget _buildInfoItem(String label, String value, {bool isPositive = false}) {

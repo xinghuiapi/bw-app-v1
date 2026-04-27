@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:my_flutter_app/services/finance_service.dart';
-import 'package:my_flutter_app/models/finance_models.dart';
+import 'package:my_flutter_app/services/wallet/finance_service.dart';
+import 'package:my_flutter_app/models/wallet/finance_models.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 

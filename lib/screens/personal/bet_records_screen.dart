@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:my_flutter_app/models/betting_models.dart';
-import 'package:my_flutter_app/services/game_service.dart';
+import 'package:my_flutter_app/models/game/betting_models.dart';
+import 'package:my_flutter_app/services/game/game_service.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 

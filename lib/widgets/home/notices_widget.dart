@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
-import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/models/home/home_data.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 
 class HomeNotices extends StatelessWidget {

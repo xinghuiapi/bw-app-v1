@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_swiper_view/flutter_swiper_view.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/models/home/home_data.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
 import 'package:my_flutter_app/widgets/common/web_safe_image.dart';

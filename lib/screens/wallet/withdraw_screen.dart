@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:my_flutter_app/providers/user_provider.dart';
-import 'package:my_flutter_app/providers/withdraw_provider.dart';
+import 'package:my_flutter_app/providers/user/user_provider.dart';
+import 'package:my_flutter_app/providers/wallet/withdraw_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 

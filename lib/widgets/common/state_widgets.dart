@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/router/app_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:my_flutter_app/router/app_router.dart';
 import 'package:my_flutter_app/api/interceptors/error_interceptor.dart';
 
-class ErrorStateWidget extends StatelessWidget {
+class ErrorStateWidget extends ConsumerWidget {
   final String message;
   final VoidCallback? onRetry;
   final VoidCallback? onLogout;
+  final bool isTokenExpired;
 
   const ErrorStateWidget({
     super.key,
     required this.message,
     this.onRetry,
     this.onLogout,
+    this.isTokenExpired = false,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // 检测是否为认证错误
     final RegExp authFailPattern = RegExp(
       r'token|登录|认证|鉴权|unauthorized|forbidden|未授权|过期',
@@ -95,7 +99,7 @@ class ErrorStateWidget extends StatelessWidget {
                               if (ErrorInterceptor.onUnauthorized != null) {
                                 ErrorInterceptor.onUnauthorized!();
                               } else {
-                                AppRouter.router.go('/login');
+                                ref.read(routerProvider).go('/login');
                               }
                             },
                         style: ElevatedButton.styleFrom(

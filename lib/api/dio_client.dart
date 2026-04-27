@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import '../utils/constants.dart';
-import './interceptors/auth_interceptor.dart';
-import './interceptors/error_interceptor.dart';
-import './interceptors/cache_interceptor.dart';
+import 'package:my_flutter_app/utils/constants.dart';
+import 'package:my_flutter_app/api/interceptors/auth_interceptor.dart';
+import 'package:my_flutter_app/api/interceptors/cache_interceptor.dart';
+import 'package:my_flutter_app/api/interceptors/error_interceptor.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();

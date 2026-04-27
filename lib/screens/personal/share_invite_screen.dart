@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:my_flutter_app/providers/user_provider.dart';
-import 'package:my_flutter_app/providers/referral_provider.dart';
+import 'package:my_flutter_app/providers/user/user_provider.dart';
+import 'package:my_flutter_app/providers/user/referral_provider.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 
 class ShareInviteScreen extends ConsumerStatefulWidget {

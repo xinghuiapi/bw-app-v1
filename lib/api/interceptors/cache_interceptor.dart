@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../request_cache_manager.dart';
+import 'package:my_flutter_app/api/request_cache_manager.dart';
 
 /// 缓存拦截器
 /// 实现 API 请求缓存 (LRU) 和 请求去重

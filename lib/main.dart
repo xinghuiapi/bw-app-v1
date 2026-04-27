@@ -5,12 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:my_flutter_app/router/app_router.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
-import 'package:my_flutter_app/providers/language_provider.dart';
-import 'package:my_flutter_app/providers/theme_provider.dart';
+import 'package:my_flutter_app/providers/system/language_provider.dart';
+import 'package:my_flutter_app/providers/system/theme_provider.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/gen/strings.g.dart';
 
-import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/auth/auth_provider.dart';
 import 'package:my_flutter_app/api/interceptors/error_interceptor.dart';
 
 void main() {
@@ -104,7 +104,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         
         try {
           // 检查当前是否已经在登录或注册页，避免死循环
-          final currentPath = AppRouter.router.routerDelegate.currentConfiguration.uri.path;
+          final currentPath = ref.read(routerProvider).routerDelegate.currentConfiguration.uri.path;
           if (currentPath == '/login' || currentPath == '/register') {
             isRedirecting = false;
             return;
@@ -114,16 +114,16 @@ class _MyAppState extends ConsumerState<MyApp> {
         }
 
         // 先清理状态
-        ref.read(authProvider.notifier).logout().then((_) {
+        ref.read(authProvider.notifier).forceLogout().then((_) {
           if (mounted) {
             ToastUtils.showError('登录已过期，请重新登录');
             // 跳转到登录页
-            AppRouter.router.go('/login');
+            ref.read(routerProvider).go('/login');
           }
         }).catchError((e) {
           // 即使登出接口失败，也强制跳转
           if (mounted) {
-            AppRouter.router.go('/login');
+            ref.read(routerProvider).go('/login');
           }
         }).whenComplete(() {
           // 800ms 后释放锁，允许下次可能的重定向 (对标参考代码)
@@ -137,6 +137,8 @@ class _MyAppState extends ConsumerState<MyApp> {
     try {
       await Future.wait([
         ref.read(languageProvider.notifier).init(),
+        ref.read(authProvider.notifier).init(),
+        ref.read(themeProvider.notifier).init(),
       ]).timeout(const Duration(seconds: 5));
     } catch (e) {
       debugPrint('App initialization error: $e');
@@ -181,6 +183,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
 
     final themeMode = ref.watch(themeProvider);
+    final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
       scaffoldMessengerKey: ToastUtils.messengerKey,
@@ -189,7 +192,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      routerConfig: AppRouter.router,
+      routerConfig: router,
       // 多语言配置
       locale: TranslationProvider.of(context).flutterLocale,
       supportedLocales: AppLocaleUtils.instance.supportedLocales,

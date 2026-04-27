@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
-import 'package:my_flutter_app/models/user_models.dart';
-import 'package:my_flutter_app/providers/notifications_provider.dart';
+import 'package:my_flutter_app/models/user/user_models.dart';
+import 'package:my_flutter_app/providers/user/notifications_provider.dart';
 import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {

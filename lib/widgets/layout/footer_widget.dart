@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
-import 'package:my_flutter_app/providers/auth_provider.dart';
+import 'package:my_flutter_app/providers/auth/auth_provider.dart';
 
 class AppFooter extends ConsumerWidget {
   const AppFooter({super.key});

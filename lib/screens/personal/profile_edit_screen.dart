@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
 import 'package:my_flutter_app/theme/app_theme.dart';
-import 'package:my_flutter_app/providers/user_provider.dart';
-import 'package:my_flutter_app/services/user_service.dart';
-import 'package:my_flutter_app/services/auth_service.dart';
-import 'package:my_flutter_app/models/user_models.dart';
+import 'package:my_flutter_app/providers/user/user_provider.dart';
+import 'package:my_flutter_app/services/user/user_service.dart';
+import 'package:my_flutter_app/services/auth/auth_service.dart';
+import 'package:my_flutter_app/models/user/user_models.dart';
 
 enum ProfileEditType {
   realName,

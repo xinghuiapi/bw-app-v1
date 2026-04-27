@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
-import 'package:my_flutter_app/providers/auth_provider.dart';
-import 'package:my_flutter_app/models/auth_models.dart';
-import 'package:my_flutter_app/services/auth_service.dart';
-import 'package:my_flutter_app/providers/home_provider.dart';
-import 'package:my_flutter_app/models/home_data.dart';
+import 'package:my_flutter_app/providers/auth/auth_provider.dart';
+import 'package:my_flutter_app/models/auth/auth_models.dart';
+import 'package:my_flutter_app/services/auth/auth_service.dart';
+import 'package:my_flutter_app/providers/home/home_provider.dart';
+import 'package:my_flutter_app/models/home/home_data.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {

@@ -9,16 +9,15 @@ pluginManagement {
             }
 
             // Fallback for when local.properties fails to read correctly due to encoding
-            val fallbackPath = file("../flutter_sdk").absolutePath
+            val fallbackPath = file("../../flutter_SDK").absolutePath
             if (file(fallbackPath).exists()) {
                 return@run fallbackPath
             }
-            
-            throw GradleException("flutter.sdk not found. Checked local.properties and '../flutter_sdk'.")
+
+            throw GradleException("flutter.sdk not found. Checked local.properties and '../../flutter_SDK'.")
         }
 
-    // Hardcoded relative path to avoid encoding issues with Chinese characters in absolute path
-    includeBuild("../flutter_sdk/packages/flutter_tools/gradle")
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
     repositories {
         maven { url = uri("https://maven.aliyun.com/repository/google") }

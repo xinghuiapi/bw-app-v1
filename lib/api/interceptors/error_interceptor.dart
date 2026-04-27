@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:my_flutter_app/utils/toast_utils.dart';
 
 class ErrorInterceptor extends Interceptor {
   // 定义登出回调
@@ -97,6 +98,12 @@ class ErrorInterceptor extends Interceptor {
 
     // 将友好提示存入 error 对象，方便 UI 层读取
     final customError = err.copyWith(message: message);
+
+    // 触发全局 Toast 提示，作为兜底
+    // 但排除 401，因为 401 已经在 onUnauthorized 回调里弹了专属的“登录过期”
+    if (!_isTokenExpired(err.response?.statusCode, err.response?.data)) {
+      ToastUtils.showError(message);
+    }
 
     return handler.next(customError);
   }

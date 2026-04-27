@@ -4,7 +4,7 @@ targets:
       json_serializable:
         generate_for:
           include:
-            - lib/models/*.dart
+            - lib/models/**/*.dart
           exclude:
             - lib/widgets/**
             - test/**

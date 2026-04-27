@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:my_flutter_app/providers/telegram_login_provider.dart';
+import 'package:my_flutter_app/providers/auth/telegram_login_provider.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/gen/strings.g.dart';

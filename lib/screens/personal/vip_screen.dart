@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:my_flutter_app/providers/user_provider.dart';
-import 'package:my_flutter_app/services/user_service.dart';
-import 'package:my_flutter_app/models/user_models.dart';
-import 'package:my_flutter_app/models/user.dart';
+import 'package:my_flutter_app/providers/user/user_provider.dart';
+import 'package:my_flutter_app/services/user/user_service.dart';
+import 'package:my_flutter_app/models/user/user_models.dart';
+import 'package:my_flutter_app/models/user/user.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'dart:math' as math;
 

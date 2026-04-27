@@ -7,8 +7,8 @@ import 'package:my_flutter_app/widgets/common/state_widgets.dart';
 import 'package:my_flutter_app/utils/constants.dart';
 import 'package:my_flutter_app/theme/app_theme.dart';
 import 'package:my_flutter_app/utils/toast_utils.dart';
-import 'package:my_flutter_app/services/finance_service.dart';
-import 'package:my_flutter_app/models/finance_models.dart';
+import 'package:my_flutter_app/services/wallet/finance_service.dart';
+import 'package:my_flutter_app/models/wallet/finance_models.dart';
 
 final paymentMethodsProvider = FutureProvider.autoDispose<List<PaymentMethod>>((
   ref,

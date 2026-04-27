@@ -87,68 +87,52 @@
   - `dio_client.dart`：创建和配置全局 `Dio` 实例，注册拦截器、配置重试、超时、baseUrl 等。
   - `interceptors/auth_interceptor.dart`：为请求加上 Token、语言信息，处理鉴权相关逻辑，并与 `LanguageNotifier` 协作。
   - `interceptors/error_interceptor.dart`：统一处理错误（打印、转换为统一错误对象等）。
+  - `request_cache_manager.dart`：请求缓存管理。
 
 - **数据模型（`lib/models/`）**
   - 各业务模块的数据结构定义，如：
-    - 首页：`home_data.dart`。
-    - 用户：`user.dart`, `user_models.dart`。
-    - 游戏/投注：`game_model.dart`, `betting_models.dart`。
-    - 钱包/资金：`finance_models.dart`。
-    - 认证：`auth_models.dart`。
-    - 通用：`paginated_response.dart`, `api_response.dart`。
+    - `auth/`：认证相关模型 (`auth_models.dart` 等)。
+    - `core/`：核心公共模型 (`api_response.dart`, `paginated_response.dart`, `pagination_state.dart`)。
+    - `game/`：游戏相关模型 (`game_model.dart`, `betting_models.dart`)。
+    - `home/`：首页相关模型 (`home_data.dart`)。
+    - `user/`：用户与代理相关模型 (`user.dart`, `user_models.dart`, `agent_models.dart`)。
+    - `wallet/`：钱包与财务相关模型 (`finance_models.dart`)。
   - 通过 `json_serializable` 生成相应的 `*.g.dart`。
 
 - **服务层（`lib/services/`）**
   - 面向业务的 API 封装：
-    - `game_service.dart`：游戏相关接口（获取游戏列表、登录游戏、查询投注记录、刷新余额等）。
-    - `home_service.dart`：首页数据获取（Banner、公告、站点配置等）。
-    - `user_service.dart`：用户信息、个人配置、通知等。
-    - `finance_service.dart`：充值、提现、转账、支付渠道等资金相关操作。
-    - `auth_service.dart`：登录、注册、重置密码等认证流程。
+    - `auth/`：认证服务 (`auth_service.dart`)。
+    - `game/`：游戏服务 (`game_service.dart`)。
+    - `home/`：首页服务 (`home_service.dart`)。
+    - `user/`：用户服务 (`user_service.dart`)。
+    - `wallet/`：财务服务 (`finance_service.dart`)。
 
 - **状态管理（`lib/providers/`）**
-  - **全局配置**
-    - `language_provider.dart`：管理当前语言（`AppLocale`），与 `slang`、`Dio` 的语言配置联动，并持久化到本地。
-    - `theme_provider.dart`：管理主题模式（浅色/深色/跟随系统），同样持久化。
-  - **用户 & 认证**
-    - `auth_provider.dart`：登录状态、登录动作、退出登录等。
-    - `user_provider.dart`：当前用户信息、刷新资料等。
-  - **首页/活动/通知**
-    - `home_provider.dart`：首页数据（banner、公告等）。
-    - `activities_provider.dart`：活动列表、活动详情。
-    - `notifications_provider.dart`：站内通知。
-  - **游戏 & 钱包**
-    - `game_provider.dart`：游戏列表、分页加载、搜索状态。
-    - `game_launcher_provider.dart`：游戏启动相关封装，可能负责构造 WebView 地址或处理游戏登录返回数据。
-    - `recharge_provider.dart`, `withdraw_provider.dart`, `transfer_provider.dart`, `recharge_detail_provider.dart`：对应充值、提现、转账及相关详情。
-  - **其他**
-    - `feedback_provider.dart`：意见反馈提交流程。
+  - 按业务模块划分的 Riverpod Notifier：
+    - `activity/`：活动状态 (`activities_provider.dart`)。
+    - `auth/`：认证与登录状态 (`auth_provider.dart`, `password_reset_provider.dart`, `telegram_login_provider.dart`)。
+    - `game/`：游戏业务状态 (`game_provider.dart`, `game_launcher_provider.dart`, `hot_games_provider.dart`, `favorite_games_provider.dart`)。
+    - `home/`：首页状态 (`home_provider.dart`, `search_provider.dart`)。
+    - `system/`：系统级状态 (`theme_provider.dart`, `language_provider.dart`)。
+    - `user/`：用户中心状态 (`user_provider.dart`, `referral_provider.dart`, `notifications_provider.dart`, `feedback_provider.dart`)。
+    - `wallet/`：钱包资金状态 (`recharge_provider.dart`, `withdraw_provider.dart`, `transfer_provider.dart`, `recharge_detail_provider.dart`)。
 
 - **页面层（`lib/screens/`）**
-  - `auth/`：登录、注册、重置密码等认证相关 UI。
-  - `basic/`：通用功能页面：
-    - 搜索页、反馈页、客服页、活动列表与详情、游戏列表与详情、系统维护页、关于我们、代理合作介绍等。
-  - `personal/`：个人中心：
-    - 个人中心总览、个人资料编辑、VIP、投注记录、资金记录、银行卡包、通知中心、分享邀请等。
-  - `wallet/`：钱包相关：
-    - 充值页、提现页、转账页、充值详情页等。
-  - 顶层页面：
-    - `home_screen.dart`：主首页。
-    - `placeholder_screen.dart`：占位/未完成页。
+  - `activity/`：活动与活动详情页。
+  - `auth/`：登录、注册、重置密码、Telegram登录页。
+  - `common/`：通用页面 (占位符等)。
+  - `game/`：游戏列表与游戏视图容器 (`game_view_screen` 系列)。
+  - `home/`：首页与搜索页。
+  - `info/`：静态信息页 (关于我们、客服、反馈、系统维护、代理合作等)。
+  - `personal/`：个人中心相关页面 (资料、记录、VIP、卡包等)。
+  - `splash/`：启动页。
+  - `wallet/`：充值、提现、转账详情页。
 
 - **组件层（`lib/widgets/`）**
-  - `home/`：构成首页 UI 的各个子模块：
-    - `banner_widget.dart`、`notices_widget.dart`、`quick_access_widget.dart`、`game_categories_widget.dart`、`app_download_bar_widget.dart` 等。
-  - `layout/`：
-    - `header_widget.dart`：顶部栏（显示 logo、用户入口、语言/主题切换等）。
-    - `footer_widget.dart`：底部导航（切换 Tab：首页、游戏、钱包、个人中心）。
-    - `user_drawer.dart`：侧边栏用户菜单。
-  - `common/`：
-    - `state_widgets.dart`：加载失败、空数据、重试等通用状态组件。
-    - `skeleton_widget.dart`：骨架屏组件。
-    - `web_safe_image.dart` / `web_safe_image_web.dart` / `web_safe_image_stub.dart`：在 web 和 native 不同平台安全显示网络图片。
-  - `payment_webview/`：
-    - `payment_webview.dart` + 各平台具体实现：对支付页 WebView 进行统一封装。
+  - `common/`：通用组件 (`skeleton_widget.dart`, `state_widgets.dart`, `web_safe_image` 系列)。
+  - `home/`：首页专有组件 (`banner_widget.dart`, `notices_widget.dart`, `quick_access_widget.dart`, `game_categories_widget.dart`, `app_download_bar_widget.dart`)。
+  - `layout/`：布局组件 (`header_widget.dart`, `footer_widget.dart`, `user_drawer.dart`)。
+  - `payment_webview/`：支付/收银台跨端 WebView 组件 (`payment_webview` 系列)。
 
 - **主题与工具（`lib/theme/`, `lib/utils/`）**
   - `theme/app_theme.dart`：定义深浅色主题、颜色、TextStyle 等全局样式。
@@ -377,9 +361,6 @@ flutter run
 ├── android/            # Android 原生工程：权限申请、打包配置、原生插件集成
 ├── ios/                # iOS 原生工程：证书管理、Info.plist 配置、原生代码
 ├── web/                # Web 平台工程：index.html 入口、PWA 配置、图标资源
-├── windows/            # Windows 桌面端原生工程
-├── macos/              # macOS 桌面端原生工程
-├── linux/              # Linux 桌面端原生工程
 ├── assets/             # 静态资源库：多语言翻译 (translations/)、图片、字体
 ├── docs/               # 项目文档：接口文档 (获取数据.md)、业务逻辑说明
 ├── lib/                # 核心源代码目录 (详见下方 lib 结构)
@@ -394,21 +375,22 @@ flutter run
 
 ### 2. 核心代码目录 (lib/)
 
-本项目遵循清晰的分层架构，确保代码的可维护性和可扩展性：
+本项目遵循清晰的分层架构，按业务模块进行解耦，确保代码的可维护性和可扩展性：
 
 ```text
 lib/
-├── api/                # 网络层：基于 Dio 封装的 HTTP 客户端
-├── models/             # 数据模型：包含 API 响应及实体类 (使用 json_serializable)
-├── providers/          # 状态管理：Riverpod Notifiers (AsyncNotifier/Notifier)
-├── router/             # 路由配置：GoRouter 声明式路由定义
-├── services/           # 业务逻辑：API 调用及底层数据处理
-├── screens/            # 页面 UI：完整的业务场景页面
-├── theme/              # 全局样式：颜色、字体、主题配置
-├── utils/              # 工具类：常量定义、辅助函数、Toast 通知
-├── widgets/            # 组件库：可复用的 UI 单元
-├── main.dart           # 应用入口
-└── driver_main.dart    # 自动化测试入口 (可选)
+├── api/                    # 网络请求核心模块 (拦截器、缓存管理)
+├── gen/                    # 自动生成代码 (国际化 strings.g.dart)
+├── models/                 # 数据模型层 (JSON 序列化模型，按业务模块如 auth, game 等细分)
+├── providers/              # Riverpod 状态管理层 (按业务模块细分，统一使用 Notifier)
+├── router/                 # 路由配置 (app_router.dart，声明式路由)
+├── screens/                # 页面 UI 层 (按业务模块如 auth, home, game, wallet 等细分)
+├── services/               # 服务层 (处理 API 调用与底层业务逻辑)
+├── theme/                  # 全局样式定义 (颜色、字体、主题配置)
+├── utils/                  # 工具类 (常量、Toast 通知、Auth 辅助等)
+├── widgets/                # 组件库：可复用的 UI 单元 (通用组件、业务组件、布局组件)
+├── driver_main.dart        # 自动化测试入口 (可选)
+└── main.dart               # 应用程序主入口
 ```
 
 ### 3. lib 同级目录深度解析 (Root Sibling Directories)
@@ -422,7 +404,7 @@ lib/
     - 存放业务逻辑说明、接口文档（如 `获取数据.md`）及重构过程中的技术笔记。
 - **`test/`**: **测试套件**。
     - 包含单元测试（Unit Tests）和组件测试（Widget Tests），是 CI/CD 流程的重要组成部分。
-- **`android/` / `ios/` / `web/` / `windows/`**: **平台特定工程**。
+- **`android/` / `ios/` / `web/`**: **平台特定工程**。
     - 包含各平台的入口文件和原生配置（如 Android 的 `AndroidManifest.xml` 和 iOS 的 `Info.plist`）。
     - 除非涉及原生功能集成（如支付、深度链接配置），否则开发者通常无需频繁修改。
 - **`.trae/` / `.vscode/`**: **编辑器与辅助工具配置**。
@@ -430,30 +412,15 @@ lib/
 
 ### 4. 各层级作用深度解析 (In-depth Layering)
 
-- **`lib/api/`**: 统一管理 HTTP 请求配置。`auth_interceptor.dart` 负责在请求头中自动注入 Token，`error_interceptor.dart` 负责全局错误捕获并联动 `ToastUtils` 提示。
-- **`lib/models/`**: 定义类型安全的数据结构。所有以 `.g.dart` 结尾的文件均由 `build_runner` 自动生成。
-- **`lib/providers/`**: 业务状态的“单一数据源”。通过 Riverpod 实现响应式 UI 更新，将 UI 逻辑与业务逻辑解耦。
+- **`lib/api/`**: 统一管理 HTTP 请求配置。`auth_interceptor.dart` 负责在请求头中自动注入 Token，`error_interceptor.dart` 负责全局错误捕获并联动 `ToastUtils` 提示。`request_cache_manager.dart` 负责处理请求缓存。
+- **`lib/models/`**: 定义类型安全的数据结构，按业务模块存放。所有以 `.g.dart` 结尾的文件均由 `build_runner` 自动生成。
+- **`lib/providers/`**: 业务状态的“单一数据源”。通过 Riverpod (`Notifier` / `AsyncNotifier`) 实现响应式 UI 更新，将 UI 逻辑与业务逻辑解耦，同样按业务模块细分。
 - **`lib/services/`**: 负责具体的 API 调用。它从 `api/` 获取原始数据，并将其转换为 `models/` 中的对象。
-- **`lib/screens/`**: 存放完整的页面视图。页面应尽量简洁，通过 `providers` 获取数据，通过 `widgets` 构建 UI。
-- **`lib/widgets/`**: 颗粒化 UI 组件。遵循“高内聚低耦合”原则，方便在不同页面间复用。特别注意 `WebSafeImage` 用于解决 Web 端跨域图片显示问题。
+- **`lib/screens/`**: 存放完整的页面视图。页面应尽量简洁，按业务域划分。通过 `providers` 获取数据，通过 `widgets` 构建 UI。
+- **`lib/widgets/`**: 颗粒化 UI 组件。遵循“高内聚低耦合”原则，方便在不同页面间复用。特别注意 `WebSafeImage` 用于解决 Web 端跨域图片显示问题，`payment_webview` 封装了跨平台的网页加载容器。
 - **`lib/theme/`**: 维护全局视觉一致性。修改 `app_theme.dart` 即可实现一键换肤或全局样式调整。
 - **`lib/router/`**: 集中管理页面跳转逻辑，支持路径参数和查询参数。
 
-换logo命令
-dart run flutter_launcher_icons
-
-作为资深架构师，项目中经常使用 json_serializable 或 riverpod_generator 。如果你修改了 Model 或 Provider，需要运行以下命令来更新生成的 .g.dart 文件：
-```bash
-flutter pub run build_runner build --delete-conflicting-outputs
-```
-# 1. 清理构建缓存（解决莫名其妙的编译错误）
-flutter clean
-
-# 2. 重新获取依赖包
-flutter pub get
-
-# 3. 重新运行项目
-flutter run
 
 # 打包发布指南 (Packaging Guide)
 

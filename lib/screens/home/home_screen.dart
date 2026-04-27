@@ -1,0 +1,264 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:my_flutter_app/providers/home/home_provider.dart';
+import 'package:my_flutter_app/widgets/home/banner_widget.dart';
+import 'package:my_flutter_app/widgets/home/notices_widget.dart';
+import 'package:my_flutter_app/widgets/home/quick_access_widget.dart';
+import 'package:my_flutter_app/widgets/home/game_categories_widget.dart';
+import 'package:my_flutter_app/widgets/home/app_download_bar_widget.dart';
+import 'package:my_flutter_app/widgets/layout/header_widget.dart';
+import 'package:my_flutter_app/widgets/layout/footer_widget.dart';
+import 'package:my_flutter_app/widgets/layout/user_drawer.dart';
+import 'package:my_flutter_app/widgets/common/skeleton_widget.dart';
+import 'package:my_flutter_app/widgets/common/state_widgets.dart';
+import 'package:my_flutter_app/widgets/common/update_dialog.dart';
+
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _hasCheckedUpdate = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final homeDataAsync = ref.watch(homeDataProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
+
+    // 监听首页数据加载，完成后检查版本更新
+    ref.listen(homeDataProvider, (previous, next) {
+      if (!_hasCheckedUpdate && next.hasValue && next.value != null) {
+        final siteConfig = next.value!.siteConfig;
+        if (siteConfig != null && siteConfig.appVersion != null) {
+          _checkVersionUpdate(siteConfig.appVersion!, siteConfig.appDownload);
+        }
+      }
+    });
+
+    return Scaffold(
+      appBar: const AppHeader(),
+      endDrawer: const UserDrawer(),
+      body: homeDataAsync.when(
+        skipLoadingOnReload: true,
+        skipLoadingOnRefresh: true,
+        data: (homeData) => RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(homeDataProvider);
+            ref.invalidate(categoriesProvider);
+            try {
+              await Future.wait([
+                ref.read(homeDataProvider.future),
+                ref.read(categoriesProvider.future),
+              ]);
+            } catch (_) {}
+          },
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (scrollInfo) {
+              if (scrollInfo.depth == 0) {
+                final pixels = scrollInfo.metrics.pixels;
+                final maxScroll = scrollInfo.metrics.maxScrollExtent;
+                if (pixels >= maxScroll - 200 && maxScroll > 0) {
+                  if (ref.read(scrollBottomProvider) == false) {
+                    ref.read(scrollBottomProvider.notifier).set(true);
+                  }
+                } else {
+                  if (ref.read(scrollBottomProvider) == true) {
+                    ref.read(scrollBottomProvider.notifier).set(false);
+                  }
+                }
+              }
+              return false;
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      // 轮播图
+                      if (homeData.banners != null)
+                        HomeBanner(banners: homeData.banners!),
+
+                      const SizedBox(height: 12),
+
+                      // 通知栏
+                      if (homeData.notices != null)
+                        HomeNotices(notices: homeData.notices!),
+
+                      const SizedBox(height: 12),
+
+                      // 快捷入口
+                      const QuickAccess(),
+
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+
+                // 游戏分类吸顶 Header
+                categoriesAsync.when(
+                  skipLoadingOnReload: true,
+                  skipLoadingOnRefresh: true,
+                  data: (categories) => SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _SliverAppBarDelegate(
+                      child: GameCategoryTabs(categories: categories),
+                      minHeight: 56,
+                      maxHeight: 56,
+                    ),
+                  ),
+                  loading: () =>
+                      const SliverToBoxAdapter(child: CategorySkeleton()),
+                  error: (err, stack) => SliverToBoxAdapter(
+                    child: ErrorStateWidget(
+                      message: '加载分类失败: $err',
+                      onRetry: () => ref.invalidate(categoriesProvider),
+                    ),
+                  ),
+                ),
+
+                // 游戏内容
+                categoriesAsync.when(
+                  skipLoadingOnReload: true,
+                  skipLoadingOnRefresh: true,
+                  data: (categories) =>
+                      GameCategoriesWidget(categories: categories),
+                  loading: () =>
+                      const SliverToBoxAdapter(child: SizedBox.shrink()),
+                  error: (err, stack) =>
+                      const SliverToBoxAdapter(child: SizedBox.shrink()),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              ],
+            ),
+          ),
+        ),
+        loading: () => const _HomeLoadingSkeleton(),
+        error: (err, stack) => ErrorStateWidget(
+          message: '加载页面数据失败: $err',
+          onRetry: () => ref.invalidate(homeDataProvider),
+        ),
+      ),
+      bottomNavigationBar: const AppFooter(),
+    );
+  }
+
+  Future<void> _checkVersionUpdate(
+    String serverVersion,
+    String? downloadUrl,
+  ) async {
+    _hasCheckedUpdate = true;
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+
+      if (_isVersionGreater(serverVersion, currentVersion)) {
+        if (mounted) {
+          showUpdateDialog(context, serverVersion, downloadUrl);
+        }
+      }
+    } catch (e) {
+      debugPrint('Check version update error: $e');
+    }
+  }
+
+  bool _isVersionGreater(String serverVersion, String currentVersion) {
+    try {
+      final serverParts = serverVersion.split('.').map(int.parse).toList();
+      final currentParts = currentVersion.split('.').map(int.parse).toList();
+
+      final length = serverParts.length > currentParts.length
+          ? serverParts.length
+          : currentParts.length;
+
+      for (var i = 0; i < length; i++) {
+        final serverPart = i < serverParts.length ? serverParts[i] : 0;
+        final currentPart = i < currentParts.length ? currentParts[i] : 0;
+
+        if (serverPart > currentPart) return true;
+        if (serverPart < currentPart) return false;
+      }
+    } catch (e) {
+      debugPrint('Version comparison error: $e');
+    }
+    return false;
+  }
+}
+
+class _HomeLoadingSkeleton extends StatelessWidget {
+  const _HomeLoadingSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SingleChildScrollView(
+      child: Column(
+        children: [
+          Skeleton(height: 50, borderRadius: 0), // AppDownloadBar
+          SizedBox(height: 12),
+          BannerSkeleton(),
+          SizedBox(height: 12),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Skeleton(height: 40, borderRadius: 20), // Notices
+          ),
+          SizedBox(height: 12),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(child: Skeleton(height: 80, borderRadius: 12)),
+                SizedBox(width: 12),
+                Expanded(child: Skeleton(height: 80, borderRadius: 12)),
+                SizedBox(width: 12),
+                Expanded(child: Skeleton(height: 80, borderRadius: 12)),
+                SizedBox(width: 12),
+                Expanded(child: Skeleton(height: 80, borderRadius: 12)),
+              ],
+            ), // QuickAccess
+          ),
+          SizedBox(height: 12),
+          CategorySkeleton(),
+        ],
+      ),
+    );
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double minHeight;
+  final double maxHeight;
+
+  _SliverAppBarDelegate({
+    required this.child,
+    required this.minHeight,
+    required this.maxHeight,
+  });
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return maxHeight != oldDelegate.maxHeight ||
+        minHeight != oldDelegate.minHeight ||
+        child != oldDelegate.child;
+  }
+}

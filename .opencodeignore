@@ -1,0 +1,30 @@
+# 编译产物
+build/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+
+# 依赖库（AI 不需要读取整个库源码，除非你明确要求）
+ios/Pods/
+node_modules/
+
+# 资源文件（图片、字体等二进制文件）
+assets/images/
+assets/fonts/
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.svg
+**/*.ico
+
+# 系统与 IDE
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# 日志与临时文件
+*.log
+.temp/
+.tmp/

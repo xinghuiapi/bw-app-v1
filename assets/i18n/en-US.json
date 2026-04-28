@@ -1,0 +1,61 @@
+{
+  "auth": {
+    "login": {
+      "welcome": "Welcome Back",
+      "tags": {
+        "fastWithdraw": "Fast Withdraw",
+        "dataSafe": "Data Safe",
+        "authorityAuth": "Authority Auth"
+      },
+      "forgot": {
+        "title": "Forgot Password? ",
+        "action": "Reset"
+      },
+      "action": {
+        "submit": "Login",
+        "noAccount": "No account? ",
+        "toRegister": "Register Now",
+        "browseFirst": "Browse First"
+      },
+      "tab": {
+        "username": "Account Login",
+        "phone": "Phone Login"
+      },
+      "field": {
+        "account": "Account",
+        "password": "Password",
+        "phone": "Phone Number",
+        "code": "Verification Code"
+      },
+      "placeholder": {
+        "account": "Please enter account",
+        "password": "Please enter password",
+        "phone": "Please enter phone number",
+        "code": "Please enter code"
+      }
+    },
+    "register": {
+      "welcome": "Create Account",
+      "action": {
+        "submit": "Register",
+        "hasAccount": "Already have an account? ",
+        "toLogin": "Login Now",
+        "browseFirst": "Browse First"
+      },
+      "field": {
+        "account": "Account",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "phone": "Phone Number",
+        "code": "Verification Code"
+      },
+      "placeholder": {
+        "account": "Please enter account",
+        "password": "Please enter password",
+        "confirmPassword": "Please confirm password",
+        "phone": "Please enter phone number",
+        "code": "Please enter code"
+      }
+    }
+  }
+}

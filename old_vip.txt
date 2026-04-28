@@ -1,0 +1,299 @@
+class VipScreen extends StatefulWidget {
+  const VipScreen({super.key});
+
+  @override
+  State<VipScreen> createState() => _VipScreenState();
+}
+
+class _VipScreenState extends State<VipScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final int currentLevel = 1;
+  final double currentRecharge = 200.0;
+  final double currentTurnover = 500.0;
+
+  final List<Map<String, dynamic>> levels = [
+    {
+      'level': 1,
+      'recharge': 0,
+      'turnover': 0,
+      'upgrade': 0,
+      'weekly': 0,
+      'birthday': 0,
+      'ratio': '0.4%'
+    },
+    {
+      'level': 2,
+      'recharge': 500,
+      'turnover': 2000,
+      'upgrade': 18,
+      'weekly': 8,
+      'birthday': 18,
+      'ratio': '0.45%'
+    },
+    {
+      'level': 3,
+      'recharge': 1000,
+      'turnover': 5000,
+      'upgrade': 38,
+      'weekly': 18,
+      'birthday': 38,
+      'ratio': '0.5%'
+    },
+    {
+      'level': 4,
+      'recharge': 5000,
+      'turnover': 20000,
+      'upgrade': 88,
+      'weekly': 38,
+      'birthday': 88,
+      'ratio': '0.55%'
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+        length: levels.length, vsync: this, initialIndex: currentLevel - 1);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F9),
+      appBar: const CustomNavBar(title: 'VIP 俱乐部'),
+      body: Column(
+        children: [
+          _buildProgressCard(),
+          _buildTabs(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: levels.map((level) {
+                return _buildPrivilegeContent(level);
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressCard() {
+    final nextLevel = levels.firstWhere(
+        (l) => (l['level'] as int) == currentLevel + 1,
+        orElse: () => levels.last);
+    final rechargeTarget = nextLevel['recharge'] as num;
+    final turnoverTarget = nextLevel['turnover'] as num;
+
+    final rechargePercent = rechargeTarget > 0
+        ? (currentRecharge / rechargeTarget).clamp(0.0, 1.0)
+        : 1.0;
+    final turnoverPercent = turnoverTarget > 0
+        ? (currentTurnover / turnoverTarget).clamp(0.0, 1.0)
+        : 1.0;
+
+    return Container(
+      margin: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2C2C2C), Color(0xFF1A1A1A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.stars,
+                      color: const Color(0xFFFFD700), size: 24.sp),
+                  SizedBox(width: 8.w),
+                  Text(
+                    '我的 VIP 进度',
+                    style: TextStyle(
+                      color: const Color(0xFFFFD700),
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4.r),
+                  border: Border.all(
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.5)),
+                ),
+                child: Text(
+                  '当前: VIP $currentLevel',
+                  style: TextStyle(
+                      color: const Color(0xFFFFD700),
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 24.h),
+          _buildProgressBar(
+              '充值进度 (¥)', currentRecharge, rechargeTarget, rechargePercent),
+          SizedBox(height: 16.h),
+          _buildProgressBar(
+              '流水进度 (¥)', currentTurnover, turnoverTarget, turnoverPercent),
+          SizedBox(height: 16.h),
+          Text(
+            '* 充值与流水需同时满足条件即可升级至 VIP ${currentLevel + 1}',
+            style: TextStyle(color: Colors.white54, fontSize: 11.sp),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(
+      String title, num current, num target, double percent) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: TextStyle(color: Colors.white, fontSize: 13.sp)),
+            Text('$current / $target',
+                style: TextStyle(color: Colors.white, fontSize: 13.sp)),
+          ],
+        ),
+        SizedBox(height: 8.h),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4.r),
+          child: LinearProgressIndicator(
+            value: percent,
+            minHeight: 6.h,
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
+            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFFD700)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabs() {
+    return Container(
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        indicatorColor: const Color(0xFFFFD700),
+        indicatorWeight: 3.h,
+        labelColor: AppColors.textPrimary,
+        unselectedLabelColor: AppColors.textSecondary,
+        labelStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
+        tabs: levels.map((l) => Tab(text: 'VIP ${l['level']}')).toList(),
+      ),
+    );
+  }
+
+  Widget _buildPrivilegeContent(Map<String, dynamic> levelInfo) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomCard(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'VIP ${levelInfo['level']} 专属特权',
+                  style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary),
+                ),
+                SizedBox(height: 16.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildPrivilegeItem(
+                        Icons.upgrade, '升级礼金', '¥${levelInfo['upgrade']}'),
+                    _buildPrivilegeItem(Icons.calendar_today, '每周礼金',
+                        '¥${levelInfo['weekly']}'),
+                    _buildPrivilegeItem(
+                        Icons.cake, '生日礼金', '¥${levelInfo['birthday']}'),
+                    _buildPrivilegeItem(
+                        Icons.water_drop, '返水比例', '${levelInfo['ratio']}'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'VIP 规则说明',
+            style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            '1. 升级条件：会员的历史充值与累计流水达到相应级别要求即可升级。\n'
+            '2. 升级礼金：升级后系统自动派发，每级别仅可领取一次。\n'
+            '3. 生日礼金：需在生日前完成实名认证，生日当天自动派发。\n'
+            '4. 平台保留对 VIP 规则的最终解释权。',
+            style: TextStyle(
+                fontSize: 13.sp, color: AppColors.textSecondary, height: 1.6),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrivilegeItem(IconData icon, String title, String value) {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFF7E6),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: const Color(0xFFFF9B00), size: 24.sp),
+        ),
+        SizedBox(height: 8.h),
+        Text(title,
+            style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary)),
+        SizedBox(height: 4.h),
+        Text(value,
+            style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFFFF9B00))),
+      ],
+    );
+  }
+}

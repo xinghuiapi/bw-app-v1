@@ -1,0 +1,29 @@
+name: flutter_ui_project
+description: High fidelity Flutter UI conversion project
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_screenutil: ^5.9.0
+  flutter_svg: ^2.2.4
+  go_router: ^13.2.0
+  provider: ^6.1.2
+  google_fonts: ^6.2.1
+  easy_localization: ^3.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/i18n/

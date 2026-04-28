@@ -1,0 +1,393 @@
+class VipScreen extends StatefulWidget {
+  const VipScreen({super.key});
+
+  @override
+  State<VipScreen> createState() => _VipScreenState();
+}
+
+class _VipScreenState extends State<VipScreen> {
+  int _selectedIndex = 0;
+  final int currentLevel = 1;
+  final double currentRecharge = 0.0;
+  final double currentTurnover = 0.0;
+
+  final List<Map<String, dynamic>> levels = [
+    {
+      'level': 1,
+      'recharge': 200,
+      'turnover': 2000,
+      'upgrade': 0,
+      'weekly': 0,
+      'birthday': 0,
+      'dailyCount': 3,
+      'dailyLimit': '5,000',
+      'minWithdraw': 50,
+      'minRecharge': 10,
+      'maxRecharge': '50,000',
+      'rebates': {
+        '体育': '0.30%',
+        '视讯': '0.40%',
+        '电子': '0.50%',
+        '棋牌': '0.40%',
+        '捕鱼': '0.50%',
+        '电竞': '0.30%',
+        '彩票': '0.00%'
+      }
+    },
+    {
+      'level': 2,
+      'recharge': 1000,
+      'turnover': 10000,
+      'upgrade': 18,
+      'weekly': 8,
+      'birthday': 18,
+      'dailyCount': 5,
+      'dailyLimit': '10,000',
+      'minWithdraw': 50,
+      'minRecharge': 10,
+      'maxRecharge': '50,000',
+      'rebates': {
+        '体育': '0.40%',
+        '视讯': '0.50%',
+        '电子': '0.60%',
+        '棋牌': '0.50%',
+        '捕鱼': '0.60%',
+        '电竞': '0.40%',
+        '彩票': '0.00%'
+      }
+    },
+    {
+      'level': 3,
+      'recharge': 5000,
+      'turnover': 50000,
+      'upgrade': 38,
+      'weekly': 18,
+      'birthday': 38,
+      'dailyCount': 5,
+      'dailyLimit': '50,000',
+      'minWithdraw': 50,
+      'minRecharge': 10,
+      'maxRecharge': '50,000',
+      'rebates': {
+        '体育': '0.45%',
+        '视讯': '0.55%',
+        '电子': '0.65%',
+        '棋牌': '0.55%',
+        '捕鱼': '0.65%',
+        '电竞': '0.45%',
+        '彩票': '0.00%'
+      }
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F9),
+      appBar: const CustomNavBar(title: 'VIP'),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          children: [
+            _buildProgressCard(),
+            SizedBox(height: 16.h),
+            _buildVipLevelCard(),
+            SizedBox(height: 16.h),
+            _buildRulesCard(),
+            SizedBox(height: 24.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitleWithDot(String title, {Widget? rightWidget}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 10.w,
+              height: 10.w,
+              decoration: const BoxDecoration(
+                color: Color(0xFF6B9CFF),
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF333333),
+              ),
+            ),
+          ],
+        ),
+        if (rightWidget != null) rightWidget,
+      ],
+    );
+  }
+
+  Widget _buildProgressCard() {
+    final nextLevel = levels.firstWhere(
+        (l) => (l['level'] as int) == currentLevel,
+        orElse: () => levels.first);
+    final rechargeTarget = nextLevel['recharge'] as num;
+    final turnoverTarget = nextLevel['turnover'] as num;
+
+    final rechargePercent = rechargeTarget > 0
+        ? (currentRecharge / rechargeTarget).clamp(0.0, 1.0)
+        : 1.0;
+    final turnoverPercent = turnoverTarget > 0
+        ? (currentTurnover / turnoverTarget).clamp(0.0, 1.0)
+        : 1.0;
+
+    return CustomCard(
+      padding: EdgeInsets.all(20.w),
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTitleWithDot('升级进度',
+              rightWidget: Container(
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFF6B9CFF)),
+                  borderRadius: BorderRadius.circular(4.r),
+                ),
+                child: Text('当前 VIP$currentLevel',
+                    style: TextStyle(
+                        color: const Color(0xFF6B9CFF), fontSize: 11.sp)),
+              )),
+          SizedBox(height: 24.h),
+          _buildProgressBar(
+              '充值进度', currentRecharge, rechargeTarget, rechargePercent),
+          SizedBox(height: 20.h),
+          _buildProgressBar(
+              '流水进度', currentTurnover, turnoverTarget, turnoverPercent),
+          SizedBox(height: 24.h),
+          Text(
+            '升级需同时满足充值与流水条件；达到条件后升级生效。',
+            style: TextStyle(
+                color: const Color(0xFF999999), fontSize: 12.sp, height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(
+      String title, num current, num target, double percent) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title,
+                style: TextStyle(
+                    color: const Color(0xFF333333),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600)),
+            Text('¥$current / ¥$target',
+                style:
+                    TextStyle(color: const Color(0xFF999999), fontSize: 13.sp)),
+          ],
+        ),
+        SizedBox(height: 10.h),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4.r),
+          child: LinearProgressIndicator(
+            value: percent,
+            minHeight: 8.h,
+            backgroundColor: const Color(0xFFEEEEEE),
+            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6B9CFF)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVipLevelCard() {
+    final levelData = levels[_selectedIndex];
+    return CustomCard(
+      padding: EdgeInsets.all(20.w),
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTitleWithDot('VIP 等级'),
+          _buildTabs(),
+          Row(
+            children: [
+              Text(
+                'VIP${levelData['level']}',
+                style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF333333)),
+              ),
+              SizedBox(width: 8.w),
+              if (levelData['level'] == currentLevel)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFF6B9CFF)),
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                  child: Text('当前',
+                      style: TextStyle(
+                          color: const Color(0xFF6B9CFF), fontSize: 11.sp)),
+                ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            '升级条件：充值 ¥${levelData['recharge']} + 流水 ¥${levelData['turnover']}',
+            style: TextStyle(fontSize: 13.sp, color: const Color(0xFF666666)),
+          ),
+          SizedBox(height: 24.h),
+          Text('VIP 福利',
+              style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF333333))),
+          SizedBox(height: 16.h),
+          _buildListContainer([
+            _buildListRow('升级礼金', '¥${levelData['upgrade']}'),
+            _buildListRow('周红包', '¥${levelData['weekly']}'),
+            _buildListRow('生日礼金', '¥${levelData['birthday']}'),
+            _buildListRow('每日提款次数', '${levelData['dailyCount']} 次'),
+            _buildListRow('每日提款额度', '¥${levelData['dailyLimit']}'),
+            _buildListRow('最低提款金额', '¥${levelData['minWithdraw']}'),
+            _buildListRow('最低充值金额', '¥${levelData['minRecharge']}'),
+            _buildListRow('最高充值金额', '¥${levelData['maxRecharge']}',
+                showBorder: false),
+          ]),
+          SizedBox(height: 24.h),
+          Text('VIP 返水比例',
+              style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF333333))),
+          SizedBox(height: 16.h),
+          _buildListContainer(
+              (levelData['rebates'] as Map<String, String>).entries.map((e) {
+            final isLast = e.key == levelData['rebates'].keys.last;
+            return _buildListRow(e.key, e.value, showBorder: !isLast);
+          }).toList()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabs() {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 20.h),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: levels.map((l) {
+            final index = levels.indexOf(l);
+            final isSelected = _selectedIndex == index;
+            return GestureDetector(
+              onTap: () => setState(() => _selectedIndex = index),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isSelected
+                          ? const Color(0xFF6B9CFF)
+                          : Colors.transparent,
+                      width: 3.h,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  'VIP${l['level']}',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected
+                        ? const Color(0xFF333333)
+                        : const Color(0xFF999999),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListContainer(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: const Color(0xFFF0F0F0)),
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildListRow(String label, String value, {bool showBorder = true}) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+      decoration: BoxDecoration(
+        border: showBorder
+            ? const Border(bottom: BorderSide(color: Color(0xFFF5F5F5)))
+            : null,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style:
+                  TextStyle(fontSize: 14.sp, color: const Color(0xFF666666))),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF333333))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRulesCard() {
+    return CustomCard(
+      padding: EdgeInsets.all(20.w),
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTitleWithDot('升级说明'),
+          SizedBox(height: 20.h),
+          _buildRuleText('1. VIP 等级共 10 级，等级越高享受福利与返水比例越高。'),
+          _buildRuleText('2. 升级需同时满足充值进度与流水进度两项条件。'),
+          _buildRuleText('3. 充值与流水统计以系统为准，存在延迟时请稍后刷新查看。'),
+          _buildRuleText('4. 每日提款次数/额度等福利以当日自然日统计口径为准。'),
+          _buildRuleText('5. 具体活动条款如与页面不一致，以平台最终规则为准。'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRuleText(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: Text(
+        text,
+        style: TextStyle(
+            fontSize: 14.sp, color: const Color(0xFF666666), height: 1.6),
+      ),
+    );
+  }
+}

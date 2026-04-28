@@ -1,0 +1,61 @@
+{
+  "auth": {
+    "login": {
+      "welcome": "欢迎回来",
+      "tags": {
+        "fastWithdraw": "极速提款",
+        "dataSafe": "数据安全",
+        "authorityAuth": "权威认证"
+      },
+      "forgot": {
+        "title": "忘记密码？ ",
+        "action": "重置"
+      },
+      "action": {
+        "submit": "登 录",
+        "noAccount": "还没有账号？ ",
+        "toRegister": "立即注册",
+        "browseFirst": "先去逛逛"
+      },
+      "tab": {
+        "username": "账号登录",
+        "phone": "手机号登录"
+      },
+      "field": {
+        "account": "账号",
+        "password": "密码",
+        "phone": "手机号",
+        "code": "验证码"
+      },
+      "placeholder": {
+        "account": "请输入账号",
+        "password": "请输入密码",
+        "phone": "请输入手机号",
+        "code": "请输入验证码"
+      }
+    },
+    "register": {
+      "welcome": "欢迎注册",
+      "action": {
+        "submit": "注 册",
+        "hasAccount": "已有账号？ ",
+        "toLogin": "立即登录",
+        "browseFirst": "先去逛逛"
+      },
+      "field": {
+        "account": "账号",
+        "password": "登录密码",
+        "confirmPassword": "确认密码",
+        "phone": "手机号",
+        "code": "验证码"
+      },
+      "placeholder": {
+        "account": "请输入账号",
+        "password": "请输入密码",
+        "confirmPassword": "请确认密码",
+        "phone": "请输入手机号",
+        "code": "请输入验证码"
+      }
+    }
+  }
+}

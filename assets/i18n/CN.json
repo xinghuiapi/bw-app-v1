@@ -1,0 +1,941 @@
+{
+  "common": {
+    "loadingFailed": "加载失败",
+    "requestFailed": "请求失败",
+    "refresh": "刷新",
+    "getCode": "获取验证码",
+    "resendIn": "{seconds}s后重新获取",
+    "ok": "确定",
+    "cancel": "取消",
+    "captchaSent": "验证码已发送，请注意查收",
+    "sendFailed": "发送失败",
+    "pleaseEnterPhone": "请输入手机号",
+    "pleaseEnterEmail": "请输入邮箱",
+    "pleaseEnterCaptcha": "请输入验证码",
+    "pleaseEnterImageCaptcha": "请输入图形验证码",
+    "pleaseCompleteLogin": "请完整填写登录信息",
+    "loginSuccess": "登录成功",
+    "loginFailed": "登录失败",
+    "saveLoginFailed": "保存登录信息失败",
+    "passwordTooLong": "密码最长18位",
+    "passwordMismatch": "两次密码不一致",
+    "gameLoading": "游戏加载中",
+    "gameMaintaining": "游戏维护中",
+    "enterFailed": "进入失败"
+  },
+  "main": {
+    "home": {
+      "safeDomain": "易记域名 {domain}",
+      "copiedDomain": "已复制域名",
+      "copyFailed": "复制失败",
+      "guestTitle": "您还未登录",
+      "recoTitle": "推荐游戏",
+      "hotTitle": "热门游戏",
+      "more": "更多",
+      "gameAlt": "游戏",
+      "maintaining": "游戏维护中",
+      "loading": "游戏加载中",
+      "pickLang": "选择语言",
+      "appDescFallback": "官方APP，极速体验",
+      "enterFailed": "进入失败",
+      "recycling": "资金归户中...",
+      "recycleSuccess": "一键回收成功",
+      "recycleFailed": "归户失败"
+    },
+    "game": {
+      "loading": "游戏加载中",
+      "maintaining": "游戏维护中",
+      "empty": "暂无游戏数据",
+      "enterFailed": "进入失败",
+      "categoryReco": "推荐",
+      "categoryLive": "视讯",
+      "categoryGame": "电子",
+      "categoryFishing": "捕鱼",
+      "categoryLottery": "彩票",
+      "categorySport": "体育",
+      "categoryPoker": "棋牌",
+      "categoryEsports": "电竞",
+      "edgeNext": "继续下滑切换下一个分类",
+      "edgePrev": "继续上滑切换上一个分类",
+      "category": {
+        "reco": "推荐",
+        "live": "视讯",
+        "game": "电子",
+        "fishing": "捕鱼",
+        "lottery": "彩票",
+        "sport": "体育",
+        "poker": "棋牌",
+        "esports": "电竞"
+      }
+    },
+    "activity": {
+      "all": "全部",
+      "empty": "暂无活动",
+      "noMore": "没有更多了",
+      "imageAlt": "活动图片",
+      "longTerm": "长期活动",
+      "tagSystem": "系统派发",
+      "tagManual": "手动申请",
+      "multiple": "{m}倍",
+      "accountFailed": "获取账户信息失败",
+      "siteFailed": "获取站点配置失败"
+    },
+    "activityDetail": {
+      "title": "活动详情",
+      "records": "申请记录",
+      "empty": "暂无活动内容",
+      "descTitle": "活动说明",
+      "apply": "申请参与活动",
+      "applySuccess": "申请成功",
+      "applyFailed": "申请失败"
+    },
+    "activityRecords": {
+      "title": "申请记录",
+      "empty": "暂无申请记录",
+      "account": "账号",
+      "time": "时间",
+      "status": {
+        "applying": "申请中",
+        "approved": "申请通过",
+        "rejected": "申请拒绝",
+        "unknown": "未知"
+      }
+    },
+    "service": {
+      "title": "客服",
+      "hi": "Hi, {name}",
+      "welcome": "欢迎来到客服中心",
+      "guest": "游客",
+      "empty": "暂无客服链接",
+      "emptyToast": "暂无客服链接",
+      "service": "在线客服",
+      "serviceN": "在线客服{n}",
+      "serviceEn": "Customer Service",
+      "tg": "Telegram客服",
+      "tgN": "Telegram客服{n}",
+      "tgEn": "Telegram Support",
+      "siteFailed": "获取站点配置失败"
+    },
+    "maintenance": {
+      "title": "站点维护",
+      "heading": "网站正在维护中",
+      "descFallback": "网站正在升级维护，请耐心等待！"
+    },
+    "gamePlay": {
+      "titleFallback": "游戏",
+      "invalidUrl": "游戏地址无效"
+    }
+  },
+  "auth": {
+    "login": {
+      "welcome": "欢迎回来！",
+      "tags": {
+        "fastWithdraw": "极速提现",
+        "dataSafe": "数据安全",
+        "authorityAuth": "权威认证"
+      },
+      "tab": {
+        "username": "帐号登录",
+        "phone": "手机登录",
+        "email": "邮箱登录"
+      },
+      "field": {
+        "account": "登陆账号",
+        "password": "登陆密码",
+        "phone": "手机号码",
+        "email": "邮箱地址",
+        "imageCaptcha": "图形验证码",
+        "code": "验证码"
+      },
+      "placeholder": {
+        "account": "请输入账号/手机号",
+        "password": "请输入密码",
+        "phone": "请输入您的手机号",
+        "email": "请输入您的邮箱",
+        "imageCaptcha": "请输入图形验证码",
+        "code": "请输入验证码"
+      },
+      "forgot": {
+        "title": "忘记密码？",
+        "action": "去找回"
+      },
+      "action": {
+        "submit": "立即登录",
+        "noAccount": "还没账号？",
+        "toRegister": "去注册",
+        "browseFirst": "先去逛逛"
+      },
+      "picker": {
+        "cancel": "取消",
+        "title": "选择国家/地区",
+        "searchPlaceholder": "搜索国家/地区名称或区号",
+        "empty": "未找到相关国家/地区"
+      },
+      "toast": {
+        "captchaFailed": "获取图形验证码失败"
+      }
+    },
+    "register": {
+      "welcome": "欢迎注册！",
+      "tags": {
+        "fastWithdraw": "极速提现",
+        "dataSafe": "数据安全",
+        "authorityAuth": "权威认证"
+      },
+      "field": {
+        "username": "账号",
+        "password": "登录密码",
+        "confirmPassword": "确认密码",
+        "withdrawPassword": "取款密码",
+        "currency": "选择货币",
+        "phoneCode": "手机验证码",
+        "emailCode": "邮箱验证码",
+        "imageCaptcha": "图形验证码*"
+      },
+      "placeholder": {
+        "username": "请输入账号",
+        "password": "请输入密码",
+        "confirmPassword": "请再次输入密码",
+        "realName": "请输入真实姓名",
+        "withdrawPassword": "请输入6位数字取款密码",
+        "currency": "请选择货币",
+        "phone": "请输入您的手机号",
+        "email": "请输入您的邮箱",
+        "qq": "请输入QQ",
+        "telegram": "请输入Telegram",
+        "invicode": "请输入邀请码",
+        "imageCaptcha": "请输入图形验证码",
+        "code": "请输入验证码"
+      },
+      "placeholderOptional": {
+        "realName": "选填：请输入真实姓名",
+        "withdrawPassword": "选填：请输入6位数字取款密码",
+        "phone": "选填：请输入您的手机号",
+        "email": "选填：请输入您的邮箱",
+        "qq": "选填：请输入QQ",
+        "telegram": "选填：请输入Telegram",
+        "invicode": "选填：请输入邀请码"
+      },
+      "action": {
+        "submit": "立即注册",
+        "hasAccount": "已有账号？",
+        "toLogin": "去登录",
+        "browseFirst": "先去逛逛"
+      },
+      "picker": {
+        "cancel": "取消",
+        "countryTitle": "选择国家/地区",
+        "countrySearchPlaceholder": "搜索国家/地区名称或区号",
+        "countryEmpty": "未找到相关国家/地区",
+        "currencyTitle": "选择货币",
+        "currencySearchPlaceholder": "搜索货币名称或代码",
+        "currencyEmpty": "未找到相关货币"
+      },
+      "toast": {
+        "needAccountPassword": "请填写账号和密码",
+        "usernameRule": "账号仅支持字母和数字，最长12位",
+        "needRealName": "请输入真实姓名",
+        "needWithdrawPassword": "请输入取款密码",
+        "withdrawPasswordRule": "取款密码需为6位数字",
+        "phoneCodeDisabled": "手机验证码未开启",
+        "needSmsCode": "请输入短信验证码",
+        "emailCodeDisabled": "电邮验证码未开启",
+        "needEmailCode": "请输入邮箱验证码",
+        "needQQ": "请输入QQ",
+        "needTelegram": "请输入Telegram",
+        "needInvicode": "请输入邀请码",
+        "invicodeTooLong": "邀请码最长10位",
+        "success": "注册成功",
+        "failed": "注册失败"
+      }
+    },
+    "resetPassword": {
+      "title": "找回密码",
+      "tags": {
+        "safeVerify": "安全验证",
+        "changePassword": "修改密码"
+      },
+      "tab": {
+        "phone": "手机找回",
+        "email": "邮箱找回",
+        "real": "实名找回"
+      },
+      "field": {
+        "phone": "手机号码",
+        "email": "邮箱地址",
+        "code": "验证码",
+        "realName": "真实姓名",
+        "safePassword": "安全密码",
+        "newPassword": "新密码",
+        "confirmPassword": "确认密码"
+      },
+      "placeholder": {
+        "phone": "请输入您的手机号",
+        "email": "请输入您的邮箱",
+        "code": "请输入验证码",
+        "realName": "请输入真实姓名",
+        "safePassword": "请输入6位数字安全密码",
+        "newPassword": "请输入新密码",
+        "confirmNewPassword": "请再次输入新密码"
+      },
+      "action": {
+        "submit": "确认修改",
+        "backLogin": "返回登录"
+      },
+      "picker": {
+        "cancel": "取消",
+        "title": "选择国家/地区",
+        "searchPlaceholder": "搜索国家/地区名称或区号",
+        "empty": "未找到相关国家/地区"
+      },
+      "toast": {
+        "safePasswordRule": "安全密码需为6位数字",
+        "success": "密码修改成功",
+        "sendFailed": "发送失败",
+        "failed": "操作失败"
+      }
+    },
+    "telegramLogin": {
+      "firstLoading": "首次登录处理中...",
+      "secureLoading": "安全登录处理中...",
+      "missingParams": "缺少 Telegram 登录参数",
+      "success": "登录成功",
+      "failed": "登录失败",
+      "retryLater": "登录失败，请稍后再试",
+      "setDefaultPassSuccess": "已为您设置默认登录密码为 123456",
+      "setPassFailed": "设置密码失败",
+      "busy": "系统繁忙，请稍后再试"
+    }
+  },
+  "user": {
+    "dateRange": {
+      "today": "今天",
+      "yesterday": "昨日",
+      "thisMonth": "本月",
+      "lastMonth": "上月"
+    },
+    "status": {
+      "success": "成功",
+      "processing": "处理中",
+      "failed": "失败",
+      "unknown": "未知"
+    },
+    "profile": {
+      "accountId": "账号ID",
+      "walletBalance": "钱包余额",
+      "todayProfit": "今日收益",
+      "betCount": "注单笔数",
+      "netProfit": "总盈亏",
+      "unclaimedRebate": "未领返水",
+      "moreService": "更多服务",
+      "venueBalance": "场馆余额",
+      "comingSoon": "即将上线",
+      "dateMD": "{m}月{d}日",
+      "accountFailed": "获取账户信息失败",
+      "balanceFailed": "获取余额失败"
+    },
+    "setting": {
+      "about": "关于我们",
+      "registerInfo": "注册信息",
+      "clearCache": "清除缓存",
+      "version": "版本",
+      "versionValue": "版本号1.1.0",
+      "logout": "退出登录",
+      "clearing": "清理中...",
+      "cleared": "缓存已清理",
+      "tipTitle": "提示",
+      "confirmLogout": "确定要退出登录吗？",
+      "logoutFailed": "退出失败"
+    },
+    "cardList": {
+      "empty": "暂无收款方式",
+      "viewQr": "查看二维码",
+      "unbind": "解绑",
+      "confirmUnbind": "确认解绑该{type}吗？",
+      "paramError": "参数错误",
+      "deleteFailed": "删除失败",
+      "deleteSuccess": "删除成功",
+      "type": {
+        "bank": "银行卡",
+        "alipay": "支付宝",
+        "crypto": "虚拟币",
+        "other": "其他"
+      }
+    },
+    "addCard": {
+      "pickType": "请选择收款类型",
+      "field": {
+        "name": "姓名",
+        "bank": "开户银行",
+        "bankCard": "银行卡号",
+        "branch": "开户支行",
+        "alias": "别名备注",
+        "alipay": "支付宝账号",
+        "cryptoType": "虚拟币类型",
+        "address": "收款地址"
+      },
+      "authed": "已实名认证",
+      "needAuth": "请先完成实名认证",
+      "goAuth": "去认证",
+      "authTip": "为了您的资金安全，请先完成实名认证",
+      "uploadOptional": "上传收款码 (选填)",
+      "submit": "确认添加",
+      "picker": {
+        "bankTitle": "选择开户银行",
+        "bankSearch": "搜索开户银行",
+        "cryptoTitle": "选择虚拟币类型",
+        "cryptoSearch": "搜索虚拟币类型"
+      },
+      "noData": "暂无数据",
+      "loadTypeFailed": "获取类型失败",
+      "uploading": "上传中...",
+      "uploadFailed": "上传失败",
+      "bindFailed": "绑定失败",
+      "bindSuccess": "绑定成功",
+      "placeholder": {
+        "pickBank": "请选择开户银行",
+        "inputBankCard": "请输入银行卡号",
+        "branchOptional": "请输入开户支行(选填)",
+        "aliasOptional": "请输入别名备注(选填)",
+        "inputAlipay": "请输入支付宝账号",
+        "pickCrypto": "请选择虚拟币类型",
+        "inputAddress": "请输入虚拟币收款地址"
+      },
+      "toast": {
+        "pickBank": "请选择开户银行",
+        "inputBankCard": "请输入银行卡号",
+        "inputAlipay": "请输入支付宝账号",
+        "pickCrypto": "请选择虚拟币类型",
+        "inputAddress": "请输入收款地址",
+        "pickType": "请选择类型",
+        "inputPayInfo": "请输入收款信息"
+      }
+    },
+    "wallet": {
+      "transferRecords": "转账记录",
+      "venueMode": "场馆模式",
+      "venueModeDesc": "默认开启自动转账模式（余额自动携带进入场馆，关闭后需手动转入/转出）",
+      "venueList": "场馆列表",
+      "venueBalance": "场馆余额",
+      "amountLabel": "输入金额",
+      "amountPlaceholder": "请输入金额",
+      "transferIn": "转入",
+      "transferOut": "转出",
+      "refreshFailed": "刷新失败",
+      "switchSuccess": "切换成功",
+      "switchFailed": "切换失败",
+      "actionFailed": "操作失败",
+      "amountInvalid": "请输入正确金额",
+      "transferInSuccess": "转入成功",
+      "transferInFailed": "转入失败",
+      "transferOutSuccess": "转出成功",
+      "transferOutFailed": "转出失败"
+    },
+    "changePassword": {
+      "current": "当前密码",
+      "new": "新密码",
+      "confirm": "确认新密码",
+      "placeholder": {
+        "current": "请输入当前密码",
+        "new": "请输入新密码",
+        "confirm": "请再次输入新密码"
+      },
+      "tip": "建议使用字母与数字组合，并妥善保管。",
+      "submit": "确认修改",
+      "toast": {
+        "needCurrent": "请输入当前密码",
+        "needNew": "请输入新密码",
+        "minLen": "新密码至少6位",
+        "mismatch": "两次输入不一致",
+        "success": "修改成功",
+        "failed": "修改失败"
+      }
+    },
+    "bindPhone": {
+      "phone": "手机号码",
+      "code": "验证码",
+      "placeholder": {
+        "phone": "请输入手机号",
+        "code": "请输入验证码"
+      },
+      "tip": "绑定后不可修改，请确保手机号正确可用。",
+      "submit": "绑定",
+      "toast": {
+        "phoneInvalid": "请输入正确手机号",
+        "sentMock": "验证码已发送（模拟）",
+        "alreadyBound": "手机号已绑定，无法修改",
+        "needCode": "请输入验证码",
+        "success": "绑定成功",
+        "failed": "绑定失败"
+      }
+    },
+    "bindEmail": {
+      "email": "邮箱地址",
+      "code": "验证码",
+      "placeholder": {
+        "email": "请输入邮箱",
+        "code": "请输入验证码"
+      },
+      "tip": "绑定后不可修改，请确保邮箱正确可用。",
+      "submit": "绑定",
+      "toast": {
+        "emailInvalid": "请输入正确邮箱",
+        "sentMock": "验证码已发送（模拟）",
+        "alreadyBound": "邮箱已绑定，无法修改",
+        "needCode": "请输入验证码",
+        "success": "绑定成功",
+        "failed": "绑定失败"
+      }
+    },
+    "withdrawPwd": {
+      "status": "设置状态",
+      "statusSet": "已设置",
+      "statusUnset": "未设置",
+      "old": "原取款密码",
+      "new": "新取款密码",
+      "confirm": "确认密码",
+      "placeholder": {
+        "old": "请输入原取款密码",
+        "new": "请输入新取款密码（6位数字）",
+        "confirm": "请再次输入新取款密码"
+      },
+      "tip": "取款密码用于提现安全校验，请勿与登录密码相同，建议设置 6 位数字密码。",
+      "action": {
+        "set": "设置取款密码",
+        "change": "修改取款密码"
+      },
+      "toast": {
+        "needOld": "请输入原取款密码",
+        "needSixDigits": "新取款密码需为6位数字",
+        "mismatch": "两次输入不一致",
+        "setSuccess": "设置成功",
+        "changeSuccess": "修改成功",
+        "failed": "设置失败"
+      }
+    },
+    "userProfile": {
+      "avatar": "头像",
+      "avatarTitle": "更换头像",
+      "close": "关闭",
+      "changeLoginPassword": "修改登录密码",
+      "phone": "手机号",
+      "email": "邮箱",
+      "boundNoEdit": "已绑定（不可修改）",
+      "unbound": "未绑定",
+      "unfilled": "未填写",
+      "unset": "未设置",
+      "realNameVerified": "已实名（不可修改）",
+      "realNameUnverified": "未实名",
+      "gender": {
+        "title": "性别",
+        "male": "男",
+        "female": "女",
+        "secret": "保密"
+      },
+      "birthday": {
+        "title": "出生日期",
+        "pickTitle": "选择日期"
+      },
+      "placeholder": {
+        "qq": "请输入 QQ",
+        "telegram": "请输入 Telegram"
+      },
+      "save": "保存",
+      "toast": {
+        "pickImage": "请选择图片",
+        "avatarUpdated": "头像已更新",
+        "saved": "已保存",
+        "saveFailed": "保存失败",
+        "loadFailed": "获取资料失败"
+      }
+    },
+    "share": {
+      "disabled": "该平台暂未开放分享相关活动，敬请期待",
+      "rebateTitle": "分享返利",
+      "rebateSub": "分享奖励",
+      "claimable": "可领取",
+      "claim": "领取",
+      "claimHint": "总有效会员≥{n}人即可领取",
+      "noReward": "暂无可领取奖励",
+      "claimSuccess": "领取成功",
+      "claimFailed": "领取失败",
+      "memberOverview": "会员总览",
+      "totalMembers": "会员总数",
+      "effectiveMembers": "有效会员",
+      "effectiveRule": "充值≥{amount}元为有效",
+      "shareInfo": "分享信息",
+      "inviteCode": "分享邀请码",
+      "shareUrl": "分享URL",
+      "copy": "复制",
+      "qrTitle": "二维码",
+      "qrAlt": "二维码",
+      "qrTip": "点击二维码可预览",
+      "ruleTitle": "邀请规则说明",
+      "rule1": "1. 本活动全体用户皆可参与；用户点击推荐链接分享给新用户注册并进行充值后即可获得对应推荐礼金，被推荐用户无需填写推荐码。",
+      "rule2": "2. 每推荐一个新用户注册并完成首充，推荐人即可获得一次推荐礼金；推荐礼金以被推荐用户首充金额为准。",
+      "rule3": "3. 本活动与【返水优惠】共享，不与其他任何优惠共享。",
+      "rule4": "4. 被推荐用户需满足：每一个手机号码、电子邮箱、IP 地址、相同银行卡、同一台电脑仅可注册一个会员账号；如发现违规用户，我们将保留无限期审核并扣回红利及产生利润的权利。",
+      "rule5": "5. 通过分享链接或邀请码注册的用户，将计入会员总数；邀请会员完成充值≥{amount}元后，将计入有效会员；总有效会员≥{n}人后，可领取分享奖励。"
+    },
+    "feedback": {
+      "records": "记录",
+      "category": "反馈分类",
+      "content": "反馈内容",
+      "images": "反馈图片",
+      "placeholder": "请描述您遇到的问题或建议",
+      "imgTip": "最多3张，支持截图/照片",
+      "submit": "提交反馈",
+      "pick": "请选择",
+      "status": {
+        "pending": "待处理",
+        "processing": "处理中",
+        "done": "已处理"
+      },
+      "toast": {
+        "loadCategoryFailed": "获取分类失败",
+        "needCategory": "请选择反馈分类",
+        "needContent": "请输入反馈内容",
+        "submitSuccess": "提交成功",
+        "submitFailed": "提交失败"
+      }
+    },
+    "feedbackRecords": {
+      "title": "反馈记录",
+      "empty": "暂无反馈记录",
+      "category": {
+        "deposit": "充值问题",
+        "withdraw": "提现问题",
+        "account": "账号问题",
+        "activity": "活动建议",
+        "other": "其他"
+      }
+    },
+    "fundManage": {
+      "queryDate": "查询日期",
+      "tab": {
+        "deposit": "充值记录",
+        "withdraw": "提现记录",
+        "transfer": "转账记录",
+        "bill": "账户明细"
+      },
+      "empty": {
+        "deposit": "暂无充值记录",
+        "withdraw": "暂无提现记录",
+        "transfer": "暂无转账记录",
+        "bill": "暂无账户明细"
+      },
+      "orderNo": "订单号",
+      "balance": "余额",
+      "transferIn": "转入",
+      "transferOut": "转出",
+      "transfer": "转账"
+    },
+    "gameManage": {
+      "queryDate": "查询日期",
+      "tab": {
+        "rebate": "返水记录",
+        "game": "游戏记录"
+      },
+      "stats": {
+        "totalRebate": "总返水",
+        "claimed": "已领取",
+        "unclaimed": "未领取",
+        "betCount": "注单笔数",
+        "betAmount": "投注金额",
+        "validAmount": "有效金额",
+        "profitLoss": "盈亏"
+      },
+      "empty": {
+        "rebate": "暂无返水记录",
+        "game": "暂无游戏记录"
+      },
+      "claimed": "已领取",
+      "toClaim": "待领取",
+      "grid": {
+        "rebate": "返水",
+        "valid": "有效",
+        "profitLoss": "盈亏",
+        "totalBet": "总统计",
+        "totalValid": "总有效",
+        "totalProfitLoss": "总盈亏"
+      },
+      "claimable": "可领取",
+      "claimRebate": "领取返水",
+      "noClaimable": "暂无可领取返水",
+      "claimSuccess": "领取成功",
+      "claimFailed": "领取失败",
+      "type": {
+        "sports": "体育",
+        "live": "视讯",
+        "slots": "电子",
+        "chess": "棋牌",
+        "fishing": "捕鱼",
+        "esports": "电竞"
+      },
+      "gameStatus": {
+        "settled": "已结算",
+        "unsettled": "未结算",
+        "invalid": "无效注单",
+        "refunded": "已退款"
+      }
+    },
+    "realName": {
+      "status": "实名状态",
+      "tip": "已实名后不可再修改，请确保填写信息真实有效。",
+      "submit": "提交实名",
+      "done": "已实名",
+      "success": "实名成功",
+      "failed": "实名失败"
+    },
+    "message": {
+      "title": "消息中心",
+      "tab": {
+        "all": "全部",
+        "unread": "未读",
+        "read": "已读"
+      },
+      "empty": "暂无消息",
+      "finished": "已加载全部数据",
+      "detail": "详情",
+      "toast": {
+        "loadFailed": "获取消息失败",
+        "readFailed": "标记已读失败"
+      }
+    },
+    "vip": {
+      "title": "VIP",
+      "progressTitle": "升级进度",
+      "currentVip": "当前 VIP{level}",
+      "rechargeProgress": "充值进度",
+      "turnoverProgress": "流水进度",
+      "progressTip": "升级需同时满足充值与流水条件；达到条件后升级生效。",
+      "levelTitle": "VIP 等级",
+      "current": "当前",
+      "upgradeReq": "升级条件：充值 {recharge} + 流水 {turnover}",
+      "benefitsTitle": "VIP 福利",
+      "rebateTitle": "VIP 返水比例",
+      "ruleTitle": "升级说明",
+      "rule1": "1. VIP 等级共 10 级，等级越高享受福利与返水比例越高。",
+      "rule2": "2. 升级需同时满足充值进度与流水进度两项条件。",
+      "rule3": "3. 充值与流水统计以系统为准，存在延迟时请稍后刷新查看。",
+      "rule4": "4. 每日提款次数/额度等福利以当日自然日统计口径为准。",
+      "rule5": "5. 具体活动条款如与页面不一致，以平台最终规则为准。",
+      "times": "{n} 次",
+      "benefit": {
+        "upgradeBonus": "升级礼金",
+        "weeklyBonus": "周红包",
+        "birthdayBonus": "生日礼金",
+        "dailyWithdrawTimes": "每日提款次数",
+        "dailyWithdrawAmount": "每日提款额度",
+        "minWithdraw": "最低提款金额",
+        "minRecharge": "最低充值金额",
+        "maxRecharge": "最高充值金额"
+      },
+      "type": {
+        "lottery": "彩票"
+      }
+    }
+  },
+  "finance": {
+    "common": {
+      "backHome": "返回首页"
+    },
+    "deposit": {
+      "records": "充值记录",
+      "alertText": "完成账户信息认证，可使用更多支付方式",
+      "alertAction": "认证领奖励",
+      "typeTitle": "充值类型",
+      "channelTitle": "充值通道",
+      "infoTitle": "充值信息",
+      "rate": "汇率",
+      "submit": "确认充值",
+      "unlimited": "不限",
+      "pickChannel": "请选择充值通道",
+      "pickAmount": "请选择充值金额",
+      "inputAmount": "请输入充值金额",
+      "amountInvalid": "请输入正确的充值金额",
+      "openFailed": "打开失败",
+      "submitted": "已提交",
+      "submitFailed": "提交失败"
+    },
+    "withdraw": {
+      "records": "提现记录",
+      "balanceLabel": "可提现余额 (元)",
+      "recycle": "资金一键归户",
+      "recycling": "资金归户中...",
+      "recycleSuccess": "一键回收成功",
+      "recycleFailed": "归户失败",
+      "needWater": "还需完成 {symbol}{amount} 流水",
+      "waterProgress": "已完成 {symbol}{ok} / 需完成 {symbol}{sum}",
+      "amountTitle": "提现金额",
+      "inputAmount": "请输入提现金额",
+      "allIn": "全部提现",
+      "minOnce": "单笔最低提现",
+      "cardTitle": "收款卡包",
+      "addCard": "添加收款方式",
+      "passwordTitle": "取款密码",
+      "passwordTip": "为了您的资金安全，提现前请先设置取款密码",
+      "goSet": "去设置",
+      "submit": "确认提现",
+      "cardFailed": "获取收款方式失败",
+      "amountInvalid": "请输入正确的提现金额",
+      "passwordInvalid": "请输入6位取款密码",
+      "pickCard": "请选择收款方式",
+      "success": "取款成功",
+      "failed": "取款失败"
+    },
+    "depositSuccess": {
+      "title": "支付成功",
+      "heading": "支付凭证已提交",
+      "desc": "请等待系统审核处理"
+    },
+    "withdrawSuccess": {
+      "title": "提现成功",
+      "heading": "提现申请已提交",
+      "desc": "请等待系统审核处理"
+    },
+    "onlinePay": {
+      "invalidUrl": "支付地址无效"
+    },
+    "depositDetail": {
+      "title": "充值订单详情",
+      "orderId": "订单ID",
+      "copy": "复制",
+      "copied": "已复制",
+      "copyFailed": "复制失败",
+      "cancelPay": "取消支付",
+      "payType": "支付类型",
+      "qrTitle": "二维码",
+      "qrTip": "点击二维码可预览",
+      "proofTitle": "上传支付凭证",
+      "pickProof": "点击选择凭证图片",
+      "proofSupport": "支持 JPG、PNG、WEBP、GIF、BMP、HEIC 格式，大小不超过 10MB",
+      "submitProof": "提交凭证",
+      "tipTitle": "温馨提示",
+      "tip1": "1. 请按照订单信息完成支付，避免填错导致不到账。",
+      "tip2": "2. 如遇到问题可在“反馈”中提交订单号快速处理。",
+      "cancelTitle": "取消支付",
+      "cancelReason": "取消原因",
+      "cancelPlaceholder": "请输入取消原因",
+      "back": "返回",
+      "confirmCancel": "确认取消",
+      "cancelNeedReason": "请输入取消原因",
+      "cancelQuick": {
+        "0": "不想充值了",
+        "1": "付款提示存在风险"
+      },
+      "status": {
+        "pending": "待支付",
+        "canceled": "已取消"
+      },
+      "typeN": "类型{n}",
+      "row": {
+        "currency": "货币",
+        "amount": "充值金额",
+        "bank": "开户行",
+        "bankName": "开户姓名",
+        "card": "卡号",
+        "address": "开户地",
+        "payAddress": "收款地址",
+        "usdtRate": "USDT汇率",
+        "cryptoAmount": "虚拟币数量",
+        "name": "姓名",
+        "account": "账号"
+      },
+      "imageTooLarge": "图片大小不能超过 10MB",
+      "imageProcessFailed": "图片处理失败",
+      "uploadSuccess": "上传成功",
+      "uploadFailed": "上传失败",
+      "orderIdInvalid": "订单ID异常",
+      "needProof": "请先上传凭证",
+      "success": "操作成功",
+      "submitFailed": "提交失败",
+      "actionFailed": "操作失败",
+      "loadFailed": "获取订单失败"
+    }
+  },
+  "page": {
+    "home": "首页",
+    "game": "游戏",
+    "gamePlay": "游戏",
+    "gameSubList": "游戏列表",
+    "service": "客服",
+    "activity": "活动",
+    "activityDetail": "活动详情",
+    "activityRecords": "申请记录",
+    "maintenance": "维护中",
+    "profile": "我的",
+    "myWallet": "我的钱包",
+    "setting": "设置",
+    "message": "消息",
+    "share": "分享",
+    "vip": "VIP",
+    "userProfile": "个人资料",
+    "realName": "实名认证",
+    "changePassword": "修改密码",
+    "withdrawPassword": "提款密码",
+    "bindPhone": "绑定手机",
+    "bindEmail": "绑定邮箱",
+    "feedback": "意见反馈",
+    "feedbackRecords": "反馈记录",
+    "gameManage": "游戏管理",
+    "fundManage": "资金管理",
+    "deposit": "充值",
+    "onlinePayDetail": "在线支付",
+    "depositOrderDetail": "充值详情",
+    "depositPaySuccess": "充值成功",
+    "withdraw": "提现",
+    "withdrawSuccess": "提现成功",
+    "cardList": "银行卡",
+    "addCard": "添加银行卡",
+    "login": "登录",
+    "register": "注册",
+    "resetPassword": "找回密码"
+  },
+  "components": {
+    "tabbar": {
+      "home": "首页",
+      "game": "游戏",
+      "activity": "活动",
+      "service": "客服",
+      "profile": "我的"
+    },
+    "notice": {
+      "fallback": "欢迎来到平台，更多优惠活动进行中..."
+    },
+    "appDownload": {
+      "download": "下载APP"
+    },
+    "search": {
+      "placeholder": "搜索游戏、活动...",
+      "action": "搜索",
+      "tab": {
+        "all": "全部",
+        "hot": "热门游戏",
+        "fav": "我的收藏"
+      },
+      "history": "搜索记录",
+      "emptyGames": "暂无游戏数据",
+      "loginFirst": "请先登录",
+      "favNeedLogin": "请先登录查看收藏",
+      "favEmpty": "暂无收藏",
+      "favAdded": "收藏成功",
+      "favRemoved": "取消收藏成功",
+      "favAddFailed": "收藏失败",
+      "favRemoveFailed": "取消收藏失败",
+      "favLoadFailed": "获取收藏失败"
+    },
+    "noticeModal": {
+      "titleFallback": "系统公告",
+      "todayNoMore": "今日不再提示"
+    },
+    "gameSubList": {
+      "searchPlaceholder": "搜索游戏",
+      "tab": {
+        "all": "全部",
+        "fav": "收藏"
+      },
+      "favEmptyMore": "暂无收藏，继续下拉加载"
+    }
+  }
+}

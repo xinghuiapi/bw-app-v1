@@ -315,11 +315,13 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                     ),
                     SizedBox(width: 8.w),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12.r),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+                        border: Border.all(
+                            color: statusColor.withValues(alpha: 0.5)),
                       ),
                       child: Text(
                         status,

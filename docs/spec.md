@@ -1,18 +1,22 @@
 # Flutter UI Conversion Spec (High-Fidelity Edition)
 
 ## Why
-目前项目 (bw-v3) 基于 Web 前端技术构建。为了支持多端原生体验，需要将现有的前端 UI 转化为纯 Flutter 页面项目。由于本次转化**追求极高的 UI 还原度（Pixel-Perfect）**，转化工作将严格对照原 Web 项目的设计细节（包括色彩、排版、阴影、动画过渡等）。本次仅涉及静态 UI 和交互还原，暂不进行接口对接。
+当前项目是最终落地的 Flutter 业务前端主工程。UI 已经按照 m1 项目完成高仿，后续重点是在这套 Flutter 高仿 UI 上接入 m1 页面业务逻辑和真实接口，并补齐合格 Flutter 项目的工程能力。
+
+UI 和页面对接逻辑以 m1 项目为准：`/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`。旧 Flutter 项目 `/Users/john/Documents/trae_projects/flutter-v1` 只作为 Flutter 工程能力参考，不作为页面对接逻辑来源。
 
 ## What Changes
-- 创建全新的 Flutter 工程结构，采用规范化的目录划分。
-- 1:1 提取 Web 端的 CSS/SCSS 变量（Design Tokens），建立 Flutter 侧的强类型 `ThemeData` 和 `ThemeExtension`。
-- 将当前项目的核心组件转化为 Flutter 高定制化 Widget，完美还原圆角、边框、阴影、交互态（Hover/Pressed）。
-- 建立声明式路由，并还原 Web 端的页面切换动画（Transitions）。
-- 实现自适应布局体系，确保不同尺寸的移动设备上视觉比例与设计稿完全一致。
+- 保留当前 Flutter 工程结构、页面和通用组件，维护 m1 高仿 UI 成果。
+- 以 m1 `views/**` 的页面行为为依据，映射页面初始化、按钮事件、表单校验、弹窗、分页、刷新和跳转规则。
+- 以 m1 `api/**` 为依据，校准 Flutter `ApiEndpoints`、`Service`、`Model` 和 `Provider`。
+- 以页面对接进度为边界逐步更新数据模型：页面用到的 m1 字段必须进入对应 Model，暂未使用的字段不做批量迁移。
+- 以 m1 `router/index.js` 为依据，校准 Flutter `go_router` 的路径、参数、登录拦截和重定向。
+- 以旧 Flutter 项目作为工程分层、网络封装、状态管理、缓存、错误处理和平台能力的实现经验参考。
 
 ## Impact
-- Affected specs: 原 Web 端的 UI 交互、视觉呈现、微动画（Micro-interactions）。
-- Affected code: 新增独立 Flutter 工程，原 Web 侧代码作为视觉和交互的唯一参考基准（Source of Truth）。
+- Affected specs: 当前 Flutter UI 页面业务化、接口对接、状态流和路由行为。
+- Affected code: 当前 Flutter 工程内的 `api/`、`config/`、`models/`、`services/`、`providers/`、`router/` 和必要的页面状态绑定。数据模型必须随页面对接同步校准，避免 Screen 中散落临时 Map 解析。
+- Source of Truth: UI 和页面业务对接逻辑以 m1 项目为准；旧 Flutter 项目只参考工程能力，不参考页面对接逻辑。
 
 ## 技术栈规范 (Tech Stack Specification)
 - **Framework**: Flutter (用于构建跨平台原生 UI)
@@ -58,10 +62,10 @@
 - **路由动画**: 在 `go_router` 中通过 `CustomTransitionPage` 还原页面的淡入淡出 (Fade) 或滑动 (Slide) 切换效果。
 
 ### 4. 分阶段实施路径
-- **阶段一：基建与规范 (Infrastructure)**。初始化工程，构建基于 `ThemeExtension` 的设计系统，完成全局字体、颜色、尺寸基准配置。
-- **阶段二：原子组件精雕 (Atomic Widgets)**。高精度封装 Button、Input、Card 等组件，通过单元测试级别的视觉比对，确保交互态和阴影像素级一致。
-- **阶段三：复合组件与骨架 (Complex Components)**。还原复杂的导航栏、侧边栏、Tab 栏及底部弹窗 (BottomSheet)，确保动画流畅。
-- **阶段四：页面组装与 Mock (Page Assembly)**。逐个组装业务页面，使用静态数据填充，处理溢出 (Overflow) 问题，确保各种极端内容长度下的表现与 Web 一致。
+- **阶段一：对接规则校准 (Mapping Rules)**。建立 m1 页面、m1 API、Flutter Screen、Flutter Service/Provider 的映射关系。
+- **阶段二：核心业务闭环 (Core Flows)**。优先接入启动配置、认证、首页、游戏、用户信息和钱包余额。
+- **阶段三：扩展业务模块 (Business Modules)**。继续接入活动、充值提现、银行卡、消息、反馈、VIP 和记录类页面。
+- **阶段四：稳定性验证 (Stabilization)**。验证 token 失效、重复提交、分页刷新、空状态、错误态、缓存和多语言，不破坏现有 UI。
 
 ## ADDED Requirements
 ### Requirement: Pixel-Perfect Flutter UI Foundation

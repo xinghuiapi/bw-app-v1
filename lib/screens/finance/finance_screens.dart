@@ -196,7 +196,8 @@ class _DepositScreenState extends State<DepositScreen> {
                           bottomRight: Radius.circular(8.r),
                         ),
                       ),
-                      child: Icon(Icons.check, color: Colors.white, size: 12.sp),
+                      child:
+                          Icon(Icons.check, color: Colors.white, size: 12.sp),
                     ),
                   ),
               ],
@@ -256,7 +257,8 @@ class _DepositScreenState extends State<DepositScreen> {
                           bottomRight: Radius.circular(8.r),
                         ),
                       ),
-                      child: Icon(Icons.check, color: Colors.white, size: 12.sp),
+                      child:
+                          Icon(Icons.check, color: Colors.white, size: 12.sp),
                     ),
                   ),
               ],

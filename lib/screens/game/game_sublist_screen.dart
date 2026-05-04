@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../models/game/game_models.dart';
+import '../../providers/game/game_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_images.dart';
+import '../../widgets/common/app_network_image.dart';
 
 class GameSubListScreen extends StatefulWidget {
-  const GameSubListScreen({super.key});
+  const GameSubListScreen({super.key, this.code, this.game, this.title});
+
+  final String? code;
+  final String? game;
+  final String? title;
 
   @override
   State<GameSubListScreen> createState() => _GameSubListScreenState();
@@ -13,7 +21,10 @@ class GameSubListScreen extends StatefulWidget {
 
 class _GameSubListScreenState extends State<GameSubListScreen>
     with SingleTickerProviderStateMixin {
+  static const int _remotePageSize = 24;
+
   late TabController _tabController;
+  int _selectedTabIndex = 0;
 
   // Mock Data: 根据截图提取的游戏列表
   final List<Map<String, dynamic>> _allGames = [
@@ -39,12 +50,28 @@ class _GameSubListScreenState extends State<GameSubListScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<GameProvider>().loadGameSubList(
+            code: widget.code ?? '',
+            game: widget.game ?? '',
+            size: _remotePageSize,
+          );
+    });
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _handleTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    if (_selectedTabIndex == _tabController.index) return;
+    setState(() => _selectedTabIndex = _tabController.index);
   }
 
   void _toggleFavorite(int index) {
@@ -56,6 +83,24 @@ class _GameSubListScreenState extends State<GameSubListScreen>
 
   @override
   Widget build(BuildContext context) {
+    final gameProvider = context.watch<GameProvider>();
+    final remoteGames = gameProvider.subListPage.data;
+    final expectsRemoteData = _hasRemoteParams;
+    final isCurrentRemoteQuery = gameProvider.isCurrentSubList(
+      code: widget.code ?? '',
+      game: widget.game ?? '',
+    );
+    final hasRemoteState = expectsRemoteData &&
+        isCurrentRemoteQuery &&
+        (gameProvider.hasSubListLoaded || remoteGames.isNotEmpty);
+    final isFavoriteTab = _selectedTabIndex == 1;
+    final visibleRemoteGames = isFavoriteTab
+        ? remoteGames.where((game) => game.isFavorite).toList()
+        : remoteGames;
+    final visibleMockGames = isFavoriteTab
+        ? _allGames.where((game) => game['isFavorite'] as bool).toList()
+        : _allGames;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9), // 贴合截图的淡灰色背景
       appBar: AppBar(
@@ -67,7 +112,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'PG电子',
+          _titleText(),
           style: TextStyle(
             color: const Color(0xFF1F1F1F),
             fontSize: 18.sp,
@@ -86,18 +131,180 @@ class _GameSubListScreenState extends State<GameSubListScreen>
         children: [
           _buildTabs(),
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildGrid(_allGames),
-                _buildGrid(
-                    _allGames.where((g) => g['isFavorite'] as bool).toList(),
-                    isFavoriteTab: true),
-              ],
-            ),
+            child: expectsRemoteData
+                ? _buildRemoteGrid(
+                    hasRemoteState ? visibleRemoteGames : const <GameItem>[],
+                    gameProvider,
+                    isFavoriteTab: isFavoriteTab,
+                    isWaitingForCurrentQuery: !hasRemoteState,
+                  )
+                : _buildGrid(visibleMockGames, isFavoriteTab: isFavoriteTab),
           ),
         ],
       ),
+    );
+  }
+
+  bool get _hasRemoteParams {
+    return (widget.code ?? '').trim().isNotEmpty &&
+        (widget.game ?? '').trim().isNotEmpty;
+  }
+
+  String _titleText() {
+    final title = widget.title?.trim();
+    return title == null || title.isEmpty ? '游戏列表' : title;
+  }
+
+  Widget _buildRemoteGrid(
+    List<GameItem> games,
+    GameProvider provider, {
+    bool isFavoriteTab = false,
+    bool isWaitingForCurrentQuery = false,
+  }) {
+    if ((isWaitingForCurrentQuery || provider.isSubListLoading) &&
+        games.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (games.isEmpty) {
+      return Center(
+        child: Text(
+          isFavoriteTab ? '暂无收藏游戏' : '暂无游戏',
+          style: TextStyle(color: const Color(0xFF999999), fontSize: 14.sp),
+        ),
+      );
+    }
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (!isFavoriteTab && notification.metrics.extentAfter < 320) {
+          provider.loadMoreGameSubList();
+        }
+        return false;
+      },
+      child: GridView.builder(
+        cacheExtent: 320,
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          mainAxisSpacing: 16.h,
+          crossAxisSpacing: 12.w,
+          childAspectRatio: 0.65,
+        ),
+        itemCount: games.length + (provider.isSubListLoadingMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index >= games.length) {
+            return const Center(
+              child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          }
+          return _buildRemoteGameCard(games[index]);
+        },
+      ),
+    );
+  }
+
+  Widget _buildRemoteGameCard(GameItem game) {
+    return RepaintBoundary(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: _buildRemoteCover(game.img),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8.r),
+                        bottomRight: Radius.circular(12.r),
+                      ),
+                    ),
+                    child: Text(
+                      widget.title?.trim().isNotEmpty == true
+                          ? widget.title!.trim().split('').take(2).join()
+                          : 'PG',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 6.h,
+                  right: 6.w,
+                  child: Container(
+                    padding: EdgeInsets.all(4.w),
+                    decoration: BoxDecoration(
+                      color: game.isFavorite
+                          ? AppColors.primary
+                          : Colors.black.withValues(alpha: 0.25),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      game.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: Colors.white,
+                      size: 16.sp,
+                    ),
+                  ),
+                ),
+                if (game.isMaintaining)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '维护中',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            game.title ?? '',
+            style: TextStyle(fontSize: 12.sp, color: const Color(0xFF333333)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRemoteCover(String? imageUrl) {
+    final fallback = Image.asset(AppImages.dz, fit: BoxFit.cover);
+    if (imageUrl == null || imageUrl.trim().isEmpty) return fallback;
+    final cardWidth = (1.sw - 32.w - 36.w) / 4;
+    return AppNetworkImage(
+      url: imageUrl,
+      width: cardWidth,
+      height: cardWidth,
+      errorWidget: fallback,
     );
   }
 
@@ -140,6 +347,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
     }
 
     return GridView.builder(
+      cacheExtent: 320,
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4, // 一行 4 个游戏

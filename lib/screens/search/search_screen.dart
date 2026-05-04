@@ -69,13 +69,13 @@ class _SearchScreenState extends State<SearchScreen>
               ),
             ),
           ),
-          Expanded(
+          const Expanded(
             child: SearchInput(
               hintText: '搜索游戏、活动...',
               autoFocus: true,
             ),
           ),
-          SizedBox(width: 16.w),
+          const SizedBox(width: 16),
           GestureDetector(
             onTap: () {
               // Handle search
@@ -126,25 +126,65 @@ class _SearchScreenState extends State<SearchScreen>
   Widget _buildGameGrid() {
     // Mock data based on screenshot
     final games = [
-      {'name': '加拿大P...', 'image': 'https://picsum.photos/200?1', 'isFav': false},
+      {
+        'name': '加拿大P...',
+        'image': 'https://picsum.photos/200?1',
+        'isFav': false
+      },
       {'name': '加拿大28', 'image': 'https://picsum.photos/200?2', 'isFav': false},
-      {'name': '澳门六...', 'image': 'https://picsum.photos/200?3', 'isFav': false},
-      {'name': '香港六...', 'image': 'https://picsum.photos/200?4', 'isFav': false},
+      {
+        'name': '澳门六...',
+        'image': 'https://picsum.photos/200?3',
+        'isFav': false
+      },
+      {
+        'name': '香港六...',
+        'image': 'https://picsum.photos/200?4',
+        'isFav': false
+      },
       {'name': 'DB体育', 'image': 'https://picsum.photos/200?5', 'isFav': false},
-      {'name': '竞速11选5', 'image': 'https://picsum.photos/200?6', 'isFav': false},
-      {'name': '澳门六...', 'image': 'https://picsum.photos/200?7', 'isFav': false},
-      {'name': '极速六...', 'image': 'https://picsum.photos/200?8', 'isFav': false},
-      {'name': '香港六...', 'image': 'https://picsum.photos/200?9', 'isFav': false},
+      {
+        'name': '竞速11选5',
+        'image': 'https://picsum.photos/200?6',
+        'isFav': false
+      },
+      {
+        'name': '澳门六...',
+        'image': 'https://picsum.photos/200?7',
+        'isFav': false
+      },
+      {
+        'name': '极速六...',
+        'image': 'https://picsum.photos/200?8',
+        'isFav': false
+      },
+      {
+        'name': '香港六...',
+        'image': 'https://picsum.photos/200?9',
+        'isFav': false
+      },
       {'name': '百家乐', 'image': 'https://picsum.photos/200?10', 'isFav': false},
-      {'name': '星际水...', 'image': 'https://picsum.photos/200?11', 'isFav': false},
-      {'name': '超级牛...', 'image': 'https://picsum.photos/200?12', 'isFav': false},
+      {
+        'name': '星际水...',
+        'image': 'https://picsum.photos/200?11',
+        'isFav': false
+      },
+      {
+        'name': '超级牛...',
+        'image': 'https://picsum.photos/200?12',
+        'isFav': false
+      },
       {'name': '大三元', 'image': 'https://picsum.photos/200?13', 'isFav': false},
       {'name': '星际水...', 'image': '', 'isFav': false}, // mock error image
       {'name': '超级牛...', 'image': '', 'isFav': false},
       {'name': '大三元', 'image': '', 'isFav': false},
       {'name': '赏金猎人', 'image': '', 'isFav': false},
       {'name': '赏金猎人', 'image': 'https://picsum.photos/200?18', 'isFav': false},
-      {'name': '赏金大...', 'image': 'https://picsum.photos/200?19', 'isFav': true}, // blue heart
+      {
+        'name': '赏金大...',
+        'image': 'https://picsum.photos/200?19',
+        'isFav': true
+      }, // blue heart
       {'name': '双喜临门', 'image': 'https://picsum.photos/200?20', 'isFav': false},
     ];
 
@@ -156,7 +196,8 @@ class _SearchScreenState extends State<SearchScreen>
           crossAxisCount: 4,
           crossAxisSpacing: 12.w,
           mainAxisSpacing: 16.h,
-          childAspectRatio: 0.72, // Adjust to prevent overflow and match screenshot
+          childAspectRatio:
+              0.72, // Adjust to prevent overflow and match screenshot
         ),
         itemCount: games.length,
         itemBuilder: (context, index) {
@@ -181,43 +222,44 @@ class _SearchScreenState extends State<SearchScreen>
             children: [
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.r), // Rounded rectangle like in the screenshot
+                  borderRadius: BorderRadius.circular(
+                      16.r), // Rounded rectangle like in the screenshot
                   color: Colors.white,
                 ),
                 clipBehavior: Clip.antiAlias,
-                  child: image.isNotEmpty
-                      ? Image.network(
-                          image,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildImagePlaceholder(),
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(color: Colors.grey[200]);
-                          },
-                        )
-                      : _buildImagePlaceholder(),
-                ),
-                Positioned(
-                  top: 4.h,
-                  right: 4.w,
-                  child: Container(
-                    padding: EdgeInsets.all(4.w),
-                    decoration: BoxDecoration(
-                      color: isFavorite
-                          ? Colors.white
-                          : Colors.black.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      size: 12.sp,
-                      color: isFavorite ? AppColors.primary : Colors.white,
-                    ),
+                child: image.isNotEmpty
+                    ? Image.network(
+                        image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImagePlaceholder(),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(color: Colors.grey[200]);
+                        },
+                      )
+                    : _buildImagePlaceholder(),
+              ),
+              Positioned(
+                top: 4.h,
+                right: 4.w,
+                child: Container(
+                  padding: EdgeInsets.all(4.w),
+                  decoration: BoxDecoration(
+                    color: isFavorite
+                        ? Colors.white
+                        : Colors.black.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    size: 12.sp,
+                    color: isFavorite ? AppColors.primary : Colors.white,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
         ),
         SizedBox(height: 8.h),
         Text(
@@ -241,7 +283,8 @@ class _SearchScreenState extends State<SearchScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image_not_supported, size: 24.sp, color: Colors.grey[400]),
+            Icon(Icons.image_not_supported,
+                size: 24.sp, color: Colors.grey[400]),
             SizedBox(height: 4.h),
             Text(
               '游戏',

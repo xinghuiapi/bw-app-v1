@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import '../models/home/home_models.dart';
+import '../providers/auth/auth_provider.dart';
+import '../providers/game/game_provider.dart';
+import '../providers/system/system_provider.dart';
+import '../providers/user/user_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_images.dart';
+import '../widgets/common/app_network_image.dart';
 import '../widgets/custom_tab_bar.dart';
 import '../widgets/notice_bar.dart';
 import '../widgets/app_download_bar.dart';
-import '../screens/game/game_screen.dart';
-import 'main/main_screens.dart';
-import 'user/user_screens.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,31 +22,37 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+  static const _fallbackNoticeText = '欢迎体验基于 Flutter 构建的全新 UI，极致性能、多端支持！';
+
   bool _showDownloadBar = true;
   bool _showBalance = true;
-  bool _isLoggedIn = true; // Mock state
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          _buildHomeBody(),
-          const GameScreen(),
-          const ActivityScreen(),
-          const ServiceScreen(),
-          const ProfileScreen(),
-        ],
-      ),
+      body: _buildHomeBody(),
       bottomNavigationBar: CustomTabBar(
-        currentIndex: _currentIndex,
+        currentIndex: 0,
         onChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          switch (index) {
+            case 0:
+              context.go('/');
+              break;
+            case 1:
+              context.read<GameProvider>().loadCategories(refresh: true);
+              context.go('/game');
+              break;
+            case 2:
+              context.go('/activity');
+              break;
+            case 3:
+              context.go('/service');
+              break;
+            case 4:
+              context.go('/profile');
+              break;
+          }
         },
         items: [
           CustomTabBarItem(
@@ -86,16 +95,25 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_showDownloadBar)
           SafeArea(
             bottom: false,
-            child: AppDownloadBar(
-              title: 'Flutter UI 应用',
-              description: '体验极致原生性能',
-              buttonText: '立即下载',
-              logo: SvgPicture.asset(AppIcons.vite, width: 36.w, height: 36.w),
-              onDownload: () {},
-              onClose: () {
-                setState(() {
-                  _showDownloadBar = false;
-                });
+            child: Selector<SystemProvider, SiteConfig?>(
+              selector: (_, provider) => provider.config.siteConfig,
+              builder: (context, siteConfig, child) {
+                return AppDownloadBar(
+                  title:
+                      _siteText(siteConfig?.title, fallback: 'Flutter UI 应用'),
+                  description: _siteText(
+                    siteConfig?.appDesc ?? siteConfig?.desc,
+                    fallback: '体验极致原生性能',
+                  ),
+                  buttonText: '立即下载',
+                  logo: _buildSiteIcon(siteConfig?.logo),
+                  onDownload: () => _handleDownloadTap(siteConfig),
+                  onClose: () {
+                    setState(() {
+                      _showDownloadBar = false;
+                    });
+                  },
+                );
               },
             ),
           ),
@@ -109,12 +127,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
                   child: Column(
                     children: [
-                      SizedBox(height: 12.h),
-                      NoticeBar(
-                        text: '欢迎体验基于 Flutter 构建的全新 UI，极致性能、多端支持！',
-                        leftIcon: const Icon(Icons.volume_up_outlined),
-                        backgroundColor: Colors.white,
-                        color: AppColors.primary,
+                      const SizedBox(height: 12),
+                      Selector<SystemProvider, List<NoticeModel>>(
+                        selector: (_, provider) => provider.config.notices,
+                        builder: (context, notices, child) {
+                          return NoticeBar(
+                            text: _noticeText(notices),
+                            leftIcon: const Icon(Icons.volume_up_outlined),
+                            backgroundColor: Colors.white,
+                            color: AppColors.primary,
+                          );
+                        },
                       ),
                       _buildUserActionCard(),
                       _buildGameLobby(),
@@ -151,62 +174,139 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SvgPicture.asset(AppIcons.vite, width: 32.w, height: 32.w),
-              Row(
-                children: [
-                  Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.shield_outlined,
-                            size: 14.sp, color: const Color(0xFFF80000)),
-                        SizedBox(width: 4.w),
-                        Text(
-                          'flutter.dev',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: const Color(0xFFF80000),
-                            fontWeight: FontWeight.w500,
-                          ),
+              Selector<SystemProvider, SiteConfig?>(
+                selector: (_, provider) => provider.config.siteConfig,
+                builder: (context, siteConfig, child) {
+                  return _buildSiteBrand(siteConfig);
+                },
+              ),
+              Selector<SystemProvider, SiteConfig?>(
+                selector: (_, provider) => provider.config.siteConfig,
+                builder: (context, siteConfig, child) {
+                  return Row(
+                    children: [
+                      _buildDomainBadge(siteConfig),
+                      SizedBox(width: 8.w),
+                      Container(
+                        width: 28.w,
+                        height: 28.w,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          shape: BoxShape.circle,
                         ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  Container(
-                    width: 28.w,
-                    height: 28.w,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.language,
-                        size: 16.sp, color: AppColors.primary),
-                  ),
-                  SizedBox(width: 6.w),
-                  GestureDetector(
-                    onTap: () => context.push('/search'),
-                    child: Icon(Icons.search,
-                        size: 20.sp, color: const Color(0xFF333333)),
-                  ),
-                ],
+                        child: Icon(Icons.language,
+                            size: 16.sp, color: AppColors.primary),
+                      ),
+                      SizedBox(width: 6.w),
+                      GestureDetector(
+                        onTap: () => context.push('/search'),
+                        child: Icon(Icons.search,
+                            size: 20.sp, color: const Color(0xFF333333)),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
           SizedBox(height: 12.h),
-          Container(
-            height: 140.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12.r),
-              image: const DecorationImage(
-                image: AssetImage(AppImages.aft5),
-                fit: BoxFit.cover,
+          Selector<SystemProvider, List<BannerModel>>(
+            selector: (_, provider) => provider.config.banners,
+            builder: (context, banners, child) {
+              final banner = banners.where((item) {
+                final image = item.img?.trim();
+                return image != null && image.isNotEmpty;
+              }).firstOrNull;
+
+              if (banner == null) return _buildFallbackBanner();
+
+              return GestureDetector(
+                onTap: () => _handleBannerTap(banner),
+                child: AppNetworkImage(
+                  url: banner.img,
+                  width: double.infinity,
+                  height: 140.h,
+                  borderRadius: BorderRadius.circular(12.r),
+                  errorWidget: _buildFallbackBanner(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackBanner() {
+    return Container(
+      height: 140.h,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.r),
+        image: const DecorationImage(
+          image: AssetImage(AppImages.aft5),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSiteBrand(SiteConfig? siteConfig) {
+    return Row(
+      children: [
+        _buildSiteLogo(siteConfig?.logo, size: 28.w, circular: true),
+        SizedBox(width: 8.w),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _siteText(siteConfig?.title, fallback: '星汇演示'),
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primary,
+                height: 1.1,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Transform.scale(
+              scale: 0.9,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _siteText(siteConfig?.domain, fallback: 'xh-bet.com'),
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  color: const Color(0xFF333333),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDomainBadge(SiteConfig? siteConfig) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.shield_outlined,
+              size: 14.sp, color: const Color(0xFFF80000)),
+          SizedBox(width: 4.w),
+          Text(
+            _siteText(siteConfig?.domain, fallback: 'flutter.dev'),
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: const Color(0xFFF80000),
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -214,7 +314,97 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildSiteLogo(
+    String? logoUrl, {
+    required double size,
+    bool circular = false,
+  }) {
+    final fallback = SizedBox(width: size, height: size);
+    if (logoUrl == null || logoUrl.trim().isEmpty) return fallback;
+
+    return AppNetworkImage(
+      url: logoUrl,
+      width: size,
+      height: size,
+      borderRadius: circular
+          ? BorderRadius.circular(size / 2)
+          : BorderRadius.circular(8.r),
+      errorWidget: fallback,
+    );
+  }
+
+  Widget _buildSiteIcon(String? iconUrl) {
+    if (iconUrl == null || iconUrl.trim().isEmpty) {
+      return SizedBox(width: 36.w, height: 36.w);
+    }
+    return AppNetworkImage(
+      url: iconUrl,
+      width: 36.w,
+      height: 36.w,
+      borderRadius: BorderRadius.circular(8.r),
+      errorWidget: SizedBox(width: 36.w, height: 36.w),
+    );
+  }
+
+  String _siteText(String? value, {required String fallback}) {
+    final text = value?.trim();
+    return text == null || text.isEmpty ? fallback : text;
+  }
+
+  String _amountText(dynamic value, {required String fallback}) {
+    if (value == null) return fallback;
+    final amount = num.tryParse(value.toString());
+    if (amount == null) return value.toString();
+    return amount.toStringAsFixed(2);
+  }
+
+  void _handleDownloadTap(SiteConfig? siteConfig) {
+    final downloadUrl = (siteConfig?.appDownload?.trim().isNotEmpty ?? false)
+        ? siteConfig!.appDownload!.trim()
+        : siteConfig?.apkDownload?.trim();
+    if (downloadUrl == null || downloadUrl.isEmpty) return;
+    debugPrint('[app-download] link tapped: $downloadUrl');
+  }
+
+  void _handleBannerTap(BannerModel banner) {
+    final openUrl = banner.openUrl?.trim();
+    if (banner.open != 1 || openUrl == null || openUrl.isEmpty) return;
+
+    final uri = Uri.tryParse(openUrl);
+    if (uri == null) return;
+
+    if (uri.scheme == 'http' || uri.scheme == 'https') {
+      debugPrint('[home-banner] external link tapped: $openUrl');
+      return;
+    }
+    context.push(openUrl.startsWith('/') ? openUrl : '/$openUrl');
+  }
+
+  String _noticeText(List<NoticeModel> notices) {
+    final text = notices
+        .map((notice) => _stripHtml(notice.content ?? notice.title ?? ''))
+        .where((content) => content.isNotEmpty)
+        .join('   |   ');
+    return text.isEmpty ? _fallbackNoticeText : text;
+  }
+
+  String _stripHtml(String html) {
+    return html.replaceAll(RegExp(r'<[^>]*>|&nbsp;'), '').trim();
+  }
+
   Widget _buildUserActionCard() {
+    final authProvider = context.watch<AuthProvider>();
+    final userProvider = context.watch<UserProvider>();
+    final profile = userProvider.profile;
+    final isLoggedIn = authProvider.isAuthenticated;
+    final username = _siteText(
+      profile?.nickname ?? profile?.username,
+      fallback: '会员用户',
+    );
+    final vipText = profile?.displayVipLevel ?? 'VIP0';
+    final symbol = _siteText(profile?.symbol, fallback: '¥');
+    final balance = _amountText(profile?.balance, fallback: '0.00');
+
     return Container(
       margin: EdgeInsets.only(top: 12.h),
       padding: EdgeInsets.all(12.w),
@@ -233,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Expanded(
             flex: 5,
-            child: _isLoggedIn
+            child: isLoggedIn
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -241,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Flexible(
                             child: Text(
-                              'flutter_user',
+                              username,
                               style: TextStyle(
                                 fontSize: 15.sp,
                                 fontWeight: FontWeight.w600,
@@ -259,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(10.r),
                             ),
                             child: Text(
-                              'VIP 1',
+                              vipText,
                               style: TextStyle(
                                   fontSize: 10.sp, color: Colors.white),
                             ),
@@ -282,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         children: [
                           Text(
-                            '¥',
+                            symbol,
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
@@ -290,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            _showBalance ? '8,888.00' : '***',
+                            _showBalance ? balance : '***',
                             style: TextStyle(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,

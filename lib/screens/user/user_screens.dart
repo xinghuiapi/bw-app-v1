@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../models/user/user_models.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/user/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_cell.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/common/app_network_image.dart';
 
 export 'forms/bind_phone_screen.dart';
 export 'forms/bind_email_screen.dart';
@@ -20,6 +25,14 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = context.watch<UserProvider>();
+    final profile = userProvider.profile;
+    final username = _textFallback(profile?.nickname ?? profile?.username, '—');
+    final vipLevel = profile?.displayVipLevel ?? 'VIP0';
+    final accountId = profile == null ? '88—' : profile.id.toString();
+    final symbol = _textFallback(profile?.symbol, '¥');
+    final balance = _amountText(profile?.balance, fallback: '0.00');
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
@@ -36,12 +49,7 @@ class ProfileScreen extends StatelessWidget {
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          CircleAvatar(
-                            radius: 36.r,
-                            backgroundColor: Colors.grey.withValues(alpha: 0.2),
-                            child: Icon(Icons.person,
-                                size: 48.sp, color: Colors.grey),
-                          ),
+                          _buildAvatar(profile?.avatarUrl ?? profile?.img),
                           Positioned(
                             right: -4.w,
                             bottom: -4.h,
@@ -67,7 +75,7 @@ class ProfileScreen extends StatelessWidget {
                             Row(
                               children: [
                                 Text(
-                                  '—',
+                                  username,
                                   style: TextStyle(
                                     fontSize: 24.sp,
                                     fontWeight: FontWeight.bold,
@@ -83,7 +91,7 @@ class ProfileScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(16.r),
                                   ),
                                   child: Text(
-                                    'VIP0',
+                                    vipLevel,
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       color: const Color(0xFF4A8AF4),
@@ -95,7 +103,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             SizedBox(height: 6.h),
                             Text(
-                              '账号ID：88—',
+                              '账号ID：$accountId',
                               style: TextStyle(
                                 fontSize: 14.sp,
                                 color: const Color(0xFF8B95A3),
@@ -119,163 +127,163 @@ class ProfileScreen extends StatelessWidget {
                 child: Container(
                   margin: EdgeInsets.symmetric(horizontal: 16.w),
                   padding: EdgeInsets.all(20.w),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF5A9AF5), Color(0xFF3A7AF0)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF5A9AF5), Color(0xFF3A7AF0)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF4A8AF4).withValues(alpha: 0.3),
+                        blurRadius: 10.r,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  borderRadius: BorderRadius.circular(16.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF4A8AF4).withValues(alpha: 0.3),
-                      blurRadius: 10.r,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              '钱包余额',
-                              style: TextStyle(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '钱包余额',
+                                style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: 14.sp),
+                              ),
+                              SizedBox(width: 4.w),
+                              Icon(Icons.visibility_outlined,
                                   color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: 14.sp),
-                            ),
-                            SizedBox(width: 4.w),
-                            Icon(Icons.visibility_outlined,
-                                color: Colors.white.withValues(alpha: 0.9),
-                                size: 16.sp),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Icon(Icons.refresh,
-                                color: Colors.white.withValues(alpha: 0.9),
-                                size: 16.sp),
-                            SizedBox(width: 4.w),
-                            Text(
-                              '刷新',
-                              style: TextStyle(
+                                  size: 16.sp),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.refresh,
                                   color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: 14.sp),
+                                  size: 16.sp),
+                              SizedBox(width: 4.w),
+                              Text(
+                                '刷新',
+                                style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: 14.sp),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.h),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 6.h, right: 4.w),
+                            child: Text(
+                              symbol,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16.h),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(bottom: 6.h, right: 4.w),
-                          child: Text(
-                            '¥',
+                          ),
+                          Text(
+                            balance,
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 24.sp,
+                              fontSize: 40.sp,
                               fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '0.00',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40.sp,
-                            fontWeight: FontWeight.bold,
-                            height: 1.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 24.h),
-                    Container(
-                      height: 48.h,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(24.r),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => context.push('/deposit'),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(2.w),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.8),
-                                          width: 1),
-                                    ),
-                                    child: Icon(Icons.currency_yuan,
-                                        color:
-                                            Colors.white.withValues(alpha: 0.8),
-                                        size: 14.sp),
-                                  ),
-                                  SizedBox(width: 6.w),
-                                  Text('充值',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w500)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Container(
-                              width: 1,
-                              height: 16.h,
-                              color: Colors.white.withValues(alpha: 0.3)),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => context.push('/withdraw'),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(2.w),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.8),
-                                          width: 1),
-                                    ),
-                                    child: Icon(Icons.shopping_bag_outlined,
-                                        color:
-                                            Colors.white.withValues(alpha: 0.8),
-                                        size: 14.sp),
-                                  ),
-                                  SizedBox(width: 6.w),
-                                  Text('提现',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w500)),
-                                ],
-                              ),
+                              height: 1.0,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 24.h),
+                      Container(
+                        height: 48.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(24.r),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => context.push('/deposit'),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(2.w),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.8),
+                                            width: 1),
+                                      ),
+                                      child: Icon(Icons.currency_yuan,
+                                          color: Colors.white
+                                              .withValues(alpha: 0.8),
+                                          size: 14.sp),
+                                    ),
+                                    SizedBox(width: 6.w),
+                                    Text('充值',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Container(
+                                width: 1,
+                                height: 16.h,
+                                color: Colors.white.withValues(alpha: 0.3)),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => context.push('/withdraw'),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(2.w),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.8),
+                                            width: 1),
+                                      ),
+                                      child: Icon(Icons.shopping_bag_outlined,
+                                          color: Colors.white
+                                              .withValues(alpha: 0.8),
+                                          size: 14.sp),
+                                    ),
+                                    SizedBox(width: 6.w),
+                                    Text('提现',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
               // --- 3. Today's Earnings Card ---
               Container(
@@ -504,6 +512,41 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildAvatar(String? imageUrl) {
+    final fallback = Container(
+      width: 72.r,
+      height: 72.r,
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.2),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(Icons.person, size: 48.sp, color: Colors.grey),
+    );
+
+    if (imageUrl == null || imageUrl.trim().isEmpty) return fallback;
+
+    return AppNetworkImage(
+      url: imageUrl,
+      width: 72.r,
+      height: 72.r,
+      borderRadius: BorderRadius.circular(36.r),
+      errorWidget: fallback,
+      placeholder: fallback,
+    );
+  }
+
+  String _textFallback(String? value, String fallback) {
+    final text = value?.trim();
+    return text == null || text.isEmpty ? fallback : text;
+  }
+
+  String _amountText(dynamic value, {required String fallback}) {
+    if (value == null) return fallback;
+    final amount = num.tryParse(value.toString());
+    if (amount == null) return value.toString();
+    return amount.toStringAsFixed(2);
+  }
 }
 
 class SettingScreen extends StatelessWidget {
@@ -587,10 +630,75 @@ class SettingScreen extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(height: 24.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48.h,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24.r),
+                      side: const BorderSide(color: Color(0xFFE5E8EF)),
+                    ),
+                  ),
+                  onPressed: context.watch<AuthProvider>().isSubmitting
+                      ? null
+                      : () => _logout(context),
+                  child: context.watch<AuthProvider>().isSubmitting
+                      ? SizedBox(
+                          width: 20.w,
+                          height: 20.w,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          '退出登录',
+                          style: TextStyle(
+                            color: const Color(0xFFE74C3C),
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+            SizedBox(height: 24.h),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('退出登录'),
+        content: const Text('确定要退出当前账号吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    await context.read<AuthProvider>().logout();
+    if (!context.mounted) return;
+    context.read<UserProvider>().clearProfile();
+    if (!context.mounted) return;
+    context.go('/login');
   }
 }
 
@@ -737,15 +845,12 @@ class VipScreen extends StatefulWidget {
 
 class _VipScreenState extends State<VipScreen> {
   int _selectedIndex = 0;
-  final int currentLevel = 1;
-  final double currentRecharge = 0.0;
-  final double currentTurnover = 0.0;
 
   final List<Map<String, dynamic>> levels = [
     {
       'level': 1,
-      'recharge': 200,
-      'turnover': 2000,
+      'recharge': 0,
+      'turnover': 0,
       'upgrade': 0,
       'weekly': 0,
       'birthday': 0,
@@ -811,7 +916,28 @@ class _VipScreenState extends State<VipScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<UserProvider>().loadVipLevels().then((_) {
+        if (!mounted) return;
+        final userProvider = context.read<UserProvider>();
+        setState(() {
+          _selectedIndex = _indexForLevel(
+            userProvider.vipLevels,
+            _computedCurrentLevel(userProvider),
+          );
+        });
+      }).catchError((_) {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final userProvider = context.watch<UserProvider>();
+    final profile = userProvider.profile;
+    final vipLevels = userProvider.vipLevels;
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       appBar: const CustomNavBar(title: 'VIP'),
@@ -819,9 +945,9 @@ class _VipScreenState extends State<VipScreen> {
         padding: EdgeInsets.all(16.w),
         child: Column(
           children: [
-            _buildProgressCard(),
+            _buildProgressCard(userProvider),
             SizedBox(height: 16.h),
-            _buildVipLevelCard(),
+            _buildVipLevelCard(profile, vipLevels),
             SizedBox(height: 16.h),
             _buildRulesCard(),
             SizedBox(height: 24.h),
@@ -861,19 +987,8 @@ class _VipScreenState extends State<VipScreen> {
     );
   }
 
-  Widget _buildProgressCard() {
-    final nextLevel = levels.firstWhere(
-        (l) => (l['level'] as int) == currentLevel,
-        orElse: () => levels.first);
-    final rechargeTarget = nextLevel['recharge'] as num;
-    final turnoverTarget = nextLevel['turnover'] as num;
-
-    final rechargePercent = rechargeTarget > 0
-        ? (currentRecharge / rechargeTarget).clamp(0.0, 1.0)
-        : 1.0;
-    final turnoverPercent = turnoverTarget > 0
-        ? (currentTurnover / turnoverTarget).clamp(0.0, 1.0)
-        : 1.0;
+  Widget _buildProgressCard(UserProvider userProvider) {
+    final progress = _vipProgress(userProvider);
 
     return CustomCard(
       padding: EdgeInsets.all(20.w),
@@ -888,19 +1003,36 @@ class _VipScreenState extends State<VipScreen> {
                   border: Border.all(color: const Color(0xFF6B9CFF)),
                   borderRadius: BorderRadius.circular(4.r),
                 ),
-                child: Text('当前 VIP$currentLevel',
+                child: Text('当前 VIP${progress.currentLevel}',
                     style: TextStyle(
                         color: const Color(0xFF6B9CFF), fontSize: 11.sp)),
               )),
+          if (progress.nextLevel != null) ...[
+            SizedBox(height: 10.h),
+            Text(
+              '下一等级 VIP${progress.nextLevel}',
+              style: TextStyle(color: const Color(0xFF999999), fontSize: 12.sp),
+            ),
+          ],
           SizedBox(height: 24.h),
           _buildProgressBar(
-              '充值进度', currentRecharge, rechargeTarget, rechargePercent),
+            '充值进度',
+            progress.recharge,
+            progress.nextRecharge,
+            progress.rechargePercent,
+          ),
           SizedBox(height: 20.h),
           _buildProgressBar(
-              '流水进度', currentTurnover, turnoverTarget, turnoverPercent),
+            '流水进度',
+            progress.validBet,
+            progress.nextValidBet,
+            progress.flowPercent,
+          ),
           SizedBox(height: 24.h),
           Text(
-            '升级需同时满足充值与流水条件；达到条件后升级生效。',
+            progress.isMaxLevel
+                ? '当前已达到最高等级，请继续保持活跃以享受专属权益。'
+                : '升级还需充值 ${_formatMoney(progress.gapRecharge)}，流水 ${_formatMoney(progress.gapValidBet)}；达到条件后升级生效。',
             style: TextStyle(
                 color: const Color(0xFF999999), fontSize: 12.sp, height: 1.5),
           ),
@@ -922,9 +1054,15 @@ class _VipScreenState extends State<VipScreen> {
                     color: const Color(0xFF333333),
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600)),
-            Text('¥$current / ¥$target',
+            Flexible(
+              child: Text(
+                '${_formatMoney(current)} / ${_formatMoney(target)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style:
-                    TextStyle(color: const Color(0xFF999999), fontSize: 13.sp)),
+                    TextStyle(color: const Color(0xFF999999), fontSize: 13.sp),
+              ),
+            ),
           ],
         ),
         SizedBox(height: 10.h),
@@ -941,8 +1079,11 @@ class _VipScreenState extends State<VipScreen> {
     );
   }
 
-  Widget _buildVipLevelCard() {
-    final levelData = levels[_selectedIndex];
+  Widget _buildVipLevelCard(UserProfile? profile, List<VipLevel> vipLevels) {
+    final selectedVipLevel = _selectedVipLevel(vipLevels);
+    final fallbackLevelData =
+        levels[_selectedIndex.clamp(0, levels.length - 1)];
+    final currentLevel = _computedCurrentLevel(context.watch<UserProvider>());
     return CustomCard(
       padding: EdgeInsets.all(20.w),
       margin: EdgeInsets.zero,
@@ -954,14 +1095,15 @@ class _VipScreenState extends State<VipScreen> {
           Row(
             children: [
               Text(
-                'VIP${levelData['level']}',
+                selectedVipLevel?.title ?? 'VIP${fallbackLevelData['level']}',
                 style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF333333)),
               ),
               SizedBox(width: 8.w),
-              if (levelData['level'] == currentLevel)
+              if (_selectedLevelNumber(selectedVipLevel, fallbackLevelData) ==
+                  currentLevel)
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                   decoration: BoxDecoration(
@@ -976,7 +1118,9 @@ class _VipScreenState extends State<VipScreen> {
           ),
           SizedBox(height: 12.h),
           Text(
-            '升级条件：充值 ¥${levelData['recharge']} + 流水 ¥${levelData['turnover']}',
+            selectedVipLevel == null
+                ? '升级条件：充值 ¥${fallbackLevelData['recharge']} + 流水 ¥${fallbackLevelData['turnover']}'
+                : '升级条件：充值 ${_formatDynamicAmount(selectedVipLevel.chargeLevel)} + 流水 ${_formatDynamicAmount(selectedVipLevel.flowingLevel)}',
             style: TextStyle(fontSize: 13.sp, color: const Color(0xFF666666)),
           ),
           SizedBox(height: 24.h),
@@ -987,14 +1131,39 @@ class _VipScreenState extends State<VipScreen> {
                   color: const Color(0xFF333333))),
           SizedBox(height: 16.h),
           _buildListContainer([
-            _buildListRow('升级礼金', '¥${levelData['upgrade']}'),
-            _buildListRow('周红包', '¥${levelData['weekly']}'),
-            _buildListRow('生日礼金', '¥${levelData['birthday']}'),
-            _buildListRow('每日提款次数', '${levelData['dailyCount']} 次'),
-            _buildListRow('每日提款额度', '¥${levelData['dailyLimit']}'),
-            _buildListRow('最低提款金额', '¥${levelData['minWithdraw']}'),
-            _buildListRow('最低充值金额', '¥${levelData['minRecharge']}'),
-            _buildListRow('最高充值金额', '¥${levelData['maxRecharge']}',
+            _buildListRow(
+                '升级礼金',
+                _vipValue(
+                    selectedVipLevel?.levelGive, fallbackLevelData['upgrade'])),
+            _buildListRow(
+                '周红包',
+                _vipValue(
+                    selectedVipLevel?.weekRed, fallbackLevelData['weekly'])),
+            _buildListRow(
+                '生日礼金',
+                _vipValue(selectedVipLevel?.birthdayGive,
+                    fallbackLevelData['birthday'])),
+            _buildListRow(
+                '每日提款次数',
+                selectedVipLevel?.dayCountDrawing == null
+                    ? '${fallbackLevelData['dailyCount']} 次'
+                    : '${selectedVipLevel!.dayCountDrawing} 次'),
+            _buildListRow(
+                '每日提款额度',
+                _vipValue(selectedVipLevel?.dayAmountDrawing,
+                    fallbackLevelData['dailyLimit'])),
+            _buildListRow(
+                '最低提款金额',
+                _vipValue(selectedVipLevel?.minDrawing,
+                    fallbackLevelData['minWithdraw'])),
+            _buildListRow(
+                '最低充值金额',
+                _vipValue(selectedVipLevel?.minRecharge,
+                    fallbackLevelData['minRecharge'])),
+            _buildListRow(
+                '最高充值金额',
+                _vipValue(selectedVipLevel?.maxRecharge,
+                    fallbackLevelData['maxRecharge']),
                 showBorder: false),
           ]),
           SizedBox(height: 24.h),
@@ -1004,25 +1173,34 @@ class _VipScreenState extends State<VipScreen> {
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF333333))),
           SizedBox(height: 16.h),
-          _buildListContainer(
-              (levelData['rebates'] as Map<String, String>).entries.map((e) {
-            final isLast = e.key == levelData['rebates'].keys.last;
-            return _buildListRow(e.key, e.value, showBorder: !isLast);
-          }).toList()),
+          _buildListContainer(_rebateRows(selectedVipLevel, fallbackLevelData)),
         ],
       ),
     );
   }
 
   Widget _buildTabs() {
+    final userProvider = context.watch<UserProvider>();
+    final vipLevels = userProvider.vipLevels;
+    final currentLevel = _computedCurrentLevel(userProvider);
+    if (vipLevels.isNotEmpty && _selectedIndex >= vipLevels.length) {
+      _selectedIndex = 0;
+    }
+    final tabItems = vipLevels.isEmpty ? levels : vipLevels;
     return Container(
       margin: EdgeInsets.symmetric(vertical: 20.h),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: levels.map((l) {
-            final index = levels.indexOf(l);
+          children: tabItems.map((item) {
+            final index = tabItems.indexOf(item);
+            final levelNumber = item is VipLevel
+                ? item.levelNumber
+                : (item as Map<String, dynamic>)['level'] as int;
+            final levelTitle =
+                item is VipLevel ? item.title : 'VIP$levelNumber';
             final isSelected = _selectedIndex == index;
+            final isCurrent = levelNumber == currentLevel;
             return GestureDetector(
               onTap: () => setState(() => _selectedIndex = index),
               child: Container(
@@ -1038,12 +1216,13 @@ class _VipScreenState extends State<VipScreen> {
                   ),
                 ),
                 child: Text(
-                  'VIP${l['level']}',
+                  isCurrent ? '$levelTitle 当前' : levelTitle,
                   style: TextStyle(
                     fontSize: 15.sp,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected
+                    fontWeight: isSelected || isCurrent
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: isSelected || isCurrent
                         ? const Color(0xFF333333)
                         : const Color(0xFF999999),
                   ),
@@ -1081,11 +1260,17 @@ class _VipScreenState extends State<VipScreen> {
           Text(label,
               style:
                   TextStyle(fontSize: 14.sp, color: const Color(0xFF666666))),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF333333))),
+          SizedBox(width: 12.w),
+          Flexible(
+            child: Text(value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF333333))),
+          ),
         ],
       ),
     );
@@ -1120,6 +1305,229 @@ class _VipScreenState extends State<VipScreen> {
       ),
     );
   }
+
+  _VipProgressData _vipProgress(UserProvider userProvider) {
+    final vipLevels = userProvider.vipLevels;
+    if (vipLevels.isNotEmpty) {
+      final recharge = _toDouble(userProvider.vipOverview?.totalDeposit);
+      final validBet = _toDouble(userProvider.vipOverview?.totalBet);
+      final currentLevel = _computeCurrentLevel(vipLevels, recharge, validBet);
+      final maxLevel = vipLevels.last.levelNumber;
+      final nextLevel = currentLevel >= maxLevel ? null : currentLevel + 1;
+      final nextVipLevel = nextLevel == null
+          ? null
+          : vipLevels.firstWhere(
+              (item) => item.levelNumber == nextLevel,
+              orElse: () => vipLevels.last,
+            );
+      final nextRecharge = _toDouble(nextVipLevel?.chargeLevel);
+      final nextValidBet = _toDouble(nextVipLevel?.flowingLevel);
+      final gapRecharge =
+          (nextRecharge - recharge).clamp(0, double.infinity).toDouble();
+      final gapValidBet =
+          (nextValidBet - validBet).clamp(0, double.infinity).toDouble();
+      final isMaxLevel = nextLevel == null;
+
+      return _VipProgressData(
+        currentLevel: currentLevel,
+        nextLevel: nextLevel,
+        recharge: recharge,
+        nextRecharge: nextRecharge,
+        validBet: validBet,
+        nextValidBet: nextValidBet,
+        gapRecharge: gapRecharge,
+        gapValidBet: gapValidBet,
+        rechargePercent:
+            isMaxLevel ? 1 : _progressPercent(recharge, nextRecharge),
+        flowPercent: isMaxLevel ? 1 : _progressPercent(validBet, nextValidBet),
+        isMaxLevel: isMaxLevel,
+      );
+    }
+
+    final profile = userProvider.profile;
+    final levelData = profile?.levelData;
+    final currentLevel =
+        _vipLevelNumber(levelData?.vipLevel ?? profile?.displayVipLevel) ?? 1;
+    final nextLevel = _vipLevelNumber(levelData?.nextVipLevel);
+    final recharge = _toDouble(
+      levelData?.recharge ??
+          profile?.totalRecharge ??
+          profile?.totalDeposit ??
+          profile?.rechargeAmount,
+    );
+    final nextRecharge = _toDouble(levelData?.nextRecharge);
+    final validBet = _toDouble(
+      levelData?.validBetAmount ??
+          profile?.totalFlow ??
+          profile?.flowingAmount ??
+          profile?.totalBet ??
+          profile?.okWater,
+    );
+    final nextValidBet = _toDouble(levelData?.nextValidBetAmount);
+    final gapRecharge = _toDouble(levelData?.gapRecharge);
+    final gapValidBet = _toDouble(levelData?.gapValidBetAmount);
+    final isMaxLevel =
+        nextRecharge <= 0 && nextValidBet <= 0 && nextLevel == null;
+
+    return _VipProgressData(
+      currentLevel: currentLevel,
+      nextLevel: nextLevel,
+      recharge: recharge,
+      nextRecharge: nextRecharge,
+      validBet: validBet,
+      nextValidBet: nextValidBet,
+      gapRecharge: gapRecharge,
+      gapValidBet: gapValidBet,
+      rechargePercent:
+          isMaxLevel ? 1 : _progressPercent(recharge, nextRecharge),
+      flowPercent: isMaxLevel ? 1 : _progressPercent(validBet, nextValidBet),
+      isMaxLevel: isMaxLevel,
+    );
+  }
+
+  double _progressPercent(double current, double target) {
+    if (target <= 0) return 1;
+    return (current / target).clamp(0.0, 1.0);
+  }
+
+  double _toDouble(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0;
+  }
+
+  String _formatAmount(num value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toStringAsFixed(2);
+  }
+
+  String _formatMoney(num value) {
+    return '${_currencySymbol()}${_formatAmount(value)}';
+  }
+
+  String _currencySymbol() {
+    final profile = context.read<UserProvider>().profile;
+    final symbol = profile?.symbol?.trim();
+    if (symbol != null && symbol.isNotEmpty) return symbol;
+    final currency = profile?.currency?.trim();
+    return currency == null || currency.isEmpty ? '¥' : currency;
+  }
+
+  int? _vipLevelNumber(String? level) {
+    if (level == null) return null;
+    return int.tryParse(level.replaceAll(RegExp(r'[^0-9]'), ''));
+  }
+
+  int _computedCurrentLevel(UserProvider userProvider) {
+    final vipLevels = userProvider.vipLevels;
+    if (vipLevels.isEmpty) {
+      return _vipLevelNumber(userProvider.profile?.displayVipLevel) ?? 1;
+    }
+    return _computeCurrentLevel(
+      vipLevels,
+      _toDouble(userProvider.vipOverview?.totalDeposit),
+      _toDouble(userProvider.vipOverview?.totalBet),
+    );
+  }
+
+  int _computeCurrentLevel(
+    List<VipLevel> vipLevels,
+    double totalDeposit,
+    double totalBet,
+  ) {
+    var current = vipLevels.isNotEmpty ? vipLevels.first.levelNumber : 1;
+    for (final level in vipLevels) {
+      if (totalDeposit >= _toDouble(level.chargeLevel) &&
+          totalBet >= _toDouble(level.flowingLevel)) {
+        current = level.levelNumber;
+      }
+    }
+    return current;
+  }
+
+  int _indexForLevel(List<VipLevel> vipLevels, int level) {
+    if (vipLevels.isEmpty) return (level - 1).clamp(0, levels.length - 1);
+    final index = vipLevels.indexWhere((item) => item.levelNumber == level);
+    return index < 0 ? 0 : index;
+  }
+
+  VipLevel? _selectedVipLevel(List<VipLevel> vipLevels) {
+    if (vipLevels.isEmpty || _selectedIndex >= vipLevels.length) return null;
+    return vipLevels[_selectedIndex];
+  }
+
+  int _selectedLevelNumber(
+    VipLevel? selectedVipLevel,
+    Map<String, dynamic> fallbackLevelData,
+  ) {
+    return selectedVipLevel?.levelNumber ?? fallbackLevelData['level'] as int;
+  }
+
+  String _vipValue(dynamic value, dynamic fallback) {
+    return _formatDynamicAmount(value ?? fallback);
+  }
+
+  String _formatDynamicAmount(dynamic value) {
+    if (value == null) return '--';
+    final amount = num.tryParse(value.toString());
+    if (amount == null) return value.toString();
+    return '${_currencySymbol()}${_formatAmount(amount)}';
+  }
+
+  List<Widget> _rebateRows(
+    VipLevel? selectedVipLevel,
+    Map<String, dynamic> fallbackLevelData,
+  ) {
+    final fallback = fallbackLevelData['rebates'] as Map<String, String>;
+    final rows = <MapEntry<String, String>>[
+      MapEntry('体育', _rebateValue(selectedVipLevel?.sportBl, fallback['体育'])),
+      MapEntry('视讯', _rebateValue(selectedVipLevel?.liveBl, fallback['视讯'])),
+      MapEntry('电子', _rebateValue(selectedVipLevel?.gamesBl, fallback['电子'])),
+      MapEntry('棋牌', _rebateValue(selectedVipLevel?.pokerBl, fallback['棋牌'])),
+      MapEntry('捕鱼', _rebateValue(selectedVipLevel?.fishingBl, fallback['捕鱼'])),
+      MapEntry('电竞', _rebateValue(selectedVipLevel?.gamingBl, fallback['电竞'])),
+      MapEntry('彩票', _rebateValue(selectedVipLevel?.lotteryBl, fallback['彩票'])),
+    ];
+
+    return rows.map((entry) {
+      final isLast = entry.key == rows.last.key;
+      return _buildListRow(entry.key, entry.value, showBorder: !isLast);
+    }).toList();
+  }
+
+  String _rebateValue(dynamic value, String? fallback) {
+    if (value == null) return fallback ?? '0.00%';
+    final text = value.toString();
+    return text.endsWith('%') ? text : '$text%';
+  }
+}
+
+class _VipProgressData {
+  const _VipProgressData({
+    required this.currentLevel,
+    required this.nextLevel,
+    required this.recharge,
+    required this.nextRecharge,
+    required this.validBet,
+    required this.nextValidBet,
+    required this.gapRecharge,
+    required this.gapValidBet,
+    required this.rechargePercent,
+    required this.flowPercent,
+    required this.isMaxLevel,
+  });
+
+  final int currentLevel;
+  final int? nextLevel;
+  final double recharge;
+  final double nextRecharge;
+  final double validBet;
+  final double nextValidBet;
+  final double gapRecharge;
+  final double gapValidBet;
+  final double rechargePercent;
+  final double flowPercent;
+  final bool isMaxLevel;
 }
 
 class MessageScreen extends StatefulWidget {
@@ -1631,5 +2039,3 @@ class FeedbackRecordsScreen extends StatelessWidget {
     );
   }
 }
-
-

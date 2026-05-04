@@ -1,13 +1,16 @@
 # UI 转化进度与详细计划 (UI Migration Plan)
 
 > **目标项目**: `flutter_ui_project`
-> **参考项目**: `bw-v3/src/projects/m1` (Vue3 + Vant 移动端架构)
+> **UI 与页面对接逻辑参考**: `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1` (Vue3 + Vant 移动端架构)
+> **Flutter 工程能力参考**: `/Users/john/Documents/trae_projects/flutter-v1` (旧 Flutter 项目，仅参考工程经验，不参考页面对接逻辑)
 > **当前总体进度**: ~98% (核心业务页面已完成，仅剩极少数边缘占位页待完善)
 
 ---
 
 ## 阶段一：基础设施与静态资源 (Phase 1: Foundation & Assets)
 *这一阶段负责把“盖房子”所需的“砖块”和“图纸”准备好。*
+
+> 当前 m1 高仿 UI 阶段已基本完成。后续工作不是重做 UI，而是在这套 Flutter 高仿 UI 上按 m1 页面逻辑接入真实业务，并参考旧 Flutter 项目补齐工程能力。
 
 ### 1.1 核心配置 (Core Setup)
 - [x] 引入 `flutter_screenutil` 并完成初始化配置 (基于设计稿基准尺寸)。
@@ -46,7 +49,7 @@
 ---
 
 ## 阶段三：业务模块转化 (Phase 3: Business Modules)
-*按原项目 `m1/views` 的目录结构，逐个页面进行 1:1 UI 还原。*
+*现有 Flutter 页面作为 m1 高仿 UI 基础保留。页面初始化、接口调用、表单入参、跳转规则、弹窗和状态处理按 m1 项目 `views/**`、`api/**`、`router/index.js` 映射，不按旧 Flutter 项目的页面逻辑迁移。*
 
 ### 3.1 身份验证模块 (Auth Module)
 - [x] `LoginScreen` (对应 `Login.vue`): 账号/密码登录、验证码登录。
@@ -98,7 +101,7 @@
 ---
 
 ## 阶段四：联调与体验优化 (Phase 4: Polish & Polish)
-- [x] 完善路由传参和页面切换动画 (`go_router` 深度配置)。
-- [x] 接入 API 请求库 (`dio`) 替代静态 Mock 数据。
-- [x] 统一处理网络错误、空状态 (Empty State)、加载骨架屏 (Skeleton)。
-- [x] 全面真机测试 (iOS 齐刘海/灵动岛适配、Android 底部小白条沉浸式适配)。
+- [ ] 按 m1 `router/index.js` 校准路由传参、登录拦截和重定向。
+- [ ] 按 m1 `api/**` 接入 API 请求，逐步替代页面 Mock 数据。
+- [ ] 按 m1 页面行为统一处理网络错误、空状态、加载骨架屏、弹窗和 toast。
+- [ ] 完成核心业务闭环真机测试，确认业务接入不破坏现有 Flutter UI。

@@ -105,7 +105,8 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                 child: Row(
                   children: [
                     Icon(Icons.refresh,
-                        color: Colors.white.withValues(alpha: 0.9), size: 16.sp),
+                        color: Colors.white.withValues(alpha: 0.9),
+                        size: 16.sp),
                     SizedBox(width: 4.w),
                     Text(
                       '刷新',

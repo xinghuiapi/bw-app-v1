@@ -116,7 +116,8 @@ class ShareScreen extends StatelessWidget {
                   backgroundColor: const Color(0xFFACCCFF), // Light blue button
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20.r),
                   ),
@@ -287,7 +288,10 @@ class ShareScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, {required String label, required String value, required VoidCallback onCopy}) {
+  Widget _buildInfoRow(BuildContext context,
+      {required String label,
+      required String value,
+      required VoidCallback onCopy}) {
     return Row(
       children: [
         Text(
@@ -314,9 +318,9 @@ class ShareScreen extends StatelessWidget {
           child: OutlinedButton(
             onPressed: onCopy,
             style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                side: const BorderSide(color: AppColors.primary),
-                shape: RoundedRectangleBorder(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              side: const BorderSide(color: AppColors.primary),
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.r),
               ),
             ),

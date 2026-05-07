@@ -1,4 +1,5 @@
 import '../core/json_utils.dart';
+import '../core/paginated_response.dart';
 
 class UserProfile {
   final int id;
@@ -22,7 +23,10 @@ class UserProfile {
   final String? bornTime;
   final String? qq;
   final String? telegram;
+  final String? weixin;
+  final String? skype;
   final String? symbol;
+  final dynamic recharge;
   final dynamic totalRecharge;
   final dynamic totalDeposit;
   final dynamic rechargeAmount;
@@ -56,7 +60,10 @@ class UserProfile {
     this.bornTime,
     this.qq,
     this.telegram,
+    this.weixin,
+    this.skype,
     this.symbol,
+    this.recharge,
     this.totalRecharge,
     this.totalDeposit,
     this.rechargeAmount,
@@ -91,7 +98,10 @@ class UserProfile {
         bornTime: jsonString(json['born_time']),
         qq: jsonString(json['qq']),
         telegram: jsonString(json['telegram']),
+        weixin: jsonString(json['weixin']),
+        skype: jsonString(json['skype']),
         symbol: jsonString(json['symbol']),
+        recharge: json['recharge'],
         totalRecharge: json['total_recharge'],
         totalDeposit: json['total_deposit'],
         rechargeAmount: json['recharge_amount'],
@@ -114,6 +124,31 @@ class UserProfile {
     if (value is String) return value.isNotEmpty && value != '0';
     return false;
   }
+
+  bool get hasRealName => _hasText(realName);
+
+  bool get isPhoneBound => _hasText(phone);
+
+  bool get isEmailBound => _hasText(email);
+
+  String get realNameStatusText => hasRealName ? '已认证' : '未认证';
+
+  String get payPasswordStatusText => hasPayPassword ? '已设置' : '未设置';
+
+  String get genderText {
+    final text = gender?.trim();
+    if (text == null || text.isEmpty) return '未设置';
+    if (text == 'male') return '男';
+    if (text == 'female') return '女';
+    if (text == 'secret') return '保密';
+    return text;
+  }
+
+  String get birthdayText => _hasText(bornTime) ? bornTime!.trim() : '未设置';
+
+  String get qqText => _hasText(qq) ? qq!.trim() : '未填写';
+
+  String get telegramText => _hasText(telegram) ? telegram!.trim() : '未填写';
 
   String get displayVipLevel {
     final value = vipLevel ?? vip;
@@ -144,9 +179,24 @@ class UserProfile {
         if (bornTime != null) 'born_time': bornTime,
         if (qq != null) 'qq': qq,
         if (telegram != null) 'telegram': telegram,
+        if (weixin != null) 'weixin': weixin,
+        if (skype != null) 'skype': skype,
         if (symbol != null) 'symbol': symbol,
+        if (recharge != null) 'recharge': recharge,
+        if (totalRecharge != null) 'total_recharge': totalRecharge,
+        if (totalDeposit != null) 'total_deposit': totalDeposit,
+        if (rechargeAmount != null) 'recharge_amount': rechargeAmount,
+        if (totalFlow != null) 'total_flow': totalFlow,
+        if (flowingAmount != null) 'flowing_amount': flowingAmount,
+        if (totalBet != null) 'total_bet': totalBet,
+        if (payPassword != null) 'pay_password': payPassword,
+        if (sumWater != null) 'sum_water': sumWater,
+        if (okWater != null) 'ok_water': okWater,
         if (levelData != null) 'level_data': levelData!.toJson(),
       };
+
+  static bool _hasText(String? value) =>
+      value != null && value.trim().isNotEmpty;
 }
 
 class VipProgress {
@@ -385,20 +435,20 @@ class SetPayPasswordRequest {
 }
 
 class ChangePasswordRequest {
-  final String oldPassword;
-  final String newPassword;
-  final String confirmPassword;
+  final String currentPass;
+  final String newPass;
+  final String confirmPass;
 
   const ChangePasswordRequest({
-    required this.oldPassword,
-    required this.newPassword,
-    required this.confirmPassword,
+    required this.currentPass,
+    required this.newPass,
+    required this.confirmPass,
   });
 
   Map<String, dynamic> toJson() => {
-        'old_password': oldPassword,
-        'password': newPassword,
-        'o_password': confirmPassword,
+        'currentPass': currentPass,
+        'newPass': newPass,
+        'confirmpass': confirmPass,
       };
 }
 
@@ -436,6 +486,31 @@ class UserMessage {
       };
 }
 
+class UserMessagePage extends PaginatedData<UserMessage> {
+  const UserMessagePage({
+    super.data,
+    super.total,
+    super.currentPage,
+    super.lastPage,
+    super.perPage,
+  });
+
+  factory UserMessagePage.fromResponse(Object? json) {
+    if (json is Map) {
+      final map = Map<String, dynamic>.from(json);
+      final page = PaginatedData.fromJson(map, UserMessage.fromJson);
+      return UserMessagePage(
+        data: page.data,
+        total: page.total,
+        currentPage: page.currentPage,
+        lastPage: page.lastPage,
+        perPage: page.perPage,
+      );
+    }
+    return const UserMessagePage();
+  }
+}
+
 class FeedbackType {
   final int id;
   final String? title;
@@ -451,21 +526,41 @@ class FeedbackType {
       {'id': id, if (title != null) 'title': title};
 }
 
+class SubmitFeedbackRequest {
+  final int id;
+  final String text;
+  final String? img;
+
+  const SubmitFeedbackRequest({
+    required this.id,
+    required this.text,
+    this.img,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'text': text,
+        if (img != null && img!.trim().isNotEmpty) 'img': img,
+      };
+}
+
 class FeedbackRecord {
   final int id;
   final String? title;
   final String? content;
   final String? reply;
-  final int? status;
+  final String? image;
   final String? createdAt;
+  final String? updatedAt;
 
   const FeedbackRecord({
     required this.id,
     this.title,
     this.content,
     this.reply,
-    this.status,
+    this.image,
     this.createdAt,
+    this.updatedAt,
   });
 
   factory FeedbackRecord.fromJson(Map<String, dynamic> json) {
@@ -473,18 +568,51 @@ class FeedbackRecord {
       id: jsonInt(json['id']) ?? 0,
       title: jsonString(json['title']),
       content: jsonString(json['content'] ?? json['text']),
-      reply: jsonString(json['reply']),
-      status: jsonInt(json['status']),
+      reply: jsonString(json['reply'] ?? json['text_t']),
+      image: jsonString(json['img']),
       createdAt: jsonString(json['created_at']),
+      updatedAt: jsonString(json['updated_at']),
     );
   }
+
+  bool get hasReply => reply != null && reply!.trim().isNotEmpty;
+
+  String get statusText => hasReply ? '已处理' : '处理中';
 
   Map<String, dynamic> toJson() => {
         'id': id,
         if (title != null) 'title': title,
         if (content != null) 'content': content,
         if (reply != null) 'reply': reply,
-        if (status != null) 'status': status,
+        if (image != null) 'img': image,
         if (createdAt != null) 'created_at': createdAt,
+        if (updatedAt != null) 'updated_at': updatedAt,
       };
+}
+
+class FeedbackRecordPage extends PaginatedData<FeedbackRecord> {
+  const FeedbackRecordPage({
+    super.data,
+    super.total,
+    super.currentPage,
+    super.lastPage,
+    super.perPage,
+  });
+
+  factory FeedbackRecordPage.fromResponse(Object? json) {
+    if (json is Map) {
+      final page = PaginatedData.fromJson(
+        Map<String, dynamic>.from(json),
+        FeedbackRecord.fromJson,
+      );
+      return FeedbackRecordPage(
+        data: page.data,
+        total: page.total,
+        currentPage: page.currentPage,
+        lastPage: page.lastPage,
+        perPage: page.perPage,
+      );
+    }
+    return const FeedbackRecordPage();
+  }
 }

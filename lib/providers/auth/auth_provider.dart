@@ -106,12 +106,19 @@ class AuthProvider extends BaseProvider<void> {
     }
   }
 
-  Future<String> sendSmsCode({
+  void applyCaptcha(CaptchaData captchaData) {
+    captcha = captchaData;
+    notifyListeners();
+  }
+
+  Future<VerificationCodeData> sendSmsCode({
     required String phone,
     required String areaCode,
     int type = 1,
   }) async {
-    if (isSendingSmsCode) return '验证码发送中';
+    if (isSendingSmsCode) {
+      return const VerificationCodeData(message: '验证码发送中');
+    }
     isSendingSmsCode = true;
     error = null;
     notifyListeners();
@@ -131,14 +138,24 @@ class AuthProvider extends BaseProvider<void> {
     }
   }
 
-  Future<String> sendEmailCode({required String email, int type = 1}) async {
-    if (isSendingEmailCode) return '验证码发送中';
+  Future<VerificationCodeData> sendEmailCode({
+    required String email,
+    int type = 1,
+    String? username,
+  }) async {
+    if (isSendingEmailCode) {
+      return const VerificationCodeData(message: '验证码发送中');
+    }
     isSendingEmailCode = true;
     error = null;
     notifyListeners();
 
     try {
-      return await _authService.sendEmailCode(email: email, type: type);
+      return await _authService.sendEmailCode(
+        email: email,
+        type: type,
+        username: username,
+      );
     } catch (err) {
       error = err.toString();
       rethrow;

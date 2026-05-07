@@ -6,6 +6,7 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/telegram_login_screen.dart';
+import '../screens/main/main_shell_screen.dart';
 import '../screens/main/main_screens.dart';
 import '../screens/game/game_screen.dart';
 import '../screens/game/game_sublist_screen.dart';
@@ -77,10 +78,6 @@ final _routes = <RouteBase>[
     builder: (context, state) => const TelegramLoginScreen(),
   ),
   GoRoute(
-    path: '/',
-    builder: (context, state) => const HomeScreen(),
-  ),
-  GoRoute(
     path: '/list',
     builder: (context, state) => const ListScreen(),
   ),
@@ -88,11 +85,54 @@ final _routes = <RouteBase>[
     path: '/search',
     builder: (context, state) => const SearchScreen(),
   ),
-  // Main Screens
-  GoRoute(
-    path: '/game',
-    builder: (context, state) => GameScreen(key: state.pageKey),
+  StatefulShellRoute.indexedStack(
+    builder: (context, state, navigationShell) => MainShellScreen(
+      navigationShell: navigationShell,
+    ),
+    branches: [
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const HomeScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: '/game',
+            builder: (context, state) => GameScreen(key: state.pageKey),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: '/activity',
+            builder: (context, state) => const ActivityScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: '/service',
+            builder: (context, state) => const ServiceScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen(),
+          ),
+        ],
+      ),
+    ],
   ),
+  // Main detail screens
   GoRoute(
       path: '/game-sub',
       builder: (context, state) => GameSubListScreen(
@@ -101,14 +141,13 @@ final _routes = <RouteBase>[
             title: state.uri.queryParameters['title'],
           )),
   GoRoute(
-      path: '/activity', builder: (context, state) => const ActivityScreen()),
-  GoRoute(
       path: '/activity-detail',
-      builder: (context, state) => const ActivityDetailScreen()),
+      builder: (context, state) => ActivityDetailScreen(
+            id: int.tryParse(state.uri.queryParameters['id'] ?? ''),
+          )),
   GoRoute(
       path: '/activity-record',
       builder: (context, state) => const ActivityRecordScreen()),
-  GoRoute(path: '/service', builder: (context, state) => const ServiceScreen()),
   // Finance Screens
   GoRoute(path: '/deposit', builder: (context, state) => const DepositScreen()),
   GoRoute(
@@ -135,8 +174,12 @@ final _routes = <RouteBase>[
       path: '/fund-management',
       builder: (context, state) => const FundManagementScreen()),
   // User Screens
-  GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
   GoRoute(path: '/setting', builder: (context, state) => const SettingScreen()),
+  GoRoute(
+      path: '/about-us', builder: (context, state) => const AboutUsScreen()),
+  GoRoute(
+      path: '/user-profile',
+      builder: (context, state) => const UserProfileScreen()),
   GoRoute(
       path: '/bind-phone',
       builder: (context, state) => const BindPhoneScreen()),

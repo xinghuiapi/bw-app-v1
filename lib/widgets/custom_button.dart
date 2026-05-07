@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isPrimary;
   final double? width;
 
@@ -18,14 +18,17 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onPressed != null;
     return Container(
       width: width ?? double.infinity,
       height: 48.h,
       decoration: BoxDecoration(
-        color: isPrimary ? AppColors.primary : AppColors.surface,
+        color: enabled
+            ? (isPrimary ? AppColors.primary : AppColors.surface)
+            : AppColors.textSecondary.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(24.r),
         border: isPrimary ? null : Border.all(color: AppColors.border),
-        boxShadow: isPrimary
+        boxShadow: isPrimary && enabled
             ? [
                 BoxShadow(
                   color: AppColors.primary.withValues(alpha: 0.3),

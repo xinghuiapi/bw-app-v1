@@ -23,6 +23,8 @@ class RoutePaths {
   static const fundManagement = '/fund-management';
   static const profile = '/profile';
   static const setting = '/setting';
+  static const aboutUs = '/about-us';
+  static const userProfile = '/user-profile';
   static const bindPhone = '/bind-phone';
   static const bindEmail = '/bind-email';
   static const changePassword = '/change-password';
@@ -48,6 +50,8 @@ const protectedRoutePaths = <String>{
   RoutePaths.fundManagement,
   RoutePaths.profile,
   RoutePaths.setting,
+  RoutePaths.aboutUs,
+  RoutePaths.userProfile,
   RoutePaths.bindPhone,
   RoutePaths.bindEmail,
   RoutePaths.changePassword,

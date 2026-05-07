@@ -2,122 +2,135 @@ import '../core/json_utils.dart';
 
 class ActivityCategory {
   final int id;
-  final String? title;
-  final String? img;
+  final String title;
 
-  const ActivityCategory({required this.id, this.title, this.img});
+  const ActivityCategory({required this.id, required this.title});
 
   factory ActivityCategory.fromJson(Map<String, dynamic> json) {
     return ActivityCategory(
       id: jsonInt(json['id']) ?? 0,
-      title: jsonString(json['title']),
-      img: jsonString(json['img']),
+      title: jsonString(json['title'])?.trim() ?? '',
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        if (title != null) 'title': title,
-        if (img != null) 'img': img,
-      };
 }
 
 class ActivityItem {
   final int id;
-  final String? title;
+  final String title;
   final String? img;
-  final String? appImg;
-  final String? h5Img;
-  final String? pcImg;
   final String? content;
-  final String? startAt;
-  final String? endAt;
-  final int? status;
+  final int? type;
+  final int? lasting;
+  final String? startTime;
+  final String? endTime;
+  final double? multiple;
 
   const ActivityItem({
     required this.id,
-    this.title,
+    required this.title,
     this.img,
-    this.appImg,
-    this.h5Img,
-    this.pcImg,
     this.content,
-    this.startAt,
-    this.endAt,
-    this.status,
+    this.type,
+    this.lasting,
+    this.startTime,
+    this.endTime,
+    this.multiple,
   });
 
-  factory ActivityItem.fromJson(Map<String, dynamic> json) => ActivityItem(
-        id: jsonInt(json['id']) ?? 0,
-        title: jsonString(json['title']),
-        img: jsonString(json['img']),
-        appImg: jsonString(json['app_img']),
-        h5Img: jsonString(json['h5_img']),
-        pcImg: jsonString(json['pc_img']),
-        content: jsonString(json['content']),
-        startAt: jsonString(json['start_at'] ?? json['start_time']),
-        endAt: jsonString(json['end_at'] ?? json['end_time']),
-        status: jsonInt(json['status']),
-      );
+  factory ActivityItem.fromJson(Map<String, dynamic> json) {
+    return ActivityItem(
+      id: jsonInt(json['id']) ?? 0,
+      title: jsonString(json['title'])?.trim() ?? '',
+      img: jsonString(json['img'])?.trim(),
+      content: jsonString(json['content'])?.trim(),
+      type: jsonInt(json['type']),
+      lasting: jsonInt(json['lasting']),
+      startTime: jsonString(json['start_time'])?.trim(),
+      endTime: jsonString(json['end_time'])?.trim(),
+      multiple: jsonDouble(json['multiple']),
+    );
+  }
 
-  String? get displayImg => img ?? h5Img ?? appImg ?? pcImg;
+  String get typeText => type == 2 ? '手动申请' : '系统发放';
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        if (title != null) 'title': title,
-        if (img != null) 'img': img,
-        if (appImg != null) 'app_img': appImg,
-        if (h5Img != null) 'h5_img': h5Img,
-        if (pcImg != null) 'pc_img': pcImg,
-        if (content != null) 'content': content,
-        if (startAt != null) 'start_at': startAt,
-        if (endAt != null) 'end_at': endAt,
-        if (status != null) 'status': status,
-      };
+  String get multipleText {
+    final value = multiple;
+    if (value == null || value <= 0) return '';
+    final normalized = value == value.roundToDouble()
+        ? value.toInt().toString()
+        : value.toString();
+    return '$normalized倍';
+  }
+
+  String get timeText {
+    if (lasting == 1) return '长期活动';
+    final start = startTime ?? '';
+    final end = endTime ?? '';
+    if (start.isNotEmpty && end.isNotEmpty) return '$start ~ $end';
+    return start.isNotEmpty ? start : end;
+  }
+
+  bool get isManualApply => type == 2 && id > 0;
 }
 
-class ActivityApplyRequest {
-  final int id;
-  final String? remark;
+class ActivityRecordPage {
+  final List<ActivityApplyRecord> data;
+  final int currentPage;
+  final int lastPage;
+  final int? total;
 
-  const ActivityApplyRequest({required this.id, this.remark});
+  const ActivityRecordPage({
+    required this.data,
+    required this.currentPage,
+    required this.lastPage,
+    this.total,
+  });
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        if (remark != null) 'remark': remark,
-      };
+  factory ActivityRecordPage.fromResponse(dynamic json) {
+    final payload = jsonMap(json) ?? const <String, dynamic>{};
+    final rows = payload['data'] is List ? payload['data'] as List : const [];
+    return ActivityRecordPage(
+      data: rows
+          .whereType<Map>()
+          .map((item) =>
+              ActivityApplyRecord.fromJson(Map<String, dynamic>.from(item)))
+          .toList(),
+      currentPage: jsonInt(payload['current_page']) ?? 1,
+      lastPage: jsonInt(payload['lastPage'] ?? payload['last_page']) ?? 1,
+      total: jsonInt(payload['total']),
+    );
+  }
 }
 
 class ActivityApplyRecord {
-  final int id;
-  final String? title;
-  final int? status;
-  final String? remark;
-  final String? createdAt;
+  final String username;
+  final int status;
+  final String applyTime;
+  final String title;
 
   const ActivityApplyRecord({
-    required this.id,
-    this.title,
-    this.status,
-    this.remark,
-    this.createdAt,
+    required this.username,
+    required this.status,
+    required this.applyTime,
+    required this.title,
   });
 
   factory ActivityApplyRecord.fromJson(Map<String, dynamic> json) {
     return ActivityApplyRecord(
-      id: jsonInt(json['id']) ?? 0,
-      title: jsonString(json['title'] ?? json['activity_title']),
-      status: jsonInt(json['status']),
-      remark: jsonString(json['remark']),
-      createdAt: jsonString(json['created_at']),
+      username: jsonString(json['username'])?.trim() ?? '',
+      status: jsonInt(json['status']) ?? 0,
+      applyTime: jsonString(json['apply_time'])?.trim() ?? '',
+      title: jsonString(json['title'])?.trim() ?? '',
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        if (title != null) 'title': title,
-        if (status != null) 'status': status,
-        if (remark != null) 'remark': remark,
-        if (createdAt != null) 'created_at': createdAt,
-      };
+  String get statusText {
+    if (status == 1) return '申请中';
+    if (status == 2) return '已通过';
+    if (status == 3) return '已拒绝';
+    return '未知状态';
+  }
+
+  bool get isApproved => status == 2;
+  bool get isRejected => status == 3;
 }

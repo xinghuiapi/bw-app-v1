@@ -90,7 +90,8 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
           .toList();
       _loadedCodes.add(normalizedCode);
       error = null;
-      debugPrint('[game] interface/list code=$normalizedCode parsed=${games.length}');
+      debugPrint(
+          '[game] interface/list code=$normalizedCode parsed=${games.length}');
     } on ApiException catch (exception) {
       error = exception.message;
       debugPrint('[game] interface/list code=$normalizedCode api error=$error');

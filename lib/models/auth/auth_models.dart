@@ -49,7 +49,7 @@ class RegisterRequest {
   final String? phoneCode;
   final String? email;
   final String? name;
-  final String? qq;
+  final Object? qq;
   final String? telegram;
   final String? captchaCode;
   final String? captchaKey;
@@ -80,19 +80,19 @@ class RegisterRequest {
         'username': username,
         'password': password,
         'o_password': confirmPassword,
-        if (currency != null) 'currency': currency,
-        if (phone != null) 'phone': phone,
-        if (areaCode != null) 'area_code': areaCode,
-        if (phoneCode != null) 'phone_code': phoneCode,
-        if (email != null) 'email': email,
-        if (name != null) 'name': name,
-        if (qq != null) 'qq': qq,
-        if (telegram != null) 'telegram': telegram,
-        if (captchaCode != null) 'captcha_code': captchaCode,
-        if (captchaKey != null) 'captcha_key': captchaKey,
-        if (emailCode != null) 'email_code': emailCode,
-        if (inviteCode != null) 'invicode': inviteCode,
-        if (payPassword != null) 'pay_password': payPassword,
+        'currency': _orEmpty(currency),
+        'phone': _orEmpty(phone),
+        'area_code': _orEmpty(areaCode),
+        'phone_code': _orEmpty(phoneCode),
+        'email': _orEmpty(email),
+        'name': _orEmpty(name),
+        'qq': qq ?? 0,
+        'telegram': _orEmpty(telegram),
+        'captcha_code': _orEmpty(captchaCode),
+        'captcha_key': _orEmpty(captchaKey),
+        'email_code': _orEmpty(emailCode),
+        'invicode': _orEmpty(inviteCode),
+        'pay_password': _orEmpty(payPassword),
       };
 }
 
@@ -140,6 +140,8 @@ class AuthToken {
 
 bool _hasValue(String? value) => value != null && value.trim().isNotEmpty;
 
+String _orEmpty(String? value) => value?.trim() ?? '';
+
 class CaptchaData {
   final String captchaKey;
   final String captchaImageContent;
@@ -182,25 +184,51 @@ class CaptchaData {
 }
 
 class VerificationCodeData {
+  final String message;
   final String? code;
   final String? key;
+  final String? captchaImg;
+  final String? captchaCode;
   final int? expire;
 
-  const VerificationCodeData({this.code, this.key, this.expire});
+  const VerificationCodeData({
+    this.message = '验证码已发送',
+    this.code,
+    this.key,
+    this.captchaImg,
+    this.captchaCode,
+    this.expire,
+  });
 
   factory VerificationCodeData.fromJson(Map<String, dynamic> json) {
     return VerificationCodeData(
+      message: jsonString(json['msg'] ?? json['message']) ?? '验证码已发送',
       code: jsonString(json['code']),
-      key: jsonString(json['key']),
+      key: jsonString(json['captcha_key'] ?? json['key']),
+      captchaImg: jsonString(json['captcha_img']),
+      captchaCode: jsonString(json['captcha_code']),
       expire: jsonInt(json['expire']),
     );
   }
 
   Map<String, dynamic> toJson() => {
+        'message': message,
         if (code != null) 'code': code,
-        if (key != null) 'key': key,
+        if (key != null) 'captcha_key': key,
+        if (captchaImg != null) 'captcha_img': captchaImg,
+        if (captchaCode != null) 'captcha_code': captchaCode,
         if (expire != null) 'expire': expire,
       };
+
+  CaptchaData? get captcha {
+    final captchaKey = key?.trim();
+    if (captchaKey == null || captchaKey.isEmpty) return null;
+    return CaptchaData(
+      captchaKey: captchaKey,
+      captchaImg: captchaImg,
+      captchaCode: captchaCode,
+    );
+  }
 }
 
 class ResetPasswordRequest {

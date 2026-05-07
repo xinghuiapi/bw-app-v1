@@ -12,6 +12,7 @@ class CustomTextField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final TextInputType keyboardType;
   final bool showClearButton;
+  final bool enabled;
 
   const CustomTextField({
     super.key,
@@ -24,6 +25,7 @@ class CustomTextField extends StatefulWidget {
     this.onChanged,
     this.keyboardType = TextInputType.text,
     this.showClearButton = true,
+    this.enabled = true,
   });
 
   @override
@@ -82,7 +84,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: widget.enabled
+                ? AppColors.surface
+                : AppColors.background.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(8.r),
             border: Border.all(color: borderColor, width: 1),
             boxShadow: [
@@ -106,10 +110,13 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   focusNode: _focusNode,
                   obscureText: _obscureText,
                   keyboardType: widget.keyboardType,
+                  enabled: widget.enabled,
                   onChanged: widget.onChanged,
                   style: TextStyle(
                     fontSize: 16.sp,
-                    color: AppColors.textPrimary,
+                    color: widget.enabled
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
                   ),
                   decoration: InputDecoration(
                     hintText: widget.hintText,
@@ -126,6 +133,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 ),
               ),
               if (widget.showClearButton &&
+                  widget.enabled &&
                   _controller.text.isNotEmpty &&
                   _isFocused)
                 GestureDetector(
@@ -144,7 +152,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     ),
                   ),
                 ),
-              if (widget.obscureText)
+              if (widget.obscureText && widget.enabled)
                 GestureDetector(
                   onTap: () {
                     setState(() {

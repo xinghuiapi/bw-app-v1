@@ -630,6 +630,456 @@ flutter test test/widget_test.dart
 - `flutter analyze lib test`：`No errors`。
 - `flutter test test/widget_test.dart`：`9 tests passed`。
 
+### 2026-05-07 用户中心与主导航 m1 对齐
+
+已完成：
+
+- 账户安全绑定状态接入 `/token/user` 只读展示，设置/个人资料中根据实名、手机、邮箱和资金密码字段展示当前状态。
+- 已绑定手机号/邮箱进入绑定页时展示只读状态卡；已实名时实名认证页禁用输入框和提交按钮。
+- `CustomTextField` 支持 `enabled`，`CustomButton.onPressed` 支持 `null` 禁用态。
+- 登录密码修改对接 m1 `POST /token/repass`，请求参数为 `currentPass`、`newPass`、`confirmpass`。
+- `/setting` 和 `/user-profile` 按 m1 `Setting.vue`、`UserProfile.vue` 拆分职责；头像/用户信息入口和“注册信息”入口进入 `/user-profile`。
+- 个人资料页 QQ、Telegram 改为行内输入并通过底部保存按钮统一提交。
+- 消息中心对接 `POST /notify/getlist` 和 `POST /notify/status`，支持全部/未读/已读 Tab、未读红点、下拉刷新、滚动分页、点击未读标记已读，并保留 fallback mock。
+- “我的”页顶部补齐邮件和设置图标，邮件图标显示未读红点，分别跳转 `/message` 和 `/setting`。
+- `/profile`、`/activity`、`/service` 补齐底部导航并高亮当前 Tab。
+- 主 Tab 切换使用 `context.go(...)`，对齐 m1 `van-tabbar-item replace to="..."` 的 replace 行为。
+- 主 Tab 路由 `/`、`/game`、`/activity`、`/service`、`/profile` 已改为 `NoTransitionPage`，底部导航点击切换时不再出现从右到左页面滑动动画。
+- 保留详情页、资金页、设置页、消息页等非主 Tab 默认转场，不改变普通页面进入/返回体验。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 当前主 Tab 底部导航仍由多个页面分别持有 `CustomTabBar`；如果继续扩展主框架，建议用 `ShellRoute` 或统一 Layout 收敛重复维护。
+- 头像上传、关于我们内容页、手机号/邮箱验证码发送真实接入仍未完成。
+
+### 2026-05-07 反馈类型、提交反馈与反馈记录接入
+
+已完成：
+
+- 对照 m1 `views/user/Feedback.vue`、`views/user/FeedbackRecords.vue`、`api/feedback.js` 和接口文档补齐反馈链路。
+- 新增 `ApiEndpoints.feedbackTypeList = '/feedback_type/getlist'`。
+- 新增 `ApiEndpoints.feedbackSubmit = '/feedback/to'`。
+- 新增 `ApiEndpoints.feedbackList = '/feedback/getlist'`。
+- 补齐 `FeedbackType`、`SubmitFeedbackRequest`、`FeedbackRecord`、`FeedbackRecordPage`。
+- `UserService` 新增 `fetchFeedbackTypes()`、`submitFeedback()`、`fetchFeedbackRecords()`。
+- 新增 `FeedbackProvider`，维护反馈类型、提交状态、反馈记录分页、加载更多和 fallback。
+- `FeedbackScreen` 进入后加载反馈类型，分类弹窗优先展示接口分类，提交时按 m1 参数 `id`、`text`、`img` 调用真实接口。
+- `FeedbackRecordsScreen` 优先展示真实反馈记录，支持下拉刷新、滚动分页、空态、处理中/已处理状态和回复内容展示。
+- 接口失败时继续保留原高仿 fallback 分类和反馈记录，避免页面白屏。
+- 图片上传仍保持当前占位 UI，暂不接上传接口；提交参数 `img` 为空。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号验证 `/feedback/getlist` 的 `data.lastPage`、`data.current_page` 和 `img` 字段是否与当前模型完全一致。
+- 图片上传接口尚未接入，反馈提交暂不携带图片。
+- m1 反馈记录页面本地存储提交记录；Flutter 当前改为真实记录优先、fallback 兜底。
+
+### 2026-05-07 手机号/邮箱验证码发送与绑定提交接入
+
+已完成：
+
+- 对照接口文档和 m1 `BindPhone.vue`、`BindEmail.vue` 补齐账户安全绑定链路。
+- 手机验证码发送使用 `POST /phone_code/send`，参数为 `type: 2`、`area_code: '+86'`、`phone`。
+- 邮箱验证码发送使用 `POST /mail_code/send`，参数为 `type: 2`、`email`。
+- 绑定提交继续走已接入的 `POST /user/edit`，手机号参数为 `phone`、`area_code`、`code`，邮箱参数为 `email`、`code`。
+- `UserProvider` 复用 `AuthService.sendSmsCode()` 和 `AuthService.sendEmailCode()`，新增 `sendPhoneCode()`、`sendEmailCode()`。
+- `BindPhoneScreen` 点击获取验证码时真实调用短信验证码接口，成功后才启动倒计时。
+- `BindEmailScreen` 点击获取验证码时真实调用邮箱验证码接口，成功后才启动倒计时。
+- 绑定成功后刷新 `/token/user` 的用户资料并返回上一页。
+- 已绑定手机/邮箱仍保持只读状态卡，不展示绑定表单。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号验证 `/user/edit` 接收手机/邮箱绑定验证码时字段名是否确认为 `code`，因为接口文档仅列出手机号/邮箱字段，绑定验证码字段来自当前页面既有实现。
+- 当前手机绑定区号固定为 `+86`，后续如需多国家区号，应接全局配置或区号选择组件。
+
+### 2026-05-07 实名认证提交接入确认
+
+已完成：
+
+- 对照 m1 `views/user/RealName.vue` 确认实名认证提交使用资料编辑接口。
+- Flutter `RealNameScreen` 未实名时提交真实姓名，已实名时保持只读/禁用状态。
+- 新增 `UserProvider.submitRealName(realName)` 专用封装，内部复用 `POST /user/edit` 提交 `real_name`。
+- 提交成功后沿用 `UserProvider.updateProfile()` 的刷新逻辑，重新拉取 `/token/user`。
+- 提交中禁用按钮，避免重复提交。
+- 接口失败使用现有表单错误提示，不破坏页面。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号确认 `/user/edit` 提交 `real_name` 后 `/token/user.real_name` 是否立即更新。
+- 当前实名认证仅对齐 m1 的真实姓名提交，没有身份证号、证件照片等额外字段。
+
+### 2026-05-07 VIP 信息只读展示完善
+
+状态：已对接完毕。
+
+已完成：
+
+- 对照 m1 `views/user/Vip.vue` 和 `api/vip.js` 确认 VIP 页面为只读信息展示。
+- 继续使用已接入的 `POST /vip/getlist` 拉取 VIP 等级、升级条件、福利、返水和累计充值/流水。
+- Flutter `VipScreen` 保持升级进度、等级 tab、福利表、返水表、升级说明展示。
+- `/profile` 顶部 VIP 标签补齐点击入口，点击进入 `/vip`，对齐 m1 顶部 VIP tag 行为。
+- `VipScreen` 增加下拉刷新，刷新时重新调用 `/vip/getlist`。
+- `VipScreen` 增加加载提示；真实接口失败且没有等级数据时展示 fallback 提示，并继续显示默认等级规则，避免页面白屏。
+- 当前改动仅为只读展示和刷新，不涉及 VIP 购买、充值、升级支付或资金写操作。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号确认 `/vip/getlist` 返回结构是否为数组或嵌套分页对象，以及 `total_deposit`、`total_bet` 位置是否与当前兼容解析一致。
+- 需要确认 `title` 是否稳定包含 VIP 等级数字，例如 `VIP1`、`VIP2`。
+- VIP 相关资金门槛当前仅展示，不触发充值/提款等资金流程。
+
+修正记录：
+
+- 真实账号测试发现 `/vip` 充值进度当前值不应优先使用 `/vip/getlist.total_deposit`，而应使用 `/token/user` 用户资料中的 `recharge`。
+- `UserProfile` 已补充解析 `recharge` 字段。
+- `VipScreen` 当前充值计算优先级调整为：`level_data.recharge` -> `profile.recharge` -> `total_recharge` -> `total_deposit` -> `recharge_amount` -> `/vip/getlist.total_deposit`。
+- 当前等级计算同步使用该当前充值值，避免因为 `/vip/getlist.total_deposit` 与用户资料不一致导致进度和当前等级错误。
+
+完成确认：
+
+- 真实账号验证后确认 VIP 页面当前阶段对接完毕。
+- `/profile` 顶部 VIP 入口、`/vip/getlist` 等级规则、`/token/user.recharge` 当前充值进度、下拉刷新、加载提示和 fallback 展示均已完成。
+
+### 2026-05-07 关于我们只读页面接入
+
+状态：已对接完毕。
+
+已完成：
+
+- 对照 m1 `views/user/Setting.vue` 确认“关于我们”在 m1 目前只有设置页静态 cell，无点击事件、无独立页面、无专属 API。
+- Flutter 新增 `/about-us` 登录保护路由，并从 `/setting` 的“关于我们”入口跳转进入。
+- 复用已接入的 `POST /system/getlist` 和 `SystemProvider.config.siteConfig`，读取 `config_site.title`、`logo`、`desc`、`domain`、`app_version`、`app_download`、`service_link`、`tg_link`。
+- 新增 `AboutUsScreen` 只读展示站点 Logo、站点名称、平台介绍、域名、版本、APP 下载、客服入口和 TG 客服。
+- 页面支持下拉刷新重新调用系统配置；接口失败或字段为空时展示 fallback 内容，避免页面白屏。
+- 当前页面仅展示链接文本，不主动打开外链，不涉及资金、登录态写入或敏感操作。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+### 2026-05-07 头像上传接入
+
+状态：已对接完毕，待真实账号上传验证。
+
+已完成：
+
+- 对照 m1 `views/user/UserProfile.vue` 确认头像入口为 `van-uploader`，m1 当前逻辑只做本地预览并在保存时通过 `/user/edit.img` 提交，没有调用真实上传接口。
+- 对照接口文档确认通用图片上传接口为 `POST /img/save`，`form-data` 参数为 `file` 和 `name`，响应包含 `data.data.path` 与 `data.data.url`。
+- Flutter 新增依赖 `image_picker`，用于从相册选择头像图片。
+- 新增 `ApiEndpoints.imageUpload = '/img/save'`。
+- `UserService.uploadImage()` 使用 `MultipartFile.fromBytes` 上传图片，兼容移动端和 Web 的 `XFile.readAsBytes()`。
+- `UserProvider.uploadAvatar()` 先调用 `/img/save`，再用返回的 `url` 或 `path` 调用 `/user/edit` 保存 `img`，最后刷新 `/token/user`。
+- `/user-profile` 头像行由占位提示改为真实选择、上传、保存流程，并展示 `上传中...` 状态。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号验证 `/img/save` 在当前域名下返回的 `url/path` 是否可直接提交给 `/user/edit.img`。
+- 若真实接口只接受相对路径，应保留 `path` 优先；当前实现优先使用 `url`，再 fallback 到 `path`。
+- 反馈图片上传后续可复用 `UserService.uploadImage()` 或抽成通用上传服务。
+
+### 2026-05-07 客服页 m1 对齐
+
+状态：已对齐完毕，待真实客服链接点击验证。
+
+已完成：
+
+- 对照 m1 `views/main/Service.vue` 确认客服页不新增专属接口，复用 `POST /system/getlist` 的 `config_site.service_link` 与 `config_site.tg_link`。
+- `ServiceScreen` 从静态 mock 联系方式改为读取 `SystemProvider.config.siteConfig` 和 `UserProvider.profile`。
+- 页面结构对齐 m1：顶部白色问候卡片展示头像和 `Hi，用户名`，下方两列渐变客服卡片展示在线客服和 Telegram 通道。
+- 兼容 `service_link`、`tg_link` 的数组、字符串、多行、逗号、中文逗号和空白分隔格式。
+- 新增 `url_launcher` 依赖，用于点击客服/Telegram 卡片时打开系统外部浏览器或对应 App。
+- 支持下拉刷新重新加载系统配置；无客服配置时展示空态提示，避免白屏。
+- 当前仍不涉及充值、提现、转账、绑卡等资金写操作。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号/真实配置验证 `service_link`、`tg_link` 是否都带 `http://` 或 `https://` scheme。
+- 若后台返回无 scheme 的客服链接，需和后端确认是否应自动补 `https://`。
+- 关于我们页面后续如需要点击客服/TG 链接，可复用本次引入的外链打开能力。
+
+### 2026-05-07 反馈页图片上传与溢出修复
+
+状态：已对齐完毕，待真实账号上传验证。
+
+已完成：
+
+- 对照 m1 `views/user/Feedback.vue` 重新确认反馈页结构：问题分类、问题描述、最多 3 张图片、提交按钮、反馈记录入口。
+- 修复问题类型选择弹窗溢出：将直接铺开的 `Column + ListTile` 改为带最大高度约束的 `ListView.separated`，分类过多时可滚动，长分类名单行省略。
+- 反馈图片区域从占位按钮改为真实上传：支持选择多张图片，最多 3 张。
+- 复用通用上传接口 `POST /img/save`，上传参数 `name = feedback`。
+- `FeedbackProvider` 新增 `isUploadingImage` 和 `uploadFeedbackImage()`，页面不直接调用 `UserService`。
+- 上传成功后展示图片缩略图，支持删除已选图片。
+- 提交反馈时将上传后的图片地址以逗号拼接传给 `/feedback/to.img`。
+- 保留纯文字反馈能力；图片选择组件未加载或上传失败时只提示错误，不阻断无图提交。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 新增/使用图片选择插件后，运行中 App 需要完整重启，不能只 hot reload。
+- 需要用真实账号验证 `/img/save` 返回的 `url/path` 是否都可作为 `/feedback/to.img` 的提交值。
+- 若后台要求相对路径，需将反馈图片保存逻辑和头像保存逻辑统一改为 `path` 优先。
+
+### 2026-05-07 活动页只读链路接入
+
+状态：已完成只读接入，活动申请写操作暂缓。
+
+已完成：
+
+- 对照 m1 `views/main/activity.vue`、`views/main/ActivityDetail.vue` 和 `api/activity.js` 确认活动主链路。
+- 接入 `POST /activity/class` 获取活动分类。
+- 接入 `POST /activity/list` 获取活动列表，分类切换时传 `id`，全部分类不传 `id`。
+- 接入 `POST /activity/details` 获取活动详情，传活动 `id` 后从返回数组中匹配详情。
+- 新增 `ActivityCategory`、`ActivityItem` 模型，解析 `id`、`title`、`img`、`content`、`type`、`multiple`、`lasting`、`start_time`、`end_time`。
+- 补齐 `ActivityService` 和 `ActivityProvider`，页面不直接调用接口。
+- `ActivityScreen` 从静态 mock 改为真实分类 tab + 真实活动卡片，顶部品牌区域读取 `SystemProvider.config.siteConfig`，并保留 fallback 活动列表。
+- `ActivityDetailScreen` 通过 query `id` 加载详情，展示标题、发放方式、倍数、活动时间和活动说明。
+- 手动活动详情底部仍展示“申请参与活动”，但点击仅提示 `活动申请功能待接入`，不调用 `/activity/apply`。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号验证 `/activity/list` 和 `/activity/details` 返回结构是否稳定为数组。
+- 当前详情内容只做 HTML 标签剥离后纯文本展示；若后续需要完全还原富文本图片/table，需要引入安全 HTML 渲染方案。
+- 活动申请 `/activity/apply` 和活动申请记录 `/activity/record` 属于后续弱写/只读任务，本次未接提交。
+
+### 2026-05-07 活动申请记录只读接入
+
+状态：已完成只读接入。
+
+已完成：
+
+- 对照 m1 `views/main/ActivityApplyRecords.vue` 和 `api/activity.js` 确认活动申请记录链路。
+- 接入 `POST /activity/record`，请求参数为 `page`、`size`。
+- 新增 `ActivityRecordPage` 和 `ActivityApplyRecord` 模型，解析 `username`、`status`、`apply_time`、`title`、`current_page`、`lastPage`、`total`。
+- `ActivityService` 新增 `fetchActivityRecords()`。
+- `ActivityProvider` 新增活动申请记录状态、分页、下拉刷新和加载更多。
+- `ActivityRecordScreen` 从静态 mock 改为真实申请记录列表。
+- 状态文案对齐 m1：`1` 申请中、`2` 已通过、`3` 已拒绝、其他未知状态。
+- 支持空态、下拉刷新、滚动分页、底部“没有更多了”和接口失败 fallback。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号验证 `/activity/record` 是否在无记录时返回空分页对象或 `null`。
+- 活动申请提交 `/activity/apply` 暂未接入，仍保留为后续弱写操作。
+- 如果继续完善活动页，下一步可做详情富文本安全渲染或活动申请提交。
+
+### 2026-05-08 活动详情富文本安全渲染
+
+状态：已完成只读 UI 增强，无新增接口，无新增依赖。
+
+已完成：
+
+- 对齐 m1 `ActivityDetail.vue` 中 `v-html="safeHtml"` 的活动说明展示方式。
+- `ActivityDetailScreen` 从纯文本剥离 HTML 改为轻量安全 HTML 渲染。
+- 移除 `script`、`style`、`on*` 事件属性和 `javascript:` 链接/图片地址。
+- 支持常见段落、换行、列表、表格单元文本降级展示。
+- 支持活动说明中的 `<img src="...">`，图片复用 `AppNetworkImage`，不直接使用裸 `Image.network`。
+- 非 HTML 内容仍按普通文本展示；空内容仍展示 `暂无活动内容`。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 当前为轻量渲染，不执行 HTML，不加载 iframe/script/style。
+- 表格目前降级为文本行展示；如真实活动大量使用复杂表格，后续再做专门表格布局。
+- 活动申请提交 `/activity/apply` 仍未接入。
+
+### 2026-05-08 活动申请提交接入
+
+状态：已完成弱写操作接入。
+
+已完成：
+
+- 对齐 m1 `ActivityDetail.vue` 的 `handleApply()` 逻辑。
+- 接入 `POST /activity/apply`，请求参数为当前手动活动 `id`。
+- `ActivityService` 新增 `applyActivity(id)`。
+- `ActivityProvider` 新增 `isApplying`、`applyError` 和 `applyActivity(id)`。
+- `ActivityDetailScreen` 手动活动底部按钮从占位提示改为真实提交。
+- 提交中按钮显示 `申请中...` 并禁用重复点击。
+- 申请成功显示 `申请成功`。
+- 申请失败显示后端业务错误信息，兜底为 `申请失败`。
+- 申请成功后清空活动申请记录缓存，下次进入记录页重新拉取 `/activity/record`。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format lib test`：已执行通过。
+- `flutter analyze lib test`：`No errors`。
+- `flutter test test/widget_test.dart`：`9 tests passed`。
+
+后续注意：
+
+- 需要用真实手动活动验证重复申请、未登录/过期、已申请等后端业务错误文案。
+- 当前成功提示使用本地 `申请成功`，如后续需要完全展示后端 `msg`，需要调整 `DioClient` 以保留完整响应 envelope。
+
 ### 下一次任务执行方式
 
 每开始一个接口对接任务，按以下顺序执行：
@@ -657,7 +1107,8 @@ flutter test test/widget_test.dart
 - 当前真实域名使用 `https://apis.xh-demo.com/api`，资源域名使用 `https://apis.xh-demo.com`。
 - `/system/getlist` 已接入 `SystemService.fetchConfig()` 和 `SystemProvider.loadConfig()`。
 - Web 启动探针已经通过，Debug 日志形如 `[startup-probe] system config loaded: title=..., languages=..., banners=...`。
-- 当前首页、个人中心、VIP、游戏大厅分类、厂商列表和子游戏首屏列表已有小范围真实接口数据消费，其余页面仍以 m1 高仿 UI fallback 为主。
+- 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏首屏列表、消息中心和反馈链路已有小范围真实接口数据消费，其余页面仍以 m1 高仿 UI fallback 为主。
+- 当前主 Tab 路由 `/`、`/game`、`/activity`、`/service`、`/profile` 使用 `NoTransitionPage`，底部导航点击为无动画 replace 式切换。
 - 当前验证基线：`flutter analyze lib test` 无错误，`flutter test test/widget_test.dart` 为 9 个测试通过。
 
 下次不要重复做：
@@ -667,10 +1118,12 @@ flutter test test/widget_test.dart
 - 不要把 `/system/getlist` 加 query `lang`。
 - 不要批量替换首页、游戏、钱包、活动等页面 Mock 数据。
 - 不要重建认证链路或进入充值、提现、转账等高风险资金链路。
+- 不要把主 Tab 切换改回 `push` 或默认路由转场；m1 对齐要求是无感 replace 式切换。
 
 下次优先做：
 
 - 选择用户中心低风险只读字段、VIP 信息或游戏只读列表继续小步接入。
+- 或继续接入游戏收藏/搜索等非资金链路能力。
 - 接口数据为空或失败时继续显示当前 m1 高仿 UI fallback。
 - 页面只读消费 Provider，不让页面直接调用 Service 或 Dio。
 - 完成后跑格式化、分析和测试。

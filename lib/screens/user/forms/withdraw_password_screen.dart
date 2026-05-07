@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../../models/user/user_models.dart';
+import '../../../providers/user/user_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/custom_nav_bar.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/custom_button.dart';
+import 'user_form_feedback.dart';
 
 class WithdrawPasswordScreen extends StatefulWidget {
   const WithdrawPasswordScreen({super.key});
@@ -25,9 +30,12 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<UserProvider>();
+    final isSet = provider.profile?.hasPayPassword ?? false;
+    final isSubmitting = provider.isSubmitting;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '设置资金密码'),
+      appBar: CustomNavBar(title: isSet ? '修改资金密码' : '设置资金密码'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(20.w),
@@ -75,15 +83,44 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
               ),
               SizedBox(height: 48.h),
               CustomButton(
-                text: '确认提交',
-                onPressed: () {
-                  // TODO: Implement set withdraw password logic
-                },
+                text: isSubmitting ? '提交中...' : '确认提交',
+                onPressed: _submit,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _submit() async {
+    final password = _passwordController.text.trim();
+    final confirm = _confirmController.text.trim();
+    if (!RegExp(r'^\d{6}$').hasMatch(password)) {
+      _showMessage('请输入6位纯数字密码');
+      return;
+    }
+    if (password != confirm) {
+      _showMessage('两次输入的资金密码不一致');
+      return;
+    }
+
+    final provider = context.read<UserProvider>();
+    if (provider.isSubmitting) return;
+    try {
+      await provider
+          .setPayPassword(SetPayPasswordRequest(payPassword: password));
+      if (!mounted) return;
+      _showMessage('设置成功');
+      context.pop();
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage(userFormErrorMessage(error, '设置失败'));
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }

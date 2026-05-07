@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/user/user_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/custom_nav_bar.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/custom_button.dart';
+import 'user_form_feedback.dart';
 
 class RealNameScreen extends StatefulWidget {
   const RealNameScreen({super.key});
@@ -14,17 +18,25 @@ class RealNameScreen extends StatefulWidget {
 
 class _RealNameScreenState extends State<RealNameScreen> {
   final _nameController = TextEditingController();
-  final _idCardController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
-    _idCardController.dispose();
     super.dispose();
   }
 
   @override
+  void initState() {
+    super.initState();
+    final profile = context.read<UserProvider>().profile;
+    _nameController.text = profile?.realName?.trim() ?? '';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = context.watch<UserProvider>();
+    final profile = provider.profile;
+    final isVerified = profile?.hasRealName ?? false;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomNavBar(title: '实名认证'),
@@ -59,6 +71,37 @@ class _RealNameScreenState extends State<RealNameScreen> {
                 ),
               ),
               SizedBox(height: 32.h),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '认证状态',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      isVerified ? '已认证' : '未认证',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: isVerified
+                            ? AppColors.success
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 24.h),
               Text(
                 '真实姓名',
                 style: TextStyle(
@@ -69,34 +112,48 @@ class _RealNameScreenState extends State<RealNameScreen> {
               ),
               SizedBox(height: 8.h),
               CustomTextField(
-                hintText: '请输入您的真实姓名',
+                hintText: isVerified ? profile!.realName!.trim() : '请输入您的真实姓名',
                 controller: _nameController,
+                enabled: !isVerified,
               ),
               SizedBox(height: 24.h),
-              Text(
-                '身份证号',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              CustomTextField(
-                hintText: '请输入您的身份证号码',
-                controller: _idCardController,
-              ),
-              SizedBox(height: 48.h),
               CustomButton(
-                text: '提交认证',
-                onPressed: () {
-                  // TODO: Implement real name auth logic
-                },
+                text: isVerified
+                    ? '已完成认证'
+                    : provider.isSubmitting
+                        ? '提交中...'
+                        : '提交认证',
+                onPressed: isVerified || provider.isSubmitting ? null : _submit,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _submit() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      _showMessage('请输入您的真实姓名');
+      return;
+    }
+
+    final provider = context.read<UserProvider>();
+    if (provider.isSubmitting) return;
+    try {
+      await provider.submitRealName(name);
+      if (!mounted) return;
+      _showMessage('保存成功');
+      context.pop();
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage(userFormErrorMessage(error, '保存失败'));
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }

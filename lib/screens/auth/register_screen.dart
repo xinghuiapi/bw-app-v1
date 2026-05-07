@@ -45,6 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   int _emailCountdown = 0;
   Timer? _smsTimer;
   Timer? _emailTimer;
+  String? _selectedCurrencyCode;
 
   @override
   void dispose() {
@@ -206,7 +207,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final config = systemProvider.config;
-    final showCaptcha = config.captchaConfig?.regStatus == 1;
+    final showCaptcha = config.captchaConfig?.regStatus == 1 &&
+        config.captchaConfig?.codeType == 1;
     if (showCaptcha && context.read<AuthProvider>().captcha == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.read<AuthProvider>().loadCaptcha();
@@ -246,6 +248,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
+          if (config.currencies.isNotEmpty) ...[
+            SizedBox(height: 20.h),
+            _buildCurrencyField(config),
+          ],
           ..._buildConfiguredFields(config),
           if (showCaptcha) ...[
             SizedBox(height: 20.h),
@@ -477,6 +483,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  Widget _buildCurrencyField(HomeConfig config) {
+    final currencies = _availableCurrencies(config);
+    if (currencies.isEmpty) return const SizedBox.shrink();
+    final selectedCode = _resolvedCurrencyCode(config);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFieldLabel('选择货币'),
+        GestureDetector(
+          onTap: () => _showCurrencyPicker(config),
+          child: Container(
+            height: 44.h,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F6F8),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _currencyTitle(currencies, selectedCode),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: const Color(0xFF333333),
+                    ),
+                  ),
+                ),
+                Icon(Icons.keyboard_arrow_right,
+                    size: 18.sp, color: const Color(0xFF999999)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAreaCodePrefix() {
     return Container(
       margin: EdgeInsets.only(right: 16.w),
@@ -593,6 +640,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _showMessage('请输入账号和密码');
       return;
     }
+    if (!RegExp(r'^[a-zA-Z0-9]{1,12}$').hasMatch(account)) {
+      _showMessage('账号只能包含英文和数字，最多12位');
+      return;
+    }
+    if (password.length > 18 || confirmPassword.length > 18) {
+      _showMessage('密码最多18位');
+      return;
+    }
     if (password != confirmPassword) {
       _showMessage('两次输入的密码不一致');
       return;
@@ -608,22 +663,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       username: account,
       password: password,
       confirmPassword: confirmPassword,
-      phone: _textIfVisible(config, 'phone', _phoneController),
-      areaCode: _isVisible(config, 'phone') ? _selectedCountryCode : null,
-      phoneCode: _phoneCodeController.text,
-      email: _textIfVisible(config, 'email', _emailController),
-      emailCode: _emailCodeController.text,
-      name: _textIfVisible(config, 'name', _nameController),
-      qq: _textIfVisible(config, 'qq', _qqController),
-      telegram: _textIfVisible(config, 'telegram', _telegramController),
-      inviteCode: _textIfVisible(config, 'invicode', _inviteController),
-      payPassword: _textIfVisible(
+      currency: _registrationCurrencyCode(config),
+      phone: _visibleText(config, 'phone', _phoneController),
+      areaCode: _isVisible(config, 'phone') ? _selectedCountryCode : '',
+      phoneCode: _visibleText(config, 'phone', _phoneCodeController),
+      email: _visibleText(config, 'email', _emailController),
+      emailCode: _visibleText(config, 'email', _emailCodeController),
+      name: _visibleText(config, 'name', _nameController),
+      qq: _qqValue(config),
+      telegram: _visibleText(config, 'telegram', _telegramController),
+      inviteCode: _visibleText(config, 'invicode', _inviteController),
+      payPassword: _visibleText(
         config,
         'pay_password',
         _payPasswordController,
       ),
-      captchaCode: showCaptcha ? captchaCode : null,
-      captchaKey: authProvider.captcha?.captchaKey,
+      captchaCode: showCaptcha ? captchaCode : '',
+      captchaKey: showCaptcha ? authProvider.captcha?.captchaKey : '',
     );
 
     try {
@@ -651,6 +707,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _showMessage('请输入${field.title ?? '必填信息'}');
       return false;
     }
+    if (_isVisible(config, 'pay_password')) {
+      final value = _payPasswordController.text.trim();
+      if (value.isNotEmpty && !RegExp(r'^\d{6}$').hasMatch(value)) {
+        _showMessage('安全码必须为6位纯数字');
+        return false;
+      }
+    }
+    if (_isVisible(config, 'qq')) {
+      final value = _qqController.text.trim();
+      if (value.isNotEmpty && !RegExp(r'^\d+$').hasMatch(value)) {
+        _showMessage('QQ只能填写数字');
+        return false;
+      }
+    }
+    if (_isVisible(config, 'invicode') &&
+        _inviteController.text.trim().length > 10) {
+      _showMessage('邀请码最多10位');
+      return false;
+    }
     if (_isVisible(config, 'phone') &&
         config.smsConfig?.regStatus == 1 &&
         _phoneCodeController.text.trim().isEmpty) {
@@ -674,14 +749,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     try {
       setState(() => _formError = null);
-      final message = await context.read<AuthProvider>().sendSmsCode(
+      final result = await context.read<AuthProvider>().sendSmsCode(
             phone: phone,
             areaCode: _selectedCountryCode,
             type: 2,
           );
       if (!mounted) return;
-      _startSmsCountdown();
-      _showMessage(message);
+      _applyReturnedCaptcha(result);
+      _startSmsCountdown(
+          _countdownSeconds(context.read<SystemProvider>().config.smsConfig));
+      _showMessage(result.message);
     } catch (error) {
       if (!mounted) return;
       _showErrorMessage(_errorMessage(error));
@@ -689,29 +766,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _sendEmailCode() async {
+    final username = _accountController.text.trim();
     final email = _emailController.text.trim();
+    if (username.isEmpty) {
+      _showMessage('请输入账号');
+      return;
+    }
     if (email.isEmpty) {
       _showMessage('请输入邮箱地址');
       return;
     }
     try {
       setState(() => _formError = null);
-      final message = await context.read<AuthProvider>().sendEmailCode(
+      final result = await context.read<AuthProvider>().sendEmailCode(
             email: email,
             type: 2,
+            username: username,
           );
       if (!mounted) return;
-      _startEmailCountdown();
-      _showMessage(message);
+      _applyReturnedCaptcha(result);
+      _startEmailCountdown(
+        _countdownSeconds(context.read<SystemProvider>().config.mailConfig),
+      );
+      _showMessage(result.message);
     } catch (error) {
       if (!mounted) return;
       _showErrorMessage(_errorMessage(error));
     }
   }
 
-  void _startSmsCountdown() {
+  void _startSmsCountdown(int seconds) {
     _smsTimer?.cancel();
-    setState(() => _smsCountdown = 60);
+    setState(() => _smsCountdown = seconds);
     _smsTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return timer.cancel();
       if (_smsCountdown <= 1) {
@@ -723,9 +809,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  void _startEmailCountdown() {
+  void _startEmailCountdown(int seconds) {
     _emailTimer?.cancel();
-    setState(() => _emailCountdown = 60);
+    setState(() => _emailCountdown = seconds);
     _emailTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return timer.cancel();
       if (_emailCountdown <= 1) {
@@ -758,14 +844,100 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  String? _textIfVisible(
+  String _visibleText(
     HomeConfig config,
     String code,
     TextEditingController controller,
   ) {
-    if (!_isVisible(config, code)) return null;
-    final text = controller.text.trim();
-    return text.isEmpty ? null : text;
+    if (!_isVisible(config, code)) return '';
+    return controller.text.trim();
+  }
+
+  Object _qqValue(HomeConfig config) {
+    if (!_isVisible(config, 'qq')) return 0;
+    final text = _qqController.text.trim();
+    if (text.isEmpty || !RegExp(r'^\d+$').hasMatch(text)) return 0;
+    return int.tryParse(text) ?? 0;
+  }
+
+  String _registrationCurrencyCode(HomeConfig config) {
+    return _resolvedCurrencyCode(config);
+  }
+
+  List<CurrencyConfig> _availableCurrencies(HomeConfig config) {
+    return config.currencies.where((item) {
+      final code = item.code?.trim();
+      return code != null && code.isNotEmpty;
+    }).toList();
+  }
+
+  String _resolvedCurrencyCode(HomeConfig config) {
+    final currencies = _availableCurrencies(config);
+    if (currencies.isEmpty) return '';
+    final selected = _selectedCurrencyCode?.trim();
+    if (selected != null &&
+        selected.isNotEmpty &&
+        currencies.any((item) => item.code?.trim() == selected)) {
+      return selected;
+    }
+    for (final currency in currencies) {
+      if (currency.requiredStatus == 1) {
+        return currency.code?.trim() ?? '';
+      }
+    }
+    return currencies.first.code?.trim() ?? '';
+  }
+
+  String _currencyTitle(List<CurrencyConfig> currencies, String code) {
+    final currency = currencies.where((item) => item.code?.trim() == code);
+    if (currency.isEmpty) return code;
+    final item = currency.first;
+    final title = item.title?.trim();
+    final symbol = item.symbol?.trim();
+    if (title == null || title.isEmpty) return code;
+    if (symbol == null || symbol.isEmpty) return title;
+    if (title.contains('（') || title.contains('(')) return title;
+    return '$symbol（$title）';
+  }
+
+  Future<void> _showCurrencyPicker(HomeConfig config) async {
+    final currencies = _availableCurrencies(config);
+    if (currencies.isEmpty) return;
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: currencies.length,
+          itemBuilder: (context, index) {
+            final item = currencies[index];
+            final code = item.code?.trim() ?? '';
+            return ListTile(
+              title: Text(_currencyTitle(currencies, code)),
+              trailing: code == _resolvedCurrencyCode(config)
+                  ? const Icon(Icons.check, color: AppColors.primary)
+                  : null,
+              onTap: () => Navigator.of(sheetContext).pop(code),
+            );
+          },
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() => _selectedCurrencyCode = selected);
+  }
+
+  void _applyReturnedCaptcha(VerificationCodeData result) {
+    final captcha = result.captcha;
+    if (captcha == null) return;
+    context.read<AuthProvider>().applyCaptcha(captcha);
+    _captchaController.clear();
+  }
+
+  int _countdownSeconds(VerifyConfig? config) {
+    final expire = config?.expire;
+    if (expire != null && expire > 0) return expire * 60;
+    return 60;
   }
 
   bool _isVisible(HomeConfig config, String code) {

@@ -675,13 +675,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     try {
       setState(() => _formError = null);
-      final message = await context.read<AuthProvider>().sendSmsCode(
+      final result = await context.read<AuthProvider>().sendSmsCode(
             phone: phone,
             areaCode: _selectedCountryCode,
           );
       if (!mounted) return;
       _startSmsCountdown();
-      _showMessage(message);
+      _showMessage(result.message);
     } catch (error) {
       if (!mounted) return;
       _showErrorMessage(_errorMessage(error));
@@ -696,11 +696,11 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     try {
       setState(() => _formError = null);
-      final message =
+      final result =
           await context.read<AuthProvider>().sendEmailCode(email: email);
       if (!mounted) return;
       _startEmailCountdown();
-      _showMessage(message);
+      _showMessage(result.message);
     } catch (error) {
       if (!mounted) return;
       _showErrorMessage(_errorMessage(error));

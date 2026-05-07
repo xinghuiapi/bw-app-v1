@@ -32,41 +32,44 @@ class AuthService extends BaseService {
     );
   }
 
-  Future<String> sendEmailCode({required String email, required int type}) {
-    return client.post<String>(
+  Future<VerificationCodeData> sendEmailCode({
+    required String email,
+    required int type,
+    String? username,
+  }) {
+    return client.post<VerificationCodeData>(
       ApiEndpoints.mailCode,
       data: <String, dynamic>{
         'type': type,
         'email': email,
+        if (username != null && username.trim().isNotEmpty)
+          'username': username.trim(),
       },
-      decoder: _responseMessage,
+      decoder: _verificationCodeData,
     );
   }
 
-  Future<String> sendSmsCode({
+  Future<VerificationCodeData> sendSmsCode({
     required String phone,
     required String areaCode,
     required int type,
   }) {
-    return client.post<String>(
+    return client.post<VerificationCodeData>(
       ApiEndpoints.phoneCode,
       data: <String, dynamic>{
         'type': type,
         'area_code': areaCode,
         'phone': phone,
       },
-      decoder: _responseMessage,
+      decoder: _verificationCodeData,
     );
   }
 
-  String _responseMessage(Object? json) {
+  VerificationCodeData _verificationCodeData(Object? json) {
     if (json is Map) {
-      final message = json['msg'] ?? json['message'];
-      if (message != null && message.toString().isNotEmpty) {
-        return message.toString();
-      }
+      return VerificationCodeData.fromJson(Map<String, dynamic>.from(json));
     }
-    return '验证码已发送';
+    return const VerificationCodeData();
   }
 
   Future<void> logout() async {

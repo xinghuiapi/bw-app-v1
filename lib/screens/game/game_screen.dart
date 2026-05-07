@@ -9,7 +9,6 @@ import '../../providers/system/system_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_images.dart';
 import '../../widgets/common/app_network_image.dart';
-import '../../widgets/custom_tab_bar.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -18,8 +17,7 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen>
-    with TickerProviderStateMixin {
+class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTabIndex = 0;
 
@@ -185,59 +183,6 @@ class _GameScreenState extends State<GameScreen>
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomTabBar(
-        currentIndex: 1,
-        onChanged: (index) {
-          switch (index) {
-            case 0:
-              context.go('/');
-              break;
-            case 1:
-              context.read<GameProvider>().loadCategories(refresh: true);
-              break;
-            case 2:
-              context.go('/activity');
-              break;
-            case 3:
-              context.go('/service');
-              break;
-            case 4:
-              context.go('/profile');
-              break;
-          }
-        },
-        items: [
-          CustomTabBarItem(
-            label: '首页',
-            icon: Icon(Icons.home_outlined, size: 24.sp),
-            activeIcon: Icon(Icons.home, size: 24.sp, color: AppColors.primary),
-          ),
-          CustomTabBarItem(
-            label: '游戏大厅',
-            icon: Icon(Icons.videogame_asset_outlined, size: 24.sp),
-            activeIcon: Icon(Icons.videogame_asset,
-                size: 24.sp, color: AppColors.primary),
-          ),
-          CustomTabBarItem(
-            label: '活动',
-            icon: Icon(Icons.card_giftcard_outlined, size: 24.sp),
-            activeIcon: Icon(Icons.card_giftcard,
-                size: 24.sp, color: AppColors.primary),
-          ),
-          CustomTabBarItem(
-            label: '客服',
-            icon: Icon(Icons.headset_mic_outlined, size: 24.sp),
-            activeIcon:
-                Icon(Icons.headset_mic, size: 24.sp, color: AppColors.primary),
-          ),
-          CustomTabBarItem(
-            label: '我的',
-            icon: Icon(Icons.person_outline, size: 24.sp),
-            activeIcon:
-                Icon(Icons.person, size: 24.sp, color: AppColors.primary),
-          ),
-        ],
       ),
     );
   }

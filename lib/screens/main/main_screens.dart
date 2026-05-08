@@ -12,7 +12,6 @@ import '../../theme/app_colors.dart';
 import '../../widgets/common/app_network_image.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
-import '../../widgets/custom_cell.dart';
 import '../../widgets/custom_button.dart';
 
 class ActivityScreen extends StatefulWidget {

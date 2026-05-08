@@ -3,6 +3,7 @@ export 'paged_state.dart';
 export 'activity/activity_provider.dart';
 export 'auth/auth_provider.dart';
 export 'feedback/feedback_provider.dart';
+export 'game/game_management_provider.dart';
 export 'game/game_provider.dart';
 export 'home/home_provider.dart';
 export 'message/message_provider.dart';

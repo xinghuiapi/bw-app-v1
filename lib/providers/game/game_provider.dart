@@ -14,6 +14,11 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
   final Set<String> _loadingCodes = <String>{};
   final Set<String> _loadedCodes = <String>{};
 
+  List<RecommendedGame> recommendedGames = const [];
+  bool isRecommendedLoading = false;
+  bool hasRecommendedLoaded = false;
+  String? recommendedError;
+
   GameListPage subListPage = const GameListPage();
   bool isSubListLoading = false;
   bool isSubListLoadingMore = false;
@@ -24,6 +29,9 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
   String _subListSearchWord = '';
   int _subListSize = 24;
   int _subListRequestSerial = 0;
+  int? favoritingGameId;
+  int? launchingGameId;
+  String? launchError;
 
   List<GameLobbyCategory> get categories => data ?? const [];
 
@@ -33,8 +41,15 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
     return currentPage < lastPage;
   }
 
-  bool isCurrentSubList({required String code, required String game}) {
-    return _subListCode == code.trim() && _subListGame == game.trim();
+  bool isCurrentSubList({
+    required String code,
+    required String game,
+    String? searchWord,
+  }) {
+    final isSameBase =
+        _subListCode == code.trim() && _subListGame == game.trim();
+    if (searchWord == null) return isSameBase;
+    return isSameBase && _subListSearchWord == searchWord.trim();
   }
 
   void bindClient(DioClient client) {
@@ -44,6 +59,46 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
   bool isCategoryLoading(String code) => _loadingCodes.contains(code);
 
   bool hasCategoryLoaded(String code) => _loadedCodes.contains(code.trim());
+
+  Future<void> loadRecommendedGames({bool refresh = false}) async {
+    if (isRecommendedLoading ||
+        (!refresh && hasRecommendedLoaded && recommendedGames.isNotEmpty)) {
+      return;
+    }
+
+    isRecommendedLoading = true;
+    recommendedError = null;
+    notifyListeners();
+
+    try {
+      recommendedGames = await _service.fetchRecommendedGames();
+      if (recommendedGames.isEmpty) {
+        recommendedGames =
+            await _service.fetchRecommendedGamesFromInterfaceList();
+      }
+      hasRecommendedLoaded = true;
+      recommendedError = null;
+    } on ApiException catch (exception) {
+      recommendedError = exception.message;
+      try {
+        recommendedGames =
+            await _service.fetchRecommendedGamesFromInterfaceList();
+        recommendedError = null;
+      } catch (_) {}
+      hasRecommendedLoaded = true;
+    } catch (exception) {
+      recommendedError = exception.toString();
+      try {
+        recommendedGames =
+            await _service.fetchRecommendedGamesFromInterfaceList();
+        recommendedError = null;
+      } catch (_) {}
+      hasRecommendedLoaded = true;
+    } finally {
+      isRecommendedLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> loadCategories({bool refresh = false}) async {
     if (isLoading || (!refresh && categories.isNotEmpty)) return;
@@ -218,6 +273,59 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
         isSubListLoadingMore = false;
         notifyListeners();
       }
+    }
+  }
+
+  Future<void> toggleGameFavorite(GameItem game) async {
+    final id = game.id;
+    if (id <= 0 || favoritingGameId == id) return;
+
+    final next = !game.isFavorite;
+    favoritingGameId = id;
+    subListError = null;
+    notifyListeners();
+
+    try {
+      await _service.setGameFavorite(id: id, favorited: next);
+      subListPage = subListPage.copyWith(
+        data: subListPage.data
+            .map(
+                (item) => item.id == id ? item.copyWith(favorited: next) : item)
+            .toList(),
+      );
+    } on ApiException catch (exception) {
+      subListError = exception.message;
+      rethrow;
+    } catch (exception) {
+      subListError = exception.toString();
+      rethrow;
+    } finally {
+      if (favoritingGameId == id) favoritingGameId = null;
+      notifyListeners();
+    }
+  }
+
+  Future<GameLaunchResult> launchGame(GameLaunchTarget target) async {
+    if (target.id <= 0) return const GameLaunchResult();
+    if (launchingGameId == target.id) return const GameLaunchResult();
+
+    launchingGameId = target.id;
+    launchError = null;
+    notifyListeners();
+
+    try {
+      final result = await _service.launchGame(id: target.id);
+      launchError = null;
+      return result;
+    } on ApiException catch (exception) {
+      launchError = exception.message;
+      rethrow;
+    } catch (exception) {
+      launchError = exception.toString();
+      rethrow;
+    } finally {
+      if (launchingGameId == target.id) launchingGameId = null;
+      notifyListeners();
     }
   }
 }

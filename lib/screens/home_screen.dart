@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../models/game/game_models.dart';
 import '../models/home/home_models.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/game/game_provider.dart';
@@ -22,9 +24,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const _fallbackNoticeText = '欢迎体验基于 Flutter 构建的全新 UI，极致性能、多端支持！';
+  static const int _fallbackRecoGameCount = 5;
 
   bool _showDownloadBar = true;
   bool _showBalance = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<GameProvider>().loadRecommendedGames();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -798,45 +810,223 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildRecoGamesSection() {
+    final gameProvider = context.watch<GameProvider>();
+    final remoteGames = gameProvider.recommendedGames;
+    final hasRemoteData = remoteGames.isNotEmpty;
+
     return Container(
       margin: EdgeInsets.only(top: 20.h),
       child: Column(
         children: [
-          _buildSectionHeader('推荐游戏'),
+          _buildSectionHeader('推荐游戏', onMoreTap: () => context.go('/game')),
           SizedBox(height: 12.h),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: List.generate(5, (index) {
-                return Container(
-                  width: 100.w,
-                  margin: EdgeInsets.only(right: 12.w),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 100.w,
-                        height: 100.w,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16.r),
-                          image: const DecorationImage(
-                            image: AssetImage(AppImages.dz),
-                            fit: BoxFit.cover,
-                          ),
+          if (gameProvider.isRecommendedLoading && !hasRemoteData)
+            SizedBox(
+              height: 128.h,
+              child: const Center(child: CircularProgressIndicator()),
+            )
+          else
+            _buildRecoGameList(remoteGames, hasRemoteData: hasRemoteData),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecoGameList(
+    List<RecommendedGame> games, {
+    required bool hasRemoteData,
+  }) {
+    return SizedBox(
+      height: 132.h,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: hasRemoteData
+              ? games.map(_buildRemoteRecoGameCard).toList()
+              : List.generate(
+                  _fallbackRecoGameCount, _buildFallbackRecoGameCard),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRemoteRecoGameCard(RecommendedGame game) {
+    final isLaunching = context.select<GameProvider, bool>(
+      (provider) => provider.launchingGameId == game.id,
+    );
+
+    return GestureDetector(
+      onTap: () {
+        if (game.isMaintaining || isLaunching) return;
+        if (game.opensSubList) {
+          _openRecommendedSubList(game);
+          return;
+        }
+        _launchRecommendedGame(game.launchTarget);
+      },
+      child: Container(
+        width: 100.w,
+        margin: EdgeInsets.only(right: 12.w),
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16.r),
+                  child: AppNetworkImage(
+                    url: game.img ?? '',
+                    width: 100.w,
+                    height: 100.w,
+                    errorWidget: Image.asset(
+                      AppImages.dz,
+                      width: 100.w,
+                      height: 100.w,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                if (game.isMaintaining)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(16.r),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '维护中',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        '推荐游戏 ${index + 1}',
-                        style: TextStyle(
-                            fontSize: 13.sp, color: const Color(0xFF333333)),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                    ),
                   ),
-                );
-              }),
+                if (isLaunching)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.48),
+                        borderRadius: BorderRadius.circular(16.r),
+                      ),
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 22.w,
+                            height: 22.w,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            '启动中...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
+            SizedBox(height: 8.h),
+            Text(
+              game.title,
+              style: TextStyle(fontSize: 13.sp, color: const Color(0xFF333333)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openRecommendedSubList(RecommendedGame game) {
+    final code = game.subListCode.trim();
+    final gameCode = game.subListGame.trim();
+    if (code.isEmpty || gameCode.isEmpty) return;
+    context.push(
+      '/game-sub?code=${Uri.encodeQueryComponent(code)}&game=${Uri.encodeQueryComponent(gameCode)}&title=${Uri.encodeQueryComponent(game.title)}',
+    );
+  }
+
+  Future<void> _launchRecommendedGame(GameLaunchTarget target) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!context.read<AuthProvider>().isAuthenticated) {
+      context.push('/login');
+      return;
+    }
+
+    try {
+      final result = await context.read<GameProvider>().launchGame(target);
+      if (!mounted) return;
+      final urlText = result.url?.trim();
+      if (urlText == null || urlText.isEmpty) {
+        messenger.showSnackBar(const SnackBar(content: Text('进入游戏失败')));
+        return;
+      }
+      final uri = Uri.tryParse(urlText);
+      if (uri == null) {
+        messenger.showSnackBar(const SnackBar(content: Text('游戏地址无效')));
+        return;
+      }
+      if (result.nesting == false) {
+        final opened =
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!opened && mounted) {
+          messenger.showSnackBar(const SnackBar(content: Text('无法打开游戏')));
+        }
+        return;
+      }
+      context.push('/game-view', extra: {
+        'url': urlText,
+        'title': target.title,
+      });
+    } catch (error) {
+      if (!mounted) return;
+      final message = context.read<GameProvider>().launchError;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            message?.trim().isNotEmpty == true ? message! : '进入游戏失败',
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildFallbackRecoGameCard(int index) {
+    return Container(
+      width: 100.w,
+      margin: EdgeInsets.only(right: 12.w),
+      child: Column(
+        children: [
+          Container(
+            width: 100.w,
+            height: 100.w,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16.r),
+              image: const DecorationImage(
+                image: AssetImage(AppImages.dz),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            '推荐游戏 ${index + 1}',
+            style: TextStyle(fontSize: 13.sp, color: const Color(0xFF333333)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -891,7 +1081,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, {VoidCallback? onMoreTap}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -916,11 +1106,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        Text(
-          '更多',
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: const Color(0xFF999999),
+        GestureDetector(
+          onTap: onMoreTap,
+          child: Text(
+            '更多',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: const Color(0xFF999999),
+            ),
           ),
         ),
       ],

@@ -1453,3 +1453,255 @@ flutter test test/widget_test.dart
 - 使用真实手动活动验证成功、重复申请、活动过期、登录过期等业务场景。
 - 当前 `DioClient` 默认只返回 `data` payload，成功提示暂用本地文案；如需要完全展示后端成功 `msg`，需补完整 envelope 返回能力。
 - 活动模块主要链路已完成，下一步建议转入游戏搜索/收藏等非资金链路。
+
+## 31. 2026-05-08 游戏子列表搜索、分页与收藏接入记录
+
+状态：已完成非资金链路接入，待真实账号验证收藏接口。
+
+### 31.1 本次任务目标
+
+- 继续按照文档转入游戏模块非资金链路。
+- 补齐 m1 `GameSubList.vue` 中已存在的搜索、分页和收藏交互。
+- 不接进入游戏、游戏余额、场馆转账或其他资金相关接口。
+
+### 31.2 m1 对齐结论
+
+- 子游戏列表接口为 `POST /gamelist/getlist`。
+- 请求参数为 `page`、`size`、`code`、`game`、`search_word`。
+- 搜索输入在 m1 中使用 300ms debounce 后重新拉取第一页。
+- 收藏接口为 `POST /user_favorites/game`。
+- 收藏参数为 `id` 和 `status`，`status = 1` 表示收藏，`status = 0` 表示取消收藏。
+- 未登录点击收藏时只提示登录，不发起收藏请求。
+
+### 31.3 已完成内容
+
+- 新增 `ApiEndpoints.gameFavorite`。
+- `GameService` 新增 `setGameFavorite({id, favorited})`。
+- `GameItem` 新增 `copyWith()`，用于收藏状态局部更新。
+- `GameProvider` 新增：
+- 当前子列表搜索词匹配判断。
+- `favoritingGameId` 收藏提交中状态。
+- `toggleGameFavorite()` 收藏/取消收藏提交方法。
+- `GameSubListScreen` 搜索图标可展开/关闭搜索栏。
+- 搜索输入 300ms debounce 后调用 `/gamelist/getlist` 首屏刷新。
+- 关闭搜索栏清空关键词并恢复原列表。
+- 远程子游戏卡片收藏按钮调用真实接口，并展示提交中 loading。
+- 未登录点击收藏提示 `请先登录查看收藏`。
+- 分页加载更多继续沿用现有滚动触底逻辑。
+- 清理了未使用字段、未使用方法和未使用 import，保持分析基线干净。
+
+### 31.4 验证结果
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+结果：
+
+- `dart format lib test` 已执行通过。
+- `flutter analyze lib test` 已执行通过，结果为 `No issues found!`。
+- `flutter test test/widget_test.dart` 已执行通过，当前为 `9 tests passed`。
+
+### 31.5 后续建议
+
+- 用真实账号验证收藏成功、取消收藏、重复点击和未登录提示。
+- 当前收藏 Tab 过滤当前已加载列表中的收藏项；如需要独立收藏分页，需要确认是否有专属收藏列表接口后再接。
+- 下一步可继续游戏推荐/首页推荐游戏只读接口，或评估游戏启动 `/game/login` 前的非资金安全状态处理。
+
+## 32. 2026-05-08 首页推荐游戏只读接入记录
+
+状态：已完成只读接入，待真实接口数据验证。
+
+### 32.1 本次任务目标
+
+- 继续推进游戏模块低风险只读链路。
+- 将首页“推荐游戏”从纯静态 mock 改为真实接口优先。
+- 不接游戏启动 `/game/login`，不进入余额、转账或资金链路。
+
+### 32.2 m1 与接口结论
+
+- 接口文档中推荐游戏接口为 `POST /interface/reco`。
+- m1 接口封装为 `getInterfaceReco()`，路径 `/api/interface/reco`。
+- m1 首页存在推荐游戏横向滚动区，展示游戏图片和标题。
+- m1 点击推荐游戏会进入游戏启动逻辑；Flutter 本次暂不接启动，只保留占位提示。
+
+### 32.3 已完成内容
+
+- 新增 `RecommendedGame` 模型，覆盖推荐游戏展示所需字段。
+- `GameService.fetchRecommendedGames()` 接入 `/interface/reco`。
+- `GameProvider` 新增：
+- `recommendedGames`。
+- `isRecommendedLoading`。
+- `hasRecommendedLoaded`。
+- `recommendedError`。
+- `loadRecommendedGames()`。
+- `HomeScreen.initState()` 首帧后加载推荐游戏。
+- 首页推荐游戏区优先展示真实推荐游戏图片和标题。
+- 真实接口为空或失败时保留原静态推荐游戏 fallback。
+- 推荐游戏图片使用 `AppNetworkImage`，保留本地图片兜底。
+- “更多”入口跳转 `/game` 游戏大厅。
+- 点击推荐游戏已接入 `/game/login`，复用游戏大厅启动逻辑和 `/game-view` 承载页。
+- 推荐游戏启动中显示遮罩和 `启动中...`。
+- 推荐游戏列表优先使用 `/interface/reco`，失败或为空时 fallback 到 m1 当前使用的 `/interface/list`，筛选 `label` 包含 `reco`。
+- 推荐游戏若为二级分类入口（`category == 1`），点击进入子游戏列表，而不是直接启动游戏。
+
+### 32.4 验证结果
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+结果：
+
+- `dart format lib test` 已执行通过。
+- `flutter analyze lib test` 已执行通过，结果为 `No issues found!`。
+- `flutter test test/widget_test.dart` 已执行通过，当前为 `9 tests passed`。
+
+### 32.5 后续建议
+
+- 用真实接口验证 `/interface/reco` 的返回结构、图片地址和维护状态字段。
+- 首页推荐游戏启动已接入，需要继续用真实账号验证登录态、维护状态、外跳/内嵌 WebView、失败提示和重复点击保护。
+- 推荐游戏列表需要验证 `/interface/reco` 与 `/interface/list` fallback 两种来源的数据结构。
+- 继续保留资金相关接口后置原则。
+
+## 33. 2026-05-08 游戏启动最小接入记录
+
+状态：已完成最小启动链路，待真实账号验证。
+
+### 33.1 本次任务目标
+
+- 接入游戏启动 `/game/login` 的最小可用链路。
+- 对齐 m1 的未登录、维护、提交中和 URL 打开处理。
+- 不接游戏余额、场馆转账、一键回收等资金相关接口。
+
+### 33.2 m1 与接口结论
+
+- m1 `api/game.js` 中 `gameLogin(data)` 调用 `/api/game/login`。
+- 接口文档请求参数为 `id` 和 `mobile`，移动端传 `mobile: 1`。
+- 响应字段为 `data.url` 和 `data.nesting`。
+- m1 已登录才调用启动接口；未登录跳登录页。
+- m1 维护中游戏不启动。
+- m1 `nesting === false` 时外部打开；否则使用 `GamePlay` 内嵌组件。
+- 旧 Flutter 项目已有 `GameViewScreen` 跨平台承载方案，移动端使用 WebView，Web 端使用 iframe。
+- Flutter 当前项目本次补齐 `/game-view` 内嵌承载页，避免游戏启动后错误回到首页或保留游戏大厅底栏。
+
+### 33.3 已完成内容
+
+- `GameLaunchResult` 增加 `nesting` 字段。
+- 新增 `GameLaunchTarget`，统一表示可启动游戏的 `id/title`。
+- `GameProviderItem`、`GameItem`、`RecommendedGame` 增加 `launchTarget`。
+- `GameService.launchGame()` 接入 `POST /game/login`，参数为 `id`、`mobile: 1`。
+- `GameProvider` 新增：
+- `launchingGameId`。
+- `launchError`。
+- `launchGame()`。
+- 游戏大厅非子列表卡片点击从跳登录占位改为真实启动。
+- 子游戏列表卡片点击接入真实启动。
+- 未登录点击游戏跳转 `/login`。
+- 维护中游戏不启动。
+- 启动中卡片显示遮罩和 `启动中...`。
+- 启动成功后进入 `/game-view` 内嵌承载游戏地址。
+- 移动端使用 `webview_flutter`，Web 端使用 iframe `HtmlElementView`。
+- 接口失败、无 URL、URL 无效均有提示。
+
+### 33.4 验证结果
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+结果：
+
+- `dart format lib test` 已执行通过。
+- `flutter analyze lib test` 已执行通过，结果为 `No issues found!`。
+- `flutter test test/widget_test.dart` 已执行通过，当前为 `9 tests passed`。
+
+### 33.5 后续建议
+
+- 用真实账号验证 `/game/login` 返回的 `url` 是否可被外部浏览器/App 打开。
+- 继续用真实账号验证二级分类游戏和子游戏列表点击是否都能触发 `/game/login` 并进入 `/game-view`。
+- 如果产品要求 m1 的弹层最小化浮窗体验，需要作为独立交互任务实现。
+- 场馆余额、转入、转出、一键回收等资金动作继续后置。
+
+## 34. 2026-05-08 路由兼容与维护页记录
+
+状态：已完成基础路由对齐。
+
+### 34.1 本次任务目标
+
+- 对齐 m1 主要业务路径，保留当前 Flutter 已有路径作为兼容入口。
+- 补齐登录保护遗漏，降低后续接口接入时的越权访问风险。
+- 补齐 m1 `/maintenance` 系统维护页和全局维护跳转。
+
+### 34.2 已完成内容
+
+- 初始路由调整为 `/`，不再默认进入 `/login`。
+- 新增 m1 alias 路由：`/game/sub`、`/game/play`、`/activity/detail/:id`、`/activity/records`、`/feedback/records`、`/user/*`、`/card/*`、`/game-manage`、`/fund-manage`、`/deposit/*`、`/withdraw/success`。
+- 新增 `routeRequiresAuth(path)`，支持精确路径和动态路径前缀登录保护。
+- 补齐 `/game-sub`、`/activity-detail`、`/activity-record`、`/online-pay`、`/deposit-detail`、`/deposit-success`、`/withdraw-success` 等保护遗漏。
+- 新增 `MaintenanceScreen` 和 `/maintenance` 路由。
+- `SystemProvider` 绑定全局 `DioClient`。
+- `GoRouter` 合并监听 `AuthProvider` 与 `SystemProvider`，支持配置加载后即时触发维护重定向。
+
+### 34.3 后续建议
+
+- 使用真实配置验证维护状态跳转。
+- 如后续需要完全对齐 m1 游戏体验，再实现页面内 popup/minimize 游戏承载，而不是仅使用独立 `/game-view`。
+- 继续避免接入充值、提现、转账、绑卡等资金写操作。
+
+## 35. 2026-05-08 游戏承载页 m1 基础对齐记录
+
+状态：已完成独立承载页基础体验对齐。
+
+### 35.1 本次任务目标
+
+- 在不大改 App 顶层结构的前提下，让当前 `/game-view` 更接近 m1 `GamePlay.vue`。
+- 对齐 m1 的 `nesting === false` 外部打开规则。
+- 保持资金相关游戏余额和转账动作后置。
+
+### 35.2 已完成内容
+
+- `GameScreen` 和 `GameSubListScreen` 启动成功后读取 `GameLaunchResult.nesting`。
+- `nesting == false` 时通过 `url_launcher` 外部打开游戏 URL。
+- 其他情况继续进入 `/game-view` 内嵌承载。
+- 新增 `GameViewShell`，统一黑色顶部栏、标题、站点 Logo、关闭按钮和错误状态。
+- 移动端 `webview_flutter` 承载增加无效 URL、加载失败和重新加载处理。
+- Web iframe 增加 m1 的 allow/sandbox/fullscreen 参数。
+
+### 35.3 后续建议
+
+- 用真实账号验证游戏启动后窗口打开行为。
+- 若产品继续要求完全对齐 m1，再实现页面内 popup 和 floating 小窗。
+
+## 36. 2026-05-08 游戏管理只读记录接入记录
+
+状态：已完成只读记录接入。
+
+### 36.1 本次任务目标
+
+- 接入游戏管理页的只读记录数据。
+- 对齐 m1 的返水记录和游戏记录接口、日期筛选、分页和统计展示。
+- 不接领取返水写操作。
+
+### 36.2 已完成内容
+
+- 新增接口：`/member_fs_log/getlist`、`/gamerecord/getlist`。
+- 新增模型：`GameManageQuery`、`RebateRecordPage`、`RebateRecord`、`GameRecordPage`、`GameBetRecord`。
+- 新增 `GameManagementService` 和 `GameManagementProvider`。
+- `GameManagementScreen` 接入真实返水记录和游戏记录。
+- 支持快捷日期筛选、下拉刷新、滚动分页、真实统计和空态。
+- 空数组不显示静态 fallback 记录；日期筛选区使用横向滚动避免窄屏溢出。
+- 记录卡片、统计卡片和日期筛选卡片完成 m1 风格精修，减少过大的 padding 和列表空态干扰。
+- 已按 m1 数据模型补充记录字段保护，返水记录和游戏记录不会互相误解析。
+- 返水领取按钮保持禁用，避免本阶段引入金额写操作。
+
+### 36.3 后续建议
+
+- 用真实账号验证字段映射和分页。
+- 下一步可继续接资金管理页只读记录，仍不接提交类资金写操作。

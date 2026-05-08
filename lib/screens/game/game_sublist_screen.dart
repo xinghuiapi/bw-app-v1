@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/game/game_models.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../providers/game/game_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_images.dart';
@@ -24,7 +28,11 @@ class _GameSubListScreenState extends State<GameSubListScreen>
   static const int _remotePageSize = 24;
 
   late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   int _selectedTabIndex = 0;
+  bool _showSearchBar = false;
+  Timer? _searchDebounce;
 
   // Mock Data: 根据截图提取的游戏列表
   final List<Map<String, dynamic>> _allGames = [
@@ -64,6 +72,9 @@ class _GameSubListScreenState extends State<GameSubListScreen>
   @override
   void dispose() {
     _tabController.removeListener(_handleTabChanged);
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -81,6 +92,38 @@ class _GameSubListScreenState extends State<GameSubListScreen>
     });
   }
 
+  void _toggleSearchBar() {
+    setState(() => _showSearchBar = !_showSearchBar);
+    if (_showSearchBar) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _searchFocusNode.requestFocus();
+      });
+    } else {
+      _searchDebounce?.cancel();
+      _searchController.clear();
+      _loadRemoteSearch('');
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {});
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      _loadRemoteSearch(value);
+    });
+  }
+
+  void _loadRemoteSearch(String value) {
+    if (!_hasRemoteParams) return;
+    context.read<GameProvider>().loadGameSubList(
+          code: widget.code ?? '',
+          game: widget.game ?? '',
+          size: _remotePageSize,
+          searchWord: value,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameProvider = context.watch<GameProvider>();
@@ -89,6 +132,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
     final isCurrentRemoteQuery = gameProvider.isCurrentSubList(
       code: widget.code ?? '',
       game: widget.game ?? '',
+      searchWord: _searchController.text,
     );
     final hasRemoteState = expectsRemoteData &&
         isCurrentRemoteQuery &&
@@ -122,13 +166,18 @@ class _GameSubListScreenState extends State<GameSubListScreen>
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: AppColors.primary, size: 24.sp),
-            onPressed: () {},
+            icon: Icon(
+              _showSearchBar ? Icons.search_off_rounded : Icons.search,
+              color: AppColors.primary,
+              size: 24.sp,
+            ),
+            onPressed: _toggleSearchBar,
           ),
         ],
       ),
       body: Column(
         children: [
+          if (_showSearchBar) _buildSearchBar(),
           _buildTabs(),
           Expanded(
             child: expectsRemoteData
@@ -208,89 +257,255 @@ class _GameSubListScreenState extends State<GameSubListScreen>
   }
 
   Widget _buildRemoteGameCard(GameItem game) {
+    final provider = context.watch<GameProvider>();
+    final isFavoriting = provider.favoritingGameId == game.id;
+    final isLaunching = provider.launchingGameId == game.id;
+
     return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: _buildRemoteCover(game.img),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8.r),
-                        bottomRight: Radius.circular(12.r),
+      child: GestureDetector(
+        onTap: () {
+          if (game.isMaintaining) return;
+          _launchRemoteGame(game.launchTarget);
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: _buildRemoteCover(game.img),
+                  ),
+                  if (isLaunching)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 22.w,
+                            height: 22.w,
+                            child: const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            '启动中...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Text(
-                      widget.title?.trim().isNotEmpty == true
-                          ? widget.title!.trim().split('').take(2).join()
-                          : 'PG',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w800,
-                        height: 1.1,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 6.h,
-                  right: 6.w,
-                  child: Container(
-                    padding: EdgeInsets.all(4.w),
-                    decoration: BoxDecoration(
-                      color: game.isFavorite
-                          ? AppColors.primary
-                          : Colors.black.withValues(alpha: 0.25),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      game.isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: Colors.white,
-                      size: 16.sp,
-                    ),
-                  ),
-                ),
-                if (game.isMaintaining)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '维护中',
-                      style: TextStyle(
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                      decoration: BoxDecoration(
                         color: Colors.white,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w600,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(8.r),
+                          bottomRight: Radius.circular(12.r),
+                        ),
+                      ),
+                      child: Text(
+                        widget.title?.trim().isNotEmpty == true
+                            ? widget.title!.trim().split('').take(2).join()
+                            : 'PG',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w800,
+                          height: 1.1,
+                        ),
                       ),
                     ),
                   ),
-              ],
+                  Positioned(
+                    top: 6.h,
+                    right: 6.w,
+                    child: GestureDetector(
+                      onTap: isFavoriting
+                          ? null
+                          : () {
+                              _toggleRemoteFavorite(game);
+                            },
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: EdgeInsets.all(4.w),
+                        decoration: BoxDecoration(
+                          color: game.isFavorite
+                              ? AppColors.primary
+                              : Colors.black.withValues(alpha: 0.25),
+                          shape: BoxShape.circle,
+                        ),
+                        child: isFavoriting
+                            ? SizedBox(
+                                width: 16.sp,
+                                height: 16.sp,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Icon(
+                                game.isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: Colors.white,
+                                size: 16.sp,
+                              ),
+                      ),
+                    ),
+                  ),
+                  if (game.isMaintaining)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '维护中',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              game.title ?? '',
+              style: TextStyle(fontSize: 12.sp, color: const Color(0xFF333333)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchRemoteGame(GameLaunchTarget target) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!context.read<AuthProvider>().isAuthenticated) {
+      context.push('/login');
+      return;
+    }
+
+    try {
+      final result = await context.read<GameProvider>().launchGame(target);
+      if (!mounted) return;
+      final urlText = result.url?.trim();
+      if (urlText == null || urlText.isEmpty) {
+        messenger.showSnackBar(const SnackBar(content: Text('进入游戏失败')));
+        return;
+      }
+      if (Uri.tryParse(urlText) == null) {
+        messenger.showSnackBar(const SnackBar(content: Text('游戏地址无效')));
+        return;
+      }
+      if (result.nesting == false) {
+        final opened = await launchUrl(
+          Uri.parse(urlText),
+          mode: LaunchMode.externalApplication,
+        );
+        if (!opened && mounted) {
+          messenger.showSnackBar(const SnackBar(content: Text('无法打开游戏')));
+        }
+        return;
+      }
+      context.push('/game-view', extra: {
+        'url': urlText,
+        'title': target.title,
+      });
+    } catch (error) {
+      if (!mounted) return;
+      final message = context.read<GameProvider>().launchError;
+      messenger.showSnackBar(
+        SnackBar(
+            content:
+                Text(message?.trim().isNotEmpty == true ? message! : '进入游戏失败')),
+      );
+    }
+  }
+
+  Future<void> _toggleRemoteFavorite(GameItem game) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!context.read<AuthProvider>().isAuthenticated) {
+      messenger.showSnackBar(const SnackBar(content: Text('请先登录查看收藏')));
+      return;
+    }
+    try {
+      final next = !game.isFavorite;
+      await context.read<GameProvider>().toggleGameFavorite(game);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(next ? '收藏成功' : '取消收藏成功')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(game.isFavorite ? '取消收藏失败' : '收藏失败')),
+      );
+    }
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      margin: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 0),
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      height: 42.h,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22.r),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search, size: 20.sp, color: const Color(0xFF999999)),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              onChanged: _onSearchChanged,
+              onSubmitted: _loadRemoteSearch,
+              textInputAction: TextInputAction.search,
+              decoration: const InputDecoration(
+                hintText: '请输入游戏名称',
+                border: InputBorder.none,
+                isCollapsed: true,
+              ),
+              style: TextStyle(fontSize: 14.sp, color: const Color(0xFF333333)),
             ),
           ),
-          SizedBox(height: 6.h),
-          Text(
-            game.title ?? '',
-            style: TextStyle(fontSize: 12.sp, color: const Color(0xFF333333)),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-          ),
+          if (_searchController.text.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                _searchDebounce?.cancel();
+                setState(() => _searchController.clear());
+                _loadRemoteSearch('');
+              },
+              child: Icon(Icons.cancel,
+                  size: 18.sp, color: const Color(0xFFCCCCCC)),
+            ),
         ],
       ),
     );

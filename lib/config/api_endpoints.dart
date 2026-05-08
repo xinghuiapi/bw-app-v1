@@ -24,6 +24,7 @@ class ApiEndpoints {
   static const interfaceClass = '/interface/class';
   static const interfaceList = '/interface/list';
   static const gameList = '/gamelist/getlist';
+  static const gameFavorite = '/user_favorites/game';
   static const systemConfig = '/system/getlist';
   static const interfaceRecommend = '/interface/reco';
 
@@ -39,6 +40,12 @@ class ApiEndpoints {
   static const gameDeposit = '/game/deposit';
   static const gameWithdrawal = '/game/withdrawal';
   static const gameTransfer = '/game/transfer';
+  static const tradeRecord = '/trade/record';
+  static const transferLogList = '/transfers_log/getlist';
+  static const moneyLogList = '/money_log/getlist';
+  static const gameRecordList = '/gamerecord/getlist';
+  static const memberFsLogList = '/member_fs_log/getlist';
+  static const memberFsLogClaim = '/member_fs_log/claim';
 }
 
 const authIgnoredPaths = <String>{

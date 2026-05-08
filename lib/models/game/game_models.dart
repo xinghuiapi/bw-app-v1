@@ -75,6 +75,8 @@ class GameProviderItem {
 
   bool get isMaintaining => status == 0;
   bool get opensSubList => category == 1;
+
+  GameLaunchTarget get launchTarget => GameLaunchTarget(id: id, title: title);
 }
 
 class GameLobbyCategory {
@@ -220,6 +222,24 @@ class GameItem {
 
   bool get isFavorite => favorited;
   bool get isMaintaining => status == 0;
+  GameLaunchTarget get launchTarget =>
+      GameLaunchTarget(id: id, title: title ?? '');
+
+  GameItem copyWith({bool? favorited}) {
+    return GameItem(
+      id: id,
+      title: title,
+      img: img,
+      gameCode: gameCode,
+      favorites: favorites,
+      isCategoryResult: isCategoryResult,
+      isHot: isHot,
+      interfaceTitle: interfaceTitle,
+      labels: labels,
+      status: status,
+      favorited: favorited ?? this.favorited,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -233,6 +253,82 @@ class GameItem {
         'status_s': status,
         'favorite': favorited,
         'label': labels,
+      };
+}
+
+class RecommendedGame {
+  final int id;
+  final String code;
+  final String game;
+  final String? gameCode;
+  final String title;
+  final String? img;
+  final dynamic label;
+  final String? type;
+  final int category;
+  final int status;
+  final bool favorited;
+
+  const RecommendedGame({
+    required this.id,
+    required this.code,
+    required this.game,
+    this.gameCode,
+    required this.title,
+    this.img,
+    this.label,
+    this.type,
+    this.category = 0,
+    this.status = 1,
+    this.favorited = false,
+  });
+
+  factory RecommendedGame.fromJson(Map<String, dynamic> json) {
+    return RecommendedGame(
+      id: jsonInt(json['id']) ?? 0,
+      code: jsonString(json['code'])?.trim() ?? '',
+      game: jsonString(json['game'] ?? json['gamecode'] ?? json['game_code'])
+              ?.trim() ??
+          '',
+      gameCode: jsonString(json['gamecode'] ?? json['game_code'])?.trim(),
+      title: jsonString(json['title']) ?? '',
+      img: jsonString(json['h5_logo'] ?? json['img'])?.trim(),
+      label: json['label'],
+      type: jsonString(json['type'])?.trim(),
+      category: jsonInt(json['category']) ?? 0,
+      status: jsonInt(json['status_s'] ?? json['status']) ?? 1,
+      favorited: jsonBool(json['favorite'] ??
+              json['is_favorite'] ??
+              json['fav'] ??
+              json['collect'] ??
+              json['is_collect'] ??
+              json['favorite_status'] ??
+              json['collect_status'] ??
+              json['favorites']) ??
+          false,
+    );
+  }
+
+  bool get isMaintaining => status == 0;
+  bool get opensSubList => category == 1;
+  String get subListCode =>
+      type?.trim().isNotEmpty == true ? type!.trim() : code;
+  String get subListGame => code.trim().isNotEmpty ? code.trim() : game.trim();
+
+  GameLaunchTarget get launchTarget => GameLaunchTarget(id: id, title: title);
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'code': code,
+        'game': game,
+        if (gameCode != null) 'gamecode': gameCode,
+        'title': title,
+        if (img != null) 'img': img,
+        if (label != null) 'label': label,
+        if (type != null) 'type': type,
+        'category': category,
+        'status_s': status,
+        'favorites': favorited,
       };
 }
 
@@ -280,14 +376,28 @@ class GameListPage {
 
 class GameLaunchResult {
   final String? url;
+  final bool nesting;
 
-  const GameLaunchResult({this.url});
+  const GameLaunchResult({this.url, this.nesting = true});
 
   factory GameLaunchResult.fromJson(Map<String, dynamic> json) {
-    return GameLaunchResult(url: jsonString(json['url'] ?? json['game_url']));
+    return GameLaunchResult(
+      url: jsonString(json['url'] ?? json['game_url']),
+      nesting: jsonBool(json['nesting']) ?? true,
+    );
   }
 
-  Map<String, dynamic> toJson() => {if (url != null) 'url': url};
+  Map<String, dynamic> toJson() => {
+        if (url != null) 'url': url,
+        'nesting': nesting,
+      };
+}
+
+class GameLaunchTarget {
+  final int id;
+  final String title;
+
+  const GameLaunchTarget({required this.id, required this.title});
 }
 
 class GameBalance {

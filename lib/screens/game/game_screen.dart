@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/game/game_models.dart';
 import '../../models/home/home_models.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../providers/game/game_provider.dart';
 import '../../providers/system/system_provider.dart';
 import '../../theme/app_colors.dart';
@@ -20,73 +22,6 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTabIndex = 0;
-
-  final List<Map<String, dynamic>> _categories = [
-    {'id': 'lottery', 'name': '彩票'},
-    {'id': 'live', 'name': '视讯'},
-    {'id': 'game', 'name': '电子'},
-    {'id': 'fishing', 'name': '捕鱼'},
-    {'id': 'sport', 'name': '体育'},
-    {'id': 'poker', 'name': '棋牌'},
-    {'id': 'esports', 'name': '电竞'},
-  ];
-
-  final List<Map<String, dynamic>> _games = [
-    {
-      'title': 'PA视讯',
-      'image': AppImages.zr,
-      'maintaining': false,
-      'loading': false
-    },
-    {
-      'title': 'PA视讯',
-      'image': AppImages.zr,
-      'maintaining': false,
-      'loading': false
-    },
-    {
-      'title': 'BBIN视讯',
-      'image': AppImages.zr,
-      'maintaining': false,
-      'loading': false
-    },
-    {
-      'title': 'DG视讯',
-      'image': AppImages.zr,
-      'maintaining': false,
-      'loading': false
-    },
-    {
-      'title': '欧博视讯',
-      'image': AppImages.zr,
-      'maintaining': true,
-      'loading': false
-    },
-    {
-      'title': 'DB视讯',
-      'image': AppImages.zr,
-      'maintaining': false,
-      'loading': false
-    },
-    {
-      'title': '完美视讯',
-      'image': AppImages.zr,
-      'maintaining': false,
-      'loading': false
-    },
-    {
-      'title': 'SEXY视讯',
-      'image': AppImages.zr,
-      'maintaining': false,
-      'loading': true
-    },
-    {
-      'title': 'BG视讯',
-      'image': AppImages.zr,
-      'maintaining': false,
-      'loading': false
-    },
-  ];
 
   @override
   void initState() {
@@ -341,7 +276,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               );
               return;
             }
-            context.push('/login');
+            _launchGame(game.launchTarget);
           },
           child: Container(
             decoration: BoxDecoration(
@@ -367,6 +302,32 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       fit: StackFit.expand,
                       children: [
                         _buildProviderCover(game.logo, games.length),
+                        if (provider.launchingGameId == game.id)
+                          Container(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 24.w,
+                                  height: 24.w,
+                                  child: const CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  '启动中...',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         if (game.isMaintaining)
                           Container(
                             color: Colors.black.withValues(alpha: 0.45),
@@ -406,6 +367,50 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _launchGame(GameLaunchTarget target) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!context.read<AuthProvider>().isAuthenticated) {
+      context.push('/login');
+      return;
+    }
+
+    try {
+      final result = await context.read<GameProvider>().launchGame(target);
+      if (!mounted) return;
+      final urlText = result.url?.trim();
+      if (urlText == null || urlText.isEmpty) {
+        messenger.showSnackBar(const SnackBar(content: Text('进入游戏失败')));
+        return;
+      }
+      if (Uri.tryParse(urlText) == null) {
+        messenger.showSnackBar(const SnackBar(content: Text('游戏地址无效')));
+        return;
+      }
+      if (result.nesting == false) {
+        final opened = await launchUrl(
+          Uri.parse(urlText),
+          mode: LaunchMode.externalApplication,
+        );
+        if (!opened && mounted) {
+          messenger.showSnackBar(const SnackBar(content: Text('无法打开游戏')));
+        }
+        return;
+      }
+      context.push('/game-view', extra: {
+        'url': urlText,
+        'title': target.title,
+      });
+    } catch (error) {
+      if (!mounted) return;
+      final message = context.read<GameProvider>().launchError;
+      messenger.showSnackBar(
+        SnackBar(
+            content:
+                Text(message?.trim().isNotEmpty == true ? message! : '进入游戏失败')),
+      );
+    }
+  }
+
   Widget _buildProviderCover(String? logoUrl, int itemCount) {
     final fallback = Image.asset(
       AppImages.zr,
@@ -425,121 +430,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       width: cardWidth,
       height: cardWidth / 0.72,
       errorWidget: fallback,
-    );
-  }
-
-  Widget _buildGameGrid() {
-    return GridView.builder(
-      padding:
-          EdgeInsets.only(left: 12.w, right: 12.w, top: 12.h, bottom: 24.h),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12.w,
-        crossAxisSpacing: 12.w,
-        childAspectRatio: 0.72, // Adjust to fit cover and title nicely
-      ),
-      itemCount: _games.length,
-      itemBuilder: (context, index) {
-        final game = _games[index];
-        final isMaintaining = game['maintaining'] as bool;
-        final isLoading = game['loading'] as bool;
-
-        return GestureDetector(
-          onTap: () {
-            if (isMaintaining || isLoading) return;
-            // Simulated game entry or sublist
-            context.push('/game-sub');
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12.r),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(12.r),
-                    ),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          game['image'] as String,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.center,
-                        ),
-                        if (isMaintaining)
-                          Container(
-                            color: Colors.black.withValues(alpha: 0.45),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '维护中',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        if (isLoading && !isMaintaining)
-                          Container(
-                            color: Colors.black.withValues(alpha: 0.45),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 24.w,
-                                  height: 24.w,
-                                  child: const CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                SizedBox(height: 8.h),
-                                Text(
-                                  '加载中...',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 10.h),
-                  alignment: Alignment.center,
-                  child: Text(
-                    game['title'] as String,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: const Color(0xFF1F1F1F),
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

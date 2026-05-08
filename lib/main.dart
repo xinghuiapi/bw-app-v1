@@ -39,17 +39,23 @@ class _AppProvidersState extends State<AppProviders> {
   late final DioClient _dioClient;
   late final AuthProvider _authProvider;
   late final UserProvider _userProvider;
+  late final SystemProvider _systemProvider;
   late final GameProvider _gameProvider;
+  late final GameManagementProvider _gameManagementProvider;
   late final FeedbackProvider _feedbackProvider;
+  late final RecordProvider _recordProvider;
 
   @override
   void initState() {
     super.initState();
     _tokenStorage = TokenStorage();
     _authProvider = AuthProvider(tokenStorage: _tokenStorage);
+    _systemProvider = SystemProvider();
     _userProvider = UserProvider();
     _gameProvider = GameProvider();
+    _gameManagementProvider = GameManagementProvider();
     _feedbackProvider = FeedbackProvider();
+    _recordProvider = RecordProvider();
     _dioClient = DioClient(
       tokenStorage: _tokenStorage,
       onAuthExpired: () async {
@@ -58,9 +64,12 @@ class _AppProvidersState extends State<AppProviders> {
       },
     );
     _authProvider.bindClient(_dioClient);
+    _systemProvider.bindClient(_dioClient);
     _userProvider.bindClient(_dioClient);
     _gameProvider.bindClient(_dioClient);
+    _gameManagementProvider.bindClient(_dioClient);
     _feedbackProvider.bindClient(_dioClient);
+    _recordProvider.bindClient(_dioClient);
     _authProvider.init().then((_) async {
       if (!_authProvider.isAuthenticated) return;
       await _userProvider.loadProfile();
@@ -75,7 +84,9 @@ class _AppProvidersState extends State<AppProviders> {
     _authProvider.dispose();
     _userProvider.dispose();
     _gameProvider.dispose();
+    _gameManagementProvider.dispose();
     _feedbackProvider.dispose();
+    _recordProvider.dispose();
     super.dispose();
   }
 
@@ -85,15 +96,16 @@ class _AppProvidersState extends State<AppProviders> {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider.value(value: _authProvider),
-        ChangeNotifierProvider(create: (_) => SystemProvider()),
+        ChangeNotifierProvider.value(value: _systemProvider),
         ChangeNotifierProvider(create: (_) => HomeProvider()),
         ChangeNotifierProvider.value(value: _userProvider),
         ChangeNotifierProvider.value(value: _gameProvider),
+        ChangeNotifierProvider.value(value: _gameManagementProvider),
         ChangeNotifierProvider.value(value: _feedbackProvider),
         ChangeNotifierProvider(create: (_) => WalletProvider()),
         ChangeNotifierProvider(create: (_) => ActivityProvider()),
         ChangeNotifierProvider(create: (_) => MessageProvider()),
-        ChangeNotifierProvider(create: (_) => RecordProvider()),
+        ChangeNotifierProvider.value(value: _recordProvider),
       ],
       child: widget.child,
     );
@@ -131,7 +143,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    _router ??= createAppRouter(context.read<AuthProvider>());
+    _router ??= createAppRouter(
+      context.read<AuthProvider>(),
+      systemProvider: context.read<SystemProvider>(),
+    );
 
     return ScreenUtilInit(
       designSize: const Size(375, 812), // Standard iPhone X/11/12/13 size

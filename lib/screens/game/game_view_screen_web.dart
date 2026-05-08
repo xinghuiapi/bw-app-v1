@@ -1,0 +1,53 @@
+import 'dart:ui_web' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:web/web.dart' as web;
+
+import 'game_view_screen_interface.dart';
+import 'game_view_shell.dart';
+
+class GameViewScreen extends GameViewScreenBase {
+  const GameViewScreen({super.key, required super.url, super.title});
+
+  @override
+  State<GameViewScreen> createState() => _GameViewScreenState();
+}
+
+class _GameViewScreenState extends State<GameViewScreen> {
+  late final String _viewId;
+  late final bool _hasValidUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _hasValidUrl =
+        widget.url.trim().isNotEmpty && Uri.tryParse(widget.url.trim()) != null;
+    _viewId =
+        'game-view-${widget.url.hashCode}-${DateTime.now().microsecondsSinceEpoch}';
+    ui.platformViewRegistry.registerViewFactory(_viewId, (int viewId) {
+      final element = web.HTMLIFrameElement()
+        ..src = _hasValidUrl ? widget.url.trim() : 'about:blank'
+        ..allow = 'fullscreen; autoplay; picture-in-picture'
+        ..setAttribute(
+          'sandbox',
+          'allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation-by-user-activation',
+        )
+        ..setAttribute('allowfullscreen', 'true')
+        ..setAttribute('webkitallowfullscreen', 'true')
+        ..setAttribute('mozallowfullscreen', 'true')
+        ..style.border = 'none'
+        ..style.height = '100%'
+        ..style.width = '100%';
+      return element;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GameViewShell(
+      title: widget.title ?? '游戏',
+      errorText: _hasValidUrl ? null : '游戏地址无效',
+      child: HtmlElementView(viewType: _viewId),
+    );
+  }
+}

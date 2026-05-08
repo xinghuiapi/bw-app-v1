@@ -10,13 +10,17 @@ class SystemProvider extends BaseProvider<HomeConfig> {
       : _service = service ?? SystemService(DioClient()),
         _cache = const SystemConfigCache();
 
-  final SystemService _service;
+  SystemService _service;
   final SystemConfigCache _cache;
 
   bool _initialized = false;
 
   HomeConfig get config => data ?? const HomeConfig();
   bool get hasLoadedConfig => data != null;
+
+  void bindClient(DioClient client) {
+    _service = SystemService(client);
+  }
 
   Future<void> loadConfig({bool refresh = false}) async {
     if (isLoading || (!refresh && _initialized)) return;

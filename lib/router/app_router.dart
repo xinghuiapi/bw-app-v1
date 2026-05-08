@@ -1,5 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth/auth_provider.dart';
+import '../providers/system/system_provider.dart';
 import '../screens/home_screen.dart';
 import '../screens/list_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -8,9 +10,11 @@ import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/telegram_login_screen.dart';
 import '../screens/main/main_shell_screen.dart';
 import '../screens/main/main_screens.dart';
+import '../screens/main/maintenance_screen.dart';
 import '../screens/game/game_screen.dart';
 import '../screens/game/game_sublist_screen.dart';
 import '../screens/game/game_management_screen.dart';
+import '../screens/game/game_view_screen.dart';
 import '../screens/finance/finance_screens.dart';
 import '../screens/finance/fund_management_screen.dart';
 import '../screens/finance/my_wallet_screen.dart';
@@ -18,10 +22,14 @@ import '../screens/user/user_screens.dart';
 import '../screens/search/search_screen.dart';
 import 'route_paths.dart';
 
-GoRouter createAppRouter(AuthProvider authProvider) {
+GoRouter createAppRouter(AuthProvider authProvider,
+    {SystemProvider? systemProvider}) {
+  final refreshListenable = systemProvider == null
+      ? authProvider
+      : _RouterRefreshListenable([authProvider, systemProvider]);
   return GoRouter(
-    initialLocation: RoutePaths.login,
-    refreshListenable: authProvider,
+    initialLocation: RoutePaths.home,
+    refreshListenable: refreshListenable,
     redirect: (context, state) {
       if (!authProvider.isInitialized) {
         return null;
@@ -29,11 +37,23 @@ GoRouter createAppRouter(AuthProvider authProvider) {
 
       final location = state.uri.toString();
       final path = state.uri.path;
+      final isMaintenance = path == RoutePaths.maintenance;
+      final isMaintaining = systemProvider?.config.siteConfig?.status == 0;
+      if (isMaintaining && !isMaintenance) {
+        return '${RoutePaths.maintenance}?redirect=${Uri.encodeComponent(location)}';
+      }
+      if (!isMaintaining && isMaintenance) {
+        final redirect = state.uri.queryParameters['redirect'];
+        if (redirect != null && redirect.isNotEmpty) {
+          return Uri.decodeComponent(redirect);
+        }
+        return RoutePaths.home;
+      }
       final isAuthRoute = path == RoutePaths.login ||
           path == RoutePaths.register ||
           path == RoutePaths.resetPassword ||
           path == RoutePaths.telegramLogin;
-      final requiresAuth = protectedRoutePaths.contains(path);
+      final requiresAuth = routeRequiresAuth(path);
 
       if (!authProvider.isAuthenticated && requiresAuth) {
         return '${RoutePaths.login}?redirect=${Uri.encodeComponent(location)}';
@@ -61,40 +81,67 @@ final appRouter = createAppRouter(AuthProvider()..init());
 final _routes = <RouteBase>[
   GoRoute(
     path: '/login',
-    builder: (context, state) => LoginScreen(
-      redirectPath: state.uri.queryParameters['redirect'],
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      LoginScreen(redirectPath: state.uri.queryParameters['redirect']),
     ),
   ),
   GoRoute(
     path: '/register',
-    builder: (context, state) => const RegisterScreen(),
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const RegisterScreen(),
+    ),
   ),
   GoRoute(
     path: '/reset-password',
-    builder: (context, state) => const ResetPasswordScreen(),
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const ResetPasswordScreen(),
+    ),
   ),
   GoRoute(
     path: '/telegram-login',
-    builder: (context, state) => const TelegramLoginScreen(),
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const TelegramLoginScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/maintenance',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      MaintenanceScreen(redirectPath: state.uri.queryParameters['redirect']),
+    ),
   ),
   GoRoute(
     path: '/list',
-    builder: (context, state) => const ListScreen(),
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const ListScreen(),
+    ),
   ),
   GoRoute(
     path: '/search',
-    builder: (context, state) => const SearchScreen(),
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const SearchScreen(),
+    ),
   ),
   StatefulShellRoute.indexedStack(
-    builder: (context, state, navigationShell) => MainShellScreen(
-      navigationShell: navigationShell,
+    pageBuilder: (context, state, navigationShell) => _noTransitionPage(
+      state,
+      MainShellScreen(navigationShell: navigationShell),
     ),
     branches: [
       StatefulShellBranch(
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const HomeScreen(),
+            pageBuilder: (context, state) => _noTransitionPage(
+              state,
+              const HomeScreen(),
+            ),
           ),
         ],
       ),
@@ -102,7 +149,10 @@ final _routes = <RouteBase>[
         routes: [
           GoRoute(
             path: '/game',
-            builder: (context, state) => GameScreen(key: state.pageKey),
+            pageBuilder: (context, state) => _noTransitionPage(
+              state,
+              GameScreen(key: state.pageKey),
+            ),
           ),
         ],
       ),
@@ -110,7 +160,10 @@ final _routes = <RouteBase>[
         routes: [
           GoRoute(
             path: '/activity',
-            builder: (context, state) => const ActivityScreen(),
+            pageBuilder: (context, state) => _noTransitionPage(
+              state,
+              const ActivityScreen(),
+            ),
           ),
         ],
       ),
@@ -118,7 +171,10 @@ final _routes = <RouteBase>[
         routes: [
           GoRoute(
             path: '/service',
-            builder: (context, state) => const ServiceScreen(),
+            pageBuilder: (context, state) => _noTransitionPage(
+              state,
+              const ServiceScreen(),
+            ),
           ),
         ],
       ),
@@ -126,7 +182,10 @@ final _routes = <RouteBase>[
         routes: [
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
+            pageBuilder: (context, state) => _noTransitionPage(
+              state,
+              const ProfileScreen(),
+            ),
           ),
         ],
       ),
@@ -134,85 +193,397 @@ final _routes = <RouteBase>[
   ),
   // Main detail screens
   GoRoute(
-      path: '/game-sub',
-      builder: (context, state) => GameSubListScreen(
-            code: state.uri.queryParameters['code'],
-            game: state.uri.queryParameters['game'],
-            title: state.uri.queryParameters['title'],
-          )),
+    path: '/game-sub',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      GameSubListScreen(
+        code: state.uri.queryParameters['code'],
+        game: state.uri.queryParameters['game'],
+        title: state.uri.queryParameters['title'],
+      ),
+    ),
+  ),
   GoRoute(
-      path: '/activity-detail',
-      builder: (context, state) => ActivityDetailScreen(
-            id: int.tryParse(state.uri.queryParameters['id'] ?? ''),
-          )),
+    path: '/game/sub',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      GameSubListScreen(
+        code: state.uri.queryParameters['code'],
+        game: state.uri.queryParameters['game'],
+        title: state.uri.queryParameters['title'],
+      ),
+    ),
+  ),
   GoRoute(
-      path: '/activity-record',
-      builder: (context, state) => const ActivityRecordScreen()),
+    path: '/game-view',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      _buildGameViewScreen(state),
+    ),
+  ),
+  GoRoute(
+    path: '/game/play',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      _buildGameViewScreen(state),
+    ),
+  ),
+  GoRoute(
+    path: '/activity-detail',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      ActivityDetailScreen(
+        id: int.tryParse(state.uri.queryParameters['id'] ?? ''),
+      ),
+    ),
+  ),
+  GoRoute(
+    path: '/activity/detail/:id',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      ActivityDetailScreen(
+        id: int.tryParse(state.pathParameters['id'] ?? ''),
+      ),
+    ),
+  ),
+  GoRoute(
+    path: '/activity-record',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const ActivityRecordScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/activity/records',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const ActivityRecordScreen(),
+    ),
+  ),
   // Finance Screens
-  GoRoute(path: '/deposit', builder: (context, state) => const DepositScreen()),
   GoRoute(
-      path: '/deposit-detail',
-      builder: (context, state) => const DepositOrderDetailScreen()),
+    path: '/deposit',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const DepositScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/deposit-success',
-      builder: (context, state) => const DepositPaySuccessScreen()),
+    path: '/deposit-detail',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const DepositOrderDetailScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/withdraw', builder: (context, state) => const WithdrawScreen()),
+    path: '/deposit/order/:id',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const DepositOrderDetailScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/withdraw-success',
-      builder: (context, state) => const WithdrawSuccessScreen()),
+    path: '/deposit-success',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const DepositPaySuccessScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/online-pay',
-      builder: (context, state) => const OnlinePayDetailScreen()),
+    path: '/deposit/success/:id',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const DepositPaySuccessScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/transaction-records',
-      builder: (context, state) => const TransactionRecordScreen()),
+    path: '/withdraw',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const WithdrawScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/fund-records',
-      builder: (context, state) => const FundRecordScreen()),
+    path: '/withdraw-success',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const WithdrawSuccessScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/fund-management',
-      builder: (context, state) => const FundManagementScreen()),
+    path: '/withdraw/success',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const WithdrawSuccessScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/online-pay',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const OnlinePayDetailScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/deposit/online-pay',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const OnlinePayDetailScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/transaction-records',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FundManagementScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/fund-records',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FundManagementScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/fund-management',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FundManagementScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/fund-manage',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FundManagementScreen(),
+    ),
+  ),
   // User Screens
-  GoRoute(path: '/setting', builder: (context, state) => const SettingScreen()),
   GoRoute(
-      path: '/about-us', builder: (context, state) => const AboutUsScreen()),
+    path: '/setting',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const SettingScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/user-profile',
-      builder: (context, state) => const UserProfileScreen()),
+    path: '/about-us',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const AboutUsScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/bind-phone',
-      builder: (context, state) => const BindPhoneScreen()),
+    path: '/user-profile',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const UserProfileScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/bind-email',
-      builder: (context, state) => const BindEmailScreen()),
+    path: '/user/UserProfile',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const UserProfileScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/change-password',
-      builder: (context, state) => const ChangePasswordScreen()),
+    path: '/bind-phone',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const BindPhoneScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/withdraw-password',
-      builder: (context, state) => const WithdrawPasswordScreen()),
+    path: '/user/bind-phone',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const BindPhoneScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/real-name', builder: (context, state) => const RealNameScreen()),
+    path: '/bind-email',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const BindEmailScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/my-wallet', builder: (context, state) => const MyWalletScreen()),
+    path: '/user/bind-email',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const BindEmailScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/wallet',
-      builder: (context, state) => const FundManagementScreen()),
+    path: '/change-password',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const ChangePasswordScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/cards', builder: (context, state) => const BankCardListScreen()),
+    path: '/user/change-password',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const ChangePasswordScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/add-card',
-      builder: (context, state) => const AddBankCardScreen()),
-  GoRoute(path: '/vip', builder: (context, state) => const VipScreen()),
-  GoRoute(path: '/message', builder: (context, state) => const MessageScreen()),
+    path: '/withdraw-password',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const WithdrawPasswordScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/feedback', builder: (context, state) => const FeedbackScreen()),
+    path: '/user/withdrawpassword',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const WithdrawPasswordScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/feedback-records',
-      builder: (context, state) => const FeedbackRecordsScreen()),
-  GoRoute(path: '/share', builder: (context, state) => const ShareScreen()),
+    path: '/real-name',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const RealNameScreen(),
+    ),
+  ),
   GoRoute(
-      path: '/game-management',
-      builder: (context, state) => const GameManagementScreen()),
+    path: '/user/real-name',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const RealNameScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/my-wallet',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const MyWalletScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/wallet',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FundManagementScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/cards',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const BankCardListScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/card',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const BankCardListScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/add-card',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const AddBankCardScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/card/add',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const AddBankCardScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/vip',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const VipScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/message',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const MessageScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/feedback',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FeedbackScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/feedback-records',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FeedbackRecordsScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/feedback/records',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FeedbackRecordsScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/share',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const ShareScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/game-management',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const GameManagementScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/game-manage',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const GameManagementScreen(),
+    ),
+  ),
 ];
+
+NoTransitionPage<void> _noTransitionPage(GoRouterState state, Widget child) {
+  return NoTransitionPage<void>(key: state.pageKey, child: child);
+}
+
+GameViewScreen _buildGameViewScreen(GoRouterState state) {
+  final extra = state.extra;
+  final data = extra is Map ? extra : const <String, dynamic>{};
+  final url = data['url']?.toString() ?? state.uri.queryParameters['url'] ?? '';
+  final title = data['title']?.toString() ?? state.uri.queryParameters['title'];
+  return GameViewScreen(url: url, title: title);
+}
+
+class _RouterRefreshListenable extends ChangeNotifier {
+  _RouterRefreshListenable(this._listenables) {
+    for (final listenable in _listenables) {
+      listenable.addListener(notifyListeners);
+    }
+  }
+
+  final List<Listenable> _listenables;
+
+  @override
+  void dispose() {
+    for (final listenable in _listenables) {
+      listenable.removeListener(notifyListeners);
+    }
+    super.dispose();
+  }
+}

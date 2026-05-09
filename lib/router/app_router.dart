@@ -469,7 +469,7 @@ final _routes = <RouteBase>[
     path: '/wallet',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const FundManagementScreen(),
+      const MyWalletScreen(),
     ),
   ),
   GoRoute(

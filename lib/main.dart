@@ -44,6 +44,7 @@ class _AppProvidersState extends State<AppProviders> {
   late final GameManagementProvider _gameManagementProvider;
   late final FeedbackProvider _feedbackProvider;
   late final RecordProvider _recordProvider;
+  late final WalletProvider _walletProvider;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _AppProvidersState extends State<AppProviders> {
     _gameManagementProvider = GameManagementProvider();
     _feedbackProvider = FeedbackProvider();
     _recordProvider = RecordProvider();
+    _walletProvider = WalletProvider();
     _dioClient = DioClient(
       tokenStorage: _tokenStorage,
       onAuthExpired: () async {
@@ -70,6 +72,7 @@ class _AppProvidersState extends State<AppProviders> {
     _gameManagementProvider.bindClient(_dioClient);
     _feedbackProvider.bindClient(_dioClient);
     _recordProvider.bindClient(_dioClient);
+    _walletProvider.bindClient(_dioClient);
     _authProvider.init().then((_) async {
       if (!_authProvider.isAuthenticated) return;
       await _userProvider.loadProfile();
@@ -87,6 +90,7 @@ class _AppProvidersState extends State<AppProviders> {
     _gameManagementProvider.dispose();
     _feedbackProvider.dispose();
     _recordProvider.dispose();
+    _walletProvider.dispose();
     super.dispose();
   }
 
@@ -102,7 +106,7 @@ class _AppProvidersState extends State<AppProviders> {
         ChangeNotifierProvider.value(value: _gameProvider),
         ChangeNotifierProvider.value(value: _gameManagementProvider),
         ChangeNotifierProvider.value(value: _feedbackProvider),
-        ChangeNotifierProvider(create: (_) => WalletProvider()),
+        ChangeNotifierProvider.value(value: _walletProvider),
         ChangeNotifierProvider(create: (_) => ActivityProvider()),
         ChangeNotifierProvider(create: (_) => MessageProvider()),
         ChangeNotifierProvider.value(value: _recordProvider),

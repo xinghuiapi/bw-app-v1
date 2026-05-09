@@ -49,6 +49,38 @@ class WalletCard {
 
   String get displayCard => card ?? cardNumber ?? '';
   String get displayTitle => title ?? bankName ?? '';
+  String get displayAlias => alias ?? name ?? '';
+  String get imageUrl => img?.trim() ?? '';
+  String get qrCodeUrl => qrcode?.trim() ?? '';
+  bool get isBankCard => type == 1;
+  bool get isCrypto => type == 2;
+  bool get isAlipay => type == 3;
+
+  String get typeName {
+    if (isBankCard) return '银行卡';
+    if (isCrypto) return '虚拟币';
+    if (isAlipay) return '支付宝';
+    final titleValue = displayTitle;
+    if (RegExp(r'USDT|TRC20|ERC20|BTC|ETH', caseSensitive: false)
+        .hasMatch(titleValue)) {
+      return '虚拟币';
+    }
+    if (titleValue.contains('支付宝')) return '支付宝';
+    return '收款账户';
+  }
+
+  String get maskedCard {
+    final value = displayCard.trim();
+    if (value.isEmpty) return '';
+    if (value.length <= 4) return value;
+    if (isCrypto || typeName == '虚拟币') {
+      final head = value.length > 6 ? value.substring(0, 6) : value;
+      final tailLength = value.length >= 6 ? 6 : value.length;
+      final tail = value.substring(value.length - tailLength);
+      return value.length <= 12 ? value : '$head...$tail';
+    }
+    return '**** **** **** ${value.substring(value.length - 4)}';
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -67,15 +99,60 @@ class WalletCard {
       };
 }
 
+class VenueBalance {
+  final int id;
+  final String title;
+  final String code;
+  final double money;
+
+  const VenueBalance({
+    required this.id,
+    required this.title,
+    required this.code,
+    required this.money,
+  });
+
+  factory VenueBalance.fromJson(Map<String, dynamic> json) => VenueBalance(
+        id: jsonInt(json['id']) ?? 0,
+        title: jsonString(json['title']) ?? '',
+        code: jsonString(json['code']) ?? '',
+        money: jsonDouble(json['money']) ?? 0,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'code': code,
+        'money': money,
+      };
+}
+
+class UserRealtimeBalance {
+  final double balance;
+
+  const UserRealtimeBalance({this.balance = 0});
+
+  factory UserRealtimeBalance.fromJson(Map<String, dynamic> json) =>
+      UserRealtimeBalance(balance: jsonDouble(json['balance']) ?? 0);
+
+  Map<String, dynamic> toJson() => {'balance': balance};
+}
+
 class CardType {
   final int id;
   final String? name;
   final String? title;
   final String? code;
   final String? img;
+  final int? type;
 
   const CardType(
-      {required this.id, this.name, this.title, this.code, this.img});
+      {required this.id,
+      this.name,
+      this.title,
+      this.code,
+      this.img,
+      this.type});
 
   factory CardType.fromJson(Map<String, dynamic> json) => CardType(
         id: jsonInt(json['id']) ?? 0,
@@ -83,6 +160,7 @@ class CardType {
         title: jsonString(json['title']),
         code: jsonString(json['code']),
         img: jsonString(json['img']),
+        type: jsonInt(json['type']),
       );
 
   String get displayName => name ?? title ?? '';
@@ -93,6 +171,7 @@ class CardType {
         if (title != null) 'title': title,
         if (code != null) 'code': code,
         if (img != null) 'img': img,
+        if (type != null) 'type': type,
       };
 }
 
@@ -118,10 +197,10 @@ class BindCardRequest {
   Map<String, dynamic> toJson() => {
         'id': id,
         'card': card,
-        if (address != null) 'addres': address,
+        'addres': address ?? '',
         if (alias != null) 'alias': alias,
         if (name != null) 'name': name,
-        if (img != null) 'img': img,
+        'img': img ?? '',
         if (payPassword != null) 'pay_password': payPassword,
       };
 }

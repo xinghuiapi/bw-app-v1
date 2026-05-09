@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../models/user/user_models.dart';
+import '../../models/wallet/wallet_models.dart';
+import '../../providers/user/user_provider.dart';
+import '../../providers/wallet/wallet_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_cell.dart';
+import '../../widgets/common/app_empty.dart';
+import '../../widgets/common/app_loading.dart';
+import '../../widgets/common/app_network_image.dart';
 
 class DepositScreen extends StatefulWidget {
   const DepositScreen({super.key});
@@ -45,70 +53,32 @@ class _DepositScreenState extends State<DepositScreen> {
       backgroundColor: const Color(0xFFF7F8FC), // 浅灰蓝背景
       appBar: CustomNavBar(
         title: '充值',
-        rightIcon: Text(
-          '充值记录',
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: AppColors.primary,
-          ),
-        ),
-        onClickRight: () {
-          // Navigation to deposit records
-          context.push('/fund-records');
-        },
+        rightText: '充值记录',
+        onClickRight: () => context.push('/fund-management'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+        padding: EdgeInsets.all(12.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildDepositAlert(),
             _buildSectionHeader('充值类型'),
             SizedBox(height: 12.h),
             _buildTypeGrid(),
-            SizedBox(height: 24.h),
+            SizedBox(height: 16.h),
             _buildSectionHeader('充值通道'),
             SizedBox(height: 12.h),
             _buildChannelGrid(),
-            SizedBox(height: 24.h),
+            SizedBox(height: 16.h),
             _buildSectionHeader('充值信息'),
             SizedBox(height: 12.h),
             _buildAmountInput(),
-            SizedBox(height: 12.h),
-            Text(
-              '汇率: 6.5176',
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: AppColors.danger,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 12.h),
+            SizedBox(height: 10.h),
             _buildAmountGrid(),
-            SizedBox(height: 40.h),
-            SizedBox(
-              width: double.infinity,
-              height: 48.h,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24.r),
-                  ),
-                ),
-                onPressed: () {
-                  context.push('/deposit-success');
-                },
-                child: Text(
-                  '确认充值',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+            SizedBox(height: 28.h),
+            CustomButton(
+                text: '确认充值',
+                onPressed: () => context.push('/deposit-success')),
             SizedBox(height: 32.h),
           ],
         ),
@@ -120,10 +90,14 @@ class _DepositScreenState extends State<DepositScreen> {
     return Row(
       children: [
         Container(
-          width: 8.w,
-          height: 8.w,
+          width: 12.w,
+          height: 12.w,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.5),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFE0EBFF), AppColors.primary],
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -132,11 +106,55 @@ class _DepositScreenState extends State<DepositScreen> {
           title,
           style: TextStyle(
             fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDepositAlert() {
+    return Container(
+      margin: EdgeInsets.only(bottom: 20.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8.r,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: AppColors.primary, size: 16.sp),
+          SizedBox(width: 6.w),
+          Expanded(
+            child: Text(
+              '为保障资金安全，建议先完成实名认证',
+              style: TextStyle(fontSize: 12.sp, color: AppColors.textPrimary),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => context.push('/real-name'),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Text(
+                '去认证',
+                style: TextStyle(fontSize: 12.sp, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -151,11 +169,9 @@ class _DepositScreenState extends State<DepositScreen> {
           onTap: () => setState(() => _selectedType = index),
           child: Container(
             width: (1.sw - 32.w - 24.w) / 3 - 0.1, // 3列, 减0.1防止浮点误差导致换行
-            height: 44.h,
+            height: 48.h,
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppColors.primary.withValues(alpha: 0.1)
-                  : Colors.white,
+              color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
               borderRadius: BorderRadius.circular(8.r),
               border: Border.all(
                 color: isSelected ? AppColors.primary : Colors.transparent,
@@ -187,8 +203,8 @@ class _DepositScreenState extends State<DepositScreen> {
                     right: 0,
                     bottom: 0,
                     child: Container(
-                      width: 16.w,
-                      height: 16.w,
+                      width: 20.w,
+                      height: 20.w,
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         borderRadius: BorderRadius.only(
@@ -219,11 +235,9 @@ class _DepositScreenState extends State<DepositScreen> {
           onTap: () => setState(() => _selectedChannel = index),
           child: Container(
             width: (1.sw - 32.w - 12.w) / 2 - 0.1, // 2列, 减0.1防止换行
-            height: 44.h,
+            height: 50.h,
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppColors.primary.withValues(alpha: 0.05)
-                  : Colors.white,
+              color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
               borderRadius: BorderRadius.circular(8.r),
               border: Border.all(
                 color: isSelected ? AppColors.primary : Colors.transparent,
@@ -276,6 +290,13 @@ class _DepositScreenState extends State<DepositScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8.r,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -326,7 +347,7 @@ class _DepositScreenState extends State<DepositScreen> {
             ),
           ),
           Text(
-            '不限',
+            '不限额',
             style: TextStyle(
               fontSize: 14.sp,
               color: AppColors.textSecondary,
@@ -352,12 +373,10 @@ class _DepositScreenState extends State<DepositScreen> {
             });
           },
           child: Container(
-            width: (1.sw - 32.w - 24.w) / 3 - 0.1, // 3列, 减0.1防止换行
+            width: (1.sw - 24.w - 36.w) / 4 - 0.1,
             height: 44.h,
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppColors.primary.withValues(alpha: 0.05)
-                  : Colors.white,
+              color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
               borderRadius: BorderRadius.circular(8.r),
               border: Border.all(
                 color: isSelected ? AppColors.primary : Colors.transparent,
@@ -519,7 +538,19 @@ class WithdrawScreen extends StatefulWidget {
 
 class _WithdrawScreenState extends State<WithdrawScreen> {
   final TextEditingController _amountController = TextEditingController();
-  final double _availableBalance = 8888.00;
+  int _activeCardIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<WalletProvider>().loadCards();
+      context.read<WalletProvider>().loadRealtimeBalance();
+      context.read<UserProvider>().loadProfile().catchError((_) {});
+      context.read<UserProvider>().loadVipLevels().catchError((_) {});
+    });
+  }
 
   @override
   void dispose() {
@@ -529,103 +560,446 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final walletProvider = context.watch<WalletProvider>();
+    final userProvider = context.watch<UserProvider>();
+    final cards = walletProvider.cards;
+    if (_activeCardIndex >= cards.length) _activeCardIndex = 0;
+    final profile = userProvider.profile;
+    final symbol = _textOr(profile?.symbol, '¥');
+    final balance = walletProvider.realtimeBalance?.balance ??
+        _toDouble(profile?.balance) ??
+        0;
+    final vipLevel = _currentVipLevel(userProvider);
+    final minWithdraw = _toDouble(vipLevel?.minDrawing) ?? 0;
+    final dayCount = _toInt(vipLevel?.dayCountDrawing);
+    final dayAmount = _toDouble(vipLevel?.dayAmountDrawing);
+    final sumWater = _toDouble(profile?.sumWater) ?? 0;
+    final okWater = _toDouble(profile?.okWater) ?? 0;
+    final waterEnough = sumWater <= 0 || okWater >= sumWater;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '提现'),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 12.h),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Text(
-                '提现到',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+      appBar: CustomNavBar(
+        title: '提现',
+        rightText: '提现记录',
+        onClickRight: () => context.push('/fund-management'),
+      ),
+      body: RefreshIndicator(
+        onRefresh: _refreshWithdrawData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(12.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildBalanceCard(symbol, balance, walletProvider),
+              if (!waterEnough)
+                _buildWaterLock(symbol, sumWater, okWater)
+              else ...[
+                _buildSectionTitle('提现金额'),
+                _buildAmountCard(symbol, balance, minWithdraw),
+                _buildSectionTitle(
+                  '收款卡包',
+                  actionText: '我的卡包',
+                  onActionTap: () => context.push('/cards'),
                 ),
-              ),
-            ),
-            CustomCard(
-              padding: EdgeInsets.zero,
-              child: CustomCell(
-                title: '招商银行 (尾号 8888)',
-                label: '2小时内到账',
-                icon: Icon(Icons.account_balance,
-                    color: Colors.redAccent, size: 24.sp),
-                isLink: true,
-                onTap: () {
-                  // TODO: Select bank card
+                _buildCardList(walletProvider, cards),
+                _buildWithdrawRuleCard(
+                  symbol: symbol,
+                  minWithdraw: minWithdraw,
+                  dayCount: dayCount,
+                  dayAmount: dayAmount,
+                  hasPayPassword: profile?.hasPayPassword ?? false,
+                ),
+              ],
+              SizedBox(height: 32.h),
+              CustomButton(
+                text: '确认提现',
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('提现提交功能待接入')),
+                  );
                 },
               ),
-            ),
-            SizedBox(height: 16.h),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Text(
-                '提现金额',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+              SizedBox(height: 24.h),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _refreshWithdrawData() async {
+    await Future.wait([
+      context.read<WalletProvider>().loadCards(refresh: true),
+      context.read<WalletProvider>().loadRealtimeBalance(refresh: true),
+      context
+          .read<UserProvider>()
+          .loadProfile(refresh: true)
+          .catchError((_) {}),
+      context
+          .read<UserProvider>()
+          .loadVipLevels(refresh: true)
+          .catchError((_) {}),
+    ]);
+  }
+
+  Widget _buildBalanceCard(
+    String symbol,
+    double balance,
+    WalletProvider walletProvider,
+  ) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: 16.h),
+      height: 112.h,
+      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 16.h),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4DA1FF), AppColors.primary],
+        ),
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.22),
+            blurRadius: 12.r,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -70.h,
+            right: -40.w,
+            child: Container(
+              width: 110.w,
+              height: 110.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.16),
+                    Colors.white.withValues(alpha: 0),
+                  ],
                 ),
               ),
             ),
-            CustomCard(
+          ),
+          Positioned(
+            left: 0,
+            top: 0,
+            child: Text(
+              '可提现余额',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            bottom: 0,
+            child: Text(
+              '$symbol ${balance.toStringAsFixed(2)}',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            top: 2.h,
+            child: GestureDetector(
+              onTap: walletProvider.isRecyclingVenues ? null : _recycleVenues,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 13.w, vertical: 7.h),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(999.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.refresh, color: Colors.white, size: 14.sp),
+                    SizedBox(width: 4.w),
+                    Text(
+                      walletProvider.isRecyclingVenues ? '归户中' : '一键归户',
+                      style: TextStyle(color: Colors.white, fontSize: 12.sp),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWaterLock(String symbol, double sumWater, double okWater) {
+    final left = (sumWater - okWater).clamp(0, double.infinity);
+    final percent = sumWater <= 0 ? 1.0 : (okWater / sumWater).clamp(0.0, 1.0);
+    return CustomCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bar_chart, color: AppColors.warning, size: 22.sp),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  '还需 $symbol ${left.toStringAsFixed(2)} 流水可提现',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999.r),
+            child: LinearProgressIndicator(
+              value: percent,
+              minHeight: 8.h,
+              backgroundColor: AppColors.border,
+              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            '当前流水：$symbol ${okWater.toStringAsFixed(2)} / $symbol ${sumWater.toStringAsFixed(2)}',
+            style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(
+    String title, {
+    String? actionText,
+    VoidCallback? onActionTap,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: Row(
+        children: [
+          Container(
+            width: 12.w,
+            height: 12.w,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFE0EBFF), AppColors.primary],
+              ),
+              shape: BoxShape.circle,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          if (actionText != null)
+            GestureDetector(
+              onTap: onActionTap,
+              child: Text(
+                actionText,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmountCard(String symbol, double balance, double minWithdraw) {
+    return CustomCard(
+      margin: EdgeInsets.only(bottom: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32.w,
+                height: 32.w,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  symbol,
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: TextField(
+                  controller: _amountController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  style: TextStyle(
+                    fontSize: 30.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: '请输入提现金额',
+                    hintStyle: TextStyle(
+                      fontSize: 16.sp,
+                      color: AppColors.textSecondary.withValues(alpha: 0.3),
+                      fontWeight: FontWeight.normal,
+                    ),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () =>
+                    _amountController.text = balance.toStringAsFixed(2),
+                child: Text(
+                  '全部',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Divider(color: AppColors.border, height: 16.h),
+          Text(
+            '单笔最低提现：$symbol ${minWithdraw > 0 ? minWithdraw.toStringAsFixed(2) : '-'}',
+            style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardList(WalletProvider walletProvider, List<WalletCard> cards) {
+    if (walletProvider.isCardsLoading && cards.isEmpty) {
+      return const AppLoading(message: '卡包加载中...');
+    }
+    if (cards.isEmpty) {
+      return CustomCard(
+        margin: EdgeInsets.only(bottom: 12.h),
+        child: Column(
+          children: [
+            const AppEmpty(title: '暂无收款卡包', description: '请先添加银行卡、虚拟币或支付宝'),
+            SizedBox(height: 12.h),
+            CustomButton(
+                text: '添加卡包', onPressed: () => context.push('/add-card')),
+          ],
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (var i = 0; i < cards.length; i++)
+          _buildWithdrawCardItem(cards[i], i, _activeCardIndex == i),
+        GestureDetector(
+          onTap: () => context.push('/add-card'),
+          child: Container(
+            width: double.infinity,
+            margin: EdgeInsets.only(bottom: 16.h),
+            padding: EdgeInsets.symmetric(vertical: 12.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(
+                color: AppColors.primary,
+                style: BorderStyle.solid,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add, size: 18.sp, color: AppColors.primary),
+                SizedBox(width: 6.w),
+                Text(
+                  '添加卡包',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWithdrawCardItem(WalletCard card, int index, bool selected) {
+    return GestureDetector(
+      onTap: () => setState(() => _activeCardIndex = index),
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.border,
+          ),
+        ),
+        child: Row(
+          children: [
+            _buildCardIcon(card),
+            SizedBox(width: 12.w),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        '¥',
-                        style: TextStyle(
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 8.w),
-                      Expanded(
-                        child: TextField(
-                          controller: _amountController,
-                          keyboardType: TextInputType.number,
-                          style: TextStyle(
-                            fontSize: 32.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '0.00',
-                            hintStyle: TextStyle(
-                              fontSize: 32.sp,
-                              color: AppColors.textSecondary
-                                  .withValues(alpha: 0.3),
-                            ),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          _amountController.text =
-                              _availableBalance.toStringAsFixed(2);
-                        },
-                        child: Text(
-                          '全部',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Divider(color: AppColors.border, height: 16.h),
                   Text(
-                    '可提现余额: ¥$_availableBalance',
+                    card.displayTitle.isEmpty
+                        ? card.typeName
+                        : card.displayTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    card.maskedCard.isEmpty ? '暂无账号' : card.maskedCard,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: AppColors.textSecondary,
@@ -634,37 +1008,142 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 32.h),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48.h,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24.r),
+            if (selected)
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Container(
+                  width: 24.w,
+                  height: 24.w,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12.r),
+                      bottomRight: Radius.circular(12.r),
                     ),
                   ),
-                  onPressed: () {
-                    context.push('/withdraw-success');
-                  },
-                  child: Text(
-                    '确认提现',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: Icon(Icons.check, color: Colors.white, size: 14.sp),
                 ),
               ),
-            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildCardIcon(WalletCard card) {
+    final icon = card.isCrypto
+        ? Icons.currency_bitcoin
+        : card.isAlipay
+            ? Icons.payments_outlined
+            : Icons.account_balance;
+    if (card.imageUrl.isNotEmpty) {
+      return AppNetworkImage(
+        url: card.imageUrl,
+        width: 36.w,
+        height: 36.w,
+        fit: BoxFit.contain,
+        borderRadius: BorderRadius.circular(12.r),
+      );
+    }
+    return Container(
+      width: 36.w,
+      height: 36.w,
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Icon(icon, color: AppColors.primary, size: 20.sp),
+    );
+  }
+
+  Widget _buildWithdrawRuleCard({
+    required String symbol,
+    required double minWithdraw,
+    required int? dayCount,
+    required double? dayAmount,
+    required bool hasPayPassword,
+  }) {
+    return CustomCard(
+      margin: EdgeInsets.only(bottom: 16.h),
+      child: Column(
+        children: [
+          _buildRuleRow('最低提现',
+              '$symbol ${minWithdraw > 0 ? minWithdraw.toStringAsFixed(2) : '-'}'),
+          _buildRuleRow('每日提现次数', dayCount == null ? '-' : '$dayCount 次'),
+          _buildRuleRow(
+              '每日提现额度',
+              dayAmount == null
+                  ? '-'
+                  : '$symbol ${dayAmount.toStringAsFixed(2)}'),
+          _buildRuleRow('取款密码', hasPayPassword ? '已设置' : '未设置，请先设置'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRuleRow(String title, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 7.h),
+      child: Row(
+        children: [
+          Text(title,
+              style:
+                  TextStyle(fontSize: 13.sp, color: AppColors.textSecondary)),
+          const Spacer(),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 13.sp,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _recycleVenues() async {
+    try {
+      await context.read<WalletProvider>().recycleVenueBalances();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('归户成功')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      final error = context.read<WalletProvider>().venueActionError ?? '归户失败';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  VipLevel? _currentVipLevel(UserProvider provider) {
+    final profileLevel = _levelNumber(provider.profile?.displayVipLevel ?? '');
+    if (provider.vipLevels.isEmpty) return null;
+    for (final level in provider.vipLevels) {
+      if (level.levelNumber == profileLevel) return level;
+    }
+    return provider.vipLevels.first;
+  }
+
+  int _levelNumber(String text) {
+    return int.tryParse(text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString().replaceAll(',', ''));
+  }
+
+  int? _toInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
+  }
+
+  String _textOr(String? value, String fallback) {
+    final text = value?.trim();
+    return text == null || text.isEmpty ? fallback : text;
   }
 }
 

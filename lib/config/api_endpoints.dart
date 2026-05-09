@@ -2,6 +2,7 @@ class ApiEndpoints {
   static const login = '/user/login';
   static const register = '/user/register';
   static const userToken = '/token/user';
+  static const userBalance = '/user/balance';
   static const logout = '/token/logout';
   static const changePassword = '/token/repass';
   static const userEdit = '/user/edit';
@@ -43,6 +44,9 @@ class ApiEndpoints {
   static const tradeRecord = '/trade/record';
   static const transferLogList = '/transfers_log/getlist';
   static const moneyLogList = '/money_log/getlist';
+  static const drawingList = '/drawing/getlist';
+  static const bankList = '/bank/getlist';
+  static const memberBankBinding = '/member_bank/binding';
   static const gameRecordList = '/gamerecord/getlist';
   static const memberFsLogList = '/member_fs_log/getlist';
   static const memberFsLogClaim = '/member_fs_log/claim';

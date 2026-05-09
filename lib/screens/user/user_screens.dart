@@ -6,11 +6,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/home/home_models.dart';
 import '../../models/user/user_models.dart';
+import '../../models/wallet/wallet_models.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/feedback/feedback_provider.dart';
 import '../../providers/message/message_provider.dart';
 import '../../providers/system/system_provider.dart';
 import '../../providers/user/user_provider.dart';
+import '../../providers/wallet/wallet_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
@@ -18,6 +20,7 @@ import '../../widgets/custom_cell.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/common/app_network_image.dart';
 import '../../widgets/common/app_empty.dart';
+import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
 import 'forms/user_form_feedback.dart';
 
@@ -490,9 +493,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildServiceItem(Icons.grid_view_rounded, '游戏管理',
                             context, '/game-management'),
                         _buildServiceItem(Icons.account_balance_wallet_outlined,
-                            '资金管理', context, '/wallet'),
+                            '资金管理', context, '/fund-management'),
                         _buildServiceItem(
-                            Icons.swap_horiz, '场馆余额', context, '/my-wallet'),
+                            Icons.swap_horiz, '场馆余额', context, '/wallet'),
                         _buildServiceItem(Icons.credit_card_outlined, '银行卡',
                             context, '/cards'),
                         _buildServiceItem(
@@ -1367,36 +1370,36 @@ class _InlineProfileField extends StatelessWidget {
   }
 }
 
-class BankCardListScreen extends StatelessWidget {
+class BankCardListScreen extends StatefulWidget {
   const BankCardListScreen({super.key});
 
   @override
+  State<BankCardListScreen> createState() => _BankCardListScreenState();
+}
+
+class _BankCardListScreenState extends State<BankCardListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<WalletProvider>().loadCards();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final walletProvider = context.watch<WalletProvider>();
+    final cards = walletProvider.cards;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomNavBar(title: '银行卡管理'),
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.all(16.w),
-              children: [
-                _buildBankCard(
-                  bankName: '招商银行',
-                  cardType: '储蓄卡',
-                  cardNumber: '**** **** **** 8888',
-                  color: const Color(0xFFE53935),
-                  icon: Icons.account_balance,
-                ),
-                SizedBox(height: 16.h),
-                _buildBankCard(
-                  bankName: '建设银行',
-                  cardType: '储蓄卡',
-                  cardNumber: '**** **** **** 6666',
-                  color: const Color(0xFF1E88E5),
-                  icon: Icons.account_balance_wallet,
-                ),
-              ],
+            child: RefreshIndicator(
+              onRefresh: _refreshCards,
+              child: _buildBody(walletProvider, cards),
             ),
           ),
           Padding(
@@ -1429,13 +1432,82 @@ class BankCardListScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _refreshCards() async {
+    await context.read<WalletProvider>().loadCards(refresh: true);
+  }
+
+  Widget _buildBody(
+    WalletProvider walletProvider,
+    List<WalletCard> cards,
+  ) {
+    if (walletProvider.isCardsLoading && cards.isEmpty) {
+      return const AppLoading(message: '卡包加载中...');
+    }
+
+    if (walletProvider.cardsError != null && cards.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(16.w),
+        children: [
+          SizedBox(height: 96.h),
+          AppError(
+            message: '卡包加载失败：${walletProvider.cardsError}',
+            onRetry: () => walletProvider.loadCards(refresh: true),
+          ),
+        ],
+      );
+    }
+
+    if (cards.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(16.w),
+        children: const [
+          AppEmpty(
+            title: '暂无卡包',
+            description: '绑定银行卡或虚拟币地址后会展示在这里',
+          ),
+        ],
+      );
+    }
+
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.all(16.w),
+      itemCount: cards.length,
+      separatorBuilder: (_, __) => SizedBox(height: 16.h),
+      itemBuilder: (context, index) {
+        return _buildWalletCard(cards[index]);
+      },
+    );
+  }
+
+  Widget _buildWalletCard(WalletCard card) {
+    final color = _colorForCard(card);
+    return _buildBankCard(
+      bankName: card.displayTitle.isEmpty ? card.typeName : card.displayTitle,
+      cardType: card.displayAlias.isEmpty
+          ? card.typeName
+          : '${card.typeName} · ${card.displayAlias}',
+      cardNumber: card.maskedCard.isEmpty ? '暂无卡号' : card.maskedCard,
+      color: color,
+      icon: _iconForCard(card),
+      imageUrl: card.imageUrl,
+      qrCodeUrl: card.qrCodeUrl,
+    );
+  }
+
   Widget _buildBankCard({
     required String bankName,
     required String cardType,
     required String cardNumber,
     required Color color,
     required IconData icon,
+    String? imageUrl,
+    String? qrCodeUrl,
   }) {
+    final hasImage = imageUrl != null && imageUrl.trim().isNotEmpty;
+    final hasQrCode = qrCodeUrl != null && qrCodeUrl.trim().isNotEmpty;
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -1455,34 +1527,79 @@ class BankCardListScreen extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(hasImage ? 4.w : 8.w),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: Colors.white, size: 24.sp),
+                child: hasImage
+                    ? AppNetworkImage(
+                        url: imageUrl,
+                        width: 32.w,
+                        height: 32.w,
+                        fit: BoxFit.contain,
+                        borderRadius: BorderRadius.circular(16.r),
+                        errorWidget:
+                            Icon(icon, color: Colors.white, size: 24.sp),
+                      )
+                    : Icon(icon, color: Colors.white, size: 24.sp),
               ),
               SizedBox(width: 12.w),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    bankName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      bankName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  Text(
-                    cardType,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 12.sp,
+                    Text(
+                      cardType,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 12.sp,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              if (hasQrCode) ...[
+                SizedBox(width: 8.w),
+                GestureDetector(
+                  onTap: () => _showQrCode(qrCodeUrl),
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(999.r),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.28),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.qr_code_2, size: 14.sp, color: Colors.white),
+                        SizedBox(width: 4.w),
+                        Text(
+                          '二维码',
+                          style:
+                              TextStyle(fontSize: 11.sp, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           SizedBox(height: 24.h),
@@ -1498,6 +1615,57 @@ class BankCardListScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showQrCode(String? url) {
+    final imageUrl = url?.trim();
+    if (imageUrl == null || imageUrl.isEmpty) return;
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '收款二维码',
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16.h),
+              AppNetworkImage(
+                url: imageUrl,
+                width: 220.w,
+                height: 220.w,
+                fit: BoxFit.contain,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              SizedBox(height: 16.h),
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('关闭'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _colorForCard(WalletCard card) {
+    if (card.isCrypto) return const Color(0xFF16A085);
+    if (card.isAlipay) return const Color(0xFF1677FF);
+    return const Color(0xFF1E88E5);
+  }
+
+  IconData _iconForCard(WalletCard card) {
+    if (card.isCrypto) return Icons.currency_bitcoin;
+    if (card.isAlipay) return Icons.payments_outlined;
+    return Icons.account_balance;
   }
 }
 

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../api/api_exception.dart';
 import '../../models/user/user_models.dart';
 import '../../models/wallet/wallet_models.dart';
 import '../../providers/user/user_provider.dart';
@@ -10,8 +14,8 @@ import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/custom_cell.dart';
 import '../../widgets/common/app_empty.dart';
+import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
 import '../../widgets/common/app_network_image.dart';
 
@@ -96,7 +100,14 @@ class _DepositScreenState extends State<DepositScreen> {
               _buildRateText(walletProvider),
               _buildAmountGrid(walletProvider, symbol),
               SizedBox(height: 28.h),
-              CustomButton(text: '确认充值', onPressed: _showDepositSubmitTodo),
+              CustomButton(
+                text: walletProvider.isRechargeOrderSubmitting
+                    ? '提交中...'
+                    : '确认充值',
+                onPressed: walletProvider.isRechargeOrderSubmitting
+                    ? null
+                    : _submitRechargeOrder,
+              ),
               SizedBox(height: 32.h),
             ],
           ),
@@ -111,8 +122,8 @@ class _DepositScreenState extends State<DepositScreen> {
         Container(
           width: 12.w,
           height: 12.w,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [Color(0xFFE0EBFF), AppColors.primary],
@@ -506,8 +517,9 @@ class _DepositScreenState extends State<DepositScreen> {
 
   Widget _buildRateText(WalletProvider provider) {
     final channel = provider.selectedDepositChannel;
-    if (channel == null || !channel.shouldShowRate)
+    if (channel == null || !channel.shouldShowRate) {
       return const SizedBox.shrink();
+    }
     return Padding(
       padding: EdgeInsets.only(left: 4.w, bottom: 8.h),
       child: Text(
@@ -614,6 +626,91 @@ class _DepositScreenState extends State<DepositScreen> {
     });
   }
 
+  Future<void> _submitRechargeOrder() async {
+    final provider = context.read<WalletProvider>();
+    final channel = provider.selectedDepositChannel;
+    if (channel == null) {
+      _showMessage('请选择充值通道');
+      return;
+    }
+
+    final money = double.tryParse(_amountController.text.trim());
+    final error = _validateDepositAmount(channel, money);
+    if (error != null) {
+      _showMessage(error);
+      return;
+    }
+
+    try {
+      final result = await provider.createRechargeOrder(
+        DepositOrderRequest(id: channel.id, money: money!),
+      );
+      if (!mounted) return;
+      await _handleRechargeOrderResult(result);
+    } on ApiException catch (exception) {
+      if (!mounted) return;
+      _showMessage(exception.message);
+    } catch (exception) {
+      if (!mounted) return;
+      _showMessage(exception.toString());
+    }
+  }
+
+  String? _validateDepositAmount(DepositChannel channel, double? money) {
+    if (money == null || money <= 0) return '请输入有效充值金额';
+    if (channel.min > 0 && money < channel.min) {
+      return '充值金额不能低于${_formatAmount(channel.min)}';
+    }
+    if (channel.max > 0 && money > channel.max) {
+      return '充值金额不能高于${_formatAmount(channel.max)}';
+    }
+    if (channel.fixedAmountOnly) {
+      final matched = channel.quickAmounts.any((amount) => amount == money);
+      if (!matched) return '请选择固定充值金额';
+    }
+    return null;
+  }
+
+  Future<void> _handleRechargeOrderResult(DepositOrderResult result) async {
+    final orderId = result.resolvedOrderId;
+    final url = _normalizeUrl(result.normalizedUrl);
+
+    if (result.type == 1 && url.isNotEmpty) {
+      if (result.opensExternal) {
+        final opened = await launchUrl(
+          Uri.parse(url),
+          mode: LaunchMode.externalApplication,
+        );
+        if (!opened) _showMessage('无法打开支付网关');
+        return;
+      }
+      context.push(
+        '/deposit/online-pay',
+        extra: {'url': url, 'orderId': orderId?.toString() ?? ''},
+      );
+      return;
+    }
+
+    _showMessage('提交成功');
+    if (orderId != null) {
+      context.push('/deposit/order/${Uri.encodeComponent(orderId.toString())}');
+    }
+  }
+
+  String _normalizeUrl(String url) {
+    return url
+        .replaceAll('`', '')
+        .replaceAll(RegExp(r'''^['"]|['"]$'''), '')
+        .replaceAll(RegExp(r'\s+'), '')
+        .trim();
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   String _limitText(DepositChannel? channel, String symbol) {
     if (channel == null) return '';
     final hasMin = channel.min > 0;
@@ -669,89 +766,1095 @@ class _DepositScreenState extends State<DepositScreen> {
     if (title.contains('银') || title.contains('卡')) return Colors.redAccent;
     return AppColors.primary;
   }
-
-  void _showDepositSubmitTodo() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('充值提交功能待接入')),
-    );
-  }
 }
 
-class DepositOrderDetailScreen extends StatelessWidget {
-  const DepositOrderDetailScreen({super.key});
+class DepositOrderDetailScreen extends StatefulWidget {
+  const DepositOrderDetailScreen({super.key, this.orderId});
+
+  final String? orderId;
+
+  @override
+  State<DepositOrderDetailScreen> createState() =>
+      _DepositOrderDetailScreenState();
+}
+
+class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
+  final _imagePicker = ImagePicker();
+  final _txHashController = TextEditingController();
+  final _cancelNoteController = TextEditingController();
+  int _proofMode = 0;
+  _ProofUploadImage? _proofImage;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final id = widget.orderId?.trim();
+      if (id == null || id.isEmpty) return;
+      context.read<WalletProvider>().loadRechargeDetail(id);
+    });
+  }
+
+  @override
+  void dispose() {
+    _txHashController.dispose();
+    _cancelNoteController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<WalletProvider>();
+    final id = widget.orderId?.trim();
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF4F6F9),
       appBar: const CustomNavBar(title: '订单详情'),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          children: [
-            CustomCard(
-              padding: EdgeInsets.all(24.w),
-              child: Column(
-                children: [
-                  Text(
-                    '充值金额',
-                    style: TextStyle(
-                        fontSize: 14.sp, color: AppColors.textSecondary),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    '¥ 10,000.00',
-                    style: TextStyle(
-                      fontSize: 32.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  SizedBox(height: 24.h),
-                  const Divider(color: Color(0xFFEEEEEE)),
-                  SizedBox(height: 24.h),
-                  _buildDetailRow('订单状态', '处理中',
-                      valueColor: const Color(0xFFFF9B00)),
-                  _buildDetailRow('订单编号', 'DP20240424102345'),
-                  _buildDetailRow('充值方式', '银行卡转账'),
-                  _buildDetailRow('创建时间', '2024-04-24 10:23:45'),
-                ],
-              ),
-            ),
-            SizedBox(height: 32.h),
-            CustomButton(
-              text: '返回首页',
-              onPressed: () => context.go('/'),
-            ),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF3B82F6),
+              Color(0xFF5AA7FF),
+              Color(0xFFEAF3FF),
+              Color(0xFFF4F6F9),
+            ],
+            stops: [0, 0.18, 0.45, 0.7],
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            if (id == null || id.isEmpty) return;
+            await context.read<WalletProvider>().loadRechargeDetail(id);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 24.h),
+            child: _buildBody(context, provider, id),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 16.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildBody(BuildContext context, WalletProvider provider, String? id) {
+    if (id == null || id.isEmpty) {
+      return Column(
         children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
+          const AppError(message: '缺少订单ID，无法获取充值详情'),
+          SizedBox(height: 24.h),
+          CustomButton(
+            text: '返回充值',
+            onPressed: () => context.go('/deposit'),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: valueColor ?? AppColors.textPrimary,
-              fontWeight:
-                  valueColor != null ? FontWeight.bold : FontWeight.normal,
+        ],
+      );
+    }
+
+    if (provider.isRechargeDetailLoading && provider.rechargeDetail == null) {
+      return const AppLoading(message: '订单详情加载中...');
+    }
+
+    if (provider.rechargeDetailError != null &&
+        provider.rechargeDetail == null) {
+      return Column(
+        children: [
+          AppError(
+            message: provider.rechargeDetailError!,
+            onRetry: () => provider.loadRechargeDetail(id),
+          ),
+          SizedBox(height: 24.h),
+          CustomButton(
+            text: '返回充值',
+            onPressed: () => context.go('/deposit'),
+          ),
+        ],
+      );
+    }
+
+    final detail = provider.rechargeDetail;
+    if (detail == null) {
+      return Column(
+        children: [
+          const AppEmpty(title: '暂无订单详情'),
+          SizedBox(height: 24.h),
+          CustomButton(
+            text: '返回充值',
+            onPressed: () => context.go('/deposit'),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        _buildHeaderCard(context, detail, id),
+        SizedBox(height: 12.h),
+        if (_normalizeImageUrl(detail.img).isNotEmpty) ...[
+          _buildQrCard(detail),
+          SizedBox(height: 12.h),
+        ],
+        _buildInfoCard(context, detail, id),
+        SizedBox(height: 12.h),
+        _buildRiskCard(),
+        SizedBox(height: 12.h),
+        _buildProofCard(context, detail),
+        if (_isPending(detail)) ...[
+          SizedBox(height: 10.h),
+          TextButton(
+            onPressed: () => _openCancelSheet(context, detail),
+            child: Text(
+              '取消支付',
+              style: TextStyle(
+                color: const Color(0xFFEF4444),
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w700,
+              ),
             ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildHeaderCard(
+    BuildContext context,
+    RechargeDetail detail,
+    String id,
+  ) {
+    return _buildM1Card(
+      padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 12.h),
+      shadowColor: const Color(0xFF1989FA).withValues(alpha: 0.18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1989FA).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(999.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _headerIcon(detail),
+                      size: 16.sp,
+                      color: const Color(0xFF1989FA),
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      _headerTitle(detail),
+                      style: TextStyle(
+                        color: const Color(0xFF1989FA),
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              _buildStatusTag(detail),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Text(
+                  _amountDisplayText(detail),
+                  style: TextStyle(
+                    color: const Color(0xFFEF4444),
+                    fontSize: 26.sp,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _buildCopyButton(context, _moneyOnlyText(detail)),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          Row(
+            children: [
+              Text(
+                '订单ID：',
+                style:
+                    TextStyle(fontSize: 12.sp, color: const Color(0xFF6B7280)),
+              ),
+              Expanded(
+                child: Text(
+                  id,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: const Color(0xFF111827),
+                    fontFamily: 'monospace',
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _buildMiniCopy(context, id),
+              if (_startTimeText(detail).isNotEmpty) ...[
+                SizedBox(width: 8.w),
+                Text(
+                  '提交：${_startTimeText(detail)}',
+                  style: TextStyle(
+                      fontSize: 12.sp, color: const Color(0xFF6B7280)),
+                ),
+              ],
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _buildQrCard(RechargeDetail detail) {
+    final url = _normalizeImageUrl(detail.img);
+    final qrSize = 220.w.clamp(170.0, 220.0);
+    return _buildM1Card(
+      child: Column(
+        children: [
+          Container(
+            width: 240.w.clamp(190.0, 240.0),
+            height: 240.w.clamp(190.0, 240.0),
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F9FC),
+              borderRadius: BorderRadius.circular(14.r),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10.r),
+              child: AppNetworkImage(
+                url: url,
+                width: qrSize,
+                height: qrSize,
+                fit: BoxFit.cover,
+                errorWidget: Icon(
+                  Icons.qr_code_2,
+                  size: 80.sp,
+                  color: const Color(0xFF9CA3AF),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            '点击二维码可预览，请按页面信息完成转账',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12.sp, color: const Color(0xFF6B7280)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(
+      BuildContext context, RechargeDetail detail, String id) {
+    final rows = _buildPaymentRows(detail);
+    return _buildM1Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('支付信息'),
+          SizedBox(height: 10.h),
+          _buildInfoRow(context, '支付类型', _payTypeText(detail)),
+          _buildInfoRow(context, '开始时间', _startTimeText(detail, fallback: '-')),
+          _buildInfoRow(context, '货币', detail.displayCurrency),
+          _buildInfoRow(context, '充值金额', _formatAmount(detail.money),
+              copy: _moneyOnlyText(detail)),
+          ...rows,
+          if (detail.msg?.trim().isNotEmpty == true)
+            _buildInfoRow(context, '说明', detail.msg!.trim()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiskCard() {
+    const tips = [
+      ['请务必按页面展示的', '金额和收款信息', '完成转账。'],
+      ['请勿保存旧收款信息重复转账，', '每笔订单信息可能不同', '。'],
+      ['转账完成后请保留凭证，等待系统核对。'],
+      ['如遇到账延迟，请联系在线客服处理。'],
+    ];
+    return _buildM1Card(
+      color: const Color(0xFFF8FAFC),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '重要提示',
+            style: TextStyle(
+              color: const Color(0xFFEF4444),
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          SizedBox(height: 10.h),
+          for (final parts in tips) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 6.w,
+                  height: 6.w,
+                  margin: EdgeInsets.only(top: 7.h, right: 8.w),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF9CA3AF),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        color: const Color(0xFF111827),
+                        fontSize: 12.sp,
+                        height: 1.6,
+                      ),
+                      children: [
+                        TextSpan(text: parts[0]),
+                        if (parts.length > 1)
+                          TextSpan(
+                            text: parts[1],
+                            style: const TextStyle(
+                              color: Color(0xFFEF4444),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        if (parts.length > 2) TextSpan(text: parts[2]),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 10.h),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProofCard(BuildContext context, RechargeDetail detail) {
+    final provider = context.watch<WalletProvider>();
+    final showHash = detail.type == 3;
+    final needHash = showHash && _proofMode == 0;
+    final needProof = !showHash || _proofMode == 1;
+    final isBusy =
+        provider.isUploadingRechargeImage || provider.isRechargeProofSubmitting;
+    return _buildM1Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('上传凭证'),
+          SizedBox(height: 12.h),
+          if (showHash) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _buildProofModeTab('交易哈希', selected: _proofMode == 0),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: _buildProofModeTab('支付凭证', selected: _proofMode == 1),
+                ),
+              ],
+            ),
+            SizedBox(height: 12.h),
+          ],
+          if (needHash) ...[
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(
+                    color: const Color(0xFF1989FA).withValues(alpha: 0.18)),
+                color: const Color(0xFFFAFCFF),
+              ),
+              child: TextField(
+                controller: _txHashController,
+                minLines: 4,
+                maxLines: 6,
+                maxLength: 500,
+                decoration: InputDecoration(
+                  hintText: '请输入交易哈希',
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.all(12.w),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.content_paste),
+                    onPressed: _pasteTxHash,
+                  ),
+                ),
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: const Color(0xFF333333),
+                  height: 1.5,
+                ),
+              ),
+            ),
+            SizedBox(height: 12.h),
+          ],
+          if (needProof) ...[
+            GestureDetector(
+              onTap: isBusy ? null : () => _pickProofImage(provider),
+              child: Container(
+                height: 180.h.clamp(150.0, 180.0),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(
+                      color: const Color(0xFFDCDFe6), style: BorderStyle.solid),
+                ),
+                child: _proofImage == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (provider.isUploadingRechargeImage)
+                            const CircularProgressIndicator(
+                                color: AppColors.primary)
+                          else
+                            Icon(Icons.add,
+                                size: 40.sp, color: const Color(0xFF999999)),
+                          SizedBox(height: 10.h),
+                          Text(
+                            provider.isUploadingRechargeImage
+                                ? '上传中...'
+                                : '选择支付凭证',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF333333),
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            '支持 png、jpg、webp 等图片格式，最大 10MB',
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              color: const Color(0xFF999999),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14.r),
+                            child: AppNetworkImage(
+                              url: _proofImage!.previewUrl,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.contain,
+                              errorWidget: Center(
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  size: 48.sp,
+                                  color: const Color(0xFF999999),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 8.h,
+                            right: 8.w,
+                            child: GestureDetector(
+                              onTap: () => setState(() => _proofImage = null),
+                              child: Container(
+                                width: 24.w,
+                                height: 24.w,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.65),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 16.sp,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            SizedBox(height: 12.h),
+          ],
+          CustomButton(
+            text: provider.isRechargeProofSubmitting ? '提交中...' : '提交凭证',
+            onPressed: provider.isRechargeProofSubmitting
+                ? null
+                : () => _submitProof(detail),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProofModeTab(String text, {required bool selected}) {
+    return GestureDetector(
+      onTap: () => setState(() => _proofMode = text == '交易哈希' ? 0 : 1),
+      child: Container(
+        height: 34.h,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : Colors.white,
+          border: Border.all(color: AppColors.primary),
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: selected ? Colors.white : AppColors.primary,
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickProofImage(WalletProvider provider) async {
+    try {
+      final file = await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (bytes.length > 10 * 1024 * 1024) {
+        _showSnack('图片不能超过 10MB');
+        return;
+      }
+      final result = await provider.uploadRechargeImage(
+        bytes: bytes,
+        filename: file.name,
+      );
+      final submitValue = result.path?.trim().isNotEmpty == true
+          ? result.path!.trim()
+          : result.url?.trim();
+      final previewUrl = result.url?.trim().isNotEmpty == true
+          ? result.url!.trim()
+          : submitValue;
+      if (submitValue == null ||
+          submitValue.isEmpty ||
+          previewUrl == null ||
+          previewUrl.isEmpty) {
+        throw const FormatException('Upload response missing image path');
+      }
+      if (!mounted) return;
+      setState(() {
+        _proofImage = _ProofUploadImage(
+          previewUrl: previewUrl,
+          submitValue: submitValue,
+        );
+      });
+      _showSnack('上传成功');
+    } on MissingPluginException {
+      if (!mounted) return;
+      _showSnack('图片选择组件未加载，请完整重启应用后重试');
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(provider.rechargeImageUploadError ?? '上传失败');
+    }
+  }
+
+  Future<void> _submitProof(RechargeDetail detail) async {
+    final id = _detailOrderId(detail);
+    if (id == null || id <= 0) {
+      _showSnack('订单ID无效');
+      return;
+    }
+    final needHash = detail.type == 3 && _proofMode == 0;
+    final needProof = detail.type != 3 || _proofMode == 1;
+    final hash = _txHashController.text.trim();
+    if (needHash && hash.isEmpty) {
+      _showSnack('请输入交易哈希');
+      return;
+    }
+    if (needProof && _proofImage == null) {
+      _showSnack('请先上传支付凭证');
+      return;
+    }
+    final provider = context.read<WalletProvider>();
+    try {
+      await provider.submitRechargeProof(
+        RechargeProofRequest(
+          id: id,
+          img: needProof ? _proofImage!.submitValue : null,
+          hash: needHash ? hash : null,
+        ),
+      );
+      if (!mounted) return;
+      _showSnack('提交成功');
+      context.go('/deposit/success/$id');
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(provider.rechargeProofSubmitError ?? '提交失败');
+    }
+  }
+
+  Future<void> _pasteTxHash() async {
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      final text = data?.text?.trim();
+      if (text == null || text.isEmpty) {
+        _showSnack('剪贴板为空');
+        return;
+      }
+      _txHashController.text = text;
+    } catch (_) {
+      _showSnack('读取剪贴板失败');
+    }
+  }
+
+  void _openCancelSheet(BuildContext context, RechargeDetail detail) {
+    _cancelNoteController.clear();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 12.w,
+            right: 12.w,
+            top: 14.h,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16.h,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '取消支付',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF333333),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '取消原因',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: const Color(0xFF666666),
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Wrap(
+                spacing: 10.w,
+                runSpacing: 10.h,
+                children: [
+                  _buildCancelReasonChip('我不想充值了'),
+                  _buildCancelReasonChip('信息填写错误'),
+                ],
+              ),
+              SizedBox(height: 12.h),
+              TextField(
+                controller: _cancelNoteController,
+                minLines: 2,
+                maxLines: 3,
+                maxLength: 60,
+                decoration: InputDecoration(
+                  hintText: '请输入取消原因',
+                  filled: true,
+                  fillColor: const Color(0xFFF5F6F8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      text: '返回',
+                      isPrimary: false,
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: Consumer<WalletProvider>(
+                      builder: (context, provider, _) {
+                        return CustomButton(
+                          text: provider.isRechargeCancelSubmitting
+                              ? '取消中...'
+                              : '确认取消',
+                          onPressed: provider.isRechargeCancelSubmitting
+                              ? null
+                              : () => _confirmCancel(sheetContext, detail),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCancelReasonChip(String text) {
+    return GestureDetector(
+      onTap: () => _cancelNoteController.text = text,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F6F8),
+          borderRadius: BorderRadius.circular(999.r),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(fontSize: 12.sp, color: const Color(0xFF333333)),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmCancel(
+    BuildContext sheetContext,
+    RechargeDetail detail,
+  ) async {
+    final id = _detailOrderId(detail);
+    if (id == null || id <= 0) {
+      _showSnack('订单ID无效');
+      return;
+    }
+    final note = _cancelNoteController.text.trim();
+    if (note.isEmpty) {
+      _showSnack('请输入取消原因');
+      return;
+    }
+    final provider = context.read<WalletProvider>();
+    try {
+      await provider.cancelRechargeOrder(
+        RechargeCancelRequest(id: id, note: note),
+      );
+      if (!mounted) return;
+      if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+      _showSnack('取消成功');
+      context.go('/deposit');
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(provider.rechargeCancelError ?? '取消失败');
+    }
+  }
+
+  int? _detailOrderId(RechargeDetail detail) {
+    return detail.id ?? int.tryParse(widget.orderId?.trim() ?? '');
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Widget _buildM1Card({
+    required Widget child,
+    EdgeInsetsGeometry? padding,
+    Color color = Colors.white,
+    Color? shadowColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: padding ?? EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor ?? Colors.black.withValues(alpha: 0.04),
+            blurRadius: shadowColor == null ? 10 : 24,
+            offset: Offset(0, shadowColor == null ? 2 : 10),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        color: const Color(0xFF111827),
+        fontSize: 14.sp,
+        fontWeight: FontWeight.w800,
+      ),
+    );
+  }
+
+  Widget _buildStatusTag(RechargeDetail detail) {
+    final status = detail.status ?? 5;
+    final isSuccess = status == 1 || status == 2;
+    final isFailed = status == 0 || status == 3 || status == 4;
+    final color = isSuccess
+        ? const Color(0xFF00B578)
+        : isFailed
+            ? const Color(0xFFEF4444)
+            : const Color(0xFF1989FA);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: color),
+        borderRadius: BorderRadius.circular(4.r),
+      ),
+      child: Text(
+        _statusText(status),
+        style: TextStyle(
+          color: color,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCopyButton(BuildContext context, String value) {
+    return TextButton.icon(
+      onPressed: () => _copyText(context, value),
+      icon: Icon(Icons.copy, size: 14.sp),
+      label: const Text('复制'),
+      style: TextButton.styleFrom(
+        foregroundColor: const Color(0xFF1989FA),
+        textStyle: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w700),
+        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
+  }
+
+  Widget _buildMiniCopy(BuildContext context, String value) {
+    return TextButton(
+      onPressed: () => _copyText(context, value),
+      style: TextButton.styleFrom(
+        foregroundColor: const Color(0xFF1989FA),
+        textStyle: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700),
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: const Text('复制'),
+    );
+  }
+
+  List<Widget> _buildPaymentRows(RechargeDetail detail) {
+    final params = detail.params;
+    final rows = <Widget>[];
+    final type = detail.type;
+
+    if (type == 4) {
+      _addRow(rows, '开户行', params?.bank);
+      _addRow(rows, '开户姓名', params?.bankName);
+      _addRow(rows, '卡号', params?.card, copy: params?.card);
+      _addRow(rows, '开户地', params?.address);
+    } else if (type == 3 || type == 5) {
+      _addRow(rows, '收款地址', params?.address, copy: params?.address);
+      if (detail.displayCurrency.toUpperCase() == 'CNY') {
+        _addRow(
+            rows,
+            'USDT汇率',
+            detail.rate == null
+                ? null
+                : _formatAmount(detail.rate!, fractionDigits: 4));
+        _addRow(rows, '虚拟币数量', _cryptoAmountText(detail));
+      }
+    } else if (type == 2) {
+      _addRow(rows, '姓名', params?.name);
+      _addRow(rows, '账号', params?.account, copy: params?.account);
+    } else {
+      _addRow(rows, '姓名', params?.name);
+      _addRow(rows, '账号', params?.account, copy: params?.account);
+      _addRow(rows, '收款地址', params?.address, copy: params?.address);
+      _addRow(rows, '开户行', params?.bank);
+      _addRow(rows, '开户姓名', params?.bankName);
+      _addRow(rows, '卡号', params?.card, copy: params?.card);
+      _addRow(rows, '开户地', params?.address);
+    }
+
+    if (rows.isEmpty) {
+      rows.add(_buildInfoRow(context, '支付信息', '暂无'));
+    }
+    return rows;
+  }
+
+  void _addRow(
+    List<Widget> rows,
+    String label,
+    String? value, {
+    String? copy,
+  }) {
+    final text = value?.trim();
+    if (text == null || text.isEmpty) return;
+    rows.add(_buildInfoRow(context, label, text, copy: copy));
+  }
+
+  Widget _buildInfoRow(
+    BuildContext context,
+    String label,
+    String value, {
+    String? copy,
+  }) {
+    final copyText = copy?.trim();
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 12.sp, color: const Color(0xFF6B7280)),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: const Color(0xFF111827),
+                height: 1.4,
+              ),
+              maxLines: copyText?.isNotEmpty == true ? 1 : 3,
+              overflow: copyText?.isNotEmpty == true
+                  ? TextOverflow.ellipsis
+                  : TextOverflow.visible,
+            ),
+          ),
+          if (copyText?.isNotEmpty == true) ...[
+            SizedBox(width: 8.w),
+            _buildMiniCopy(context, copyText!),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _statusText(int status) {
+    if (status == 1 || status == 2) return '充值成功';
+    if (status == 0) return '已超时';
+    if (status == 3) return '已取消';
+    if (status == 4) return '已驳回';
+    if (status == 5) return '处理中';
+    return '待支付';
+  }
+
+  String _headerTitle(RechargeDetail detail) {
+    if (detail.type == 4) return '银行卡转账';
+    if (detail.type == 2) return '支付宝充值';
+    if (detail.type == 3 || detail.type == 5) return '虚拟币充值';
+    return _payTypeText(detail);
+  }
+
+  IconData _headerIcon(RechargeDetail detail) {
+    if (detail.type == 4) return Icons.account_balance_outlined;
+    if (detail.type == 2) return Icons.payments_outlined;
+    if (detail.type == 3 || detail.type == 5) return Icons.diamond_outlined;
+    return Icons.info_outline;
+  }
+
+  String _payTypeText(RechargeDetail detail) {
+    if (detail.type == 4) return '银行卡';
+    if (detail.type == 3 || detail.type == 5) return '虚拟币';
+    if (detail.type == 2) return '支付宝';
+    return detail.type == null ? '-' : '类型${detail.type}';
+  }
+
+  bool _isPending(RechargeDetail detail) => (detail.status ?? 5) == 5;
+
+  String _amountDisplayText(RechargeDetail detail) {
+    final money = _moneyOnlyText(detail);
+    if (detail.type == 3 || detail.type == 5) return money;
+    final prefix = _currencyPrefix(detail.displayCurrency);
+    return money == '-' ? prefix : '$prefix $money';
+  }
+
+  String _moneyOnlyText(RechargeDetail detail) {
+    if (detail.type == 5 && detail.usdtMoney != null) {
+      return _formatAmount(detail.usdtMoney!, fractionDigits: 4);
+    }
+    return _formatAmount(detail.money);
+  }
+
+  String _currencyPrefix(String currency) {
+    final normalized = currency.trim().toUpperCase();
+    if (normalized == 'CNY' || normalized == 'RMB') return '¥';
+    if (normalized == 'USD') return r'$';
+    return normalized.isEmpty ? '¥' : normalized;
+  }
+
+  String _cryptoAmountText(RechargeDetail detail) {
+    if (detail.usdtMoney != null && detail.usdtMoney! > 0) {
+      return _formatAmount(detail.usdtMoney!, fractionDigits: 4);
+    }
+    final rate = detail.rate ?? 0;
+    if (rate > 0 && detail.money > 0) {
+      return _formatAmount(detail.money / rate, fractionDigits: 4);
+    }
+    return '-';
+  }
+
+  String _formatAmount(double value, {int fractionDigits = 2}) {
+    if (value % 1 == 0 && fractionDigits <= 2) return value.toStringAsFixed(0);
+    return value.toStringAsFixed(fractionDigits);
+  }
+
+  String _startTimeText(RechargeDetail detail, {String fallback = ''}) {
+    final value = detail.startTime?.trim();
+    if (value == null || value.isEmpty) return fallback;
+    return value;
+  }
+
+  String _normalizeImageUrl(String? input) {
+    final raw = input?.trim();
+    if (raw == null || raw.isEmpty) return '';
+    return raw.replaceAll('`', '').replaceAll(RegExp(r'''^['"]|['"]$'''), '');
+  }
+
+  Future<void> _copyText(BuildContext context, String value) async {
+    final text = value.trim();
+    if (text.isEmpty || text == '-') return;
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('已复制')),
+    );
+  }
+}
+
+class _ProofUploadImage {
+  const _ProofUploadImage({
+    required this.previewUrl,
+    required this.submitValue,
+  });
+
+  final String previewUrl;
+  final String submitValue;
 }
 
 class DepositPaySuccessScreen extends StatelessWidget {
@@ -1075,8 +2178,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
           Container(
             width: 12.w,
             height: 12.w,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [Color(0xFFE0EBFF), AppColors.primary],
@@ -1478,30 +2581,88 @@ class WithdrawSuccessScreen extends StatelessWidget {
 }
 
 class OnlinePayDetailScreen extends StatelessWidget {
-  const OnlinePayDetailScreen({super.key});
+  const OnlinePayDetailScreen({super.key, this.url, this.orderId});
+
+  final String? url;
+  final String? orderId;
 
   @override
   Widget build(BuildContext context) {
+    final payUrl = url?.trim() ?? '';
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomNavBar(title: '在线支付'),
-      body: Center(
+      body: Padding(
+        padding: EdgeInsets.all(16.w),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(color: AppColors.primary),
-            SizedBox(height: 24.h),
-            Text(
-              '正在跳转至支付网关...',
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: AppColors.textPrimary,
+            CustomCard(
+              padding: EdgeInsets.all(20.w),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.payments_outlined,
+                    color: AppColors.primary,
+                    size: 48.sp,
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    '在线支付',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    payUrl.isEmpty ? '支付链接缺失' : '请在支付网关完成付款，完成后返回查看订单详情。',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: AppColors.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
               ),
             ),
+            SizedBox(height: 20.h),
+            CustomButton(
+              text: '打开支付网关',
+              onPressed:
+                  payUrl.isEmpty ? null : () => _openPayUrl(context, payUrl),
+            ),
+            if (orderId?.trim().isNotEmpty == true) ...[
+              SizedBox(height: 12.h),
+              CustomButton(
+                text: '查看订单详情',
+                isPrimary: false,
+                onPressed: () => context.push(
+                  '/deposit/order/${Uri.encodeComponent(orderId!.trim())}',
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _openPayUrl(BuildContext context, String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('支付链接无效')),
+      );
+      return;
+    }
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('无法打开支付网关')),
+      );
+    }
   }
 }
 

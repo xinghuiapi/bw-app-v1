@@ -10,7 +10,7 @@ double? jsonDouble(dynamic value) {
   if (value == null) return null;
   if (value is double) return value;
   if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value);
+  if (value is String) return double.tryParse(value.replaceAll(',', ''));
   return null;
 }
 

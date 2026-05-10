@@ -28,7 +28,7 @@
 - **VIP中心** (`VipScreen`)：**【深度对齐】** 重构为纯净白底+蓝点 (`Blue Dot`) 装饰的立体感卡片风格。实现了基于当前等级动态计算的“充值”与“流水”双轨进度条，并通过 TabBar 实现了各 VIP 等级专属特权（升级礼金、返水比例等）的精细化列表展示；已接入 `/vip/getlist` 只读数据、下拉刷新、加载提示和 fallback 规则展示，充值当前值优先使用 `/token/user.recharge`。当前阶段已通过真实账号验证并标记为对接完毕。
 - **消息通知** (`MessageScreen`)：**【深度对齐】** 新增顶部“全部/未读/已读” Tab 分类过滤器，实现了未读红点 (`Badge`) 点击消除并实时变更为已读状态的业务逻辑。
 - **意见反馈** (`FeedbackScreen` & `FeedbackRecordsScreen`)：**【深度对齐】** 补齐了问题分类选择、多行文本框 300 字限制与实时字数统计器；问题分类弹窗已加最大高度和滚动约束，修复分类过多时的溢出；图片区域已接入 `/img/save`，支持最多 3 张图片上传、缩略图预览、删除，并在提交时传给 `/feedback/to.img`。反馈类型、提交反馈和反馈记录真实接口均已接入，并保留 fallback。
-- **充值中心** (`DepositScreen`)：**【基于截图深度复刻】** 充值渠道单选网格列表、自适应大字体的金额输入框、带快捷金额选项与实时汇率提示，重构了浅灰蓝背景与立体感卡片，完美还原“充值类型”、“充值通道”与“充值信息”三个模块的蓝点标题排版。
+- **充值中心** (`DepositScreen`)：**【对齐 m1 并接入真实链路】** 充值渠道单选网格列表、自适应大字体的金额输入框、带快捷金额选项与实时汇率提示，重构了浅灰蓝背景与立体感卡片，完美还原“充值类型”、“充值通道”与“充值信息”三个模块的蓝点标题排版；已接入 `/deposit/class`、`/deposit/getlist` 和 `/recharge/order`，提交成功后按 m1 规则进入在线支付或充值详情。
 - **提现中心** (`WithdrawScreen`)：提现银行卡信息展示、全部提现快捷键。
 - **财务记录** (`TransactionRecordScreen` & `FundRecordScreen`)：实现了基于盈亏状态动态变色、红蓝上下箭头动态图标的流水列表。
 - **个人资料** (`UserProfileScreen`)：已对齐 m1 资料编辑结构，支持实名、手机、邮箱、性别、生日、QQ、Telegram 展示/编辑；头像入口已接入相册选择、`/img/save` 上传和 `/user/edit.img` 保存流程。
@@ -52,10 +52,10 @@
 - **公共输入组件**：升级 `CustomTextField`，支持焦点状态变色、`suffixIcon` 清除按钮及错误红字提示。新增 `CountdownButton` 实现验证码倒计时效果。
 
 ### 结果与过渡页 (Feedback & Transitions)
-- **充值订单详情** (`DepositOrderDetailScreen`)：账单详情展示与返回首页。
+- **充值订单详情** (`DepositOrderDetailScreen`)：已对齐 m1 `DepositOrderDetail.vue`，实现渐变背景、状态金额卡、二维码卡、支付信息卡、风险提示、凭证上传卡和取消支付底部弹窗；已接入 `/recharge/details`、`/img/save?name=recharge`、`/recharge/img` 和 `/recharge/cancel`，支持图片凭证、虚拟币交易哈希和取消原因提交。
 - **充值成功** (`DepositPaySuccessScreen`)：大图标反馈与状态提示。
 - **提现成功** (`WithdrawSuccessScreen`)：大图标反馈及预计到账提示。
-- **线上支付** (`OnlinePayDetailScreen`)：支付网关跳转动画。
+- **线上支付** (`OnlinePayDetailScreen`)：支持接收 `/recharge/order` 返回的支付 URL 和订单 ID，可外部打开支付网关并跳转订单详情。
 
 ---
 

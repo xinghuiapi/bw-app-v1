@@ -272,14 +272,18 @@ final _routes = <RouteBase>[
     path: '/deposit-detail',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const DepositOrderDetailScreen(),
+      DepositOrderDetailScreen(
+        orderId: state.uri.queryParameters['id'],
+      ),
     ),
   ),
   GoRoute(
     path: '/deposit/order/:id',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const DepositOrderDetailScreen(),
+      DepositOrderDetailScreen(
+        orderId: state.pathParameters['id'],
+      ),
     ),
   ),
   GoRoute(
@@ -321,14 +325,20 @@ final _routes = <RouteBase>[
     path: '/online-pay',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const OnlinePayDetailScreen(),
+      OnlinePayDetailScreen(
+        url: _stringExtra(state, 'url'),
+        orderId: _stringExtra(state, 'orderId'),
+      ),
     ),
   ),
   GoRoute(
     path: '/deposit/online-pay',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const OnlinePayDetailScreen(),
+      OnlinePayDetailScreen(
+        url: _stringExtra(state, 'url'),
+        orderId: _stringExtra(state, 'orderId'),
+      ),
     ),
   ),
   GoRoute(
@@ -560,6 +570,12 @@ final _routes = <RouteBase>[
 
 NoTransitionPage<void> _noTransitionPage(GoRouterState state, Widget child) {
   return NoTransitionPage<void>(key: state.pageKey, child: child);
+}
+
+String? _stringExtra(GoRouterState state, String key) {
+  final extra = state.extra;
+  if (extra is Map && extra[key] != null) return extra[key].toString();
+  return state.uri.queryParameters[key];
 }
 
 GameViewScreen _buildGameViewScreen(GoRouterState state) {

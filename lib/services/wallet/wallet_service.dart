@@ -85,6 +85,19 @@ class WalletService extends BaseService {
     );
   }
 
+  Future<DepositOrderResult> createRechargeOrder(DepositOrderRequest request) {
+    return client.post<DepositOrderResult>(
+      ApiEndpoints.rechargeOrder,
+      data: request.toJson(),
+      decoder: (json) {
+        if (json is Map) {
+          return DepositOrderResult.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const DepositOrderResult();
+      },
+    );
+  }
+
   Future<RechargeDetail> fetchRechargeDetail(dynamic id) {
     return client.post<RechargeDetail>(
       ApiEndpoints.rechargeDetails,
@@ -114,13 +127,44 @@ class WalletService extends BaseService {
     );
   }
 
+  Future<void> submitRechargeProof(RechargeProofRequest request) {
+    return client.post<void>(
+      ApiEndpoints.rechargeProof,
+      data: request.toJson(),
+      decoder: (_) {},
+    );
+  }
+
+  Future<void> cancelRechargeOrder(RechargeCancelRequest request) {
+    return client.post<void>(
+      ApiEndpoints.rechargeCancel,
+      data: request.toJson(),
+      decoder: (_) {},
+    );
+  }
+
+  Future<UploadImageResult> uploadRechargeImage({
+    required List<int> bytes,
+    required String filename,
+  }) {
+    return _uploadImage(bytes: bytes, filename: filename, name: 'recharge');
+  }
+
   Future<UploadImageResult> uploadCardImage({
     required List<int> bytes,
     required String filename,
   }) {
+    return _uploadImage(bytes: bytes, filename: filename, name: 'member_bank');
+  }
+
+  Future<UploadImageResult> _uploadImage({
+    required List<int> bytes,
+    required String filename,
+    required String name,
+  }) {
     final formData = FormData.fromMap({
       'file': MultipartFile.fromBytes(bytes, filename: filename),
-      'name': 'member_bank',
+      'name': name,
     });
     return client.post<UploadImageResult>(
       ApiEndpoints.imageUpload,

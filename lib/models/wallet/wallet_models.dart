@@ -336,10 +336,24 @@ class DepositOrderResult {
   final String? orderNo;
   final int? id;
   final int? orderId;
+  final int? orderIdCamel;
+  final int? rechargeId;
+  final int? type;
+  final bool? nesting;
   final Map<String, dynamic>? data;
 
-  const DepositOrderResult(
-      {this.url, this.qrcode, this.orderNo, this.id, this.orderId, this.data});
+  const DepositOrderResult({
+    this.url,
+    this.qrcode,
+    this.orderNo,
+    this.id,
+    this.orderId,
+    this.orderIdCamel,
+    this.rechargeId,
+    this.type,
+    this.nesting,
+    this.data,
+  });
 
   factory DepositOrderResult.fromJson(Map<String, dynamic> json) {
     return DepositOrderResult(
@@ -348,9 +362,19 @@ class DepositOrderResult {
       orderNo: jsonString(json['order_no']),
       id: jsonInt(json['id']),
       orderId: jsonInt(json['order_id']),
+      orderIdCamel: jsonInt(json['orderId']),
+      rechargeId: jsonInt(json['recharge_id']),
+      type: jsonInt(json['type']),
+      nesting: jsonBool(json['nesting']),
       data: jsonMap(json['data']),
     );
   }
+
+  int? get resolvedOrderId => id ?? orderId ?? orderIdCamel ?? rechargeId;
+
+  String get normalizedUrl => url?.trim() ?? '';
+
+  bool get opensExternal => nesting == false;
 
   Map<String, dynamic> toJson() => {
         if (url != null) 'url': url,
@@ -358,11 +382,16 @@ class DepositOrderResult {
         if (orderNo != null) 'order_no': orderNo,
         if (id != null) 'id': id,
         if (orderId != null) 'order_id': orderId,
+        if (orderIdCamel != null) 'orderId': orderIdCamel,
+        if (rechargeId != null) 'recharge_id': rechargeId,
+        if (type != null) 'type': type,
+        if (nesting != null) 'nesting': nesting,
         if (data != null) 'data': data,
       };
 }
 
 class RechargeDetail {
+  final int? id;
   final RechargeParams? params;
   final double money;
   final double? rate;
@@ -371,8 +400,11 @@ class RechargeDetail {
   final String? currency;
   final String? msg;
   final int? type;
+  final int? status;
+  final String? startTime;
 
   const RechargeDetail({
+    this.id,
     this.params,
     this.money = 0,
     this.rate,
@@ -381,9 +413,12 @@ class RechargeDetail {
     this.currency,
     this.msg,
     this.type,
+    this.status,
+    this.startTime,
   });
 
   factory RechargeDetail.fromJson(Map<String, dynamic> json) => RechargeDetail(
+        id: jsonInt(json['id']),
         params: jsonMap(json['params']) == null
             ? null
             : RechargeParams.fromJson(jsonMap(json['params'])!),
@@ -394,9 +429,33 @@ class RechargeDetail {
         currency: jsonString(json['currency']),
         msg: jsonString(json['msg']),
         type: jsonInt(json['type']),
+        status: jsonInt(json['status']),
+        startTime: jsonString(json['start_time']),
       );
 
+  String get displayCurrency {
+    final value = currency?.trim();
+    return value == null || value.isEmpty ? 'CNY' : value;
+  }
+
+  RechargeDetail copyWith({int? status}) {
+    return RechargeDetail(
+      id: id,
+      params: params,
+      money: money,
+      rate: rate,
+      usdtMoney: usdtMoney,
+      img: img,
+      currency: currency,
+      msg: msg,
+      type: type,
+      status: status ?? this.status,
+      startTime: startTime,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
+        if (id != null) 'id': id,
         if (params != null) 'params': params!.toJson(),
         'money': money,
         if (rate != null) 'hl': rate,
@@ -405,7 +464,32 @@ class RechargeDetail {
         if (currency != null) 'currency': currency,
         if (msg != null) 'msg': msg,
         if (type != null) 'type': type,
+        if (status != null) 'status': status,
+        if (startTime != null) 'start_time': startTime,
       };
+}
+
+class RechargeProofRequest {
+  final int id;
+  final String? img;
+  final String? hash;
+
+  const RechargeProofRequest({required this.id, this.img, this.hash});
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        if (img?.trim().isNotEmpty == true) 'img': img!.trim(),
+        if (hash?.trim().isNotEmpty == true) 'hash': hash!.trim(),
+      };
+}
+
+class RechargeCancelRequest {
+  final int id;
+  final String note;
+
+  const RechargeCancelRequest({required this.id, required this.note});
+
+  Map<String, dynamic> toJson() => {'id': id, 'note': note.trim()};
 }
 
 class RechargeParams {

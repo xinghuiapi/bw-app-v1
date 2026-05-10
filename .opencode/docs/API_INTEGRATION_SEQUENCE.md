@@ -1290,9 +1290,9 @@ flutter test test/widget_test.dart
 - 需要真实验证 `nesting: false` 外部打开和 `nesting: true` 内嵌承载。
 - 当前仍为独立 `/game-view` 页面，不是 m1 页面内 popup；最小化 floating 小窗后置。
 
-### 2026-05-10 钱包卡包与提现只读链路接入
+### 2026-05-10 钱包卡包、提现只读与充值全链路接入
 
-状态：已完成 Phase 7 钱包部分只读接入，并完成低风险卡包绑定写操作；充值真实通道和提现提交仍后置。
+状态：已完成 Phase 7 钱包部分只读接入，并完成卡包绑定与充值链路写操作；提现提交、手动转入/转出和领取类写操作仍后置。
 
 已完成：
 
@@ -1313,6 +1313,13 @@ flutter test test/widget_test.dart
 - 提现页“一键归户”复用已接入的场馆余额回收能力，成功后刷新余额。
 - “确认提现”仍不调用 `POST /drawing/order`，当前仅提示 `提现提交功能待接入`。
 - 充值/提现页面按 m1 做 UI 精修：浅灰背景、区块标题、金额输入、快捷金额、卡包卡片、规则卡片和胶囊按钮。
+- 充值分类接入 `POST /deposit/class`，充值通道接入 `POST /deposit/getlist`，金额输入/固定金额/混合金额按通道 `amount_type` 和 `amount` 真实配置展示。
+- 充值提交接入 `POST /recharge/order`，请求字段对齐 m1：`id` 为通道 ID，`money` 为充值金额；提交前校验通道、金额、最小/最大限额和固定金额选项。
+- 充值订单创建成功后按 m1 处理 `type == 1` 在线支付：`nesting == false` 外部打开支付 URL，否则进入 `/deposit/online-pay`；普通订单跳转 `/deposit/order/:id`。
+- 充值详情接入 `POST /recharge/details`，`/deposit/order/:id` 和 `/deposit-detail?id=xxx` 均支持加载真实详情。
+- 充值详情页已按 m1 `DepositOrderDetail.vue` 重构为渐变背景、状态金额卡、二维码卡、支付信息卡、风险提示、凭证上传卡和取消支付底部弹窗。
+- 上传充值凭证接入 m1 链路：先调用 `POST /img/save` 且 `name = recharge` 上传图片，再调用 `POST /recharge/img` 提交 `{id,img}`；虚拟币 `type == 3` 支持交易哈希模式提交 `{id,hash}`。
+- 取消充值接入 `POST /recharge/cancel`，底部弹窗填写 `note` 后提交 `{id,note}`，成功后本地订单状态更新为已取消并返回充值页。
 - 钱包页场馆模式开关修复 loading 出现/消失时横向错位问题。
 - 提现页顶部可提现余额卡片改为 `Stack` 布局，固定高度压缩到 `112.h`，避免卡片过高并对齐提现金额卡片视觉密度。
 
@@ -1335,8 +1342,8 @@ flutter test test/widget_test.dart
 - 需要用真实账号验证 `/img/save` 返回的 `path/url` 是否都可用于 `/member_bank/binding.img`。
 - 需要真实验证银行卡、虚拟币和支付宝绑定时，后端是否接受当前字段组合和 `addres` 拼写。
 - 需要真实验证提现页 `/vip/getlist` 的提现规则字段和 `/token/user` 的流水字段是否与当前解析完全一致。
-- 提交充值、充值凭证、取消充值、确认提现 `/drawing/order`、手动转入/转出仍属于后续资金写操作。
-- 充值页当前仍以静态 UI 为主，下一步优先接入充值分类、通道和详情只读接口。
+- 需要真实账号验证充值分类、通道、创建订单、详情、凭证上传、哈希提交和取消支付在不同通道类型下的完整闭环。
+- 确认提现 `/drawing/order`、手动转入/转出、领取返水/返利仍属于后续资金写操作。
 
 每开始一个接口对接任务，按以下顺序执行：
 
@@ -1351,9 +1358,9 @@ flutter test test/widget_test.dart
 
 建议下一步：
 
-- 优先接入充值分类、充值通道和充值详情只读接口，替换充值页静态类型、通道和金额配置。
-- 或继续完善资金记录页筛选、分页、充值记录、提现记录、转账记录和帐变记录。
-- 暂不进入提交充值、确认提现、手动转入/转出等高风险资金写操作。
+- 优先完善资金记录页筛选、分页、充值记录、提现记录、转账记录和帐变记录，打通充值提交后的记录核验路径。
+- 其次接入确认提现 `POST /drawing/order`，在真实卡包、余额、VIP 规则和流水锁定验证通过后再开放提交。
+- 手动转入/转出、领取返水/返利继续后置到记录与提现链路稳定后。
 
 ## 8. 接续用压缩上下文
 
@@ -1363,7 +1370,7 @@ flutter test test/widget_test.dart
 - 当前真实域名使用 `https://apis.xh-demo.com/api`，资源域名使用 `https://apis.xh-demo.com`。
 - `/system/getlist` 已接入 `SystemService.fetchConfig()` 和 `SystemProvider.loadConfig()`。
 - Web 启动探针已经通过，Debug 日志形如 `[startup-probe] system config loaded: title=..., languages=..., banners=...`。
-- 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏列表、游戏启动、消息中心、反馈链路、活动链路、卡包列表、添加卡包和提现只读链路已有真实接口数据消费，其余页面仍以 m1 高仿 UI fallback 为主。
+- 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏列表、游戏启动、消息中心、反馈链路、活动链路、卡包列表、添加卡包、充值全链路和提现只读链路已有真实接口数据消费，其余页面仍以 m1 高仿 UI fallback 为主。
 - 当前主 Tab 路由 `/`、`/game`、`/activity`、`/service`、`/profile` 使用 `NoTransitionPage`，底部导航点击为无动画 replace 式切换。
 - 当前验证基线：`flutter analyze lib test` 无错误，`flutter test test/widget_test.dart` 为 9 个测试通过。
 
@@ -1374,13 +1381,13 @@ flutter test test/widget_test.dart
 - 不要把 `/system/getlist` 加 query `lang`。
 - 不要批量替换首页、游戏、钱包、活动等页面 Mock 数据。
 - 不要重建认证链路。
-- 不要贸然接入提交充值、确认提现、手动转入/转出等高风险资金写操作；如需接入，必须先完成对应只读链路和真实账号验证。
+- 不要贸然接入确认提现、手动转入/转出、领取返水/返利等剩余高风险资金写操作；如需接入，必须先完成对应只读链路和真实账号验证。
 - 不要把主 Tab 切换改回 `push` 或默认路由转场；m1 对齐要求是无感 replace 式切换。
 
 下次优先做：
 
-- 优先接入充值分类、充值通道和充值详情只读接口，替换充值页静态类型/通道/金额配置。
-- 或继续完善记录页筛选、分页、充值记录、提现记录、转账记录和帐变记录。
+- 优先完善记录页筛选、分页、充值记录、提现记录、转账记录和帐变记录。
+- 或在充值链路经真实账号验证后，继续接入确认提现 `POST /drawing/order`。
 - 接口数据为空或失败时继续显示当前 m1 高仿 UI fallback。
 - 页面只读消费 Provider，不让页面直接调用 Service 或 Dio。
 - 完成后跑格式化、分析和测试。

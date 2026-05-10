@@ -31,9 +31,13 @@ class WalletProvider extends ChangeNotifier {
   bool isTransferModeSubmitting = false;
   bool isDepositCategoriesLoading = false;
   bool isDepositChannelsLoading = false;
+  bool isRechargeOrderSubmitting = false;
   bool isRechargeDetailLoading = false;
   bool isBindingCard = false;
   bool isUploadingCardImage = false;
+  bool isUploadingRechargeImage = false;
+  bool isRechargeProofSubmitting = false;
+  bool isRechargeCancelSubmitting = false;
   final Map<int, bool> _cardTypeLoading = {};
 
   String? cardsError;
@@ -43,9 +47,13 @@ class WalletProvider extends ChangeNotifier {
   String? transferModeError;
   String? depositCategoriesError;
   String? depositChannelsError;
+  String? rechargeOrderError;
   String? rechargeDetailError;
   String? bindCardError;
   String? cardImageUploadError;
+  String? rechargeImageUploadError;
+  String? rechargeProofSubmitError;
+  String? rechargeCancelError;
   final Map<int, String?> _cardTypeErrors = {};
 
   double get venueBalanceTotal =>
@@ -310,6 +318,34 @@ class WalletProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<DepositOrderResult> createRechargeOrder(
+    DepositOrderRequest request,
+  ) async {
+    if (isRechargeOrderSubmitting) {
+      throw const ApiException(
+        type: ApiExceptionType.business,
+        message: '充值订单提交中，请稍候',
+      );
+    }
+
+    isRechargeOrderSubmitting = true;
+    rechargeOrderError = null;
+    notifyListeners();
+
+    try {
+      return await _service.createRechargeOrder(request);
+    } on ApiException catch (exception) {
+      rechargeOrderError = exception.message;
+      rethrow;
+    } catch (exception) {
+      rechargeOrderError = exception.toString();
+      rethrow;
+    } finally {
+      isRechargeOrderSubmitting = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> loadRechargeDetail(dynamic id) async {
     if (isRechargeDetailLoading) return;
 
@@ -417,6 +453,93 @@ class WalletProvider extends ChangeNotifier {
       rethrow;
     } finally {
       isUploadingCardImage = false;
+      notifyListeners();
+    }
+  }
+
+  Future<UploadImageResult> uploadRechargeImage({
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    if (isUploadingRechargeImage) {
+      throw const ApiException(
+        type: ApiExceptionType.business,
+        message: '图片上传中，请稍候',
+      );
+    }
+
+    isUploadingRechargeImage = true;
+    rechargeImageUploadError = null;
+    notifyListeners();
+
+    try {
+      final result = await _service.uploadRechargeImage(
+        bytes: bytes,
+        filename: filename,
+      );
+      final image = result.path?.trim().isNotEmpty == true
+          ? result.path!.trim()
+          : result.url?.trim();
+      if (image == null || image.isEmpty) {
+        throw const ApiException(
+          type: ApiExceptionType.parse,
+          message: 'Upload response missing image path',
+        );
+      }
+      return result;
+    } on ApiException catch (exception) {
+      rechargeImageUploadError = exception.message;
+      rethrow;
+    } catch (exception) {
+      rechargeImageUploadError = exception.toString();
+      rethrow;
+    } finally {
+      isUploadingRechargeImage = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> submitRechargeProof(RechargeProofRequest request) async {
+    if (isRechargeProofSubmitting) return;
+
+    isRechargeProofSubmitting = true;
+    rechargeProofSubmitError = null;
+    notifyListeners();
+
+    try {
+      await _service.submitRechargeProof(request);
+    } on ApiException catch (exception) {
+      rechargeProofSubmitError = exception.message;
+      rethrow;
+    } catch (exception) {
+      rechargeProofSubmitError = exception.toString();
+      rethrow;
+    } finally {
+      isRechargeProofSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> cancelRechargeOrder(RechargeCancelRequest request) async {
+    if (isRechargeCancelSubmitting) return;
+
+    isRechargeCancelSubmitting = true;
+    rechargeCancelError = null;
+    notifyListeners();
+
+    try {
+      await _service.cancelRechargeOrder(request);
+      if (rechargeDetail != null) {
+        rechargeDetail = rechargeDetail!.copyWith(status: 3);
+      }
+    } on ApiException catch (exception) {
+      rechargeCancelError = exception.message;
+      rethrow;
+    } catch (exception) {
+      rechargeCancelError = exception.toString();
+      rethrow;
+    } finally {
+      isRechargeCancelSubmitting = false;
       notifyListeners();
     }
   }

@@ -56,7 +56,18 @@
 
 ```bash
 flutter pub get
+./run_web.sh
 dart format lib test
 flutter analyze lib test
 flutter test
 ```
+
+### 启动项目
+
+当用户说“启动项目”时，默认使用以下命令启动 Chrome 调试：
+
+```bash
+./run_web.sh
+```
+
+`run_web.sh` 内部使用 `flutter run -d chrome --no-web-resources-cdn`，用于避免 Flutter Web 默认访问 Google CDN 资源导致 CanvasKit/字体资源加载失败。启动后仍支持 `r` 热重载、`R` 热重启和 `q` 退出。

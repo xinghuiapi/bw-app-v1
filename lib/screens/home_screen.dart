@@ -864,7 +864,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     final cardSize = _recoGameCardSize;
     return SizedBox(
-      height: cardSize + 34,
+      height: cardSize + 58,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -897,80 +897,90 @@ class _HomeScreenState extends State<HomeScreen> {
         margin: EdgeInsets.only(right: _recoGameCardGap),
         child: Column(
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16.r),
-                  child: AppNetworkImage(
-                    url: game.img ?? '',
-                    width: cardSize,
-                    height: cardSize,
-                    errorWidget: Image.asset(
-                      AppImages.dz,
+            SizedBox(
+              width: cardSize,
+              height: cardSize,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16.r),
+                    child: AppNetworkImage(
+                      url: game.img ?? '',
                       width: cardSize,
                       height: cardSize,
-                      fit: BoxFit.cover,
+                      errorWidget: Image.asset(
+                        AppImages.dz,
+                        width: cardSize,
+                        height: cardSize,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-                if (game.isMaintaining)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '维护中',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
+                  if (game.isMaintaining)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          borderRadius: BorderRadius.circular(16.r),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '维护中',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                if (isLaunching)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.48),
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 22.w,
-                            height: 22.w,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                  if (isLaunching)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.48),
+                          borderRadius: BorderRadius.circular(16.r),
+                        ),
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 22.w,
+                              height: 22.w,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 6.h),
-                          Text(
-                            '启动中...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w600,
+                            SizedBox(height: 6.h),
+                            Text(
+                              '启动中...',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
             SizedBox(height: 8.h),
-            Text(
-              game.title,
-              style: TextStyle(fontSize: 13.sp, color: const Color(0xFF333333)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            SizedBox(
+              height: 22,
+              child: Center(
+                child: Text(
+                  game.title,
+                  style: TextStyle(
+                      fontSize: 13.sp, color: const Color(0xFF333333)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
           ],
         ),
@@ -1039,23 +1049,31 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: EdgeInsets.only(right: _recoGameCardGap),
       child: Column(
         children: [
-          Container(
+          SizedBox(
             width: cardSize,
             height: cardSize,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.r),
-              image: const DecorationImage(
-                image: AssetImage(AppImages.dz),
-                fit: BoxFit.cover,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16.r),
+                image: const DecorationImage(
+                  image: AssetImage(AppImages.dz),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
           SizedBox(height: 8.h),
-          Text(
-            '推荐游戏 ${index + 1}',
-            style: TextStyle(fontSize: 13.sp, color: const Color(0xFF333333)),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          SizedBox(
+            height: 22,
+            child: Center(
+              child: Text(
+                '推荐游戏 ${index + 1}',
+                style:
+                    TextStyle(fontSize: 13.sp, color: const Color(0xFF333333)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ),
         ],
       ),

@@ -52,7 +52,7 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
                   message: '当前账号已绑定邮箱，暂不支持在此页面修改。',
                 ),
                 SizedBox(height: 24.h),
-                CustomButton(text: '返回', onPressed: () => context.pop()),
+                CustomButton(text: '返回', onPressed: _exitPage),
               ] else ...[
                 Text(
                   '邮箱地址',
@@ -119,7 +119,7 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
       );
       if (!mounted) return;
       _showMessage('绑定成功');
-      context.pop();
+      _exitPage();
     } catch (error) {
       if (!mounted) return;
       _showMessage(userFormErrorMessage(error, '绑定失败'));
@@ -160,6 +160,10 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _exitPage() {
+    context.canPop() ? context.pop() : context.go('/profile');
   }
 }
 

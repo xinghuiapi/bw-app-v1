@@ -224,6 +224,10 @@ class DepositCategory {
         code: jsonString(json['code']),
       );
 
+  String get displayTitle => title?.trim() ?? '';
+
+  bool get hasBadge => msg?.trim().isNotEmpty == true;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         if (title != null) 'title': title,
@@ -243,6 +247,7 @@ class DepositChannel {
   final String? bankCode;
   final int? amountType;
   final List<dynamic> amount;
+  final String? rate;
   final int? giveType;
   final double? giveMoney;
 
@@ -256,6 +261,7 @@ class DepositChannel {
     this.bankCode,
     this.amountType,
     this.amount = const [],
+    this.rate,
     this.giveType,
     this.giveMoney,
   });
@@ -272,9 +278,32 @@ class DepositChannel {
         amount: json['amount'] is List
             ? List<dynamic>.from(json['amount'])
             : const [],
+        rate: jsonString(json['rete'] ?? json['rate']),
         giveType: jsonInt(json['give_type']),
         giveMoney: jsonDouble(json['give_money']),
       );
+
+  String get displayTitle => title?.trim() ?? '';
+
+  int get normalizedAmountType {
+    final value = amountType ?? 3;
+    return value == 1 || value == 2 || value == 3 ? value : 3;
+  }
+
+  bool get manualAmountEnabled =>
+      normalizedAmountType == 1 || normalizedAmountType == 3;
+
+  bool get fixedAmountOnly => normalizedAmountType == 2;
+
+  List<double> get quickAmounts => amount
+      .map((value) => jsonDouble(value))
+      .whereType<double>()
+      .where((value) => value > 0)
+      .toList(growable: false);
+
+  bool get shouldShowRate =>
+      displayTitle.toUpperCase().contains('USDT') &&
+      (rate?.trim().isNotEmpty ?? false);
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -286,6 +315,7 @@ class DepositChannel {
         if (bankCode != null) 'bank_code': bankCode,
         if (amountType != null) 'amount_type': amountType,
         'amount': amount,
+        if (rate != null) 'rete': rate,
         if (giveType != null) 'give_type': giveType,
         if (giveMoney != null) 'give_money': giveMoney,
       };

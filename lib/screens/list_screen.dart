@@ -12,7 +12,7 @@ class ListScreen extends StatelessWidget {
         title: const Text('Items List'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => context.pop(),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/'),
         ),
       ),
       body: ListView.separated(

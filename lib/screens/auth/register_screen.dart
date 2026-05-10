@@ -118,7 +118,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
-                    onTap: () => context.pop(),
+                    onTap: () =>
+                        context.canPop() ? context.pop() : context.go('/login'),
                     child: Icon(
                       Icons.arrow_back_ios_new,
                       size: 20.sp,
@@ -316,7 +317,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => context.pop(),
+                    onTap: () =>
+                        context.canPop() ? context.pop() : context.go('/login'),
                     child: Text(
                       '立即登录',
                       style: TextStyle(

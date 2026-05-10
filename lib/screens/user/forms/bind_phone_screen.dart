@@ -52,7 +52,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                   message: '当前账号已绑定手机号，暂不支持在此页面修改。',
                 ),
                 SizedBox(height: 24.h),
-                CustomButton(text: '返回', onPressed: () => context.pop()),
+                CustomButton(text: '返回', onPressed: _exitPage),
               ] else ...[
                 Text(
                   '手机号',
@@ -119,7 +119,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
       );
       if (!mounted) return;
       _showMessage('绑定成功');
-      context.pop();
+      _exitPage();
     } catch (error) {
       if (!mounted) return;
       _showMessage(userFormErrorMessage(error, '绑定失败'));
@@ -159,6 +159,10 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _exitPage() {
+    context.canPop() ? context.pop() : context.go('/profile');
   }
 }
 

@@ -44,6 +44,9 @@ class ApiEndpoints {
   static const tradeRecord = '/trade/record';
   static const transferLogList = '/transfers_log/getlist';
   static const moneyLogList = '/money_log/getlist';
+  static const depositClass = '/deposit/class';
+  static const depositList = '/deposit/getlist';
+  static const rechargeDetails = '/recharge/details';
   static const drawingList = '/drawing/getlist';
   static const bankList = '/bank/getlist';
   static const memberBankBinding = '/member_bank/binding';

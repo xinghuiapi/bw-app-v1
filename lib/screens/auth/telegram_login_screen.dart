@@ -58,7 +58,7 @@ class TelegramLoginScreen extends StatelessWidget {
                 text: 'Cancel',
                 isPrimary: false,
                 onPressed: () {
-                  context.pop();
+                  context.canPop() ? context.pop() : context.go('/login');
                 },
               ),
             ],

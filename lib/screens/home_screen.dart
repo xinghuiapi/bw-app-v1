@@ -29,6 +29,20 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showDownloadBar = true;
   bool _showBalance = true;
 
+  double get _recoGameCardSize {
+    final scaled = 100.w;
+    if (scaled < 86) return 86;
+    if (scaled > 120) return 120;
+    return scaled;
+  }
+
+  double get _recoGameCardGap {
+    final scaled = 12.w;
+    if (scaled < 8) return 8;
+    if (scaled > 12) return 12;
+    return scaled;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -563,6 +577,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildGameLobby() {
+    final isWideScreen = MediaQuery.sizeOf(context).width >= 600;
+    final mainCardHeight = isWideScreen ? 360.0 : 180.h;
+    final rightCardPadding = isWideScreen
+        ? EdgeInsets.symmetric(horizontal: 12.w, vertical: 8)
+        : EdgeInsets.all(12.w);
+    final smallCardHeight = isWideScreen ? 112.0 : 80.h;
     return Container(
       margin: EdgeInsets.only(top: 12.h),
       child: Column(
@@ -571,7 +591,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: Container(
-                  height: 180.h,
+                  height: mainCardHeight,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16.r),
@@ -598,8 +618,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.all(12.w),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: isWideScreen ? 10 : 12.h,
+                        ),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -640,7 +664,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(width: 10.w),
               Expanded(
                 child: SizedBox(
-                  height: 180.h,
+                  height: mainCardHeight,
                   child: Column(
                     children: [
                       Expanded(
@@ -653,11 +677,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Expanded(
                                 child: Padding(
-                                  padding: EdgeInsets.all(12.w),
+                                  padding: rightCardPadding,
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Row(
                                         children: [
@@ -709,11 +734,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Expanded(
                                 child: Padding(
-                                  padding: EdgeInsets.all(12.w),
+                                  padding: rightCardPadding,
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Row(
                                         children: [
@@ -763,13 +789,13 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 10.h),
           Row(
             children: [
-              _buildSmallGameCard('体育赛事', AppImages.ty),
+              _buildSmallGameCard('体育赛事', AppImages.ty, smallCardHeight),
               SizedBox(width: 10.w),
-              _buildSmallGameCard('捕鱼游戏', AppImages.by),
+              _buildSmallGameCard('捕鱼游戏', AppImages.by, smallCardHeight),
               SizedBox(width: 10.w),
-              _buildSmallGameCard('棋牌游戏', AppImages.qp),
+              _buildSmallGameCard('棋牌游戏', AppImages.qp, smallCardHeight),
               SizedBox(width: 10.w),
-              _buildSmallGameCard('电竞游戏', AppImages.dj),
+              _buildSmallGameCard('电竞游戏', AppImages.dj, smallCardHeight),
             ],
           ),
         ],
@@ -777,10 +803,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSmallGameCard(String title, String image) {
+  Widget _buildSmallGameCard(String title, String image, double height) {
     return Expanded(
       child: Container(
-        height: 80.h,
+        height: height,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.r),
@@ -788,8 +814,8 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(image, width: 40.w, height: 40.w),
-            SizedBox(height: 4.h),
+            Flexible(child: Image.asset(image, width: 40.w, height: 40.w)),
+            SizedBox(height: 4.h.clamp(2.0, 4.0)),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
               child: Text(
@@ -836,8 +862,9 @@ class _HomeScreenState extends State<HomeScreen> {
     List<RecommendedGame> games, {
     required bool hasRemoteData,
   }) {
+    final cardSize = _recoGameCardSize;
     return SizedBox(
-      height: 132.h,
+      height: cardSize + 34,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -854,6 +881,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isLaunching = context.select<GameProvider, bool>(
       (provider) => provider.launchingGameId == game.id,
     );
+    final cardSize = _recoGameCardSize;
 
     return GestureDetector(
       onTap: () {
@@ -865,8 +893,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _launchRecommendedGame(game.launchTarget);
       },
       child: Container(
-        width: 100.w,
-        margin: EdgeInsets.only(right: 12.w),
+        width: cardSize,
+        margin: EdgeInsets.only(right: _recoGameCardGap),
         child: Column(
           children: [
             Stack(
@@ -875,12 +903,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(16.r),
                   child: AppNetworkImage(
                     url: game.img ?? '',
-                    width: 100.w,
-                    height: 100.w,
+                    width: cardSize,
+                    height: cardSize,
                     errorWidget: Image.asset(
                       AppImages.dz,
-                      width: 100.w,
-                      height: 100.w,
+                      width: cardSize,
+                      height: cardSize,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -1005,14 +1033,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFallbackRecoGameCard(int index) {
+    final cardSize = _recoGameCardSize;
     return Container(
-      width: 100.w,
-      margin: EdgeInsets.only(right: 12.w),
+      width: cardSize,
+      margin: EdgeInsets.only(right: _recoGameCardGap),
       child: Column(
         children: [
           Container(
-            width: 100.w,
-            height: 100.w,
+            width: cardSize,
+            height: cardSize,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16.r),
               image: const DecorationImage(

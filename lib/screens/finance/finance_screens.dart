@@ -42,6 +42,16 @@ class _DepositScreenState extends State<DepositScreen> {
   final List<int> _quickAmounts = [100, 300, 500, 1000, 5000];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<WalletProvider>().loadDepositBootstrap();
+      context.read<UserProvider>().loadProfile().catchError((_) {});
+    });
+  }
+
+  @override
   void dispose() {
     _amountController.dispose();
     super.dispose();
@@ -49,6 +59,10 @@ class _DepositScreenState extends State<DepositScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final walletProvider = context.watch<WalletProvider>();
+    final userProvider = context.watch<UserProvider>();
+    final profile = userProvider.profile;
+    final symbol = _textOr(profile?.symbol, '¥');
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FC), // 浅灰蓝背景
       appBar: CustomNavBar(
@@ -56,31 +70,36 @@ class _DepositScreenState extends State<DepositScreen> {
         rightText: '充值记录',
         onClickRight: () => context.push('/fund-management'),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(12.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDepositAlert(),
-            _buildSectionHeader('充值类型'),
-            SizedBox(height: 12.h),
-            _buildTypeGrid(),
-            SizedBox(height: 16.h),
-            _buildSectionHeader('充值通道'),
-            SizedBox(height: 12.h),
-            _buildChannelGrid(),
-            SizedBox(height: 16.h),
-            _buildSectionHeader('充值信息'),
-            SizedBox(height: 12.h),
-            _buildAmountInput(),
-            SizedBox(height: 10.h),
-            _buildAmountGrid(),
-            SizedBox(height: 28.h),
-            CustomButton(
-                text: '确认充值',
-                onPressed: () => context.push('/deposit-success')),
-            SizedBox(height: 32.h),
-          ],
+      body: RefreshIndicator(
+        onRefresh: () => context.read<WalletProvider>().loadDepositBootstrap(
+              refresh: true,
+            ),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(12.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!_isRealNameVerified(profile)) _buildDepositAlert(),
+              _buildSectionHeader('充值类型'),
+              SizedBox(height: 12.h),
+              _buildTypeGrid(walletProvider),
+              SizedBox(height: 16.h),
+              _buildSectionHeader('充值通道'),
+              SizedBox(height: 12.h),
+              _buildChannelGrid(walletProvider),
+              SizedBox(height: 16.h),
+              _buildSectionHeader('充值信息'),
+              SizedBox(height: 12.h),
+              _buildAmountInput(walletProvider, symbol),
+              SizedBox(height: 10.h),
+              _buildRateText(walletProvider),
+              _buildAmountGrid(walletProvider, symbol),
+              SizedBox(height: 28.h),
+              CustomButton(text: '确认充值', onPressed: _showDepositSubmitTodo),
+              SizedBox(height: 32.h),
+            ],
+          ),
         ),
       ),
     );
@@ -158,132 +177,245 @@ class _DepositScreenState extends State<DepositScreen> {
     );
   }
 
-  Widget _buildTypeGrid() {
+  Widget _buildTypeGrid(WalletProvider provider) {
+    final categories = provider.depositCategories;
+    if (provider.isDepositCategoriesLoading && categories.isEmpty) {
+      return const AppLoading(message: '充值类型加载中...');
+    }
+
+    if (categories.isNotEmpty) {
+      return Wrap(
+        spacing: 12.w,
+        runSpacing: 12.h,
+        children: [
+          for (final category in categories)
+            _buildTypeItem(
+              selected: provider.selectedDepositCategoryId == category.id,
+              title: category.displayTitle,
+              badge: category.msg,
+              imageUrl: category.img,
+              fallbackIcon: _fallbackDepositIcon(category.displayTitle),
+              fallbackColor: _fallbackDepositColor(category.displayTitle),
+              onTap: () {
+                _amountController.clear();
+                _selectedAmount = -1;
+                provider.loadDepositChannels(category.id, refresh: true);
+              },
+            ),
+        ],
+      );
+    }
+
     return Wrap(
       spacing: 12.w,
       runSpacing: 12.h,
       children: List.generate(_depositTypes.length, (index) {
         final type = _depositTypes[index];
         final isSelected = _selectedType == index;
-        return GestureDetector(
+        return _buildTypeItem(
+          selected: isSelected,
+          title: type['name'],
+          fallbackIcon: type['icon'],
+          fallbackColor: type['color'],
           onTap: () => setState(() => _selectedType = index),
-          child: Container(
-            width: (1.sw - 32.w - 24.w) / 3 - 0.1, // 3列, 减0.1防止浮点误差导致换行
-            height: 48.h,
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.transparent,
-                width: 1,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(type['icon'], color: type['color'], size: 18.sp),
-                      SizedBox(width: 4.w),
-                      Text(
-                        type['name'],
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: AppColors.textPrimary,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isSelected)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 20.w,
-                      height: 20.w,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(8.r),
-                          bottomRight: Radius.circular(8.r),
-                        ),
-                      ),
-                      child:
-                          Icon(Icons.check, color: Colors.white, size: 12.sp),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         );
       }),
     );
   }
 
-  Widget _buildChannelGrid() {
+  Widget _buildTypeItem({
+    required bool selected,
+    required String title,
+    required IconData fallbackIcon,
+    required Color fallbackColor,
+    required VoidCallback onTap,
+    String? imageUrl,
+    String? badge,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: (1.sw - 32.w - 24.w) / 3 - 0.1, // 3列, 减0.1防止浮点误差导致换行
+        height: 48.h,
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFF0F7FF) : Colors.white,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: selected ? AppColors.primary : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (imageUrl?.trim().isNotEmpty == true)
+                      AppNetworkImage(
+                        url: imageUrl!.trim(),
+                        width: 20.w,
+                        height: 20.w,
+                        fit: BoxFit.contain,
+                        borderRadius: BorderRadius.circular(4.r),
+                      )
+                    else
+                      Icon(fallbackIcon, color: fallbackColor, size: 18.sp),
+                    SizedBox(width: 4.w),
+                    Flexible(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: AppColors.textPrimary,
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (badge?.trim().isNotEmpty == true)
+              Positioned(
+                top: -8.h,
+                right: -4.w,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8.r),
+                      topRight: Radius.circular(8.r),
+                      bottomRight: Radius.circular(8.r),
+                    ),
+                  ),
+                  child: Text(
+                    badge!.trim(),
+                    style: TextStyle(color: Colors.white, fontSize: 10.sp),
+                  ),
+                ),
+              ),
+            if (selected) _buildCheckMark(size: 20.w),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChannelGrid(WalletProvider provider) {
+    final channels = provider.depositChannels;
+    if (provider.isDepositChannelsLoading && channels.isEmpty) {
+      return const AppLoading(message: '充值通道加载中...');
+    }
+    if (channels.isNotEmpty) {
+      return Wrap(
+        spacing: 12.w,
+        runSpacing: 12.h,
+        children: [
+          for (final channel in channels)
+            _buildChannelItem(
+              title: channel.displayTitle,
+              selected: provider.selectedDepositChannelId == channel.id,
+              onTap: () {
+                provider.selectDepositChannel(channel);
+                _applyChannelDefaults(channel);
+              },
+            ),
+        ],
+      );
+    }
+
+    if (provider.depositCategories.isNotEmpty &&
+        provider.depositChannelsError == null) {
+      return const AppEmpty(title: '暂无充值通道', description: '请切换其他充值类型');
+    }
+
     return Wrap(
       spacing: 12.w,
       runSpacing: 12.h,
       children: List.generate(_channels.length, (index) {
         final channel = _channels[index];
         final isSelected = _selectedChannel == index;
-        return GestureDetector(
+        return _buildChannelItem(
+          title: channel,
+          selected: isSelected,
           onTap: () => setState(() => _selectedChannel = index),
-          child: Container(
-            width: (1.sw - 32.w - 12.w) / 2 - 0.1, // 2列, 减0.1防止换行
-            height: 50.h,
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.transparent,
-                width: 1,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Text(
-                    channel,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: AppColors.textPrimary,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ),
-                if (isSelected)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 16.w,
-                      height: 16.w,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(8.r),
-                          bottomRight: Radius.circular(8.r),
-                        ),
-                      ),
-                      child:
-                          Icon(Icons.check, color: Colors.white, size: 12.sp),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         );
       }),
     );
   }
 
-  Widget _buildAmountInput() {
+  Widget _buildChannelItem({
+    required String title,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: (1.sw - 32.w - 12.w) / 2 - 0.1, // 2列, 减0.1防止换行
+        height: 50.h,
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFF0F7FF) : Colors.white,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: selected ? AppColors.primary : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: AppColors.textPrimary,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ),
+            if (selected) _buildCheckMark(size: 16.w),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCheckMark({required double size}) {
+    return Positioned(
+      right: 0,
+      bottom: 0,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(8.r),
+            bottomRight: Radius.circular(8.r),
+          ),
+        ),
+        child: Icon(Icons.check, color: Colors.white, size: 12.sp),
+      ),
+    );
+  }
+
+  Widget _buildAmountInput(WalletProvider provider, String symbol) {
+    final channel = provider.selectedDepositChannel;
+    final readOnly = channel?.fixedAmountOnly ?? false;
     return Container(
       height: 56.h,
       padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -309,7 +441,7 @@ class _DepositScreenState extends State<DepositScreen> {
             ),
             child: Center(
               child: Text(
-                '¥',
+                symbol,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 14.sp,
@@ -322,14 +454,20 @@ class _DepositScreenState extends State<DepositScreen> {
           Expanded(
             child: TextField(
               controller: _amountController,
-              keyboardType: TextInputType.number,
+              readOnly: readOnly,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
               decoration: InputDecoration(
-                hintText: '请输入金额',
+                hintText: channel == null
+                    ? '请选择充值通道'
+                    : readOnly
+                        ? '请选择固定金额'
+                        : '请输入金额',
                 hintStyle: TextStyle(
                   fontSize: 16.sp,
                   color: AppColors.textSecondary.withValues(alpha: 0.5),
@@ -342,12 +480,20 @@ class _DepositScreenState extends State<DepositScreen> {
               onChanged: (value) {
                 setState(() {
                   _selectedAmount = -1; // 重新输入时取消快捷金额的选中状态
+                  final normalized = _normalizeAmount(value);
+                  if (normalized != value) {
+                    _amountController.value = TextEditingValue(
+                      text: normalized,
+                      selection:
+                          TextSelection.collapsed(offset: normalized.length),
+                    );
+                  }
                 });
               },
             ),
           ),
           Text(
-            '不限额',
+            _limitText(channel, symbol),
             style: TextStyle(
               fontSize: 14.sp,
               color: AppColors.textSecondary,
@@ -358,44 +504,175 @@ class _DepositScreenState extends State<DepositScreen> {
     );
   }
 
-  Widget _buildAmountGrid() {
+  Widget _buildRateText(WalletProvider provider) {
+    final channel = provider.selectedDepositChannel;
+    if (channel == null || !channel.shouldShowRate)
+      return const SizedBox.shrink();
+    return Padding(
+      padding: EdgeInsets.only(left: 4.w, bottom: 8.h),
+      child: Text(
+        '参考汇率：${channel.rate}',
+        style: TextStyle(
+          fontSize: 12.sp,
+          color: AppColors.danger,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAmountGrid(WalletProvider provider, String symbol) {
+    final channel = provider.selectedDepositChannel;
+    final amounts = channel?.quickAmounts ?? const <double>[];
+    if (channel != null && channel.normalizedAmountType == 1) {
+      return const SizedBox.shrink();
+    }
+    if (amounts.isNotEmpty) {
+      return Wrap(
+        spacing: 12.w,
+        runSpacing: 12.h,
+        children: List.generate(amounts.length, (index) {
+          final amount = amounts[index];
+          final isSelected = _selectedAmount == index;
+          return _buildAmountItem(
+            text: '$symbol${_formatAmount(amount)}',
+            selected: isSelected,
+            onTap: () {
+              setState(() {
+                _selectedAmount = index;
+                _amountController.text = _formatAmount(amount);
+              });
+            },
+          );
+        }),
+      );
+    }
+
     return Wrap(
       spacing: 12.w,
       runSpacing: 12.h,
       children: List.generate(_quickAmounts.length, (index) {
         final amount = _quickAmounts[index];
         final isSelected = _selectedAmount == index;
-        return GestureDetector(
+        return _buildAmountItem(
+          text: '$symbol$amount',
+          selected: isSelected,
           onTap: () {
             setState(() {
               _selectedAmount = index;
               _amountController.text = amount.toString();
             });
           },
-          child: Container(
-            width: (1.sw - 24.w - 36.w) / 4 - 0.1,
-            height: 44.h,
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.transparent,
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                '¥$amount',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
         );
       }),
+    );
+  }
+
+  Widget _buildAmountItem({
+    required String text,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: (1.sw - 24.w - 36.w) / 4 - 0.1,
+        height: 44.h,
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFF0F7FF) : Colors.white,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: selected ? AppColors.primary : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: selected ? AppColors.primary : AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _applyChannelDefaults(DepositChannel channel) {
+    setState(() {
+      _selectedAmount = -1;
+      if (channel.fixedAmountOnly && channel.quickAmounts.isNotEmpty) {
+        _selectedAmount = 0;
+        _amountController.text = _formatAmount(channel.quickAmounts.first);
+      } else {
+        _amountController.clear();
+      }
+    });
+  }
+
+  String _limitText(DepositChannel? channel, String symbol) {
+    if (channel == null) return '';
+    final hasMin = channel.min > 0;
+    final hasMax = channel.max > 0;
+    if (hasMin && hasMax) {
+      return '$symbol${_formatAmount(channel.min)}-$symbol${_formatAmount(channel.max)}';
+    }
+    if (hasMin) return '≥ $symbol${_formatAmount(channel.min)}';
+    if (hasMax) return '≤ $symbol${_formatAmount(channel.max)}';
+    return '不限额';
+  }
+
+  String _formatAmount(double value) {
+    if (value % 1 == 0) return value.toStringAsFixed(0);
+    return value.toStringAsFixed(2);
+  }
+
+  String _normalizeAmount(String raw) {
+    var value = raw.replaceAll(RegExp(r'[^0-9.]'), '');
+    if (value.isEmpty) return '';
+    final parts = value.split('.');
+    final intPart = parts.first.replaceFirst(RegExp(r'^0+(?=\d)'), '');
+    if (parts.length == 1) return intPart;
+    final decimal = parts
+        .skip(1)
+        .join()
+        .substring(0, parts.skip(1).join().length.clamp(0, 2));
+    value = '${intPart.isEmpty ? '0' : intPart}.$decimal';
+    return value;
+  }
+
+  bool _isRealNameVerified(UserProfile? profile) {
+    return profile?.realName?.trim().isNotEmpty == true;
+  }
+
+  String _textOr(String? value, String fallback) {
+    final text = value?.trim();
+    return text == null || text.isEmpty ? fallback : text;
+  }
+
+  IconData _fallbackDepositIcon(String title) {
+    if (title.contains('微信')) return Icons.wechat;
+    if (title.contains('支付宝')) return Icons.payments;
+    if (title.toUpperCase().contains('USDT')) return Icons.currency_bitcoin;
+    if (title.contains('银') || title.contains('卡')) return Icons.credit_card;
+    return Icons.account_balance_wallet;
+  }
+
+  Color _fallbackDepositColor(String title) {
+    if (title.contains('微信')) return Colors.green;
+    if (title.contains('支付宝')) return Colors.blue;
+    if (title.toUpperCase().contains('USDT')) return Colors.teal;
+    if (title.contains('银') || title.contains('卡')) return Colors.redAccent;
+    return AppColors.primary;
+  }
+
+  void _showDepositSubmitTodo() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('充值提交功能待接入')),
     );
   }
 }
@@ -519,7 +796,8 @@ class DepositPaySuccessScreen extends StatelessWidget {
               CustomButton(
                 text: '继续充值',
                 isPrimary: false,
-                onPressed: () => context.pop(),
+                onPressed: () =>
+                    context.canPop() ? context.pop() : context.go('/deposit'),
               ),
             ],
           ),

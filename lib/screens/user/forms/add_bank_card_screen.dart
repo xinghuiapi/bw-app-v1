@@ -880,7 +880,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
       await walletProvider.bindCard(request);
       if (!mounted) return;
       _showSnack('绑定成功');
-      context.pop();
+      context.canPop() ? context.pop() : context.go('/cards');
     } catch (_) {
       if (!mounted) return;
       _showSnack(walletProvider.bindCardError ?? '绑定失败');

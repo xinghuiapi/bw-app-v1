@@ -66,6 +66,38 @@ class WalletService extends BaseService {
     );
   }
 
+  Future<List<DepositCategory>> fetchDepositCategories() {
+    return client.post<List<DepositCategory>>(
+      ApiEndpoints.depositClass,
+      decoder: (json) => jsonList(json, DepositCategory.fromJson)
+          .where((category) => category.displayTitle.isNotEmpty)
+          .toList(growable: false),
+    );
+  }
+
+  Future<List<DepositChannel>> fetchDepositChannels(int categoryId) {
+    return client.post<List<DepositChannel>>(
+      ApiEndpoints.depositList,
+      data: categoryId > 0 ? {'id': categoryId} : null,
+      decoder: (json) => jsonList(json, DepositChannel.fromJson)
+          .where((channel) => channel.displayTitle.isNotEmpty)
+          .toList(growable: false),
+    );
+  }
+
+  Future<RechargeDetail> fetchRechargeDetail(dynamic id) {
+    return client.post<RechargeDetail>(
+      ApiEndpoints.rechargeDetails,
+      data: {'id': id},
+      decoder: (json) {
+        if (json is Map) {
+          return RechargeDetail.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const RechargeDetail();
+      },
+    );
+  }
+
   Future<List<CardType>> fetchCardTypes(int type) {
     return client.post<List<CardType>>(
       ApiEndpoints.bankList,

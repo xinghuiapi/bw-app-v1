@@ -112,7 +112,7 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
           .setPayPassword(SetPayPasswordRequest(payPassword: password));
       if (!mounted) return;
       _showMessage('设置成功');
-      context.pop();
+      context.canPop() ? context.pop() : context.go('/setting');
     } catch (error) {
       if (!mounted) return;
       _showMessage(userFormErrorMessage(error, '设置失败'));

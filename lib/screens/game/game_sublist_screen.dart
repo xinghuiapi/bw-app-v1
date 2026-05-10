@@ -153,7 +153,8 @@ class _GameSubListScreenState extends State<GameSubListScreen>
         scrolledUnderElevation: 0, // M3 取消滚动阴影
         leading: IconButton(
           icon: Icon(Icons.close, color: AppColors.primary, size: 24.sp),
-          onPressed: () => context.pop(),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/game'),
         ),
         title: Text(
           _titleText(),

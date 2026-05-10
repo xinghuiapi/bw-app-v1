@@ -113,7 +113,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             CustomButton(
               text: 'Reset Password',
               onPressed: () {
-                context.pop();
+                context.canPop() ? context.pop() : context.go('/login');
               },
             ),
           ],

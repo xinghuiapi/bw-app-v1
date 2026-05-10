@@ -14,8 +14,13 @@ class WalletProvider extends ChangeNotifier {
 
   List<WalletCard> cards = const [];
   List<VenueBalance> venues = const [];
+  List<DepositCategory> depositCategories = const [];
+  List<DepositChannel> depositChannels = const [];
   final Map<int, List<CardType>> cardTypes = {};
   UserRealtimeBalance? realtimeBalance;
+  RechargeDetail? rechargeDetail;
+  int? selectedDepositCategoryId;
+  int? selectedDepositChannelId;
 
   bool isCardsLoading = false;
   bool isCardsRefreshing = false;
@@ -24,6 +29,9 @@ class WalletProvider extends ChangeNotifier {
   bool isRecyclingVenues = false;
   bool isVenueTransferSubmitting = false;
   bool isTransferModeSubmitting = false;
+  bool isDepositCategoriesLoading = false;
+  bool isDepositChannelsLoading = false;
+  bool isRechargeDetailLoading = false;
   bool isBindingCard = false;
   bool isUploadingCardImage = false;
   final Map<int, bool> _cardTypeLoading = {};
@@ -33,6 +41,9 @@ class WalletProvider extends ChangeNotifier {
   String? venuesError;
   String? venueActionError;
   String? transferModeError;
+  String? depositCategoriesError;
+  String? depositChannelsError;
+  String? rechargeDetailError;
   String? bindCardError;
   String? cardImageUploadError;
   final Map<int, String?> _cardTypeErrors = {};
@@ -46,6 +57,20 @@ class WalletProvider extends ChangeNotifier {
 
   bool isCardTypeLoading(int type) => _cardTypeLoading[type] ?? false;
   String? cardTypeError(int type) => _cardTypeErrors[type];
+
+  DepositCategory? get selectedDepositCategory {
+    for (final category in depositCategories) {
+      if (category.id == selectedDepositCategoryId) return category;
+    }
+    return null;
+  }
+
+  DepositChannel? get selectedDepositChannel {
+    for (final channel in depositChannels) {
+      if (channel.id == selectedDepositChannelId) return channel;
+    }
+    return null;
+  }
 
   Future<void> loadCards({bool refresh = false}) async {
     if (isCardsLoading || isCardsRefreshing) return;
@@ -203,6 +228,103 @@ class WalletProvider extends ChangeNotifier {
       rethrow;
     } finally {
       isTransferModeSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadDepositBootstrap({bool refresh = false}) async {
+    await loadDepositCategories(refresh: refresh);
+    final categoryId = selectedDepositCategoryId;
+    if (categoryId != null && categoryId > 0) {
+      await loadDepositChannels(categoryId, refresh: refresh);
+    }
+  }
+
+  Future<void> loadDepositCategories({bool refresh = false}) async {
+    if (isDepositCategoriesLoading) return;
+    if (!refresh && depositCategories.isNotEmpty) return;
+
+    isDepositCategoriesLoading = true;
+    depositCategoriesError = null;
+    notifyListeners();
+
+    try {
+      depositCategories = await _service.fetchDepositCategories();
+      if (depositCategories.isNotEmpty &&
+          !depositCategories
+              .any((item) => item.id == selectedDepositCategoryId)) {
+        selectedDepositCategoryId = depositCategories.first.id;
+      }
+      if (depositCategories.isEmpty) {
+        selectedDepositCategoryId = null;
+        selectedDepositChannelId = null;
+        depositChannels = const [];
+      }
+    } on ApiException catch (exception) {
+      depositCategoriesError = exception.message;
+    } catch (exception) {
+      depositCategoriesError = exception.toString();
+    } finally {
+      isDepositCategoriesLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadDepositChannels(int categoryId,
+      {bool refresh = false}) async {
+    if (isDepositChannelsLoading) return;
+    if (!refresh &&
+        selectedDepositCategoryId == categoryId &&
+        depositChannels.isNotEmpty) {
+      return;
+    }
+
+    selectedDepositCategoryId = categoryId;
+    selectedDepositChannelId = null;
+    depositChannels = const [];
+    rechargeDetail = null;
+    isDepositChannelsLoading = true;
+    depositChannelsError = null;
+    notifyListeners();
+
+    try {
+      depositChannels = await _service.fetchDepositChannels(categoryId);
+      if (depositChannels.isNotEmpty) {
+        selectedDepositChannelId = depositChannels.first.id;
+      }
+    } on ApiException catch (exception) {
+      depositChannelsError = exception.message;
+    } catch (exception) {
+      depositChannelsError = exception.toString();
+    } finally {
+      isDepositChannelsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void selectDepositChannel(DepositChannel channel) {
+    if (selectedDepositChannelId == channel.id) return;
+    selectedDepositChannelId = channel.id;
+    rechargeDetail = null;
+    rechargeDetailError = null;
+    notifyListeners();
+  }
+
+  Future<void> loadRechargeDetail(dynamic id) async {
+    if (isRechargeDetailLoading) return;
+
+    isRechargeDetailLoading = true;
+    rechargeDetailError = null;
+    notifyListeners();
+
+    try {
+      rechargeDetail = await _service.fetchRechargeDetail(id);
+    } on ApiException catch (exception) {
+      rechargeDetailError = exception.message;
+    } catch (exception) {
+      rechargeDetailError = exception.toString();
+    } finally {
+      isRechargeDetailLoading = false;
       notifyListeners();
     }
   }

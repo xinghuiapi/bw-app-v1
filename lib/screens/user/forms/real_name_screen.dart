@@ -145,7 +145,7 @@ class _RealNameScreenState extends State<RealNameScreen> {
       await provider.submitRealName(name);
       if (!mounted) return;
       _showMessage('保存成功');
-      context.pop();
+      context.canPop() ? context.pop() : context.go('/profile');
     } catch (error) {
       if (!mounted) return;
       _showMessage(userFormErrorMessage(error, '保存失败'));

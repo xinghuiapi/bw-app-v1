@@ -239,6 +239,8 @@ flutter test test/widget_test.dart
 
 ### Phase 7: 钱包只读接口
 
+状态：2026-05-10 已完成卡包列表、绑卡类型、提现页基础只读信息接入；充值分类/通道/详情仍待接入。
+
 优先接口：
 
 - 获取卡包列表
@@ -262,11 +264,15 @@ flutter test test/widget_test.dart
 
 完成标准：
 
-- 钱包页能展示卡包、充值通道、提现基础信息。
+- [x] 钱包页和卡包页能展示真实卡包列表。
+- [ ] 充值页能展示真实充值分类、通道和详情。
+- [x] 提现页能展示余额、卡包、VIP 提现规则、流水锁定和取款密码状态。
 - 记录列表支持筛选、分页、刷新和空状态。
 - 金额、状态、时间格式统一。
 
 ### Phase 8: 钱包写操作接口
+
+状态：2026-05-10 已完成绑卡、二维码上传和一键归户接入；提交充值、确认提现、手动转入/转出仍后置。
 
 优先接口：
 
@@ -289,11 +295,13 @@ flutter test test/widget_test.dart
 
 完成标准：
 
-- 表单校验完整。
-- 支付密码、安全码、金额精度处理明确。
-- 提交中防重复点击。
+- [x] 绑卡表单具备基础校验和提交中防重复点击。
+- [ ] 支付密码、安全码、金额精度处理明确。
+- [x] 已接入的写操作具备提交中防重复点击。
 - 失败提示不泄露敏感信息。
-- 成功后刷新余额和记录。
+- [x] 绑卡成功后刷新卡包列表。
+- [x] 一键归户成功后刷新余额。
+- [ ] 充值/提现写操作成功后刷新余额和记录。
 
 ### Phase 9: 注单、反水与代理返利
 
@@ -1282,6 +1290,54 @@ flutter test test/widget_test.dart
 - 需要真实验证 `nesting: false` 外部打开和 `nesting: true` 内嵌承载。
 - 当前仍为独立 `/game-view` 页面，不是 m1 页面内 popup；最小化 floating 小窗后置。
 
+### 2026-05-10 钱包卡包与提现只读链路接入
+
+状态：已完成 Phase 7 钱包部分只读接入，并完成低风险卡包绑定写操作；充值真实通道和提现提交仍后置。
+
+已完成：
+
+- 对照 m1 `CardList.vue`、`AddCard.vue`、`Withdraw.vue`、`Deposit.vue` 和 `api/drawing.js`、`api/bank.js`、`api/memberBank.js` 梳理钱包链路。
+- 卡包列表接入 `POST /drawing/getlist`，银行卡/虚拟币/支付宝列表优先展示真实数据。
+- 银行卡列表移除静态 fallback，真实数据为空时展示空态，接口失败时展示错误重试。
+- 银行卡列表页只调用 `WalletProvider.loadCards()`，不再同时调用 `/bank/getlist`，避免进入页面触发额外请求。
+- 绑卡类型接入 `POST /bank/getlist`，添加卡页面按当前 tab 懒加载 `type: 1|2|3`，不一次性请求三类。
+- 新增 `POST /member_bank/binding` 绑定卡包链路，提交字段对齐 m1：`id`、`card`、`addres`、`alias`、`img`。
+- 添加银行卡/虚拟币/支付宝页面支持真实提交，提交中禁用按钮，成功后刷新卡包列表并返回上一页。
+- 实名规则按 m1 对齐：银行卡和支付宝需要实名，虚拟币不强制实名。
+- 虚拟币和支付宝支持二维码上传，复用 `POST /img/save`，上传参数 `name = member_bank`，提交时优先使用返回 `path`，fallback `url`。
+- 修复添加卡页面类型选择点击无反应；点击文字或箭头均可弹出底部选择器，类型未加载时先刷新加载。
+- 类型选择底部抽屉补齐搜索、选中态、空态和圆角卡片 UI。
+- 提现页接入 `POST /drawing/getlist`、`POST /user/balance`、`POST /token/user`、`POST /vip/getlist` 的只读数据。
+- 提现页展示真实可提现余额、收款卡包、当前 VIP 最低提现/每日次数/每日额度、流水锁定进度和取款密码状态。
+- 提现页支持下拉刷新，同时刷新卡包、实时余额、用户资料和 VIP 等级。
+- 提现页“一键归户”复用已接入的场馆余额回收能力，成功后刷新余额。
+- “确认提现”仍不调用 `POST /drawing/order`，当前仅提示 `提现提交功能待接入`。
+- 充值/提现页面按 m1 做 UI 精修：浅灰背景、区块标题、金额输入、快捷金额、卡包卡片、规则卡片和胶囊按钮。
+- 钱包页场馆模式开关修复 loading 出现/消失时横向错位问题。
+- 提现页顶部可提现余额卡片改为 `Stack` 布局，固定高度压缩到 `112.h`，避免卡片过高并对齐提现金额卡片视觉密度。
+
+验证命令：
+
+```bash
+dart format lib test
+flutter analyze lib test
+flutter test test/widget_test.dart
+```
+
+当前结果：
+
+- `dart format`：已执行通过。
+- `flutter analyze` / 官方分析工具：`No errors`。
+- `flutter test test/widget_test.dart`：已执行通过，当前为 `9 tests passed`。
+
+后续注意：
+
+- 需要用真实账号验证 `/img/save` 返回的 `path/url` 是否都可用于 `/member_bank/binding.img`。
+- 需要真实验证银行卡、虚拟币和支付宝绑定时，后端是否接受当前字段组合和 `addres` 拼写。
+- 需要真实验证提现页 `/vip/getlist` 的提现规则字段和 `/token/user` 的流水字段是否与当前解析完全一致。
+- 提交充值、充值凭证、取消充值、确认提现 `/drawing/order`、手动转入/转出仍属于后续资金写操作。
+- 充值页当前仍以静态 UI 为主，下一步优先接入充值分类、通道和详情只读接口。
+
 每开始一个接口对接任务，按以下顺序执行：
 
 1. 查 `.opencode/docs/bw-pc-api-v2（适配h5）接口文档.md`，确认接口路径、请求方法、Header、Query、Body、认证、响应结构、错误码。
@@ -1295,9 +1351,9 @@ flutter test test/widget_test.dart
 
 建议下一步：
 
-- 优先补齐用户中心基础信息的低风险只读区域，例如账户设置绑定状态。
-- 游戏大厅分类、厂商列表和子游戏首屏列表已完成最小只读接入。下一步可继续接推荐游戏、子列表搜索/分页或用户中心低风险只读字段。
-- 暂不进入充值、提现、转账、绑卡等资金写操作。
+- 优先接入充值分类、充值通道和充值详情只读接口，替换充值页静态类型、通道和金额配置。
+- 或继续完善资金记录页筛选、分页、充值记录、提现记录、转账记录和帐变记录。
+- 暂不进入提交充值、确认提现、手动转入/转出等高风险资金写操作。
 
 ## 8. 接续用压缩上下文
 
@@ -1307,7 +1363,7 @@ flutter test test/widget_test.dart
 - 当前真实域名使用 `https://apis.xh-demo.com/api`，资源域名使用 `https://apis.xh-demo.com`。
 - `/system/getlist` 已接入 `SystemService.fetchConfig()` 和 `SystemProvider.loadConfig()`。
 - Web 启动探针已经通过，Debug 日志形如 `[startup-probe] system config loaded: title=..., languages=..., banners=...`。
-- 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏首屏列表、消息中心和反馈链路已有小范围真实接口数据消费，其余页面仍以 m1 高仿 UI fallback 为主。
+- 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏列表、游戏启动、消息中心、反馈链路、活动链路、卡包列表、添加卡包和提现只读链路已有真实接口数据消费，其余页面仍以 m1 高仿 UI fallback 为主。
 - 当前主 Tab 路由 `/`、`/game`、`/activity`、`/service`、`/profile` 使用 `NoTransitionPage`，底部导航点击为无动画 replace 式切换。
 - 当前验证基线：`flutter analyze lib test` 无错误，`flutter test test/widget_test.dart` 为 9 个测试通过。
 
@@ -1317,13 +1373,14 @@ flutter test test/widget_test.dart
 - 不要重新定义全局配置模型，优先复用 `HomeConfig`。
 - 不要把 `/system/getlist` 加 query `lang`。
 - 不要批量替换首页、游戏、钱包、活动等页面 Mock 数据。
-- 不要重建认证链路或进入充值、提现、转账等高风险资金链路。
+- 不要重建认证链路。
+- 不要贸然接入提交充值、确认提现、手动转入/转出等高风险资金写操作；如需接入，必须先完成对应只读链路和真实账号验证。
 - 不要把主 Tab 切换改回 `push` 或默认路由转场；m1 对齐要求是无感 replace 式切换。
 
 下次优先做：
 
-- 选择用户中心低风险只读字段、VIP 信息或游戏只读列表继续小步接入。
-- 或继续接入游戏收藏/搜索等非资金链路能力。
+- 优先接入充值分类、充值通道和充值详情只读接口，替换充值页静态类型/通道/金额配置。
+- 或继续完善记录页筛选、分页、充值记录、提现记录、转账记录和帐变记录。
 - 接口数据为空或失败时继续显示当前 m1 高仿 UI fallback。
 - 页面只读消费 Provider，不让页面直接调用 Service 或 Dio。
 - 完成后跑格式化、分析和测试。

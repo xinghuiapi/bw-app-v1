@@ -82,6 +82,8 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
                   () {
                     if (context.canPop()) {
                       context.pop();
+                    } else {
+                      context.go('/');
                     }
                   },
               child: Container(

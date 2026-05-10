@@ -132,7 +132,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
       if (!mounted) return;
       _showMessage('密码修改成功');
-      context.pop();
+      context.canPop() ? context.pop() : context.go('/setting');
     } catch (error) {
       if (!mounted) return;
       _showMessage(userFormErrorMessage(error, '密码修改失败'));

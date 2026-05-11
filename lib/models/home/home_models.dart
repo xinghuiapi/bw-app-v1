@@ -62,14 +62,25 @@ class BannerModel {
   final String? title;
   final String? openUrl;
   final int? open;
+  final int? terminal;
+  final List<String> languages;
 
-  const BannerModel({this.img, this.title, this.openUrl, this.open});
+  const BannerModel({
+    this.img,
+    this.title,
+    this.openUrl,
+    this.open,
+    this.terminal,
+    this.languages = const [],
+  });
 
   factory BannerModel.fromJson(Map<String, dynamic> json) => BannerModel(
         img: jsonString(json['img']),
         title: jsonString(json['title']),
         openUrl: jsonString(json['open_url']),
         open: jsonInt(json['open']),
+        terminal: jsonInt(json['terminal']),
+        languages: _parseLanguageList(json['lang']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -77,7 +88,27 @@ class BannerModel {
         if (title != null) 'title': title,
         if (openUrl != null) 'open_url': openUrl,
         if (open != null) 'open': open,
+        if (terminal != null) 'terminal': terminal,
+        if (languages.isNotEmpty) 'lang': languages,
       };
+}
+
+List<String> _parseLanguageList(dynamic value) {
+  if (value == null) return const [];
+  if (value is List) {
+    return value
+        .map((item) => item.toString().trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+  }
+  final raw = value.toString().trim();
+  if (raw.isEmpty) return const [];
+  final normalized = raw.replaceAll(RegExp(r'''^\[|\]$'''), '');
+  return normalized
+      .split(',')
+      .map((item) => item.replaceAll(RegExp(r'''["'`]'''), '').trim())
+      .where((item) => item.isNotEmpty)
+      .toList();
 }
 
 class NoticeModel {

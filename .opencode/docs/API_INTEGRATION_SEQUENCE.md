@@ -1345,6 +1345,74 @@ flutter test test/widget_test.dart
 - 需要真实账号验证充值分类、通道、创建订单、详情、凭证上传、哈希提交和取消支付在不同通道类型下的完整闭环。
 - 确认提现 `/drawing/order`、手动转入/转出、领取返水/返利仍属于后续资金写操作。
 
+### 2026-05-11 资金记录页 m1 对齐收尾
+
+状态：已完成记录页业务对齐收尾；后续只需真实账号验收接口字段和空态。
+
+已完成：
+
+- 对照 m1 `views/user/FundManage.vue`、`api/tradeRecord.js`、`api/transfersLog.js`、`api/moneyLog.js`。
+- `/fund-management`、`/fund-manage`、`/fund-records`、`/transaction-records` 支持 m1 query tab 参数，`withdraw/drawing/1` 打开提现记录，`transfer/transfers/2` 打开转账记录，`account/bill/money/3` 打开账户明细。
+- 记录页默认查询范围从“本月”改为“今天”，对齐 m1 默认 `today`。
+- 记录页请求时间改为完整区间：`YYYY-MM-DD 00:00:00` 到 `YYYY-MM-DD 23:59:59`，对齐 m1 `rangeParams()`。
+- 充值/提现状态文案对齐 m1：`1` 成功，`0` 已超时，`5` 充值中/处理中，`2` 人工确认，`3` 用户取消，`4` 已拒绝。
+- 记录金额使用用户资料 `symbol`，无值时 fallback `¥`，不再硬编码固定币种。
+- 充值/提现金额去掉强制正负号，贴近 m1 直接金额展示；转账和账户明细仍保留出入账正负方向。
+- 提现备注仅在失败类状态展示，避免正常提现记录出现误导性备注。
+- 提现页右上“提现记录”入口改为 `/fund-management?tab=withdraw`，直接打开提现记录 Tab。
+- 记录页金额文本增加单行省略，降低小屏和长币种符号下的溢出风险。
+- Web 启动短命令确认为 `./run_web.sh`，内部使用 `flutter run -d chrome --no-web-resources-cdn`，用于规避 CanvasKit/字体资源访问 Google CDN 失败。
+
+验证结果：
+
+- `dart format`：已执行通过。
+- 官方分析工具：`No errors`。
+- `flutter test test/widget_test.dart`：已执行通过，当前为 `9 tests passed`。
+- `./run_web.sh`：已成功启动 Chrome 调试，启动探针 `/system/getlist` 正常返回。
+
+后续注意：
+
+- 需要真实账号验证 `/trade/record`、`/transfers_log/getlist`、`/money_log/getlist` 的分页字段、状态码、币种、空态和真实订单展示。
+- 记录页属于真实业务数据页面，不建议失败时展示静态假记录；后续如需增强，可加“加载失败，下拉重试”的轻量错误态。
+- 当前筛选 chips 使用横向滚动以防窄屏溢出，没有完全照搬 m1 `flex-wrap`；除非验收要求极限复刻，否则不建议大改。
+- 当前 Tab 保持 Flutter 卡片化视觉，不完全照搬 m1 `van-tabs` 下划线样式；与项目现有资金页视觉统一。
+
+### 2026-05-11 首页数据接入与分类区 m1 高保真复刻
+
+状态：已完成首页主要真实数据接入和分类区高保真复刻；剩余语言切换弹窗、公告弹窗和游戏浮窗最小化可后置。
+
+已完成：
+
+- 对照 m1 `views/main/Home.vue`、`api/system.js`、`api/interface.js`、`api/gamelist.js` 和 `api/game.js`。
+- 首页启动时加载 `/interface/class`、推荐游戏和热门游戏，分类数据、推荐游戏、热门游戏均通过 `GameProvider` 消费。
+- 推荐游戏保持已有兼容逻辑：优先 `POST /interface/reco`，为空或失败时 fallback 到 m1 当前使用的 `POST /interface/list` 并筛选 `label=reco`。
+- 热门游戏按 m1 接入 `POST /gamelist/getlist`，参数 `page=1`、`size=30`、`label=hot`，接口为空或失败时保留静态高仿 fallback。
+- 首页 Banner 从单图改为轮播，解析 `config_banner.terminal` 和 `lang`，只展示 `terminal == 2` 且语言匹配 `CN` 的 Banner；支持 3 秒自动切换和指示点。
+- Banner 点击补齐真实跳转：外链使用 `url_launcher` 打开，内链使用 `GoRouter` 跳转。
+- APP 下载按钮从 debug log 改为真实打开 `config_site.app_download/apk_download`。
+- 安全域名点击复制 `config_site.domain`，复制成功后显示 SnackBar。
+- 用户余额刷新图标补齐点击逻辑，刷新 `/token/user` 和 `/user/balance` 对应的用户资料/实时余额。
+- 首页分类卡片接入 `/interface/class` 真实标题，点击跳转 `/game?code=...`。
+- 分类区图片确认与 m1 一致使用本地静态资源：`zr.png`、`cp.png`、`dz.webp`、`ty.webp`、`by.webp`、`qp.png`、`dj.webp`。
+- 分类区按 m1 截图高保真复刻：上方左右两列、左侧真人大卡、右侧彩票/电子两张中卡、底部四张小卡；补齐 `Live`、`Lottery`、`Slot` 浅蓝英文背景字。
+- 分类区比例按 m1 调整：真人图区约 `148.h`，文字区约 `92.h`；中卡右图约 `70.w`，小卡约 `86.h`，图片约 `52.w`。
+- 修复分类区多处 RenderFlex 底部溢出：真人文字区、中卡描述、小卡图片/标题均增加弹性约束、字号和行高压缩。
+- 修复热门游戏卡片中 `context.select` 在 builder helper 内触发 Provider Web debug 断言的问题，改为父级读取 `launchingGameId` 后传参。
+- 修复小卡 `SizedBox` 误用 `decoration` 导致的编译错误，改回 `Container`。
+
+验证结果：
+
+- `dart format`：已执行通过。
+- 官方分析工具：`No errors`。
+- `flutter test test/widget_test.dart`：已执行通过，当前为 `9 tests passed`。
+- `./run_web.sh` 热重启后已验证首页接口请求链路：`/system/getlist`、`/interface/class`、`/interface/reco`、`/gamelist/getlist`。
+
+后续注意：
+
+- Web 控制台仍可能出现 `EncodingError: The source image cannot be decoded`，需用真实返回图片 URL 排查是哪张远端图片解码失败；本地分类图片资源本身可用。
+- m1 多语言底部弹窗、`config_notice.pop_up` 公告弹窗、“今日不再提示”和游戏浮窗最小化仍后置。
+- 分类区当前为视觉高保真优先，若后端分类标题变长，仍通过短标题映射和省略号避免溢出。
+
 每开始一个接口对接任务，按以下顺序执行：
 
 1. 查 `.opencode/docs/bw-pc-api-v2（适配h5）接口文档.md`，确认接口路径、请求方法、Header、Query、Body、认证、响应结构、错误码。
@@ -1358,9 +1426,9 @@ flutter test test/widget_test.dart
 
 建议下一步：
 
-- 优先完善资金记录页筛选、分页、充值记录、提现记录、转账记录和帐变记录，打通充值提交后的记录核验路径。
-- 其次接入确认提现 `POST /drawing/order`，在真实卡包、余额、VIP 规则和流水锁定验证通过后再开放提交。
-- 手动转入/转出、领取返水/返利继续后置到记录与提现链路稳定后。
+- 优先继续补首页剩余 m1 交互：多语言底部弹窗、公告弹窗 `NoticeModal` 和“今日不再提示”。
+- 或用真实账号验收资金记录页 `/trade/record`、`/transfers_log/getlist`、`/money_log/getlist`，确认分页、状态码、空态和币种展示。
+- 记录验收通过后，再评估接入确认提现 `POST /drawing/order`；必须先确认真实卡包、余额、VIP 规则和流水锁定字段稳定。
 
 ## 8. 接续用压缩上下文
 
@@ -1370,7 +1438,7 @@ flutter test test/widget_test.dart
 - 当前真实域名使用 `https://apis.xh-demo.com/api`，资源域名使用 `https://apis.xh-demo.com`。
 - `/system/getlist` 已接入 `SystemService.fetchConfig()` 和 `SystemProvider.loadConfig()`。
 - Web 启动探针已经通过，Debug 日志形如 `[startup-probe] system config loaded: title=..., languages=..., banners=...`。
-- 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏列表、游戏启动、消息中心、反馈链路、活动链路、卡包列表、添加卡包、充值全链路和提现只读链路已有真实接口数据消费，其余页面仍以 m1 高仿 UI fallback 为主。
+- 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏列表、游戏启动、消息中心、反馈链路、活动链路、卡包列表、添加卡包、充值全链路、提现只读链路和资金记录页已有真实接口数据消费；首页分类区已按 m1 截图做高保真复刻，其余页面仍以 m1 高仿 UI fallback 为主。
 - 当前主 Tab 路由 `/`、`/game`、`/activity`、`/service`、`/profile` 使用 `NoTransitionPage`，底部导航点击为无动画 replace 式切换。
 - 当前验证基线：`flutter analyze lib test` 无错误，`flutter test test/widget_test.dart` 为 9 个测试通过。
 
@@ -1386,8 +1454,8 @@ flutter test test/widget_test.dart
 
 下次优先做：
 
-- 优先完善记录页筛选、分页、充值记录、提现记录、转账记录和帐变记录。
-- 或在充值链路经真实账号验证后，继续接入确认提现 `POST /drawing/order`。
-- 接口数据为空或失败时继续显示当前 m1 高仿 UI fallback。
+- 优先补首页语言切换底部弹窗和公告弹窗，或用真实账号验收记录页分页、状态码、空态和币种展示。
+- 或在记录与充值链路经真实账号验证后，继续接入确认提现 `POST /drawing/order`。
+- 记录页接口失败不要展示静态假交易数据；如需增强，使用真实错误态和下拉重试。
 - 页面只读消费 Provider，不让页面直接调用 Service 或 Dio。
 - 完成后跑格式化、分析和测试。

@@ -19,7 +19,7 @@
 
 ### 一级主页面 (Primary Screens)
 - **我的页面精修** (`ProfileScreen`)：完成带编辑图标的栈叠头像、Pill-shape VIP标签、蓝色渐变钱包面板（¥ 符号与金额排版对齐）、白色圆角“今日收益”面板（垂直灰线分割与蓝色箭头贴字）、8宫格“更多服务”。底导钱包/资金管理入口统一指向 `FundManagementScreen`；头像数据随 `/token/user.img` 刷新回显。
-- **首页推荐游戏** (`HomeScreen`)：推荐游戏横向区已接入 `POST /interface/reco` 只读数据，优先展示接口图片与标题；`/interface/reco` 为空或失败时回退到 m1 当前使用的 `/interface/list` 并筛选 `label=reco`；接口整体失败时保留原静态高仿 fallback。“更多”入口跳转游戏大厅，点击推荐游戏已接入 `/game/login`，支持维护拦截、未登录跳登录、启动中遮罩、`nesting=false` 外部打开和 `/game-view` 内嵌承载；若推荐项为二级分类入口则进入子游戏列表。
+- **首页推荐游戏与分类区** (`HomeScreen`)：推荐游戏横向区已接入 `POST /interface/reco` 只读数据，优先展示接口图片与标题；`/interface/reco` 为空或失败时回退到 m1 当前使用的 `/interface/list` 并筛选 `label=reco`；热门游戏已按 m1 接入 `POST /gamelist/getlist(label=hot)`，接口失败保留静态高仿 fallback。Banner 已从单图改为按 `terminal/lang` 过滤的轮播并支持真实跳转；APP 下载、复制安全域名、余额刷新交互已补齐。首页分类区使用 m1 本地静态资源并按截图高保真复刻：真人大卡、彩票/电子中卡、四个小卡比例、`Live/Lottery/Slot` 浅蓝英文底字、图片尺寸和文字密度已精修，并接入 `/interface/class` 真实标题和 `/game?code=...` 点击入口；多处 RenderFlex 溢出已处理。
 - **活动页面** (`ActivityScreen`)：已对齐 m1 `views/main/activity.vue`，顶部品牌区域读取系统配置，活动分类接入 `/activity/class`，活动列表接入 `/activity/list`，分类横向 Tab 与活动卡片展示真实图片、标签、标题和时间；接口失败时保留 fallback 活动。
 - **客服页面** (`ServiceScreen`)：已对齐 m1 `views/main/Service.vue`，复用 `/system/getlist.config_site` 的 `service_link` 与 `tg_link` 展示问候卡片和两列渐变客服卡片；点击卡片通过外部浏览器/App 打开客服链接，支持下拉刷新和无配置空态。
 

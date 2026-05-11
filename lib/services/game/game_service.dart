@@ -95,14 +95,16 @@ class GameService extends BaseService {
     int page = 1,
     int size = 20,
     String searchWord = '',
+    String label = '',
   }) {
     return client.post<GameListPage>(
       ApiEndpoints.gameList,
       data: <String, dynamic>{
         'page': page,
         'size': size,
-        'code': code,
-        'game': game,
+        if (code.trim().isNotEmpty) 'code': code.trim(),
+        if (game.trim().isNotEmpty) 'game': game.trim(),
+        if (label.trim().isNotEmpty) 'label': label.trim(),
         if (searchWord.trim().isNotEmpty) 'search_word': searchWord.trim(),
       },
       decoder: (json) {

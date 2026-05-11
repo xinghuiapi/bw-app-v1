@@ -19,6 +19,11 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
   bool hasRecommendedLoaded = false;
   String? recommendedError;
 
+  List<GameItem> hotGames = const [];
+  bool isHotGamesLoading = false;
+  bool hasHotGamesLoaded = false;
+  String? hotGamesError;
+
   GameListPage subListPage = const GameListPage();
   bool isSubListLoading = false;
   bool isSubListLoadingMore = false;
@@ -96,6 +101,40 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
       hasRecommendedLoaded = true;
     } finally {
       isRecommendedLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadHotGames({bool refresh = false}) async {
+    if (isHotGamesLoading ||
+        (!refresh && hasHotGamesLoaded && hotGames.isNotEmpty)) {
+      return;
+    }
+
+    isHotGamesLoading = true;
+    hotGamesError = null;
+    notifyListeners();
+
+    try {
+      final page = await _service.fetchGameList(
+        code: '',
+        game: '',
+        page: 1,
+        size: 30,
+        label: 'hot',
+      );
+      hotGames =
+          page.data.where((item) => item.title?.isNotEmpty == true).toList();
+      hasHotGamesLoaded = true;
+      hotGamesError = null;
+    } on ApiException catch (exception) {
+      hotGamesError = exception.message;
+      hasHotGamesLoaded = true;
+    } catch (exception) {
+      hotGamesError = exception.toString();
+      hasHotGamesLoaded = true;
+    } finally {
+      isHotGamesLoading = false;
       notifyListeners();
     }
   }

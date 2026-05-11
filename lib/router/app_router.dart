@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/record/record_provider.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/system/system_provider.dart';
 import '../screens/home_screen.dart';
@@ -345,28 +346,28 @@ final _routes = <RouteBase>[
     path: '/transaction-records',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const FundManagementScreen(),
+      FundManagementScreen(initialTab: _fundRecordTab(state)),
     ),
   ),
   GoRoute(
     path: '/fund-records',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const FundManagementScreen(),
+      FundManagementScreen(initialTab: _fundRecordTab(state)),
     ),
   ),
   GoRoute(
     path: '/fund-management',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const FundManagementScreen(),
+      FundManagementScreen(initialTab: _fundRecordTab(state)),
     ),
   ),
   GoRoute(
     path: '/fund-manage',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const FundManagementScreen(),
+      FundManagementScreen(initialTab: _fundRecordTab(state)),
     ),
   ),
   // User Screens
@@ -576,6 +577,16 @@ String? _stringExtra(GoRouterState state, String key) {
   final extra = state.extra;
   if (extra is Map && extra[key] != null) return extra[key].toString();
   return state.uri.queryParameters[key];
+}
+
+FundRecordTab _fundRecordTab(GoRouterState state) {
+  final tab = state.uri.queryParameters['tab']?.toLowerCase();
+  return switch (tab) {
+    'withdraw' || 'drawing' || '1' => FundRecordTab.withdraw,
+    'transfer' || 'transfers' || '2' => FundRecordTab.transfer,
+    'account' || 'bill' || 'money' || '3' => FundRecordTab.account,
+    _ => FundRecordTab.deposit,
+  };
 }
 
 GameViewScreen _buildGameViewScreen(GoRouterState state) {

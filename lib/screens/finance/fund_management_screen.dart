@@ -4,12 +4,16 @@ import 'package:provider/provider.dart';
 
 import '../../models/wallet/record_models.dart';
 import '../../providers/record/record_provider.dart';
+import '../../providers/user/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_nav_bar.dart';
 
 class FundManagementScreen extends StatefulWidget {
-  const FundManagementScreen({super.key});
+  const FundManagementScreen(
+      {super.key, this.initialTab = FundRecordTab.deposit});
+
+  final FundRecordTab initialTab;
 
   @override
   State<FundManagementScreen> createState() => _FundManagementScreenState();
@@ -23,15 +27,20 @@ class _FundManagementScreenState extends State<FundManagementScreen>
   final ScrollController _transferScrollController = ScrollController();
   final ScrollController _accountScrollController = ScrollController();
 
-  String _selectedDateRange = '本月';
-  DateTimeRange _range = _monthRange(DateTime.now());
+  String _selectedDateRange = '今天';
+  DateTimeRange _range = _todayRange();
   final List<String> _dateRanges = ['今天', '昨日', '本月', '上月'];
   int _lastLoadedTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: widget.initialTab.index,
+    );
+    _lastLoadedTabIndex = widget.initialTab.index;
     _tabController.addListener(_handleTabChanged);
     _depositScrollController.addListener(
         () => _handleScroll(_depositScrollController, FundRecordTab.deposit));
@@ -57,6 +66,10 @@ class _FundManagementScreenState extends State<FundManagementScreen>
 
   @override
   Widget build(BuildContext context) {
+    final profile = context.watch<UserProvider>().profile;
+    final symbol = profile?.symbol?.trim().isNotEmpty == true
+        ? profile!.symbol!.trim()
+        : '¥';
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomNavBar(title: '资金管理'),
@@ -68,10 +81,10 @@ class _FundManagementScreenState extends State<FundManagementScreen>
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildTradeTab(FundRecordTab.deposit),
-                _buildTradeTab(FundRecordTab.withdraw),
-                _buildTransferTab(),
-                _buildAccountTab(),
+                _buildTradeTab(FundRecordTab.deposit, symbol),
+                _buildTradeTab(FundRecordTab.withdraw, symbol),
+                _buildTransferTab(symbol),
+                _buildAccountTab(symbol),
               ],
             ),
           ),
@@ -203,7 +216,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     );
   }
 
-  Widget _buildTradeTab(FundRecordTab tab) {
+  Widget _buildTradeTab(FundRecordTab tab, String symbol) {
     return Consumer<RecordProvider>(
       builder: (context, provider, child) {
         final page = tab == FundRecordTab.deposit
@@ -228,7 +241,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                             provider.hasMore(tab),
                           );
                         }
-                        return _buildTradeItem(records[index], tab);
+                        return _buildTradeItem(records[index], tab, symbol);
                       },
                     ),
         );
@@ -236,7 +249,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     );
   }
 
-  Widget _buildTransferTab() {
+  Widget _buildTransferTab(String symbol) {
     const tab = FundRecordTab.transfer;
     return Consumer<RecordProvider>(
       builder: (context, provider, child) {
@@ -258,7 +271,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                             provider.hasMore(tab),
                           );
                         }
-                        return _buildTransferItem(records[index]);
+                        return _buildTransferItem(records[index], symbol);
                       },
                     ),
         );
@@ -266,7 +279,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     );
   }
 
-  Widget _buildAccountTab() {
+  Widget _buildAccountTab(String symbol) {
     const tab = FundRecordTab.account;
     return Consumer<RecordProvider>(
       builder: (context, provider, child) {
@@ -291,6 +304,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                         return _buildAccountItem(
                           records[index],
                           provider.accountPage.types,
+                          symbol,
                         );
                       },
                     ),
@@ -299,30 +313,31 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     );
   }
 
-  Widget _buildTradeItem(TradeRecord item, FundRecordTab tab) {
+  Widget _buildTradeItem(TradeRecord item, FundRecordTab tab, String symbol) {
     final status = _tradeStatus(item.status, tab);
-    final sign = tab == FundRecordTab.withdraw ? '-' : '+';
     return _buildRecordCard(
       title: item.title.isNotEmpty
           ? item.title
           : (tab == FundRecordTab.deposit ? '充值' : '提现'),
       status: status.$1,
       statusColor: status.$2,
-      amount: '$sign${_money(item.money)}',
+      amount: _money(item.money, symbol),
       orderNo: item.order,
       time: item.createdAt,
-      note: item.note,
+      note: tab == FundRecordTab.withdraw && _isTradeFailed(item.status)
+          ? item.note
+          : '',
     );
   }
 
-  Widget _buildTransferItem(TransferRecord item) {
+  Widget _buildTransferItem(TransferRecord item, String symbol) {
     final statusColor = item.status == 1 ? AppColors.success : AppColors.danger;
     return _buildRecordCard(
       title:
           '${item.code.isNotEmpty ? item.code : '场馆'} ${item.isIn ? '转入' : '转出'}',
       status: item.status == 1 ? '成功' : '失败',
       statusColor: statusColor,
-      amount: '${item.isIn ? '+' : '-'}${_money(item.money)}',
+      amount: '${item.isIn ? '+' : '-'}${_money(item.money, symbol)}',
       orderNo: item.order,
       time: item.createdAt,
     );
@@ -376,6 +391,8 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                       ? AppColors.danger
                       : AppColors.textPrimary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -403,7 +420,11 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     );
   }
 
-  Widget _buildAccountItem(MoneyLog item, List<MoneyLogType> types) {
+  Widget _buildAccountItem(
+    MoneyLog item,
+    List<MoneyLogType> types,
+    String symbol,
+  ) {
     final typeName = types
         .where((type) => type.id == item.moneyTypeId)
         .map((type) => type.name)
@@ -454,7 +475,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                 ),
               ),
               Text(
-                '${item.isNegative ? '-' : '+'}${_money(item.money.abs())}',
+                '${item.isNegative ? '-' : '+'}${_money(item.money.abs(), symbol)}',
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
@@ -462,6 +483,8 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                       ? AppColors.danger
                       : AppColors.textPrimary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -470,7 +493,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '余额：${_money(item.afterMoney)}',
+                '余额：${_money(item.afterMoney, symbol)}',
                 style:
                     TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
               ),
@@ -538,8 +561,8 @@ class _FundManagementScreenState extends State<FundManagementScreen>
   Future<void> _loadCurrentTab() {
     return context.read<RecordProvider>().loadTab(
           _currentTab,
-          startDate: _dateText(_range.start),
-          endDate: _dateText(_range.end),
+          startDate: _dateTimeText(_range.start, endOfDay: false),
+          endDate: _dateTimeText(_range.end, endOfDay: true),
           refresh: true,
         );
   }
@@ -588,12 +611,18 @@ class _FundManagementScreenState extends State<FundManagementScreen>
   }
 
   (String, Color) _tradeStatus(int status, FundRecordTab tab) {
-    if (status == 1 || status == 2) return ('成功', AppColors.success);
-    if (status == 5) return ('处理中', AppColors.warning);
-    if (status == 3) return ('已取消', AppColors.textSecondary);
+    if (status == 1) return ('成功', AppColors.success);
+    if (status == 0) return ('已超时', AppColors.danger);
+    if (status == 5) {
+      return (tab == FundRecordTab.deposit ? '充值中' : '处理中', AppColors.warning);
+    }
+    if (status == 2) return ('人工确认', AppColors.warning);
+    if (status == 3) return ('用户取消', AppColors.danger);
     if (status == 4) return ('已拒绝', AppColors.danger);
-    return ('失败', AppColors.danger);
+    return ('未知', AppColors.primary);
   }
+
+  bool _isTradeFailed(int status) => status == 0 || status == 3 || status == 4;
 
   String get _rangeText {
     final start = _monthDay(_range.start);
@@ -601,13 +630,18 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     return start == end ? start : '$start ~ $end';
   }
 
-  String _money(double value) {
-    return '¥ ${value.toStringAsFixed(2)}';
+  String _money(double value, String symbol) {
+    return '$symbol ${value.toStringAsFixed(2)}';
   }
 
   String _shortTime(String value) {
     if (value.isEmpty) return '-';
     return value.replaceFirst('T', ' ').substring(0, value.length.clamp(0, 16));
+  }
+
+  String _dateTimeText(DateTime date, {required bool endOfDay}) {
+    final day = _dateText(date);
+    return '$day ${endOfDay ? '23:59:59' : '00:00:00'}';
   }
 
   String _dateText(DateTime date) {

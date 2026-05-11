@@ -1963,7 +1963,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       appBar: CustomNavBar(
         title: '提现',
         rightText: '提现记录',
-        onClickRight: () => context.push('/fund-management'),
+        onClickRight: () => context.push('/fund-management?tab=withdraw'),
       ),
       body: RefreshIndicator(
         onRefresh: _refreshWithdrawData,

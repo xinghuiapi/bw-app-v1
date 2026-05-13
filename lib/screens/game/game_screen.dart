@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/game/game_models.dart';
 import '../../models/home/home_models.dart';
@@ -132,7 +133,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           Selector<SystemProvider, SiteConfig?>(
             selector: (_, provider) => provider.config.siteConfig,
             builder: (context, siteConfig, child) {
-              return _buildSiteBrand(siteConfig);
+              return _buildSiteBrand(siteConfig, context);
             },
           ),
           Icon(Icons.search, size: 24.sp, color: const Color(0xFF333333)),
@@ -141,7 +142,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSiteBrand(SiteConfig? siteConfig) {
+  Widget _buildSiteBrand(SiteConfig? siteConfig, BuildContext context) {
     return Row(
       children: [
         _buildSiteLogo(siteConfig?.logo),
@@ -151,7 +152,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              _siteText(siteConfig?.title, fallback: '星汇演示'),
+              _siteText(siteConfig?.title,
+                  fallback: 'home.siteFallbackName'.tr()),
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w800,
@@ -230,7 +232,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   Widget _buildEmptyState(String? message) {
     return Center(
       child: Text(
-        message?.trim().isNotEmpty == true ? message!.trim() : '暂无游戏分类',
+        message?.trim().isNotEmpty == true
+            ? message!.trim()
+            : 'game.noGameCategory'.tr(),
         style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
       ),
     );
@@ -245,7 +249,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     if (games.isEmpty) {
       return Center(
         child: Text(
-          '暂无游戏',
+          'game.noGame'.tr(),
           style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
         ),
       );
@@ -318,7 +322,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                 ),
                                 SizedBox(height: 8.h),
                                 Text(
-                                  '启动中...',
+                                  'game.launching'.tr(),
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 13.sp,
@@ -333,7 +337,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             color: Colors.black.withValues(alpha: 0.45),
                             alignment: Alignment.center,
                             child: Text(
-                              '维护中',
+                              'game.maintaining'.tr(),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 13.sp,
@@ -379,11 +383,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       final urlText = result.url?.trim();
       if (urlText == null || urlText.isEmpty) {
-        messenger.showSnackBar(const SnackBar(content: Text('进入游戏失败')));
+        messenger.showSnackBar(
+          SnackBar(content: Text('game.enterFailed'.tr())),
+        );
         return;
       }
       if (Uri.tryParse(urlText) == null) {
-        messenger.showSnackBar(const SnackBar(content: Text('游戏地址无效')));
+        messenger.showSnackBar(
+          SnackBar(content: Text('game.invalidUrl'.tr())),
+        );
         return;
       }
       if (result.nesting == false) {
@@ -392,7 +400,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           mode: LaunchMode.externalApplication,
         );
         if (!opened && mounted) {
-          messenger.showSnackBar(const SnackBar(content: Text('无法打开游戏')));
+          messenger.showSnackBar(
+            SnackBar(content: Text('game.openFailed'.tr())),
+          );
         }
         return;
       }
@@ -405,8 +415,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       final message = context.read<GameProvider>().launchError;
       messenger.showSnackBar(
         SnackBar(
-            content:
-                Text(message?.trim().isNotEmpty == true ? message! : '进入游戏失败')),
+            content: Text(message?.trim().isNotEmpty == true
+                ? message!
+                : 'game.enterFailed'.tr())),
       );
     }
   }

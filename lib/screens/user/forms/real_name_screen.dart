@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +40,7 @@ class _RealNameScreenState extends State<RealNameScreen> {
     final isVerified = profile?.hasRealName ?? false;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '实名认证'),
+      appBar: CustomNavBar(title: 'account.realNameVerification'.tr()),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(20.w),
@@ -59,7 +60,7 @@ class _RealNameScreenState extends State<RealNameScreen> {
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
-                        '为了保障您的资金安全，请完成实名认证。认证信息需与提现银行卡信息一致。',
+                        'account.realNameTip'.tr(),
                         style: TextStyle(
                           fontSize: 12.sp,
                           color: AppColors.primary,
@@ -82,7 +83,7 @@ class _RealNameScreenState extends State<RealNameScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '认证状态',
+                      'account.verificationStatus'.tr(),
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: AppColors.textPrimary,
@@ -90,7 +91,10 @@ class _RealNameScreenState extends State<RealNameScreen> {
                       ),
                     ),
                     Text(
-                      isVerified ? '已认证' : '未认证',
+                      isVerified
+                          ? 'account.completedVerification'.tr()
+                          : 'account.unverified'.tr(),
+                      maxLines: 1,
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: isVerified
@@ -103,7 +107,7 @@ class _RealNameScreenState extends State<RealNameScreen> {
               ),
               SizedBox(height: 24.h),
               Text(
-                '真实姓名',
+                'account.realName'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textPrimary,
@@ -112,17 +116,19 @@ class _RealNameScreenState extends State<RealNameScreen> {
               ),
               SizedBox(height: 8.h),
               CustomTextField(
-                hintText: isVerified ? profile!.realName!.trim() : '请输入您的真实姓名',
+                hintText: isVerified
+                    ? profile!.realName!.trim()
+                    : 'account.enterRealName'.tr(),
                 controller: _nameController,
                 enabled: !isVerified,
               ),
               SizedBox(height: 24.h),
               CustomButton(
                 text: isVerified
-                    ? '已完成认证'
+                    ? 'account.completedVerification'.tr()
                     : provider.isSubmitting
-                        ? '提交中...'
-                        : '提交认证',
+                        ? 'common.submitting'.tr()
+                        : 'account.submitVerification'.tr(),
                 onPressed: isVerified || provider.isSubmitting ? null : _submit,
               ),
             ],
@@ -135,7 +141,7 @@ class _RealNameScreenState extends State<RealNameScreen> {
   Future<void> _submit() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      _showMessage('请输入您的真实姓名');
+      _showMessage('account.enterRealName'.tr());
       return;
     }
 
@@ -144,11 +150,11 @@ class _RealNameScreenState extends State<RealNameScreen> {
     try {
       await provider.submitRealName(name);
       if (!mounted) return;
-      _showMessage('保存成功');
+      _showMessage('account.saveSuccess'.tr());
       context.canPop() ? context.pop() : context.go('/profile');
     } catch (error) {
       if (!mounted) return;
-      _showMessage(userFormErrorMessage(error, '保存失败'));
+      _showMessage(userFormErrorMessage(error, 'account.saveFailed'.tr()));
     }
   }
 

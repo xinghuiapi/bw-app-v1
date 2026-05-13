@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +38,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
     final isSubmitting = provider.isSubmitting;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '绑定手机号'),
+      appBar: CustomNavBar(title: 'account.bindPhone'.tr()),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(20.w),
@@ -47,15 +48,15 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
               if (isBound) ...[
                 _BoundStatusCard(
                   icon: Icons.phone_iphone,
-                  title: '手机号已绑定',
+                  title: 'account.phoneBoundTitle'.tr(),
                   value: _maskPhone(profile!.phone!),
-                  message: '当前账号已绑定手机号，暂不支持在此页面修改。',
+                  message: 'account.phoneBoundMessage'.tr(),
                 ),
                 SizedBox(height: 24.h),
-                CustomButton(text: '返回', onPressed: _exitPage),
+                CustomButton(text: 'common.back'.tr(), onPressed: _exitPage),
               ] else ...[
                 Text(
-                  '手机号',
+                  'account.phoneNumber'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: AppColors.textPrimary,
@@ -64,13 +65,13 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                 ),
                 SizedBox(height: 8.h),
                 CustomTextField(
-                  hintText: '请输入手机号码',
+                  hintText: 'account.enterPhoneNumber'.tr(),
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                 ),
                 SizedBox(height: 24.h),
                 Text(
-                  '验证码',
+                  'account.verifyCode'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: AppColors.textPrimary,
@@ -79,7 +80,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                 ),
                 SizedBox(height: 8.h),
                 CustomTextField(
-                  hintText: '请输入验证码',
+                  hintText: 'account.enterVerifyCode'.tr(),
                   controller: _codeController,
                   keyboardType: TextInputType.number,
                   suffixIcon: CountdownButton(
@@ -88,7 +89,9 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                 ),
                 SizedBox(height: 48.h),
                 CustomButton(
-                  text: isSubmitting ? '绑定中...' : '确认绑定',
+                  text: isSubmitting
+                      ? 'common.binding'.tr()
+                      : 'common.confirmBind'.tr(),
                   onPressed: _submit,
                 ),
               ],
@@ -103,11 +106,11 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
     final phone = _phoneController.text.trim();
     final code = _codeController.text.trim();
     if (!_isPhone(phone)) {
-      _showMessage('请输入正确手机号');
+      _showMessage('account.enterValidPhone'.tr());
       return;
     }
     if (code.isEmpty) {
-      _showMessage('请输入验证码');
+      _showMessage('account.enterVerifyCode'.tr());
       return;
     }
 
@@ -118,18 +121,18 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
         UserProfileUpdateRequest(phone: phone, areaCode: '+86', code: code),
       );
       if (!mounted) return;
-      _showMessage('绑定成功');
+      _showMessage('account.bindSuccess'.tr());
       _exitPage();
     } catch (error) {
       if (!mounted) return;
-      _showMessage(userFormErrorMessage(error, '绑定失败'));
+      _showMessage(userFormErrorMessage(error, 'account.bindFailed'.tr()));
     }
   }
 
   Future<bool> _sendCode() async {
     final phone = _phoneController.text.trim();
     if (!_isPhone(phone)) {
-      _showMessage('请输入正确手机号');
+      _showMessage('account.enterValidPhone'.tr());
       return false;
     }
 
@@ -143,7 +146,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
       return true;
     } catch (error) {
       if (!mounted) return false;
-      _showMessage(userFormErrorMessage(error, '验证码发送失败'));
+      _showMessage(userFormErrorMessage(error, 'account.sendCodeFailed'.tr()));
       return false;
     }
   }
@@ -199,6 +202,8 @@ class _BoundStatusCard extends StatelessWidget {
               children: [
                 Text(
                   title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
@@ -208,6 +213,8 @@ class _BoundStatusCard extends StatelessWidget {
                 SizedBox(height: 6.h),
                 Text(
                   value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: AppColors.textPrimary,
@@ -216,6 +223,8 @@ class _BoundStatusCard extends StatelessWidget {
                 SizedBox(height: 8.h),
                 Text(
                   message,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12.sp,
                     height: 1.5,

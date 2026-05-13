@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -115,24 +116,32 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               SizedBox(height: 24.h),
-              Text(
-                '欢迎回来',
-                style: TextStyle(
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF333333),
-                  letterSpacing: 1.w,
+              SizedBox(
+                width: 250.w,
+                child: Text(
+                  context.tr('auth.welcomeBack'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 28.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF333333),
+                    letterSpacing: 1.w,
+                  ),
                 ),
               ),
               SizedBox(height: 16.h),
-              Row(
-                children: [
-                  _buildTag('极速提款'),
-                  SizedBox(width: 16.w),
-                  _buildTag('数据安全'),
-                  SizedBox(width: 16.w),
-                  _buildTag('权威认证'),
-                ],
+              Padding(
+                padding: EdgeInsets.only(right: 78.w),
+                child: Row(
+                  children: [
+                    _buildTag(context.tr('auth.fastWithdraw')),
+                    SizedBox(width: 10.w),
+                    _buildTag(context.tr('auth.dataSecure')),
+                    SizedBox(width: 10.w),
+                    _buildTag(context.tr('auth.certified')),
+                  ],
+                ),
               ),
             ],
           ),
@@ -168,19 +177,25 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildTag(String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.check_circle, color: AppColors.primary, size: 14.sp),
-        SizedBox(width: 4.w),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: const Color(0xFF666666),
+    return Flexible(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle, color: AppColors.primary, size: 14.sp),
+          SizedBox(width: 4.w),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: const Color(0xFF666666),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -239,14 +254,14 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                '忘记密码？ ',
+                context.tr('auth.forgotPassword'),
                 style:
                     TextStyle(fontSize: 14.sp, color: const Color(0xFF999999)),
               ),
               GestureDetector(
                 onTap: () => context.push('/reset-password'),
                 child: Text(
-                  '重置',
+                  context.tr('auth.reset'),
                   style: TextStyle(fontSize: 14.sp, color: AppColors.primary),
                 ),
               ),
@@ -280,7 +295,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     )
                   : Text(
-                      '登录',
+                      context.tr('common.login'),
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w500,
@@ -293,28 +308,39 @@ class _LoginScreenState extends State<LoginScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Text(
-                    '还没有账号？ ',
-                    style: TextStyle(
-                        fontSize: 14.sp, color: const Color(0xFF999999)),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/register'),
-                    child: Text(
-                      '立即注册',
-                      style:
-                          TextStyle(fontSize: 14.sp, color: AppColors.primary),
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        context.tr('auth.noAccount'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 14.sp, color: const Color(0xFF999999)),
+                      ),
                     ),
-                  ),
-                ],
+                    GestureDetector(
+                      onTap: () => context.push('/register'),
+                      child: Text(
+                        context.tr('auth.registerNow'),
+                        style: TextStyle(
+                            fontSize: 14.sp, color: AppColors.primary),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              GestureDetector(
-                onTap: () => context.go('/'),
-                child: Text(
-                  '先去逛逛',
-                  style: TextStyle(fontSize: 14.sp, color: AppColors.primary),
+              SizedBox(width: 8.w),
+              Flexible(
+                child: GestureDetector(
+                  onTap: () => context.go('/'),
+                  child: Text(
+                    context.tr('auth.browseFirst'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 14.sp, color: AppColors.primary),
+                  ),
                 ),
               ),
             ],
@@ -356,8 +382,8 @@ class _LoginScreenState extends State<LoginScreen> {
     return Row(
       children: [
         for (final tab in availableTabs) ...[
-          _buildTabItem(tab, _tabTitle(tab)),
-          if (tab != availableTabs.last) SizedBox(width: 32.w),
+          Expanded(child: _buildTabItem(tab, _tabTitle(tab))),
+          if (tab != availableTabs.last) SizedBox(width: 10.w),
         ],
       ],
     );
@@ -366,11 +392,11 @@ class _LoginScreenState extends State<LoginScreen> {
   String _tabTitle(String tab) {
     switch (tab) {
       case 'phone':
-        return '手机号登录';
+        return context.tr('auth.phoneLogin');
       case 'email':
-        return '邮箱登录';
+        return context.tr('auth.emailLogin');
       default:
-        return '账号登录';
+        return context.tr('auth.usernameLogin');
     }
   }
 
@@ -387,8 +413,10 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: isActive ? 18.sp : 16.sp,
+              fontSize: isActive ? 16.sp : 14.sp,
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               color:
                   isActive ? const Color(0xFF333333) : const Color(0xFF999999),
@@ -412,16 +440,16 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel('账号'),
+        _buildFieldLabel(context.tr('auth.account')),
         _buildInputField(
           controller: _usernameController,
-          placeholder: '请输入账号',
+          placeholder: context.tr('auth.enterAccount'),
         ),
         SizedBox(height: 20.h),
-        _buildFieldLabel('密码'),
+        _buildFieldLabel(context.tr('auth.password')),
         _buildInputField(
           controller: _passwordController,
-          placeholder: '请输入密码',
+          placeholder: context.tr('auth.enterPassword'),
           obscureText: !_showPassword,
           suffixIcon: GestureDetector(
             onTap: () {
@@ -447,10 +475,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel('手机号'),
+        _buildFieldLabel(context.tr('auth.phone')),
         _buildInputField(
           controller: _phoneController,
-          placeholder: '请输入手机号',
+          placeholder: context.tr('auth.enterPhone'),
           keyboardType: TextInputType.phone,
           prefixWidget: GestureDetector(
             onTap: () {
@@ -482,10 +510,10 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         SizedBox(height: 20.h),
-        _buildFieldLabel('验证码'),
+        _buildFieldLabel(context.tr('auth.code')),
         _buildInputField(
           controller: _smsCodeController,
-          placeholder: '请输入验证码',
+          placeholder: context.tr('auth.enterCode'),
           keyboardType: TextInputType.number,
           suffixIcon: GestureDetector(
             onTap: _smsCountdown > 0 ? null : _sendSmsCode,
@@ -493,10 +521,10 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: EdgeInsets.only(left: 16.w),
               child: Text(
                 context.watch<AuthProvider>().isSendingSmsCode
-                    ? '发送中'
+                    ? context.tr('auth.sending')
                     : _smsCountdown > 0
                         ? '${_smsCountdown}s'
-                        : '获取验证码',
+                        : context.tr('auth.getCode'),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: _smsCountdown > 0
@@ -516,27 +544,27 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel('邮箱'),
+        _buildFieldLabel(context.tr('auth.email')),
         _buildInputField(
           controller: _emailController,
-          placeholder: '请输入邮箱地址',
+          placeholder: context.tr('auth.enterEmail'),
           keyboardType: TextInputType.emailAddress,
         ),
         SizedBox(height: 20.h),
-        _buildFieldLabel('验证码'),
+        _buildFieldLabel(context.tr('auth.code')),
         _buildInputField(
           controller: _emailCodeController,
-          placeholder: '请输入验证码',
+          placeholder: context.tr('auth.enterCode'),
           suffixIcon: GestureDetector(
             onTap: _emailCountdown > 0 ? null : _sendEmailCode,
             child: Padding(
               padding: EdgeInsets.only(left: 16.w),
               child: Text(
                 context.watch<AuthProvider>().isSendingEmailCode
-                    ? '发送中'
+                    ? context.tr('auth.sending')
                     : _emailCountdown > 0
                         ? '${_emailCountdown}s'
-                        : '获取验证码',
+                        : context.tr('auth.getCode'),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: _emailCountdown > 0
@@ -558,10 +586,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel('图形验证码'),
+        _buildFieldLabel(context.tr('auth.captcha')),
         _buildInputField(
           controller: _captchaController,
-          placeholder: '请输入图形验证码',
+          placeholder: context.tr('auth.enterCaptcha'),
           suffixIcon: GestureDetector(
             onTap: () => context.read<AuthProvider>().loadCaptcha(),
             child: Container(
@@ -598,11 +626,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final username = _usernameController.text.trim();
       final password = _passwordController.text.trim();
       if (username.isEmpty || password.isEmpty) {
-        _showMessage('请输入账号和密码');
+        _showMessage(context.tr('auth.enterAccountPassword'));
         return;
       }
       if (showCaptcha && captchaCode.isEmpty) {
-        _showMessage('请输入图形验证码');
+        _showMessage(context.tr('auth.enterCaptcha'));
         return;
       }
       request = LoginRequest(
@@ -616,7 +644,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final phone = _phoneController.text.trim();
       final code = _smsCodeController.text.trim();
       if (phone.isEmpty || code.isEmpty) {
-        _showMessage('请输入手机号和验证码');
+        _showMessage(context.tr('auth.enterPhoneCode'));
         return;
       }
       request = LoginRequest(
@@ -632,7 +660,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = _emailController.text.trim();
       final code = _emailCodeController.text.trim();
       if (email.isEmpty || code.isEmpty) {
-        _showMessage('请输入邮箱和验证码');
+        _showMessage(context.tr('auth.enterEmailCode'));
         return;
       }
       request = LoginRequest(
@@ -670,7 +698,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _sendSmsCode() async {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) {
-      _showMessage('请输入手机号');
+      _showMessage(context.tr('auth.enterPhone'));
       return;
     }
     try {
@@ -691,7 +719,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _sendEmailCode() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      _showMessage('请输入邮箱地址');
+      _showMessage(context.tr('auth.enterEmail'));
       return;
     }
     try {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/game/game_models.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -202,7 +203,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
 
   String _titleText() {
     final title = widget.title?.trim();
-    return title == null || title.isEmpty ? '游戏列表' : title;
+    return title == null || title.isEmpty ? 'game.listTitle'.tr() : title;
   }
 
   Widget _buildRemoteGrid(
@@ -218,7 +219,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
     if (games.isEmpty) {
       return Center(
         child: Text(
-          isFavoriteTab ? '暂无收藏游戏' : '暂无游戏',
+          isFavoriteTab ? 'game.noFavoriteGame'.tr() : 'game.noGame'.tr(),
           style: TextStyle(color: const Color(0xFF999999), fontSize: 14.sp),
         ),
       );
@@ -298,7 +299,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
                           ),
                           SizedBox(height: 6.h),
                           Text(
-                            '启动中...',
+                            'game.launching'.tr(),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 11.sp,
@@ -379,7 +380,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        '维护中',
+                        'game.maintaining'.tr(),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12.sp,
@@ -416,11 +417,15 @@ class _GameSubListScreenState extends State<GameSubListScreen>
       if (!mounted) return;
       final urlText = result.url?.trim();
       if (urlText == null || urlText.isEmpty) {
-        messenger.showSnackBar(const SnackBar(content: Text('进入游戏失败')));
+        messenger.showSnackBar(
+          SnackBar(content: Text('game.enterFailed'.tr())),
+        );
         return;
       }
       if (Uri.tryParse(urlText) == null) {
-        messenger.showSnackBar(const SnackBar(content: Text('游戏地址无效')));
+        messenger.showSnackBar(
+          SnackBar(content: Text('game.invalidUrl'.tr())),
+        );
         return;
       }
       if (result.nesting == false) {
@@ -429,7 +434,9 @@ class _GameSubListScreenState extends State<GameSubListScreen>
           mode: LaunchMode.externalApplication,
         );
         if (!opened && mounted) {
-          messenger.showSnackBar(const SnackBar(content: Text('无法打开游戏')));
+          messenger.showSnackBar(
+            SnackBar(content: Text('game.openFailed'.tr())),
+          );
         }
         return;
       }
@@ -442,8 +449,9 @@ class _GameSubListScreenState extends State<GameSubListScreen>
       final message = context.read<GameProvider>().launchError;
       messenger.showSnackBar(
         SnackBar(
-            content:
-                Text(message?.trim().isNotEmpty == true ? message! : '进入游戏失败')),
+            content: Text(message?.trim().isNotEmpty == true
+                ? message!
+                : 'game.enterFailed'.tr())),
       );
     }
   }
@@ -451,7 +459,9 @@ class _GameSubListScreenState extends State<GameSubListScreen>
   Future<void> _toggleRemoteFavorite(GameItem game) async {
     final messenger = ScaffoldMessenger.of(context);
     if (!context.read<AuthProvider>().isAuthenticated) {
-      messenger.showSnackBar(const SnackBar(content: Text('请先登录查看收藏')));
+      messenger.showSnackBar(
+        SnackBar(content: Text('game.favoriteLogin'.tr())),
+      );
       return;
     }
     try {
@@ -459,12 +469,18 @@ class _GameSubListScreenState extends State<GameSubListScreen>
       await context.read<GameProvider>().toggleGameFavorite(game);
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(next ? '收藏成功' : '取消收藏成功')),
+        SnackBar(
+            content: Text(next
+                ? 'game.favoriteSuccess'.tr()
+                : 'game.unfavoriteSuccess'.tr())),
       );
     } catch (error) {
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text(game.isFavorite ? '取消收藏失败' : '收藏失败')),
+        SnackBar(
+            content: Text(game.isFavorite
+                ? 'game.unfavoriteFailed'.tr()
+                : 'game.favoriteFailed'.tr())),
       );
     }
   }
@@ -489,8 +505,8 @@ class _GameSubListScreenState extends State<GameSubListScreen>
               onChanged: _onSearchChanged,
               onSubmitted: _loadRemoteSearch,
               textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                hintText: '请输入游戏名称',
+              decoration: InputDecoration(
+                hintText: 'search.hint'.tr(),
                 border: InputBorder.none,
                 isCollapsed: true,
               ),
@@ -543,9 +559,9 @@ class _GameSubListScreenState extends State<GameSubListScreen>
         unselectedLabelStyle:
             TextStyle(fontSize: 15.sp, fontWeight: FontWeight.normal),
         dividerColor: Colors.transparent, // 去除 M3 默认底部分割线
-        tabs: const [
+        tabs: [
           Tab(text: '全部'),
-          Tab(text: '收藏'),
+          Tab(text: 'game.favorites'.tr()),
         ],
       ),
     );
@@ -556,7 +572,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
     if (games.isEmpty) {
       return Center(
         child: Text(
-          '暂无收藏游戏',
+          'game.noFavoriteGame'.tr(),
           style: TextStyle(color: const Color(0xFF999999), fontSize: 14.sp),
         ),
       );

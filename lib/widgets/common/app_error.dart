@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../theme/app_colors.dart';
@@ -6,11 +7,11 @@ import '../../theme/app_colors.dart';
 class AppError extends StatelessWidget {
   const AppError({
     super.key,
-    this.message = '加载失败，请稍后重试',
+    this.message,
     this.onRetry,
   });
 
-  final String message;
+  final String? message;
   final VoidCallback? onRetry;
 
   @override
@@ -24,13 +25,22 @@ class AppError extends StatelessWidget {
             Icon(Icons.error_outline, size: 52.w, color: AppColors.danger),
             SizedBox(height: 12.h),
             Text(
-              message,
+              message ?? 'common.loadFailedRetry'.tr(),
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             if (onRetry != null) ...[
               SizedBox(height: 16.h),
-              OutlinedButton(onPressed: onRetry, child: const Text('重试')),
+              OutlinedButton(
+                onPressed: onRetry,
+                child: Text(
+                  'common.retry'.tr(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ],
         ),

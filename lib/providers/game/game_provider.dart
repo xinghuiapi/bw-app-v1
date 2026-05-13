@@ -40,6 +40,33 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
 
   List<GameLobbyCategory> get categories => data ?? const [];
 
+  void resetForLanguageChange() {
+    data = const [];
+    error = null;
+    _loadingCodes.clear();
+    _loadedCodes.clear();
+    recommendedGames = const [];
+    isRecommendedLoading = false;
+    hasRecommendedLoaded = false;
+    recommendedError = null;
+    hotGames = const [];
+    isHotGamesLoading = false;
+    hasHotGamesLoaded = false;
+    hotGamesError = null;
+    subListPage = const GameListPage();
+    isSubListLoading = false;
+    isSubListLoadingMore = false;
+    hasSubListLoaded = false;
+    subListError = null;
+    _subListCode = '';
+    _subListGame = '';
+    _subListSearchWord = '';
+    favoritingGameId = null;
+    launchingGameId = null;
+    launchError = null;
+    notifyListeners();
+  }
+
   bool get hasMoreSubList {
     final currentPage = subListPage.currentPage ?? 0;
     final lastPage = subListPage.lastPage ?? currentPage;

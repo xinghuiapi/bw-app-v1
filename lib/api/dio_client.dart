@@ -16,10 +16,14 @@ class DioClient {
     TokenStorage? tokenStorage,
     RequestCacheManager? cacheManager,
     AuthExpiredCallback? onAuthExpired,
+    CurrentLanguageGetter? currentLanguage,
   })  : _dio = dio ?? Dio(),
         _tokenStorage = tokenStorage ?? TokenStorage(),
         _cacheManager = cacheManager ?? RequestCacheManager() {
-    _configure(onAuthExpired: onAuthExpired);
+    _configure(
+      onAuthExpired: onAuthExpired,
+      currentLanguage: currentLanguage,
+    );
   }
 
   final Dio _dio;
@@ -116,7 +120,10 @@ class DioClient {
     }
   }
 
-  void _configure({AuthExpiredCallback? onAuthExpired}) {
+  void _configure({
+    AuthExpiredCallback? onAuthExpired,
+    CurrentLanguageGetter? currentLanguage,
+  }) {
     _dio.options = BaseOptions(
       baseUrl: AppEnv.baseUrl,
       connectTimeout: AppEnv.connectTimeout,
@@ -131,6 +138,7 @@ class DioClient {
     _dio.interceptors.addAll(<Interceptor>[
       AuthInterceptor(
         tokenStorage: _tokenStorage,
+        currentLanguage: currentLanguage,
         onAuthExpired: onAuthExpired,
       ),
       CacheInterceptor(cacheManager: _cacheManager),

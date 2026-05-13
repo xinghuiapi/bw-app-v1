@@ -35,3 +35,10 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/i18n/
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Variable.ttf
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/fonts/NotoSansSC-Variable.ttf

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -31,9 +32,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
   _CardUploadImage? _qrImage;
 
   static const _categories = <int, String>{
-    1: '银行卡',
-    2: '虚拟币',
-    3: '支付宝',
+    1: 'finance.bankCard',
+    2: 'finance.crypto',
+    3: 'finance.alipay',
   };
 
   @override
@@ -74,7 +75,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
     return Scaffold(
       backgroundColor:
           const Color(0xFFF5F7FA), // Light gray background matching design
-      appBar: const CustomNavBar(title: '添加银行卡'),
+      appBar: CustomNavBar(title: 'finance.addBankCard'.tr()),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.w),
@@ -85,7 +86,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
               Padding(
                 padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
                 child: Text(
-                  '请选择收款类型',
+                  'finance.selectReceiveType'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: const Color(0xFF5C6573),
@@ -94,11 +95,11 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
               ),
               Row(
                 children: [
-                  _buildTypeItem(1, '银行卡'),
+                  _buildTypeItem(1, 'finance.bankCard'.tr()),
                   SizedBox(width: 12.w),
-                  _buildTypeItem(2, '虚拟币'),
+                  _buildTypeItem(2, 'finance.crypto'.tr()),
                   SizedBox(width: 12.w),
-                  _buildTypeItem(3, '支付宝'),
+                  _buildTypeItem(3, 'finance.alipay'.tr()),
                 ],
               ),
               SizedBox(height: 20.h),
@@ -116,9 +117,11 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                   children: [
                     if (_selectedCategory != 2) ...[
                       _buildFormRow(
-                        label: '姓名',
+                        label: 'finance.name'.tr(),
                         child: Text(
-                          hasRealName ? realName : '请先完成实名',
+                          hasRealName
+                              ? realName
+                              : 'finance.completeRealNameFirst'.tr(),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -142,7 +145,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                                     borderRadius: BorderRadius.circular(4.r),
                                   ),
                                   child: Text(
-                                    '去认证',
+                                    'finance.goVerify'.tr(),
                                     style: TextStyle(
                                       color: AppColors.primary,
                                       fontSize: 13.sp,
@@ -155,14 +158,18 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                     ],
                     if (_selectedCategory != 1) ...[
                       _buildFormRow(
-                        label: _selectedCategory == 2 ? '收款类型' : '账户类型',
+                        label: _selectedCategory == 2
+                            ? 'finance.receiveType'.tr()
+                            : 'finance.accountType'.tr(),
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => _showTypePicker(walletProvider),
                           child: Text(
                             _selectedCardType?.displayName.isNotEmpty == true
                                 ? _selectedCardType!.displayName
-                                : '请选择${_categories[_selectedCategory]}类型',
+                                : 'finance.selectType'.tr(namedArgs: {
+                                    'type': _categoryName(_selectedCategory),
+                                  }),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -189,14 +196,14 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                     ],
                     if (_selectedCategory == 1) ...[
                       _buildFormRow(
-                        label: '开户银行',
+                        label: 'finance.bankName'.tr(),
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => _showTypePicker(walletProvider),
                           child: Text(
                             _selectedCardType?.displayName.isNotEmpty == true
                                 ? _selectedCardType!.displayName
-                                : '请选择开户银行',
+                                : 'finance.selectBank'.tr(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -223,9 +230,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                     ],
                     _buildFormRow(
                       label: switch (_selectedCategory) {
-                        2 => '收款地址',
-                        3 => '支付宝账号',
-                        _ => '银行卡号',
+                        2 => 'finance.receiveAddress'.tr(),
+                        3 => 'finance.alipayAccount'.tr(),
+                        _ => 'finance.bankCardNumber'.tr(),
                       },
                       child: TextField(
                         controller: _cardController,
@@ -236,9 +243,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                             fontSize: 15.sp, color: AppColors.textPrimary),
                         decoration: InputDecoration(
                           hintText: switch (_selectedCategory) {
-                            2 => '请输入虚拟币收款地址',
-                            3 => '请输入支付宝账号',
-                            _ => '请输入银行卡号',
+                            2 => 'finance.enterCryptoAddress'.tr(),
+                            3 => 'finance.enterAlipayAccount'.tr(),
+                            _ => 'finance.enterBankCardNumber'.tr(),
                           },
                           hintStyle: TextStyle(
                             color:
@@ -254,13 +261,13 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                     _buildDivider(),
                     if (_selectedCategory == 1) ...[
                       _buildFormRow(
-                        label: '开户支行',
+                        label: 'finance.bankBranch'.tr(),
                         child: TextField(
                           controller: _branchController,
                           style: TextStyle(
                               fontSize: 15.sp, color: AppColors.textPrimary),
                           decoration: InputDecoration(
-                            hintText: '请输入开户支行(选填)',
+                            hintText: 'finance.enterBankBranchOptional'.tr(),
                             hintStyle: TextStyle(
                               color: AppColors.textSecondary
                                   .withValues(alpha: 0.5),
@@ -275,13 +282,13 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                       _buildDivider(),
                     ],
                     _buildFormRow(
-                      label: '别名备注',
+                      label: 'finance.alias'.tr(),
                       child: TextField(
                         controller: _aliasController,
                         style: TextStyle(
                             fontSize: 15.sp, color: AppColors.textPrimary),
                         decoration: InputDecoration(
-                          hintText: '请输入别名备注(选填)',
+                          hintText: 'finance.enterAliasOptional'.tr(),
                           hintStyle: TextStyle(
                             color:
                                 AppColors.textSecondary.withValues(alpha: 0.5),
@@ -305,7 +312,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
 
               // --- 3. Submit Button ---
               CustomButton(
-                text: walletProvider.isBindingCard ? '提交中...' : '确认添加',
+                text: walletProvider.isBindingCard
+                    ? 'common.submitting'.tr()
+                    : 'finance.confirmAdd'.tr(),
                 onPressed: walletProvider.isBindingCard
                     ? null
                     : () => _submit(walletProvider, hasRealName),
@@ -369,7 +378,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.r),
         ),
-        child: const AppLoading(message: '类型加载中...'),
+        child: AppLoading(message: 'finance.typeLoading'.tr()),
       );
     }
 
@@ -383,8 +392,13 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
         ),
         child: Text(
           error == null
-              ? '暂无${_categories[_selectedCategory]}类型，请稍后刷新'
-              : '${_categories[_selectedCategory]}类型暂未同步，$error',
+              ? 'finance.emptyType'.tr(namedArgs: {
+                  'type': _categoryName(_selectedCategory),
+                })
+              : 'finance.typeSyncFailed'.tr(namedArgs: {
+                  'type': _categoryName(_selectedCategory),
+                  'message': error,
+                }),
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 13.sp,
@@ -405,7 +419,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '请选择${_categories[_selectedCategory]}类型',
+            'finance.selectType'.tr(namedArgs: {
+              'type': _categoryName(_selectedCategory),
+            }),
             style: TextStyle(
               fontSize: 14.sp,
               color: AppColors.textPrimary,
@@ -435,7 +451,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                     ),
                   ),
                   child: Text(
-                    type.displayName.isEmpty ? '未命名类型' : type.displayName,
+                    type.displayName.isEmpty
+                        ? 'finance.unnamedType'.tr()
+                        : type.displayName,
                     style: TextStyle(
                       fontSize: 13.sp,
                       color: isSelected
@@ -462,7 +480,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
           SizedBox(
             width: 80.w,
             child: Text(
-              '收款码',
+              'finance.receiptCode'.tr(),
               style: TextStyle(fontSize: 15.sp, color: AppColors.textPrimary),
             ),
           ),
@@ -494,7 +512,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                               ),
                               SizedBox(height: 4.h),
                               Text(
-                                isUploading ? '上传中' : '上传',
+                                isUploading
+                                    ? 'common.uploadingNoDots'.tr()
+                                    : 'common.upload'.tr(),
                                 style: TextStyle(
                                   fontSize: 12.sp,
                                   color: AppColors.textSecondary,
@@ -535,7 +555,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                 ),
                 SizedBox(height: 6.h),
                 Text(
-                  '选填：上传收款二维码',
+                  'finance.uploadReceiptQrOptional'.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: AppColors.textSecondary,
@@ -552,7 +572,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
   Future<void> _showTypePicker(WalletProvider walletProvider) async {
     final availableTypes = walletProvider.cardTypes[_selectedCategory] ?? [];
     if (walletProvider.isCardTypeLoading(_selectedCategory)) {
-      _showSnack('类型加载中，请稍候');
+      _showSnack('finance.typeLoadingWait'.tr());
       return;
     }
     if (availableTypes.isEmpty) {
@@ -564,7 +584,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
     if (latestTypes.isEmpty) {
       _showSnack(
         walletProvider.cardTypeError(_selectedCategory) ??
-            '暂无${_categories[_selectedCategory]}类型',
+            'finance.emptyTypeShort'.tr(namedArgs: {
+              'type': _categoryName(_selectedCategory),
+            }),
       );
       return;
     }
@@ -657,7 +679,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  '请选择一个可用收款类型',
+                  'finance.selectAvailableType'.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: AppColors.textSecondary,
@@ -695,7 +717,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
           decoration: InputDecoration(
             prefixIcon:
                 Icon(Icons.search, size: 20.sp, color: AppColors.textSecondary),
-            hintText: '搜索${_categories[_selectedCategory]}类型',
+            hintText: 'finance.searchType'.tr(namedArgs: {
+              'type': _categoryName(_selectedCategory),
+            }),
             hintStyle:
                 TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
             border: InputBorder.none,
@@ -714,7 +738,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 36.h),
           child: Text(
-            '未找到匹配的类型',
+            'finance.noMatchedType'.tr(),
             style: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
           ),
         ),
@@ -777,7 +801,9 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: Text(
-                      type.displayName.isEmpty ? '未命名类型' : type.displayName,
+                      type.displayName.isEmpty
+                          ? 'finance.unnamedType'.tr()
+                          : type.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -801,10 +827,12 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
   }
 
   String get _pickerTitle {
-    if (_selectedCategory == 1) return '选择开户银行';
-    if (_selectedCategory == 2) return '选择虚拟币类型';
-    return '选择支付宝类型';
+    if (_selectedCategory == 1) return 'finance.selectBankTitle'.tr();
+    if (_selectedCategory == 2) return 'finance.selectCryptoTitle'.tr();
+    return 'finance.selectAlipayTitle'.tr();
   }
+
+  String _categoryName(int category) => _categories[category]!.tr();
 
   IconData get _pickerIcon {
     if (_selectedCategory == 1) return Icons.account_balance;
@@ -848,22 +876,24 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
   Future<void> _submit(WalletProvider walletProvider, bool hasRealName) async {
     if (walletProvider.isBindingCard) return;
     if ((_selectedCategory == 1 || _selectedCategory == 3) && !hasRealName) {
-      _showSnack('请先完成实名认证');
+      _showSnack('finance.completeRealNameRequired'.tr());
       return;
     }
 
     final selectedType = _selectedCardType;
     if (selectedType == null || selectedType.id <= 0) {
-      _showSnack('请选择${_categories[_selectedCategory]}类型');
+      _showSnack('finance.selectType'.tr(namedArgs: {
+        'type': _categoryName(_selectedCategory),
+      }));
       return;
     }
 
     final card = _cardController.text.trim();
     if (card.isEmpty) {
       _showSnack(switch (_selectedCategory) {
-        2 => '请输入虚拟币收款地址',
-        3 => '请输入支付宝账号',
-        _ => '请输入银行卡号',
+        2 => 'finance.enterCryptoAddress'.tr(),
+        3 => 'finance.enterAlipayAccount'.tr(),
+        _ => 'finance.enterBankCardNumber'.tr(),
       });
       return;
     }
@@ -879,11 +909,11 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
     try {
       await walletProvider.bindCard(request);
       if (!mounted) return;
-      _showSnack('绑定成功');
+      _showSnack('finance.bindSuccess'.tr());
       context.canPop() ? context.pop() : context.go('/cards');
     } catch (_) {
       if (!mounted) return;
-      _showSnack(walletProvider.bindCardError ?? '绑定失败');
+      _showSnack(walletProvider.bindCardError ?? 'finance.bindFailed'.tr());
     }
   }
 
@@ -913,10 +943,11 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
       });
     } on MissingPluginException {
       if (!mounted) return;
-      _showSnack('图片选择组件未加载，请完整重启应用后重试');
+      _showSnack('account.imagePickerMissing'.tr());
     } catch (_) {
       if (!mounted) return;
-      _showSnack(walletProvider.cardImageUploadError ?? '二维码上传失败');
+      _showSnack(
+          walletProvider.cardImageUploadError ?? 'finance.qrUploadFailed'.tr());
     }
   }
 

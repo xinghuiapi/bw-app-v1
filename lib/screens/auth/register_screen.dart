@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -131,7 +132,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               SizedBox(height: 24.h),
               Text(
-                '欢迎注册',
+                'auth.welcomeRegister'.tr(),
                 style: TextStyle(
                   fontSize: 28.sp,
                   fontWeight: FontWeight.bold,
@@ -142,11 +143,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(height: 16.h),
               Row(
                 children: [
-                  _buildTag('极速提款'),
+                  _buildTag('auth.fastWithdraw'.tr()),
                   SizedBox(width: 16.w),
-                  _buildTag('数据安全'),
+                  _buildTag('auth.dataSecure'.tr()),
                   SizedBox(width: 16.w),
-                  _buildTag('权威认证'),
+                  _buildTag('auth.certified'.tr()),
                 ],
               ),
             ],
@@ -220,16 +221,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildFieldLabel('账号'),
+          _buildFieldLabel(context.tr('auth.account')),
           _buildInputField(
             controller: _accountController,
-            placeholder: '请输入账号',
+            placeholder: context.tr('auth.enterAccount'),
           ),
           SizedBox(height: 20.h),
-          _buildFieldLabel('密码'),
+          _buildFieldLabel(context.tr('auth.password')),
           _buildInputField(
             controller: _passwordController,
-            placeholder: '请输入密码',
+            placeholder: context.tr('auth.enterPassword'),
             obscureText: !_showPassword,
             suffixIcon: _buildPasswordToggle(
               visible: _showPassword,
@@ -237,10 +238,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
           SizedBox(height: 20.h),
-          _buildFieldLabel('确认密码'),
+          _buildFieldLabel(context.tr('auth.confirmPassword')),
           _buildInputField(
             controller: _confirmPasswordController,
-            placeholder: '请确认密码',
+            placeholder: context.tr('auth.enterConfirmPassword'),
             obscureText: !_showConfirmPassword,
             suffixIcon: _buildPasswordToggle(
               visible: _showConfirmPassword,
@@ -294,7 +295,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     )
                   : Text(
-                      '注 册',
+                      context.tr('common.register'),
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w500,
@@ -307,33 +308,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Text(
-                    '已有账号？ ',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: const Color(0xFF999999),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () =>
-                        context.canPop() ? context.pop() : context.go('/login'),
-                    child: Text(
-                      '立即登录',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: AppColors.primary,
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        context.tr('auth.hasAccount'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: const Color(0xFF999999),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    GestureDetector(
+                      onTap: () => context.canPop()
+                          ? context.pop()
+                          : context.go('/login'),
+                      child: Text(
+                        context.tr('auth.loginNow'),
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              GestureDetector(
-                onTap: () => context.go('/'),
-                child: Text(
-                  '先去逛逛',
-                  style: TextStyle(fontSize: 14.sp, color: AppColors.primary),
+              SizedBox(width: 8.w),
+              Flexible(
+                child: GestureDetector(
+                  onTap: () => context.go('/'),
+                  child: Text(
+                    context.tr('auth.browseFirst'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -374,17 +390,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
           widgets.add(_buildEmailField(config, field));
           break;
         case 'name':
-          widgets.add(_buildSimpleField(field, _nameController, '请输入真实姓名'));
+          widgets.add(_buildSimpleField(
+              field, _nameController, context.tr('auth.enterRealName')));
           break;
         case 'qq':
-          widgets.add(_buildSimpleField(field, _qqController, '请输入QQ'));
+          widgets.add(_buildSimpleField(
+              field, _qqController, context.tr('auth.enterQq')));
           break;
         case 'telegram':
-          widgets.add(
-              _buildSimpleField(field, _telegramController, '请输入Telegram'));
+          widgets.add(_buildSimpleField(
+              field, _telegramController, context.tr('auth.enterTelegram')));
           break;
         case 'invicode':
-          widgets.add(_buildSimpleField(field, _inviteController, '请输入邀请码'));
+          widgets.add(_buildSimpleField(
+              field, _inviteController, context.tr('auth.enterInviteCode')));
           break;
         case 'pay_password':
           widgets.add(_buildPayPasswordField(field));
@@ -416,16 +435,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _buildFieldLabel(_fieldTitle(field)),
         _buildInputField(
           controller: _phoneController,
-          placeholder: '请输入手机号',
+          placeholder: context.tr('auth.enterPhone'),
           keyboardType: TextInputType.phone,
           prefixWidget: _buildAreaCodePrefix(),
         ),
         if (needsCode) ...[
           SizedBox(height: 20.h),
-          _buildFieldLabel('短信验证码'),
+          _buildFieldLabel(context.tr('auth.smsCode')),
           _buildInputField(
             controller: _phoneCodeController,
-            placeholder: '请输入验证码',
+            placeholder: context.tr('auth.enterCode'),
             keyboardType: TextInputType.number,
             suffixIcon: _buildCodeButton(
               sending: context.watch<AuthProvider>().isSendingSmsCode,
@@ -446,15 +465,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _buildFieldLabel(_fieldTitle(field)),
         _buildInputField(
           controller: _emailController,
-          placeholder: '请输入邮箱地址',
+          placeholder: context.tr('auth.enterEmail'),
           keyboardType: TextInputType.emailAddress,
         ),
         if (needsCode) ...[
           SizedBox(height: 20.h),
-          _buildFieldLabel('邮箱验证码'),
+          _buildFieldLabel(context.tr('auth.emailCode')),
           _buildInputField(
             controller: _emailCodeController,
-            placeholder: '请输入验证码',
+            placeholder: context.tr('auth.enterCode'),
             keyboardType: TextInputType.number,
             suffixIcon: _buildCodeButton(
               sending: context.watch<AuthProvider>().isSendingEmailCode,
@@ -474,7 +493,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _buildFieldLabel(_fieldTitle(field)),
         _buildInputField(
           controller: _payPasswordController,
-          placeholder: '请输入安全码',
+          placeholder: context.tr('auth.enterSecurityCode'),
           obscureText: !_showPayPassword,
           suffixIcon: _buildPasswordToggle(
             visible: _showPayPassword,
@@ -493,7 +512,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel('选择货币'),
+        _buildFieldLabel(context.tr('auth.selectCurrency')),
         GestureDetector(
           onTap: () => _showCurrencyPicker(config),
           child: Container(
@@ -563,10 +582,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: EdgeInsets.only(left: 16.w),
         child: Text(
           sending
-              ? '发送中'
+              ? context.tr('auth.sending')
               : countdown > 0
                   ? '${countdown}s'
-                  : '获取验证码',
+                  : context.tr('auth.getCode'),
           style: TextStyle(
             fontSize: 14.sp,
             color: countdown > 0 ? const Color(0xFF999999) : AppColors.primary,
@@ -599,10 +618,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel('图形验证码'),
+        _buildFieldLabel(context.tr('auth.captcha')),
         _buildInputField(
           controller: _captchaController,
-          placeholder: '请输入图形验证码',
+          placeholder: context.tr('auth.enterCaptcha'),
           suffixIcon: GestureDetector(
             onTap: () => context.read<AuthProvider>().loadCaptcha(),
             child: Container(
@@ -639,24 +658,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final captchaCode = _captchaController.text.trim();
 
     if (account.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      _showMessage('请输入账号和密码');
+      _showMessage(context.tr('auth.enterAccountPassword'));
       return;
     }
     if (!RegExp(r'^[a-zA-Z0-9]{1,12}$').hasMatch(account)) {
-      _showMessage('账号只能包含英文和数字，最多12位');
+      _showMessage(context.tr('auth.accountRule'));
       return;
     }
     if (password.length > 18 || confirmPassword.length > 18) {
-      _showMessage('密码最多18位');
+      _showMessage(context.tr('auth.passwordTooLong'));
       return;
     }
     if (password != confirmPassword) {
-      _showMessage('两次输入的密码不一致');
+      _showMessage(context.tr('auth.passwordMismatch'));
       return;
     }
     if (!_validateConfiguredFields(config)) return;
     if (showCaptcha && captchaCode.isEmpty) {
-      _showMessage('请输入图形验证码');
+      _showMessage(context.tr('auth.enterCaptcha'));
       return;
     }
 
@@ -706,38 +725,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!field.isRequired) continue;
       final controller = _controllerFor(field.code);
       if (controller == null || controller.text.trim().isNotEmpty) continue;
-      _showMessage('请输入${field.title ?? '必填信息'}');
+      _showMessage(context.tr(
+        'auth.enterDynamicRequired',
+        namedArgs: {'field': field.title ?? context.tr('auth.requiredInfo')},
+      ));
       return false;
     }
     if (_isVisible(config, 'pay_password')) {
       final value = _payPasswordController.text.trim();
       if (value.isNotEmpty && !RegExp(r'^\d{6}$').hasMatch(value)) {
-        _showMessage('安全码必须为6位纯数字');
+        _showMessage(context.tr('auth.securityCodeRule'));
         return false;
       }
     }
     if (_isVisible(config, 'qq')) {
       final value = _qqController.text.trim();
       if (value.isNotEmpty && !RegExp(r'^\d+$').hasMatch(value)) {
-        _showMessage('QQ只能填写数字');
+        _showMessage(context.tr('auth.qqDigitsOnly'));
         return false;
       }
     }
     if (_isVisible(config, 'invicode') &&
         _inviteController.text.trim().length > 10) {
-      _showMessage('邀请码最多10位');
+      _showMessage(context.tr('auth.inviteCodeTooLong'));
       return false;
     }
     if (_isVisible(config, 'phone') &&
         config.smsConfig?.regStatus == 1 &&
         _phoneCodeController.text.trim().isEmpty) {
-      _showMessage('请输入短信验证码');
+      _showMessage(context.tr('auth.enterSmsCode'));
       return false;
     }
     if (_isVisible(config, 'email') &&
         config.mailConfig?.regStatus == 1 &&
         _emailCodeController.text.trim().isEmpty) {
-      _showMessage('请输入邮箱验证码');
+      _showMessage(context.tr('auth.enterEmailVerifyCode'));
       return false;
     }
     return true;
@@ -746,7 +768,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _sendSmsCode() async {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) {
-      _showMessage('请输入手机号');
+      _showMessage(context.tr('auth.enterPhone'));
       return;
     }
     try {
@@ -771,11 +793,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final username = _accountController.text.trim();
     final email = _emailController.text.trim();
     if (username.isEmpty) {
-      _showMessage('请输入账号');
+      _showMessage(context.tr('auth.enterAccount'));
       return;
     }
     if (email.isEmpty) {
-      _showMessage('请输入邮箱地址');
+      _showMessage(context.tr('auth.enterEmail'));
       return;
     }
     try {
@@ -951,9 +973,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _fieldTitle(RegisterFieldConfig field) {
     final title = field.title?.trim();
     return field.isRequired
-        ? '${title == null || title.isEmpty ? '信息' : title} *'
+        ? '${title == null || title.isEmpty ? context.tr('auth.info') : title} *'
         : title == null || title.isEmpty
-            ? '信息'
+            ? context.tr('auth.info')
             : title;
   }
 

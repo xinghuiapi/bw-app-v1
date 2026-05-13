@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_text_field.dart';
@@ -22,8 +23,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(
-        title: 'Reset Password',
+      appBar: CustomNavBar(
+        title: context.tr('auth.resetPassword'),
         backgroundColor: Colors.transparent,
         border: false,
       ),
@@ -33,7 +34,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Forgot Password?',
+              context.tr('auth.forgotPasswordTitle'),
               style: TextStyle(
                 fontSize: 28.sp,
                 fontWeight: FontWeight.bold,
@@ -42,7 +43,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
             SizedBox(height: 8.h),
             Text(
-              'Enter your registered phone number to reset',
+              context.tr('auth.resetPasswordDesc'),
               style: TextStyle(
                 fontSize: 14.sp,
                 color: AppColors.textSecondary,
@@ -51,7 +52,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             SizedBox(height: 32.h),
             CustomTextField(
               controller: _phoneController,
-              hintText: 'Please enter phone number',
+              hintText: context.tr('auth.enterPhone'),
               keyboardType: TextInputType.phone,
               prefixIcon: Icon(
                 Icons.phone_android,
@@ -65,7 +66,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 Expanded(
                   child: CustomTextField(
                     controller: _codeController,
-                    hintText: 'Verification Code',
+                    hintText: context.tr('auth.code'),
                     keyboardType: TextInputType.number,
                     prefixIcon: Icon(
                       Icons.security,
@@ -88,7 +89,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                     ),
                     child: Text(
-                      'Get Code',
+                      context.tr('auth.getCode'),
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
@@ -101,7 +102,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             SizedBox(height: 16.h),
             CustomTextField(
               controller: _passwordController,
-              hintText: 'Please enter new password',
+              hintText: context.tr('auth.enterNewPassword'),
               obscureText: true,
               prefixIcon: Icon(
                 Icons.lock_outline,
@@ -111,7 +112,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
             SizedBox(height: 32.h),
             CustomButton(
-              text: 'Reset Password',
+              text: context.tr('auth.resetPassword'),
               onPressed: () {
                 context.canPop() ? context.pop() : context.go('/login');
               },

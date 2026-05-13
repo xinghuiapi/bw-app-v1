@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../providers/system/system_provider.dart';
 import '../../widgets/common/app_network_image.dart';
@@ -83,7 +84,7 @@ class _GameHeader extends StatelessWidget {
             child: SizedBox(
               width: 180.w,
               child: Text(
-                title.trim().isNotEmpty ? title.trim() : '游戏',
+                title.trim().isNotEmpty ? title.trim() : 'game.title'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 12.sp,
@@ -151,7 +152,7 @@ class _GameErrorState extends StatelessWidget {
                 TextButton(
                   onPressed: onReload,
                   child: Text(
-                    '重新加载',
+                    'game.reload'.tr(),
                     style: TextStyle(color: Colors.white, fontSize: 14.sp),
                   ),
                 ),

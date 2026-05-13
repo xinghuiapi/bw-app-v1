@@ -2,6 +2,7 @@ import 'dart:ui_web' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
+import 'package:easy_localization/easy_localization.dart';
 
 import 'game_view_screen_interface.dart';
 import 'game_view_shell.dart';
@@ -45,8 +46,8 @@ class _GameViewScreenState extends State<GameViewScreen> {
   @override
   Widget build(BuildContext context) {
     return GameViewShell(
-      title: widget.title ?? '游戏',
-      errorText: _hasValidUrl ? null : '游戏地址无效',
+      title: widget.title ?? 'game.title'.tr(),
+      errorText: _hasValidUrl ? null : 'game.invalidUrl'.tr(),
       child: HtmlElementView(viewType: _viewId),
     );
   }

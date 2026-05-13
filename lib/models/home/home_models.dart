@@ -115,19 +115,35 @@ class NoticeModel {
   final int id;
   final String? title;
   final String? content;
+  final int? popUp;
+  final int? terminal;
+  final int? top;
 
-  const NoticeModel({required this.id, this.title, this.content});
+  const NoticeModel({
+    required this.id,
+    this.title,
+    this.content,
+    this.popUp,
+    this.terminal,
+    this.top,
+  });
 
   factory NoticeModel.fromJson(Map<String, dynamic> json) => NoticeModel(
         id: jsonInt(json['id']) ?? 0,
         title: jsonString(json['title']),
         content: jsonString(json['text'] ?? json['content']),
+        popUp: jsonInt(json['pop_up']),
+        terminal: jsonInt(json['terminal']),
+        top: jsonInt(json['top']),
       );
 
   Map<String, dynamic> toJson() => {
         'id': id,
         if (title != null) 'title': title,
         if (content != null) 'text': content,
+        if (popUp != null) 'pop_up': popUp,
+        if (terminal != null) 'terminal': terminal,
+        if (top != null) 'top': top,
       };
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'game_view_screen_interface.dart';
 import 'game_view_shell.dart';
@@ -22,7 +23,7 @@ class _GameViewScreenState extends State<GameViewScreen> {
     super.initState();
     if (widget.url.trim().isEmpty || Uri.tryParse(widget.url.trim()) == null) {
       _isLoading = false;
-      _errorText = '游戏地址无效';
+      _errorText = 'game.invalidUrl'.tr();
       return;
     }
     _controller = WebViewController()
@@ -46,7 +47,7 @@ class _GameViewScreenState extends State<GameViewScreen> {
             if (mounted) {
               setState(() {
                 _isLoading = false;
-                _errorText = '游戏加载失败，请稍后重试';
+                _errorText = 'game.gameLoadFailed'.tr();
               });
             }
           },
@@ -59,7 +60,7 @@ class _GameViewScreenState extends State<GameViewScreen> {
   @override
   Widget build(BuildContext context) {
     return GameViewShell(
-      title: widget.title ?? '游戏',
+      title: widget.title ?? 'game.title'.tr(),
       isLoading: _isLoading,
       errorText: _errorText,
       onReload: _errorText == null ? null : _reload,

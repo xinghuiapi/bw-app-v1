@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -63,7 +64,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 hasScrollBody: false,
                 child: Center(
                   child: Text(
-                    '暂无活动',
+                    'activity.empty'.tr(),
                     style: TextStyle(
                       fontSize: 14.sp,
                       color: AppColors.textSecondary,
@@ -115,7 +116,7 @@ class _ActivityHeader extends StatelessWidget {
               radius: 14.r,
               backgroundColor: AppColors.primary.withValues(alpha: 0.12),
               child: Text(
-                '星',
+                'home.siteFallbackName'.tr().characters.first,
                 style: TextStyle(
                   color: AppColors.primary,
                   fontSize: 12.sp,
@@ -130,7 +131,8 @@ class _ActivityHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _siteText(site?.title, fallback: '星汇演示'),
+                  _siteText(site?.title,
+                      fallback: 'home.siteFallbackName'.tr()),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -425,9 +427,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomNavBar(
-        title: '活动详情',
+        title: 'activity.detail'.tr(),
         rightIcon: Text(
-          '申请记录',
+          'activity.records'.tr(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: AppColors.primary,
             fontSize: 14.sp,
@@ -443,7 +447,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           : activity == null
               ? Center(
                   child: Text(
-                    '暂无活动内容',
+                    'activity.emptyContent'.tr(),
                     style: TextStyle(
                       fontSize: 14.sp,
                       color: AppColors.textSecondary,
@@ -467,6 +471,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                 children: [
                                   Text(
                                     activity.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 20.sp,
                                       fontWeight: FontWeight.bold,
@@ -489,6 +495,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                         ),
                                         child: Text(
                                           activity.typeText,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: AppColors.primary,
                                             fontSize: 12.sp,
@@ -510,6 +518,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                           ),
                                           child: Text(
                                             activity.multipleText,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               color: Colors.orange,
                                               fontSize: 12.sp,
@@ -522,6 +532,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                   SizedBox(height: 12.h),
                                   Text(
                                     activity.timeText,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 14.sp,
                                       color: AppColors.textSecondary,
@@ -557,7 +569,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                       ),
                                       SizedBox(width: 8.w),
                                       Text(
-                                        '活动说明',
+                                        'activity.description'.tr(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 16.sp,
                                           fontWeight: FontWeight.bold,
@@ -594,8 +608,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                           top: false,
                           child: CustomButton(
                             text: activityProvider.isApplying
-                                ? '申请中...'
-                                : '申请参与活动',
+                                ? 'activity.applying'.tr()
+                                : 'activity.apply'.tr(),
                             onPressed: activityProvider.isApplying
                                 ? null
                                 : () => _applyActivity(context, activity),
@@ -629,14 +643,16 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       await provider.applyActivity(activity.id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('申请成功')),
+        SnackBar(content: Text('activity.applySuccess'.tr())),
       );
     } catch (_) {
       if (!context.mounted) return;
       final message = provider.applyError?.trim();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(message?.isNotEmpty == true ? message! : '申请失败')),
+            content: Text(message?.isNotEmpty == true
+                ? message!
+                : 'activity.applyFailed'.tr())),
       );
     }
   }
@@ -650,7 +666,7 @@ class _ActivityContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final raw = content?.trim() ?? '';
-    if (raw.isEmpty) return _plainText(context, '暂无活动内容');
+    if (raw.isEmpty) return _plainText(context, 'activity.emptyContent'.tr());
 
     final sanitized = _sanitizeHtml(raw);
     if (!_looksLikeHtml(sanitized)) {
@@ -826,8 +842,8 @@ class ServiceScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(
-        title: '客服中心',
+      appBar: CustomNavBar(
+        title: 'service.title'.tr(),
         showLeftArrow: false,
         border: false,
       ),
@@ -842,7 +858,9 @@ class ServiceScreen extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(top: 28.h),
                 child: Text(
-                  systemProvider.isLoading ? '客服配置加载中...' : '暂无客服通道',
+                  systemProvider.isLoading
+                      ? 'service.loading'.tr()
+                      : 'service.empty'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13.sp,
@@ -882,15 +900,17 @@ class ServiceScreen extends StatelessWidget {
       for (var i = 0; i < serviceLinks.length; i++)
         _ServiceCardData(
           kind: _ServiceCardKind.service,
-          titleCn: serviceLinks.length > 1 ? '在线客服${i + 1}' : '在线客服',
-          titleEn: 'ONLINE SERVICE',
+          titleCn: serviceLinks.length > 1
+              ? 'service.onlineNumbered'.tr(namedArgs: {'index': '${i + 1}'})
+              : 'service.online'.tr(),
+          titleEn: 'service.onlineSubtitle'.tr(),
           url: serviceLinks[i],
         ),
       for (var i = 0; i < tgLinks.length; i++)
         _ServiceCardData(
           kind: _ServiceCardKind.telegram,
           titleCn: tgLinks.length > 1 ? 'Telegram${i + 1}' : 'Telegram',
-          titleEn: 'TELEGRAM SERVICE',
+          titleEn: 'service.telegramSubtitle'.tr(),
           url: tgLinks[i],
         ),
     ];
@@ -927,7 +947,7 @@ class ServiceScreen extends StatelessWidget {
     final value = _normalizeUrl(url);
     if (value.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('暂无客服通道')),
+        SnackBar(content: Text('service.empty'.tr())),
       );
       return;
     }
@@ -935,7 +955,7 @@ class ServiceScreen extends StatelessWidget {
     final uri = Uri.tryParse(value);
     if (uri == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('客服链接无效')),
+        SnackBar(content: Text('service.invalidLink'.tr())),
       );
       return;
     }
@@ -946,14 +966,14 @@ class ServiceScreen extends StatelessWidget {
     } on MissingPluginException {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('外链组件未加载，请完整重启应用后重试')),
+        SnackBar(content: Text('service.externalPluginMissing'.tr())),
       );
       return;
     }
 
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法打开客服链接')),
+        SnackBar(content: Text('service.openFailed'.tr())),
       );
     }
   }
@@ -1000,7 +1020,7 @@ class _ServiceHeroCard extends StatelessWidget {
                 ),
                 SizedBox(height: 6.h),
                 Text(
-                  '欢迎来到客服中心',
+                  'service.welcome'.tr(),
                   style: TextStyle(
                     fontSize: 13.sp,
                     color: AppColors.textSecondary,
@@ -1019,7 +1039,7 @@ class _ServiceHeroCard extends StatelessWidget {
     if (username != null && username.isNotEmpty) return username;
     final nickname = profile?.nickname?.trim();
     if (nickname != null && nickname.isNotEmpty) return nickname;
-    return '游客';
+    return 'service.guest'.tr();
   }
 }
 
@@ -1170,7 +1190,7 @@ class _ActivityRecordScreenState extends State<ActivityRecordScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '申请记录'),
+      appBar: CustomNavBar(title: 'activity.records'.tr()),
       body: RefreshIndicator(
         onRefresh: () =>
             context.read<ActivityProvider>().loadRecords(refresh: true),
@@ -1183,7 +1203,7 @@ class _ActivityRecordScreenState extends State<ActivityRecordScreen> {
                     children: [
                       SizedBox(height: 180.h),
                       Text(
-                        '暂无申请记录',
+                        'activity.emptyRecords'.tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14.sp,
@@ -1209,7 +1229,7 @@ class _ActivityRecordScreenState extends State<ActivityRecordScreen> {
                           padding: EdgeInsets.only(top: 16.h),
                           child: Center(
                             child: Text(
-                              '没有更多了',
+                              'common.noMore'.tr(),
                               style: TextStyle(
                                 fontSize: 14.sp,
                                 color: AppColors.textSecondary,
@@ -1288,10 +1308,12 @@ class _ActivityRecordCard extends StatelessWidget {
           ),
           SizedBox(height: 14.h),
           _ActivityRecordRow(
-              label: '账号', value: _fallbackText(record.username)),
+              label: 'activity.account'.tr(),
+              value: _fallbackText(record.username)),
           SizedBox(height: 10.h),
           _ActivityRecordRow(
-              label: '时间', value: _fallbackText(record.applyTime)),
+              label: 'activity.time'.tr(),
+              value: _fallbackText(record.applyTime)),
         ],
       ),
     );
@@ -1313,9 +1335,13 @@ class _ActivityRecordRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
+          ),
         ),
         SizedBox(width: 12.w),
         Expanded(

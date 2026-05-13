@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 
 import '../../config/api_endpoints.dart';
+import '../../localization/app_language.dart';
 import '../api_exception.dart';
 import '../token_storage.dart';
 
 typedef AuthExpiredCallback = Future<void> Function();
+typedef CurrentLanguageGetter = String Function();
 
 class ApiRequestDefaults {
   static const lang = 'CN';
@@ -14,11 +16,14 @@ class ApiRequestDefaults {
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({
     required TokenStorageContract tokenStorage,
+    CurrentLanguageGetter? currentLanguage,
     AuthExpiredCallback? onAuthExpired,
   })  : _tokenStorage = tokenStorage,
+        _currentLanguage = currentLanguage,
         _onAuthExpired = onAuthExpired;
 
   final TokenStorageContract _tokenStorage;
+  final CurrentLanguageGetter? _currentLanguage;
   final AuthExpiredCallback? _onAuthExpired;
   bool _isHandlingAuthExpired = false;
 
@@ -27,11 +32,13 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    options.headers.putIfAbsent('lang', () => ApiRequestDefaults.lang);
+    final lang = AppLanguage.normalize(
+      _currentLanguage?.call() ?? ApiRequestDefaults.lang,
+    );
+    options.headers['lang'] = lang;
 
-    if (_shouldAppendLangQuery(options.path) &&
-        !options.queryParameters.containsKey('lang')) {
-      options.queryParameters['lang'] = ApiRequestDefaults.lang;
+    if (_shouldAppendLangQuery(options.path)) {
+      options.queryParameters['lang'] = lang;
     }
 
     final token = await _tokenStorage.readAccessToken();

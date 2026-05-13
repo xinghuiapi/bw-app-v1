@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +38,7 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
     final isSubmitting = provider.isSubmitting;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '绑定邮箱'),
+      appBar: CustomNavBar(title: 'account.bindEmail'.tr()),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(20.w),
@@ -47,15 +48,15 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
               if (isBound) ...[
                 _BoundStatusCard(
                   icon: Icons.email_outlined,
-                  title: '邮箱已绑定',
+                  title: 'account.emailBoundTitle'.tr(),
                   value: _maskEmail(profile!.email!),
-                  message: '当前账号已绑定邮箱，暂不支持在此页面修改。',
+                  message: 'account.emailBoundMessage'.tr(),
                 ),
                 SizedBox(height: 24.h),
-                CustomButton(text: '返回', onPressed: _exitPage),
+                CustomButton(text: 'common.back'.tr(), onPressed: _exitPage),
               ] else ...[
                 Text(
-                  '邮箱地址',
+                  'account.emailAddress'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: AppColors.textPrimary,
@@ -64,13 +65,13 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
                 ),
                 SizedBox(height: 8.h),
                 CustomTextField(
-                  hintText: '请输入邮箱地址',
+                  hintText: 'account.enterValidEmail'.tr(),
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 SizedBox(height: 24.h),
                 Text(
-                  '验证码',
+                  'account.verifyCode'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: AppColors.textPrimary,
@@ -79,7 +80,7 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
                 ),
                 SizedBox(height: 8.h),
                 CustomTextField(
-                  hintText: '请输入邮箱验证码',
+                  hintText: 'account.enterVerifyCode'.tr(),
                   controller: _codeController,
                   keyboardType: TextInputType.number,
                   suffixIcon: CountdownButton(
@@ -88,7 +89,9 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
                 ),
                 SizedBox(height: 48.h),
                 CustomButton(
-                  text: isSubmitting ? '绑定中...' : '确认绑定',
+                  text: isSubmitting
+                      ? 'common.binding'.tr()
+                      : 'common.confirmBind'.tr(),
                   onPressed: _submit,
                 ),
               ],
@@ -103,11 +106,11 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
     final email = _emailController.text.trim();
     final code = _codeController.text.trim();
     if (!_isEmail(email)) {
-      _showMessage('请输入正确邮箱');
+      _showMessage('account.enterValidEmail'.tr());
       return;
     }
     if (code.isEmpty) {
-      _showMessage('请输入验证码');
+      _showMessage('account.enterVerifyCode'.tr());
       return;
     }
 
@@ -118,18 +121,18 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
         UserProfileUpdateRequest(email: email, code: code),
       );
       if (!mounted) return;
-      _showMessage('绑定成功');
+      _showMessage('account.bindSuccess'.tr());
       _exitPage();
     } catch (error) {
       if (!mounted) return;
-      _showMessage(userFormErrorMessage(error, '绑定失败'));
+      _showMessage(userFormErrorMessage(error, 'account.bindFailed'.tr()));
     }
   }
 
   Future<bool> _sendCode() async {
     final email = _emailController.text.trim();
     if (!_isEmail(email)) {
-      _showMessage('请输入正确邮箱');
+      _showMessage('account.enterValidEmail'.tr());
       return false;
     }
 
@@ -142,7 +145,7 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
       return true;
     } catch (error) {
       if (!mounted) return false;
-      _showMessage(userFormErrorMessage(error, '验证码发送失败'));
+      _showMessage(userFormErrorMessage(error, 'account.sendCodeFailed'.tr()));
       return false;
     }
   }
@@ -200,6 +203,8 @@ class _BoundStatusCard extends StatelessWidget {
               children: [
                 Text(
                   title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
@@ -209,6 +214,8 @@ class _BoundStatusCard extends StatelessWidget {
                 SizedBox(height: 6.h),
                 Text(
                   value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: AppColors.textPrimary,
@@ -217,6 +224,8 @@ class _BoundStatusCard extends StatelessWidget {
                 SizedBox(height: 8.h),
                 Text(
                   message,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12.sp,
                     height: 1.5,

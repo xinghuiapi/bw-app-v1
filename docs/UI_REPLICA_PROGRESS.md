@@ -1,7 +1,7 @@
 # 🚀 Flutter UI 高保真复刻进度报告 (UI Replica Progress)
 
 **当前综合复刻进度：约 100%**
-*注：核心架构、主业务流程、以及所有垂类业务页面（游戏大厅及其二级页、VIP、消息、反馈、结果页、资金管理）已全部完成高保真（>80%）还原，并完成了对原 Vue3 逻辑的深度对齐与重构。*
+*注：核心架构、主业务流程、以及所有垂类业务页面（游戏大厅及其二级页、VIP、消息、反馈、结果页、资金管理）已完成高保真（>80%）还原，并持续进行多语言、字体回退与防溢出修复。*
 
 ---
 
@@ -11,6 +11,7 @@
 ### 全局UI组件精修 (UI Polish)
 - **卡片组件 (`CustomCard`)**：全面升级了立体感，默认圆角增加至 `12.r`，加入白色高光内边框与双层 `BoxShadow`（大半径柔和主阴影 + 小半径环境阴影），模拟出现代 Glassmorphism/iOS 的高质感悬浮效果。
 - **按钮组件 (`CustomButton`)**：全面重构为“大圆角胶囊风格” (`24.r`)，主按钮附带对应主题色的发光阴影与水波纹点击效果 (`InkWell`)。
+- **全局字体回退**：在 `app_theme.dart` 中补齐 `fontFamilyFallback`，统一修复中文、英文和混排时的字体缺失问题。
 
 ### 核心架构 & 导航
 - **全局路由** (`app_router.dart`)：基于 `GoRouter` 的多层级页面跳转支持。
@@ -19,7 +20,7 @@
 
 ### 一级主页面 (Primary Screens)
 - **我的页面精修** (`ProfileScreen`)：完成带编辑图标的栈叠头像、Pill-shape VIP标签、蓝色渐变钱包面板（¥ 符号与金额排版对齐）、白色圆角“今日收益”面板（垂直灰线分割与蓝色箭头贴字）、8宫格“更多服务”。底导钱包/资金管理入口统一指向 `FundManagementScreen`；头像数据随 `/token/user.img` 刷新回显。
-- **首页推荐游戏与分类区** (`HomeScreen`)：推荐游戏横向区已接入 `POST /interface/reco` 只读数据，优先展示接口图片与标题；`/interface/reco` 为空或失败时回退到 m1 当前使用的 `/interface/list` 并筛选 `label=reco`；热门游戏已按 m1 接入 `POST /gamelist/getlist(label=hot)`，接口失败保留静态高仿 fallback。Banner 已从单图改为按 `terminal/lang` 过滤的轮播并支持真实跳转；APP 下载、复制安全域名、余额刷新交互已补齐。首页分类区使用 m1 本地静态资源并按截图高保真复刻：真人大卡、彩票/电子中卡、四个小卡比例、`Live/Lottery/Slot` 浅蓝英文底字、图片尺寸和文字密度已精修，并接入 `/interface/class` 真实标题和 `/game?code=...` 点击入口；多处 RenderFlex 溢出已处理。
+- **首页推荐游戏与分类区** (`HomeScreen`)：推荐游戏横向区已接入 `POST /interface/reco` 只读数据，优先展示接口图片与标题；`/interface/reco` 为空或失败时回退到 m1 当前使用的 `/interface/list` 并筛选 `label=reco`；热门游戏已按 m1 接入 `POST /gamelist/getlist(label=hot)`，接口失败保留静态高仿 fallback。Banner 已从单图改为按 `terminal/lang` 过滤的轮播并支持真实跳转；APP 下载、复制安全域名、余额刷新交互已补齐。首页分类区使用 m1 本地静态资源并按截图高保真复刻：真人大卡、彩票/电子中卡、四个小卡比例、`Live/Lottery/Slot` 浅蓝英文底字、图片尺寸和文字密度已精修，并接入 `/interface/class` 真实标题和 `/game?code=...` 点击入口；多处 RenderFlex 溢出已处理。后续首页剩余 m1 对齐重点为：重做 Flutter 专属静态语言包并替换硬编码文案、补齐 `NoticeModal` 公告弹窗/今日不再提示、评估搜索右侧弹窗和游戏内嵌弹窗/最小化浮窗。
 - **活动页面** (`ActivityScreen`)：已对齐 m1 `views/main/activity.vue`，顶部品牌区域读取系统配置，活动分类接入 `/activity/class`，活动列表接入 `/activity/list`，分类横向 Tab 与活动卡片展示真实图片、标签、标题和时间；接口失败时保留 fallback 活动。
 - **客服页面** (`ServiceScreen`)：已对齐 m1 `views/main/Service.vue`，复用 `/system/getlist.config_site` 的 `service_link` 与 `tg_link` 展示问候卡片和两列渐变客服卡片；点击卡片通过外部浏览器/App 打开客服链接，支持下拉刷新和无配置空态。
 
@@ -57,17 +58,32 @@
 - **提现成功** (`WithdrawSuccessScreen`)：大图标反馈及预计到账提示。
 - **线上支付** (`OnlinePayDetailScreen`)：支持接收 `/recharge/order` 返回的支付 URL 和订单 ID，可外部打开支付网关并跳转订单详情。
 
+### 多语言与文案修复 (i18n & Copy)
+- 已接入 `easy_localization` 并持续扩展多语言 key，覆盖 `common`、`settings`、`about`、`account`、`wallet`、`message`、`security`、`finance`、`share`、`feedback`、`vip`、`activity`、`deposit` 等模块。
+- 已补齐 `zh-CN`、`zh-TW`、`en-US`、`ja-JP`、`ko-KR`、`th-TH`、`vi-VN`、`my-MM` 共 8 套 locale。
+- 充值页已将部分深层 key 调整为浅层 `deposit.*`，避免运行时直接显示 key 的问题。
+- 资金页、个人页和公共组件的中文残留正在持续清理，并同步做长文案防溢出处理。
+
 ---
 
-## 🟡 2. 待精修与开发页面 (Pending / Stubbed)
-*剩余极少数分享与维护等边缘状态页待完善。*
+## 🟡 2. 当前首位任务：多语言体系 (Top Priority: I18n)
+*当前阶段优先级调整为 Flutter 专属语言包体系建设；除阻断性错误外，其他 m1 交互复刻后置。*
+
+### 多语言静态文案
+- [ ] **全项目 Flutter 专属语言包建设（首位任务）**：`assets/i18n/*.json` 只保留 Flutter 实际使用 key，禁止同时混入 m1 全量 key 和 Flutter key。m1 `CN/TW/MY/EN/JP/KR/TH/VN` 语言包仅作为翻译来源，通过映射表生成 Flutter 的 `common/nav/home/auth/game/activity/profile/finance/record/feedback/settings/system` 等模块 key。
+- [ ] **m1 -> Flutter key 映射与生成脚本**：新增映射表和生成/校验脚本，保证所有 locale 文件 key 集合一致，并阻止 `main/page/user` 等 m1 全量根节点进入 Flutter 运行时语言包。
+- [ ] **按模块替换硬编码中文**：已先覆盖首页主链路和公告弹窗；后续优先处理 `auth/nav/game/activity/profile/finance`，每个模块完成后做中文、英文和一种非拉丁语言的防溢出验证。
+- [ ] **多语言视觉走查**：切换语言后验证静态文案、接口 header `lang`、Banner 语言过滤和页面布局稳定性。
+
+## 🟡 3. 待精修与开发页面 (Pending / Stubbed)
+*剩余极少数分享与维护等边缘状态页待完善，当前让位于多语言任务。*
 
 ### 边缘业务与占位页
 - [x] `MaintenanceScreen` (系统维护中占位页)：已接入 `/maintenance`，当 `/system/getlist.config_site.status == 0` 时全局跳转维护页。
 
 ---
 
-## 🗺️ 3. 下一步“完美复刻”路线图 (Next Steps to 100%)
+## 🗺️ 4. 下一步“完美复刻”路线图 (Next Steps to 100%)
 
 为了达到 100% 的完美高保真复刻，我们将严格启用 `ui-fidelity-checker` 规则，按照以下 4 个阶段逐一攻克：
 
@@ -95,7 +111,20 @@
   - 全局引入点击水波纹优化 (`InkWell` 颜色调优)。
   - 列表加入下拉刷新 (`RefreshIndicator`) 样式适配。
   - 主 Tab 已完成无动画切换；后续可评估是否用 `ShellRoute` 收敛底部导航重复维护。
-  - 使用 `ui-fidelity-checker` 进行全量走查，确保在小屏/大屏设备上的边界约束（防溢出）坚如磐石。
+- 使用 `ui-fidelity-checker` 进行全量走查，确保在小屏/大屏设备上的边界约束（防溢出）坚如磐石。
+
+### 当前进行中：资金页与文案收尾
+- 继续清理 `lib/screens/finance/finance_screens.dart` 中充值详情、在线支付、提现结果页剩余硬编码中文。
+- 继续补齐 `deposit.detail.*` 与 `deposit.pay.*` 的文案 key。
+- 对订单详情、支付信息、凭证上传、取消支付等长文本区域继续做防溢出收尾。
+- 已修复充值详情“重要提示”段落的风险文案拆分，避免 key 直接显示。
+- 已补齐充值详情风险提示子 key：`risk1a` / `risk1b` / `risk1c` / `risk2a` / `risk2b` / `risk2c` / `risk3` / `risk4`。
+- 已修复 `_trOr` 重复声明/作用域错误，确保充值详情页和相关页面可正常编译启动。
+- 已让充值详情页 `KeyedSubtree + context.watch<LanguageProvider>()` 跟随语言切换重建，避免英文切回中文后仍显示旧语言。
+- 已补齐支付详情页剩余静态中文/英文标签，并同步 `deposit.detail.detailTitle`、`deposit.detail.copy` 等缺失 key。
+- 已补充 `LanguageProvider` 导入，修复充值详情页语言切换重建时的编译错误。
+- 已修复 `zh-CN.json` 顶层 `deposit` 文案被英文覆盖的问题，恢复充值页中文主文案。
+- 已整理充值页完整 key：`deposit.*`、`deposit.detail.*`、`deposit.pay.*`、`deposit.success.*` 均由 locale 提供，代码不再使用本地文案兜底。
 
 ---
 *本文档由 Agent 自动维护，将在后续复刻任务中持续更新进度。*

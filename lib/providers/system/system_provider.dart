@@ -1,6 +1,7 @@
 import '../base_provider.dart';
 import '../../api/api_exception.dart';
 import '../../api/dio_client.dart';
+import '../../localization/app_language.dart';
 import '../../models/home/home_models.dart';
 import '../../services/system/system_config_cache.dart';
 import '../../services/system/system_service.dart';
@@ -14,12 +15,17 @@ class SystemProvider extends BaseProvider<HomeConfig> {
   final SystemConfigCache _cache;
 
   bool _initialized = false;
+  String Function() _languageGetter = () => AppLanguage.fallbackCode;
 
   HomeConfig get config => data ?? const HomeConfig();
   bool get hasLoadedConfig => data != null;
 
   void bindClient(DioClient client) {
     _service = SystemService(client);
+  }
+
+  void bindLanguageGetter(String Function() languageGetter) {
+    _languageGetter = languageGetter;
   }
 
   Future<void> loadConfig({bool refresh = false}) async {
@@ -37,7 +43,7 @@ class SystemProvider extends BaseProvider<HomeConfig> {
       final config = await _service.fetchConfig();
       _initialized = true;
       data = config;
-      await _cache.write(config);
+      await _cache.write(config, languageCode: _languageGetter());
       error = null;
     } on ApiException catch (exception) {
       _initialized = true;
@@ -54,7 +60,7 @@ class SystemProvider extends BaseProvider<HomeConfig> {
 
   Future<void> _loadCachedConfig() async {
     try {
-      final cached = await _cache.read();
+      final cached = await _cache.read(languageCode: _languageGetter());
       if (cached == null) return;
       data = cached;
       error = null;

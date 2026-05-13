@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -35,7 +36,11 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
     final isSubmitting = provider.isSubmitting;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: CustomNavBar(title: isSet ? '修改资金密码' : '设置资金密码'),
+      appBar: CustomNavBar(
+        title: isSet
+            ? 'security.editFundPassword'.tr()
+            : 'security.setFundPassword'.tr(),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(20.w),
@@ -43,7 +48,7 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '为了您的资金安全，请设置资金密码。',
+                'security.fundPasswordTip'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textSecondary,
@@ -51,7 +56,7 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
               ),
               SizedBox(height: 32.h),
               Text(
-                '资金密码',
+                'security.fundPassword'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textPrimary,
@@ -60,14 +65,14 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
               ),
               SizedBox(height: 8.h),
               CustomTextField(
-                hintText: '请输入6位纯数字密码',
+                hintText: 'security.enterFundPassword'.tr(),
                 controller: _passwordController,
                 keyboardType: TextInputType.number,
                 obscureText: true,
               ),
               SizedBox(height: 24.h),
               Text(
-                '确认密码',
+                'security.confirmFundPassword'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textPrimary,
@@ -76,14 +81,16 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
               ),
               SizedBox(height: 8.h),
               CustomTextField(
-                hintText: '请再次输入资金密码',
+                hintText: 'security.enterFundPasswordAgain'.tr(),
                 controller: _confirmController,
                 keyboardType: TextInputType.number,
                 obscureText: true,
               ),
               SizedBox(height: 48.h),
               CustomButton(
-                text: isSubmitting ? '提交中...' : '确认提交',
+                text: isSubmitting
+                    ? 'common.submitting'.tr()
+                    : 'common.confirmSubmit'.tr(),
                 onPressed: _submit,
               ),
             ],
@@ -97,11 +104,11 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
     final password = _passwordController.text.trim();
     final confirm = _confirmController.text.trim();
     if (!RegExp(r'^\d{6}$').hasMatch(password)) {
-      _showMessage('请输入6位纯数字密码');
+      _showMessage('security.enterFundPassword'.tr());
       return;
     }
     if (password != confirm) {
-      _showMessage('两次输入的资金密码不一致');
+      _showMessage('security.fundPasswordMismatch'.tr());
       return;
     }
 
@@ -111,11 +118,11 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
       await provider
           .setPayPassword(SetPayPasswordRequest(payPassword: password));
       if (!mounted) return;
-      _showMessage('设置成功');
+      _showMessage('security.setSuccess'.tr());
       context.canPop() ? context.pop() : context.go('/setting');
     } catch (error) {
       if (!mounted) return;
-      _showMessage(userFormErrorMessage(error, '设置失败'));
+      _showMessage(userFormErrorMessage(error, 'security.setFailed'.tr()));
     }
   }
 

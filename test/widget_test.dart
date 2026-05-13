@@ -6,6 +6,7 @@ import 'package:flutter_ui_project/api/interceptors/auth_interceptor.dart';
 import 'package:flutter_ui_project/api/interceptors/error_interceptor.dart';
 import 'package:flutter_ui_project/api/token_storage.dart';
 import 'package:flutter_ui_project/config/api_endpoints.dart';
+import 'package:flutter_ui_project/localization/app_language.dart';
 import 'package:flutter_ui_project/models/auth/auth_models.dart';
 import 'package:flutter_ui_project/models/home/home_models.dart';
 import 'package:flutter_ui_project/router/route_paths.dart';
@@ -104,6 +105,49 @@ void main() {
       _RequestHandler((nextOptions) {
         expect(nextOptions.headers['lang'], ApiRequestDefaults.lang);
         expect(nextOptions.queryParameters['lang'], ApiRequestDefaults.lang);
+      }),
+    );
+  });
+
+  test('language normalizer maps locale aliases to m1 codes', () {
+    expect(AppLanguage.normalize('zh-CN'), 'CN');
+    expect(AppLanguage.normalize('zh-HK'), 'TW');
+    expect(AppLanguage.normalize('en-US'), 'EN');
+    expect(AppLanguage.normalize('ja-JP'), 'JP');
+    expect(AppLanguage.normalize('ko-KR'), 'KR');
+    expect(AppLanguage.normalize('th-TH'), 'TH');
+    expect(AppLanguage.normalize('vi-VN'), 'VN');
+    expect(AppLanguage.normalize(null), 'CN');
+  });
+
+  test('auth interceptor uses dynamic language', () async {
+    final interceptor = AuthInterceptor(
+      tokenStorage: _FakeTokenStorage(),
+      currentLanguage: () => 'EN',
+    );
+    final options = RequestOptions(path: '/user/login');
+
+    await interceptor.onRequest(
+      options,
+      _RequestHandler((nextOptions) {
+        expect(nextOptions.headers['lang'], 'EN');
+        expect(nextOptions.queryParameters['lang'], 'EN');
+      }),
+    );
+  });
+
+  test('auth interceptor normalizes dynamic language headers', () async {
+    final interceptor = AuthInterceptor(
+      tokenStorage: _FakeTokenStorage(),
+      currentLanguage: () => 'zh-TW',
+    );
+    final options = RequestOptions(path: '/user/login');
+
+    await interceptor.onRequest(
+      options,
+      _RequestHandler((nextOptions) {
+        expect(nextOptions.headers['lang'], 'TW');
+        expect(nextOptions.queryParameters['lang'], 'TW');
       }),
     );
   });

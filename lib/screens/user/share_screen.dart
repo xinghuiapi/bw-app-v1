@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme/app_colors.dart';
@@ -12,7 +13,7 @@ class ShareScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '分享'),
+      appBar: CustomNavBar(title: 'share.title'.tr()),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -74,10 +75,11 @@ class ShareScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildCardHeader('分享返利', subtitle: '(分享奖励)'),
+          _buildCardHeader('share.rebateTitle'.tr(),
+              subtitle: 'share.rebateSubtitle'.tr()),
           SizedBox(height: 24.h),
           Text(
-            '可领取',
+            'share.claimable'.tr(),
             style: TextStyle(
               fontSize: 12.sp,
               color: AppColors.textSecondary,
@@ -123,7 +125,7 @@ class ShareScreen extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  '领取',
+                  'common.claim'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
@@ -134,7 +136,7 @@ class ShareScreen extends StatelessWidget {
           ),
           SizedBox(height: 16.h),
           Text(
-            '总有效会员≥5人即可领取',
+            'share.claimRequirement'.tr(),
             style: TextStyle(
               fontSize: 12.sp,
               color: AppColors.textSecondary,
@@ -150,7 +152,7 @@ class ShareScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildCardHeader('会员总览'),
+          _buildCardHeader('share.overview'.tr()),
           SizedBox(height: 24.h),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,7 +170,7 @@ class ShareScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 8.h),
                     Text(
-                      '会员总数',
+                      'share.totalMembers'.tr(),
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: AppColors.textSecondary,
@@ -196,7 +198,7 @@ class ShareScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 8.h),
                     Text(
-                      '有效会员',
+                      'share.validMembers'.tr(),
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: AppColors.textSecondary,
@@ -204,7 +206,7 @@ class ShareScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      '充值≥1元为有效',
+                      'share.validMemberRule'.tr(),
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: AppColors.primary,
@@ -225,11 +227,11 @@ class ShareScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildCardHeader('分享信息'),
+          _buildCardHeader('share.info'.tr()),
           SizedBox(height: 24.h),
           _buildInfoRow(
             context,
-            label: '分享邀请码',
+            label: 'share.inviteCode'.tr(),
             value: '810',
             onCopy: () => _copyToClipboard(context, '810'),
           ),
@@ -239,14 +241,14 @@ class ShareScreen extends StatelessWidget {
           ),
           _buildInfoRow(
             context,
-            label: '分享URL',
+            label: 'share.shareUrl'.tr(),
             value: 'https://m.xh-demo.co...',
             onCopy: () => _copyToClipboard(context, 'https://m.xh-demo.com/'),
           ),
           SizedBox(height: 32.h),
           Center(
             child: Text(
-              '二维码',
+              'share.qrCode'.tr(),
               style: TextStyle(
                 fontSize: 14.sp,
                 color: AppColors.textSecondary,
@@ -275,7 +277,7 @@ class ShareScreen extends StatelessWidget {
           SizedBox(height: 16.h),
           Center(
             child: Text(
-              '点击二维码可预览',
+              'share.qrPreviewHint'.tr(),
               style: TextStyle(
                 fontSize: 12.sp,
                 color: AppColors.textSecondary,
@@ -325,7 +327,7 @@ class ShareScreen extends StatelessWidget {
               ),
             ),
             child: Text(
-              '复制',
+              'share.copy'.tr(),
               style: TextStyle(
                 fontSize: 12.sp,
                 color: AppColors.primary,
@@ -339,18 +341,18 @@ class ShareScreen extends StatelessWidget {
 
   Widget _buildRulesCard(BuildContext context) {
     final rules = [
-      '1. 本活动全体用户皆可参与；用户点击推荐链接分享给新用户注册并进行充值后即可获得对应推荐礼金，被推荐用户无需填写推荐码。',
-      '2. 每推荐一个新用户注册并完成首充，推荐人即可获得一次推荐礼金；推荐礼金以被推荐用户首充金额为准。',
-      '3. 本活动与【返水优惠】共享，不与其他任何优惠共享。',
-      '4. 被推荐用户需满足：每一个手机号码、电子邮箱、IP地址、相同银行卡、同一台电脑仅可注册一个会员账号；如发现违规用户，我们将保留无限期审核并扣回红利及产生利润的权利。',
-      '5. 通过分享链接或邀请码注册的用户，将计入会员总数；邀请会员完成充值≥1元后，将计入有效会员；总有效会员≥5人后，可领取分享奖励。',
+      'share.rule1'.tr(),
+      'share.rule2'.tr(),
+      'share.rule3'.tr(),
+      'share.rule4'.tr(),
+      'share.rule5'.tr(),
     ];
 
     return CustomCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildCardHeader('邀请规则说明'),
+          _buildCardHeader('share.rulesTitle'.tr()),
           SizedBox(height: 24.h),
           ...rules.map((rule) => Padding(
                 padding: EdgeInsets.only(bottom: 16.h),
@@ -373,7 +375,7 @@ class ShareScreen extends StatelessWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('已复制到剪贴板'),
+        content: Text('common.copied'.tr()),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

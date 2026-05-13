@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -35,7 +36,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     final isSubmitting = context.watch<UserProvider>().isSubmitting;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '修改登录密码'),
+      appBar: CustomNavBar(title: 'security.changeLoginPassword'.tr()),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(20.w),
@@ -43,7 +44,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '原密码',
+                'security.oldPassword'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textPrimary,
@@ -52,13 +53,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               SizedBox(height: 8.h),
               CustomTextField(
-                hintText: '请输入原登录密码',
+                hintText: 'security.enterOldPassword'.tr(),
                 controller: _oldPasswordController,
                 obscureText: true,
               ),
               SizedBox(height: 24.h),
               Text(
-                '新密码',
+                'security.newPassword'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textPrimary,
@@ -67,13 +68,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               SizedBox(height: 8.h),
               CustomTextField(
-                hintText: '请输入新密码（6-16位字母和数字）',
+                hintText: 'security.enterNewPasswordRule'.tr(),
                 controller: _newPasswordController,
                 obscureText: true,
               ),
               SizedBox(height: 24.h),
               Text(
-                '确认新密码',
+                'security.confirmNewPassword'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textPrimary,
@@ -82,13 +83,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               SizedBox(height: 8.h),
               CustomTextField(
-                hintText: '请再次输入新密码',
+                hintText: 'security.enterNewPasswordAgain'.tr(),
                 controller: _confirmPasswordController,
                 obscureText: true,
               ),
               SizedBox(height: 48.h),
               CustomButton(
-                text: isSubmitting ? '提交中...' : '确认修改',
+                text: isSubmitting
+                    ? 'common.submitting'.tr()
+                    : 'common.confirmEdit'.tr(),
                 onPressed: isSubmitting ? null : _submit,
               ),
             ],
@@ -104,19 +107,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     final confirmPassword = _confirmPasswordController.text.trim();
 
     if (oldPassword.isEmpty) {
-      _showMessage('请输入原登录密码');
+      _showMessage('security.enterOldPassword'.tr());
       return;
     }
     if (newPassword.isEmpty) {
-      _showMessage('请输入新密码');
+      _showMessage('security.enterNewPassword'.tr());
       return;
     }
     if (newPassword.length < 6) {
-      _showMessage('新密码不能少于6位');
+      _showMessage('security.newPasswordMinLength'.tr());
       return;
     }
     if (newPassword != confirmPassword) {
-      _showMessage('两次输入的新密码不一致');
+      _showMessage('security.newPasswordMismatch'.tr());
       return;
     }
 
@@ -131,11 +134,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
       );
       if (!mounted) return;
-      _showMessage('密码修改成功');
+      _showMessage('security.passwordChanged'.tr());
       context.canPop() ? context.pop() : context.go('/setting');
     } catch (error) {
       if (!mounted) return;
-      _showMessage(userFormErrorMessage(error, '密码修改失败'));
+      _showMessage(
+          userFormErrorMessage(error, 'security.passwordChangeFailed'.tr()));
     }
   }
 

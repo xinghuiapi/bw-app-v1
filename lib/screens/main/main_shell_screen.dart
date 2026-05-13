@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../providers/game/game_provider.dart';
 import '../../theme/app_colors.dart';
@@ -24,12 +25,12 @@ class MainShellScreen extends StatelessWidget {
         onChanged: (index) => _handleTabChanged(context, index),
         items: [
           CustomTabBarItem(
-            label: '首页',
+            label: context.tr('nav.home'),
             icon: Icon(Icons.home_outlined, size: 24.sp),
             activeIcon: Icon(Icons.home, size: 24.sp, color: AppColors.primary),
           ),
           CustomTabBarItem(
-            label: '游戏大厅',
+            label: context.tr('nav.game'),
             icon: Icon(Icons.videogame_asset_outlined, size: 24.sp),
             activeIcon: Icon(
               Icons.videogame_asset,
@@ -38,7 +39,7 @@ class MainShellScreen extends StatelessWidget {
             ),
           ),
           CustomTabBarItem(
-            label: '活动',
+            label: context.tr('nav.activity'),
             icon: Icon(Icons.card_giftcard_outlined, size: 24.sp),
             activeIcon: Icon(
               Icons.card_giftcard,
@@ -47,7 +48,7 @@ class MainShellScreen extends StatelessWidget {
             ),
           ),
           CustomTabBarItem(
-            label: '客服',
+            label: context.tr('nav.service'),
             icon: Icon(Icons.headset_mic_outlined, size: 24.sp),
             activeIcon: Icon(
               Icons.headset_mic,
@@ -56,7 +57,7 @@ class MainShellScreen extends StatelessWidget {
             ),
           ),
           CustomTabBarItem(
-            label: '我的',
+            label: context.tr('nav.profile'),
             icon: Icon(Icons.person_outline, size: 24.sp),
             activeIcon:
                 Icon(Icons.person, size: 24.sp, color: AppColors.primary),

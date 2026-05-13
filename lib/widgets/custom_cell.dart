@@ -59,6 +59,8 @@ class CustomCell extends StatelessWidget {
                   children: [
                     Text(
                       title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: AppColors.textPrimary,
@@ -69,6 +71,8 @@ class CustomCell extends StatelessWidget {
                         padding: EdgeInsets.only(top: 4.h),
                         child: Text(
                           label!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: AppColors.textSecondary,
@@ -79,13 +83,18 @@ class CustomCell extends StatelessWidget {
                 ),
               ),
               if (value != null)
-                Padding(
-                  padding: EdgeInsets.only(left: 8.w),
-                  child: Text(
-                    value!,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: AppColors.textSecondary,
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 8.w),
+                    child: Text(
+                      value!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ),
                 ),

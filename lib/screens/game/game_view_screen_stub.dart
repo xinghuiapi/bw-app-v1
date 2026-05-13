@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'game_view_screen_interface.dart';
 import 'game_view_shell.dart';
@@ -14,8 +15,8 @@ class _GameViewScreenState extends State<GameViewScreen> {
   @override
   Widget build(BuildContext context) {
     return GameViewShell(
-      title: widget.title ?? '游戏',
-      errorText: '当前平台暂不支持内嵌游戏',
+      title: widget.title ?? 'game.title'.tr(),
+      errorText: 'game.unsupportedView'.tr(),
       child: const SizedBox.shrink(),
     );
   }

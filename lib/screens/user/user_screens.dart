@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -135,7 +136,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             SizedBox(height: 6.h),
                             Text(
-                              '账号ID：$accountId',
+                              _profileText(
+                                'profile.accountId',
+                                fallback: 'Account ID: $accountId',
+                                namedArgs: {'id': accountId},
+                              ),
                               style: TextStyle(
                                 fontSize: 14.sp,
                                 color: const Color(0xFF8B95A3),
@@ -177,33 +182,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Text(
-                                '钱包余额',
-                                style: TextStyle(
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    _profileText('user.walletBalance',
+                                        fallback: 'Wallet Balance'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        color:
+                                            Colors.white.withValues(alpha: 0.9),
+                                        fontSize: 14.sp),
+                                  ),
+                                ),
+                                SizedBox(width: 4.w),
+                                Icon(Icons.visibility_outlined,
                                     color: Colors.white.withValues(alpha: 0.9),
-                                    fontSize: 14.sp),
-                              ),
-                              SizedBox(width: 4.w),
-                              Icon(Icons.visibility_outlined,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  size: 16.sp),
-                            ],
+                                    size: 16.sp),
+                              ],
+                            ),
                           ),
-                          Row(
-                            children: [
-                              Icon(Icons.refresh,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  size: 16.sp),
-                              SizedBox(width: 4.w),
-                              Text(
-                                '刷新',
-                                style: TextStyle(
+                          Flexible(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(Icons.refresh,
                                     color: Colors.white.withValues(alpha: 0.9),
-                                    fontSize: 14.sp),
-                              ),
-                            ],
+                                    size: 16.sp),
+                                SizedBox(width: 4.w),
+                                Flexible(
+                                  child: Text(
+                                    _profileText('user.refresh',
+                                        fallback: 'Refresh'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        color:
+                                            Colors.white.withValues(alpha: 0.9),
+                                        fontSize: 14.sp),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -222,13 +244,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ),
                           ),
-                          Text(
-                            balance,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 40.sp,
-                              fontWeight: FontWeight.bold,
-                              height: 1.0,
+                          Expanded(
+                            child: Text(
+                              balance,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 40.sp,
+                                fontWeight: FontWeight.bold,
+                                height: 1.0,
+                              ),
                             ),
                           ),
                         ],
@@ -263,11 +289,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           size: 14.sp),
                                     ),
                                     SizedBox(width: 6.w),
-                                    Text('充值',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.w500)),
+                                    Flexible(
+                                      child: Text(
+                                          _profileText('common.deposit',
+                                              fallback: 'Deposit'),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w500)),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -297,11 +329,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           size: 14.sp),
                                     ),
                                     SizedBox(width: 6.w),
-                                    Text('提现',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.w500)),
+                                    Flexible(
+                                      child: Text(
+                                          _profileText('common.withdraw',
+                                              fallback: 'Withdraw'),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w500)),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -327,35 +365,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 10.w,
-                              height: 10.w,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF8AB4F8),
-                                shape: BoxShape.circle,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 10.w,
+                                height: 10.w,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF8AB4F8),
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 8.w),
-                            Text('今日收益',
-                                style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary)),
-                            SizedBox(width: 8.w),
-                            Text('4月24日',
-                                style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12.sp)),
-                          ],
+                              SizedBox(width: 8.w),
+                              Flexible(
+                                child: Text(
+                                    _profileText('profile.todayProfit',
+                                        fallback: "Today's Profit"),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary)),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                  _profileText('profile.todayDate',
+                                      fallback: 'Today'),
+                                  style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 12.sp)),
+                            ],
+                          ),
                         ),
+                        SizedBox(width: 8.w),
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.refresh,
                                 color: const Color(0xFF4A8AF4), size: 16.sp),
                             SizedBox(width: 4.w),
-                            Text('刷新',
+                            Text(
+                                _profileText('user.refresh',
+                                    fallback: 'Refresh'),
                                 style: TextStyle(
                                     color: const Color(0xFF4A8AF4),
                                     fontSize: 14.sp)),
@@ -378,10 +430,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('注单笔数',
-                                      style: TextStyle(
-                                          color: const Color(0xFF4A8AF4),
-                                          fontSize: 12.sp)),
+                                  Flexible(
+                                    child: Text(
+                                        _profileText('profile.betCount',
+                                            fallback: 'Bets'),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: const Color(0xFF4A8AF4),
+                                            fontSize: 12.sp)),
+                                  ),
                                   Icon(Icons.chevron_right,
                                       color: const Color(0xFF4A8AF4),
                                       size: 12.sp),
@@ -406,10 +464,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('总盈亏',
-                                      style: TextStyle(
-                                          color: const Color(0xFF4A8AF4),
-                                          fontSize: 12.sp)),
+                                  Flexible(
+                                    child: Text(
+                                        _profileText('profile.totalProfitLoss',
+                                            fallback: 'Total P/L'),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: const Color(0xFF4A8AF4),
+                                            fontSize: 12.sp)),
+                                  ),
                                   Icon(Icons.chevron_right,
                                       color: const Color(0xFF4A8AF4),
                                       size: 12.sp),
@@ -434,10 +498,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('未领返水',
-                                      style: TextStyle(
-                                          color: const Color(0xFF4A8AF4),
-                                          fontSize: 12.sp)),
+                                  Flexible(
+                                    child: Text(
+                                        _profileText('profile.unclaimedRebate',
+                                            fallback: 'Rebate'),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: const Color(0xFF4A8AF4),
+                                            fontSize: 12.sp)),
+                                  ),
                                   Icon(Icons.chevron_right,
                                       color: const Color(0xFF4A8AF4),
                                       size: 12.sp),
@@ -474,11 +544,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         SizedBox(width: 8.w),
-                        Text('更多服务',
-                            style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary)),
+                        Expanded(
+                          child: Text(
+                              _profileText('profile.moreServices',
+                                  fallback: 'More Services'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary)),
+                        ),
                       ],
                     ),
                     SizedBox(height: 24.h),
@@ -490,22 +566,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisSpacing: 8.w,
                       childAspectRatio: 0.8,
                       children: [
-                        _buildServiceItem(Icons.grid_view_rounded, '游戏管理',
-                            context, '/game-management'),
-                        _buildServiceItem(Icons.account_balance_wallet_outlined,
-                            '资金管理', context, '/fund-management'),
                         _buildServiceItem(
-                            Icons.swap_horiz, '场馆余额', context, '/wallet'),
-                        _buildServiceItem(Icons.credit_card_outlined, '银行卡',
-                            context, '/cards'),
+                            Icons.grid_view_rounded,
+                            _profileText('profile.gameManagement',
+                                fallback: 'Games'),
+                            context,
+                            '/game-management'),
                         _buildServiceItem(
-                            Icons.reply_outlined, '分享', context, '/share'),
+                            Icons.account_balance_wallet_outlined,
+                            _profileText('profile.fundManagement',
+                                fallback: 'Funds'),
+                            context,
+                            '/fund-management'),
+                        _buildServiceItem(
+                            Icons.swap_horiz,
+                            _profileText('profile.venueBalance',
+                                fallback: 'Venues'),
+                            context,
+                            '/wallet'),
+                        _buildServiceItem(
+                            Icons.credit_card_outlined,
+                            _profileText('profile.bankCard', fallback: 'Cards'),
+                            context,
+                            '/cards'),
+                        _buildServiceItem(
+                            Icons.reply_outlined,
+                            _profileText('profile.share', fallback: 'Share'),
+                            context,
+                            '/share'),
                         _buildServiceItem(Icons.workspace_premium_outlined,
                             'VIP', context, '/vip'),
-                        _buildServiceItem(Icons.chat_bubble_outline, '意见反馈',
-                            context, '/feedback'),
                         _buildServiceItem(
-                            Icons.lightbulb_outline, '即将上线', context, null),
+                            Icons.chat_bubble_outline,
+                            _profileText('profile.feedback',
+                                fallback: 'Feedback'),
+                            context,
+                            '/feedback'),
+                        _buildServiceItem(
+                            Icons.lightbulb_outline,
+                            _profileText('profile.comingSoon',
+                                fallback: 'Soon'),
+                            context,
+                            null),
                       ],
                     ),
                   ],
@@ -616,6 +718,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (amount == null) return value.toString();
     return amount.toStringAsFixed(2);
   }
+
+  String _profileText(
+    String key, {
+    required String fallback,
+    Map<String, String>? namedArgs,
+  }) {
+    final translated = key.tr(namedArgs: namedArgs);
+    return translated == key ? fallback : translated;
+  }
 }
 
 class SettingScreen extends StatelessWidget {
@@ -625,7 +736,7 @@ class SettingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '账户设置'),
+      appBar: CustomNavBar(title: 'settings.title'.tr()),
       body: SingleChildScrollView(
         padding: EdgeInsets.only(top: 12.h, bottom: 24.h),
         child: Column(
@@ -637,14 +748,14 @@ class SettingScreen extends StatelessWidget {
                   CustomCell(
                     icon: Icon(Icons.lock_outline,
                         size: 18.sp, color: AppColors.textPrimary),
-                    title: '修改登录密码',
+                    title: 'settings.changeLoginPassword'.tr(),
                     isLink: true,
                     onTap: () => context.push('/change-password'),
                   ),
                   CustomCell(
                     icon: Icon(Icons.shield_outlined,
                         size: 18.sp, color: AppColors.textPrimary),
-                    title: '设置资金密码',
+                    title: 'settings.setFundPassword'.tr(),
                     isLink: true,
                     border: false,
                     onTap: () => context.push('/withdraw-password'),
@@ -660,14 +771,14 @@ class SettingScreen extends StatelessWidget {
                   CustomCell(
                     icon: Icon(Icons.info_outline,
                         size: 18.sp, color: AppColors.textPrimary),
-                    title: '关于我们',
+                    title: 'settings.aboutUs'.tr(),
                     isLink: true,
                     onTap: () => context.push('/about-us'),
                   ),
                   CustomCell(
                     icon: Icon(Icons.article_outlined,
                         size: 18.sp, color: AppColors.textPrimary),
-                    title: '注册信息',
+                    title: 'settings.registrationInfo'.tr(),
                     isLink: true,
                     border: false,
                     onTap: () => context.push('/user-profile'),
@@ -683,14 +794,14 @@ class SettingScreen extends StatelessWidget {
                   CustomCell(
                     icon: Icon(Icons.delete_outline,
                         size: 18.sp, color: AppColors.textPrimary),
-                    title: '清除缓存',
+                    title: 'settings.clearCache'.tr(),
                     isLink: true,
                     onTap: () => _clearCache(context),
                   ),
                   CustomCell(
                     icon: Icon(Icons.download_outlined,
                         size: 18.sp, color: AppColors.textPrimary),
-                    title: '版本',
+                    title: 'settings.version'.tr(),
                     value: 'v1.0.0',
                     border: false,
                   ),
@@ -702,8 +813,8 @@ class SettingScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: CustomButton(
                 text: context.watch<AuthProvider>().isSubmitting
-                    ? '退出中...'
-                    : '退出登录',
+                    ? 'settings.loggingOut'.tr()
+                    : 'settings.logout'.tr(),
                 onPressed: context.watch<AuthProvider>().isSubmitting
                     ? null
                     : () => _logout(context),
@@ -717,12 +828,12 @@ class SettingScreen extends StatelessWidget {
 
   Future<void> _clearCache(BuildContext context) async {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('正在清理缓存...')),
+      SnackBar(content: Text('settings.clearingCache'.tr())),
     );
     await Future<void>.delayed(const Duration(milliseconds: 800));
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('缓存已清除')),
+      SnackBar(content: Text('settings.cacheCleared'.tr())),
     );
   }
 
@@ -730,16 +841,16 @@ class SettingScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出当前账号吗？'),
+        title: Text('settings.logoutConfirmTitle'.tr()),
+        content: Text('settings.logoutConfirmMessage'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('取消'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('确定'),
+            child: Text('common.confirm'.tr()),
           ),
         ],
       ),
@@ -778,15 +889,16 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
   Widget build(BuildContext context) {
     final systemProvider = context.watch<SystemProvider>();
     final site = systemProvider.config.siteConfig;
-    final title = _siteText(site?.title, fallback: '星汇演示');
+    final title =
+        _siteText(site?.title, fallback: 'about.fallbackSiteName'.tr());
     final description = _siteText(
       site?.desc ?? site?.appDesc,
-      fallback: '专注于提供稳定、便捷、安全的线上娱乐服务体验。',
+      fallback: 'about.fallbackDescription'.tr(),
     );
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '关于我们'),
+      appBar: CustomNavBar(title: 'about.title'.tr()),
       body: RefreshIndicator(
         onRefresh: () =>
             context.read<SystemProvider>().loadConfig(refresh: true),
@@ -796,7 +908,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
             if (systemProvider.isLoading && !systemProvider.hasLoadedConfig)
               Padding(
                 padding: EdgeInsets.only(bottom: 12.h),
-                child: const AppLoading(message: '正在加载站点信息...'),
+                child: AppLoading(message: 'about.loading'.tr()),
               ),
             if (systemProvider.error != null)
               _buildErrorHint(systemProvider.error!),
@@ -863,14 +975,19 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
 
   Widget _buildInfoCard(SiteConfig? site) {
     final rows = <_AboutInfoRow>[
-      _AboutInfoRow('站点域名', _siteText(site?.domain, fallback: 'xh-bet.com')),
-      _AboutInfoRow('当前版本', _siteText(site?.appVersion, fallback: '1.0.0')),
-      _AboutInfoRow('APP下载', _siteText(site?.appDownload, fallback: '暂未配置')),
-      _AboutInfoRow('客服入口', _siteText(site?.serviceLink, fallback: '暂未配置')),
+      _AboutInfoRow(
+          'about.domain'.tr(), _siteText(site?.domain, fallback: 'xh-bet.com')),
+      _AboutInfoRow(
+          'about.version'.tr(), _siteText(site?.appVersion, fallback: '1.0.0')),
+      _AboutInfoRow('about.appDownload'.tr(),
+          _siteText(site?.appDownload, fallback: 'common.notConfigured'.tr())),
+      _AboutInfoRow('about.serviceEntry'.tr(),
+          _siteText(site?.serviceLink, fallback: 'common.notConfigured'.tr())),
     ];
     final telegramLinks = site?.telegramLinks ?? const <String>[];
     if (telegramLinks.isNotEmpty) {
-      rows.add(_AboutInfoRow('TG客服', telegramLinks.join('\n')));
+      rows.add(_AboutInfoRow(
+          'about.telegramService'.tr(), telegramLinks.join('\n')));
     }
 
     return CustomCard(
@@ -935,7 +1052,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '平台介绍',
+            'about.platformIntro'.tr(),
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.w700,
@@ -971,7 +1088,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
-              '站点信息加载失败，已展示默认内容。$message',
+              'about.loadFailedWithDefault'.tr(namedArgs: {'message': message}),
               style: TextStyle(
                 fontSize: 12.sp,
                 height: 1.4,
@@ -1032,40 +1149,42 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final isPhoneBound = profile?.isPhoneBound ?? false;
     final isEmailBound = profile?.isEmailBound ?? false;
     final realNameText = !hasProfile
-        ? '未填写'
+        ? 'common.notFilled'.tr()
         : profile.hasRealName
             ? profile.realName!.trim()
-            : '未填写';
-    final realNameLabel = !hasProfile ? '未认证' : profile.realNameStatusText;
+            : 'common.notFilled'.tr();
+    final realNameLabel = !hasProfile
+        ? 'account.unverified'.tr()
+        : _localizedProfileStatus(profile.realNameStatusText);
     final phoneText = !hasProfile
         ? '138****8888'
         : isPhoneBound
             ? _maskPhone(profile.phone!)
-            : '未绑定';
+            : 'common.notBound'.tr();
     final phoneLabel = !hasProfile
-        ? '已绑定，不可修改'
+        ? 'account.boundReadonly'.tr()
         : isPhoneBound
-            ? '已绑定，不可修改'
-            : '未绑定';
+            ? 'account.boundReadonly'.tr()
+            : 'common.notBound'.tr();
     final emailText = !hasProfile
-        ? '未绑定'
+        ? 'common.notBound'.tr()
         : isEmailBound
             ? _maskEmail(profile.email!)
-            : '未绑定';
+            : 'common.notBound'.tr();
     final emailLabel = !hasProfile
-        ? '未绑定'
+        ? 'common.notBound'.tr()
         : isEmailBound
-            ? '已绑定，不可修改'
-            : '未绑定';
-    final genderText = profile?.genderText ?? '未设置';
-    final birthdayText = profile?.birthdayText ?? '未设置';
+            ? 'account.boundReadonly'.tr()
+            : 'common.notBound'.tr();
+    final genderText = _localizedGenderText(profile?.genderText);
+    final birthdayText = profile?.birthdayText ?? 'common.notSet'.tr();
     final avatarUrl = profile?.avatarUrl ?? profile?.img;
     final isUploadingAvatar = context.watch<UserProvider>().isUploadingAvatar;
     _syncInlineControllers(profile);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '个人资料'),
+      appBar: CustomNavBar(title: 'account.profileTitle'.tr()),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -1075,25 +1194,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               child: Column(
                 children: [
                   CustomCell(
-                    title: '头像',
+                    title: 'account.avatar'.tr(),
                     value: isUploadingAvatar
-                        ? '上传中...'
+                        ? 'account.uploading'.tr()
                         : avatarUrl == null || avatarUrl.trim().isEmpty
-                            ? '默认头像'
-                            : '已设置',
+                            ? 'account.defaultAvatar'.tr()
+                            : 'account.configured'.tr(),
                     isLink: true,
                     onTap:
                         isUploadingAvatar ? null : () => _pickAvatar(context),
                   ),
                   CustomCell(
-                    title: '实名认证',
+                    title: 'account.realNameVerification'.tr(),
                     value: realNameText,
                     label: realNameLabel,
                     isLink: true,
                     onTap: () => context.push('/real-name'),
                   ),
                   CustomCell(
-                    title: '绑定手机号',
+                    title: 'account.bindPhone'.tr(),
                     value: phoneText,
                     label: phoneLabel,
                     isLink: !isPhoneBound,
@@ -1101,7 +1220,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         isPhoneBound ? null : () => context.push('/bind-phone'),
                   ),
                   CustomCell(
-                    title: '绑定邮箱',
+                    title: 'account.bindEmail'.tr(),
                     value: emailText,
                     label: emailLabel,
                     isLink: !isEmailBound,
@@ -1118,13 +1237,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               child: Column(
                 children: [
                   CustomCell(
-                    title: '性别',
+                    title: 'account.gender'.tr(),
                     value: genderText,
                     isLink: true,
                     onTap: () => _editGender(context, profile),
                   ),
                   CustomCell(
-                    title: '出生日期',
+                    title: 'account.birthday'.tr(),
                     value: birthdayText,
                     isLink: true,
                     onTap: () => _editBirthday(context, profile),
@@ -1132,14 +1251,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   _InlineProfileField(
                     title: 'QQ',
                     controller: _qqController,
-                    hintText: '请输入 QQ',
+                    hintText: 'account.enterQq'.tr(),
                     keyboardType: TextInputType.number,
                     onChanged: (_) => _qqTouched = true,
                   ),
                   _InlineProfileField(
                     title: 'Telegram',
                     controller: _telegramController,
-                    hintText: '请输入 Telegram',
+                    hintText: 'account.enterTelegram'.tr(),
                     border: false,
                     onChanged: (_) => _telegramTouched = true,
                   ),
@@ -1151,8 +1270,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: CustomButton(
                 text: context.watch<UserProvider>().isSubmitting
-                    ? '保存中...'
-                    : '保存',
+                    ? 'common.saving'.tr()
+                    : 'common.save'.tr(),
                 onPressed: context.watch<UserProvider>().isSubmitting
                     ? null
                     : () => _saveProfileField(
@@ -1203,6 +1322,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return '${text.substring(0, 1)}***${text.substring(atIndex)}';
   }
 
+  String _localizedProfileStatus(String value) {
+    final text = value.trim();
+    if (text == '1' || text.toLowerCase() == 'verified') {
+      return 'account.verified'.tr();
+    }
+    if (text == '0' || text.toLowerCase() == 'unverified') {
+      return 'account.unverified'.tr();
+    }
+    return text.isEmpty ? 'account.unverified'.tr() : text;
+  }
+
+  String _localizedGenderText(String? value) {
+    final text = value?.trim();
+    if (text == '1' || text?.toLowerCase() == 'male') {
+      return 'account.male'.tr();
+    }
+    if (text == '2' || text?.toLowerCase() == 'female') {
+      return 'account.female'.tr();
+    }
+    if (text == '0' || text?.toLowerCase() == 'private') {
+      return 'account.private'.tr();
+    }
+    return text == null || text.isEmpty ? 'common.notSet'.tr() : text;
+  }
+
   Future<void> _pickAvatar(BuildContext context) async {
     try {
       final image = await _imagePicker.pickImage(
@@ -1220,17 +1364,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           );
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('头像已更新')),
+        SnackBar(content: Text('account.avatarUpdated'.tr())),
       );
     } on MissingPluginException {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('图片选择组件未加载，请完整重启应用后重试')),
+        SnackBar(content: Text('account.imagePickerMissing'.tr())),
       );
     } catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(userFormErrorMessage(error, '头像上传失败'))),
+        SnackBar(
+            content: Text(userFormErrorMessage(
+                error, 'account.avatarUploadFailed'.tr()))),
       );
     }
   }
@@ -1243,16 +1389,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('男'),
-              onTap: () => Navigator.of(sheetContext).pop('男'),
+              title: Text('account.male'.tr()),
+              onTap: () => Navigator.of(sheetContext).pop('1'),
             ),
             ListTile(
-              title: const Text('女'),
-              onTap: () => Navigator.of(sheetContext).pop('女'),
+              title: Text('account.female'.tr()),
+              onTap: () => Navigator.of(sheetContext).pop('2'),
             ),
             ListTile(
-              title: const Text('保密'),
-              onTap: () => Navigator.of(sheetContext).pop('保密'),
+              title: Text('account.private'.tr()),
+              onTap: () => Navigator.of(sheetContext).pop('0'),
             ),
           ],
         ),
@@ -1291,7 +1437,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       await provider.updateProfile(request);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('保存成功')),
+        SnackBar(content: Text('account.saveSuccess'.tr())),
       );
       _qqTouched = false;
       _telegramTouched = false;
@@ -1300,7 +1446,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     } catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(userFormErrorMessage(error, '保存失败'))),
+        SnackBar(
+            content:
+                Text(userFormErrorMessage(error, 'account.saveFailed'.tr()))),
       );
     }
   }
@@ -1341,6 +1489,8 @@ class _InlineProfileField extends StatelessWidget {
             flex: 2,
             child: Text(
               title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 14.sp, color: AppColors.textPrimary),
             ),
           ),
@@ -1393,7 +1543,7 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
     final cards = walletProvider.cards;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '银行卡管理'),
+      appBar: CustomNavBar(title: 'wallet.bankCardManagement'.tr()),
       body: Column(
         children: [
           Expanded(
@@ -1417,7 +1567,9 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
                 onPressed: () => context.push('/add-card'),
                 icon: const Icon(Icons.add, color: Colors.white),
                 label: Text(
-                  '添加银行卡',
+                  'wallet.addBankCard'.tr(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w500,
@@ -1441,7 +1593,7 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
     List<WalletCard> cards,
   ) {
     if (walletProvider.isCardsLoading && cards.isEmpty) {
-      return const AppLoading(message: '卡包加载中...');
+      return AppLoading(message: 'wallet.loadingCards'.tr());
     }
 
     if (walletProvider.cardsError != null && cards.isEmpty) {
@@ -1451,7 +1603,9 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
         children: [
           SizedBox(height: 96.h),
           AppError(
-            message: '卡包加载失败：${walletProvider.cardsError}',
+            message: 'wallet.loadCardsFailed'.tr(
+              namedArgs: {'message': walletProvider.cardsError!},
+            ),
             onRetry: () => walletProvider.loadCards(refresh: true),
           ),
         ],
@@ -1462,10 +1616,10 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.all(16.w),
-        children: const [
+        children: [
           AppEmpty(
-            title: '暂无卡包',
-            description: '绑定银行卡或虚拟币地址后会展示在这里',
+            title: 'wallet.emptyCards'.tr(),
+            description: 'wallet.emptyCardsDesc'.tr(),
           ),
         ],
       );
@@ -1489,7 +1643,9 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
       cardType: card.displayAlias.isEmpty
           ? card.typeName
           : '${card.typeName} · ${card.displayAlias}',
-      cardNumber: card.maskedCard.isEmpty ? '暂无卡号' : card.maskedCard,
+      cardNumber: card.maskedCard.isEmpty
+          ? 'wallet.noCardNumber'.tr()
+          : card.maskedCard,
       color: color,
       icon: _iconForCard(card),
       imageUrl: card.imageUrl,
@@ -1591,7 +1747,9 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
                         Icon(Icons.qr_code_2, size: 14.sp, color: Colors.white),
                         SizedBox(width: 4.w),
                         Text(
-                          '二维码',
+                          'wallet.qrCode'.tr(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style:
                               TextStyle(fontSize: 11.sp, color: Colors.white),
                         ),
@@ -1633,7 +1791,9 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '收款二维码',
+                'wallet.receiptQrCode'.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16.h),
@@ -1647,7 +1807,7 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
               SizedBox(height: 16.h),
               TextButton(
                 onPressed: () => context.pop(),
-                child: const Text('关闭'),
+                child: Text('common.close'.tr()),
               ),
             ],
           ),
@@ -1693,13 +1853,13 @@ class _VipScreenState extends State<VipScreen> {
       'minRecharge': 10,
       'maxRecharge': '50,000',
       'rebates': {
-        '体育': '0.30%',
-        '视讯': '0.40%',
-        '电子': '0.50%',
-        '棋牌': '0.40%',
-        '捕鱼': '0.50%',
-        '电竞': '0.30%',
-        '彩票': '0.00%'
+        'vip.sport': '0.30%',
+        'vip.live': '0.40%',
+        'vip.slot': '0.50%',
+        'vip.poker': '0.40%',
+        'vip.fishing': '0.50%',
+        'vip.esports': '0.30%',
+        'vip.lottery': '0.00%'
       }
     },
     {
@@ -1715,13 +1875,13 @@ class _VipScreenState extends State<VipScreen> {
       'minRecharge': 10,
       'maxRecharge': '50,000',
       'rebates': {
-        '体育': '0.40%',
-        '视讯': '0.50%',
-        '电子': '0.60%',
-        '棋牌': '0.50%',
-        '捕鱼': '0.60%',
-        '电竞': '0.40%',
-        '彩票': '0.00%'
+        'vip.sport': '0.40%',
+        'vip.live': '0.50%',
+        'vip.slot': '0.60%',
+        'vip.poker': '0.50%',
+        'vip.fishing': '0.60%',
+        'vip.esports': '0.40%',
+        'vip.lottery': '0.00%'
       }
     },
     {
@@ -1737,13 +1897,13 @@ class _VipScreenState extends State<VipScreen> {
       'minRecharge': 10,
       'maxRecharge': '50,000',
       'rebates': {
-        '体育': '0.45%',
-        '视讯': '0.55%',
-        '电子': '0.65%',
-        '棋牌': '0.55%',
-        '捕鱼': '0.65%',
-        '电竞': '0.45%',
-        '彩票': '0.00%'
+        'vip.sport': '0.45%',
+        'vip.live': '0.55%',
+        'vip.slot': '0.65%',
+        'vip.poker': '0.55%',
+        'vip.fishing': '0.65%',
+        'vip.esports': '0.45%',
+        'vip.lottery': '0.00%'
       }
     },
   ];
@@ -1773,7 +1933,7 @@ class _VipScreenState extends State<VipScreen> {
     final vipLevels = userProvider.vipLevels;
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
-      appBar: const CustomNavBar(title: 'VIP'),
+      appBar: CustomNavBar(title: 'vip.title'.tr()),
       body: RefreshIndicator(
         onRefresh: _refreshVipLevels,
         child: SingleChildScrollView(
@@ -1784,7 +1944,7 @@ class _VipScreenState extends State<VipScreen> {
               if (userProvider.isVipLevelsLoading && vipLevels.isEmpty)
                 Padding(
                   padding: EdgeInsets.only(bottom: 12.h),
-                  child: const AppLoading(message: 'VIP 信息加载中...'),
+                  child: AppLoading(message: 'vip.loading'.tr()),
                 ),
               if (userProvider.vipLevelsError != null && vipLevels.isEmpty)
                 _buildVipFallbackNotice(userProvider.vipLevelsError!),
@@ -1826,7 +1986,7 @@ class _VipScreenState extends State<VipScreen> {
         border: Border.all(color: const Color(0xFFFFD9A1)),
       ),
       child: Text(
-        'VIP 信息暂未同步，当前展示默认等级规则。$message',
+        'vip.fallbackNotice'.tr(namedArgs: {'message': message}),
         style: TextStyle(
           fontSize: 12.sp,
           color: const Color(0xFFB36B00),
@@ -1840,26 +2000,32 @@ class _VipScreenState extends State<VipScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 10.w,
-              height: 10.w,
-              decoration: const BoxDecoration(
-                color: Color(0xFF6B9CFF),
-                shape: BoxShape.circle,
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: 10.w,
+                height: 10.w,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF6B9CFF),
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            SizedBox(width: 8.w),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF333333),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF333333),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         if (rightWidget != null) rightWidget,
       ],
@@ -1875,34 +2041,41 @@ class _VipScreenState extends State<VipScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTitleWithDot('升级进度',
+          _buildTitleWithDot('vip.progressTitle'.tr(),
               rightWidget: Container(
                 padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                 decoration: BoxDecoration(
                   border: Border.all(color: const Color(0xFF6B9CFF)),
                   borderRadius: BorderRadius.circular(4.r),
                 ),
-                child: Text('当前 VIP${progress.currentLevel}',
+                child: Text(
+                    'vip.currentLevel'.tr(
+                      namedArgs: {'level': '${progress.currentLevel}'},
+                    ),
                     style: TextStyle(
                         color: const Color(0xFF6B9CFF), fontSize: 11.sp)),
               )),
           if (progress.nextLevel != null) ...[
             SizedBox(height: 10.h),
             Text(
-              '下一等级 VIP${progress.nextLevel}',
+              'vip.nextLevel'.tr(
+                namedArgs: {'level': '${progress.nextLevel}'},
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(color: const Color(0xFF999999), fontSize: 12.sp),
             ),
           ],
           SizedBox(height: 24.h),
           _buildProgressBar(
-            '充值进度',
+            'vip.rechargeProgress'.tr(),
             progress.recharge,
             progress.nextRecharge,
             progress.rechargePercent,
           ),
           SizedBox(height: 20.h),
           _buildProgressBar(
-            '流水进度',
+            'vip.flowProgress'.tr(),
             progress.validBet,
             progress.nextValidBet,
             progress.flowPercent,
@@ -1910,10 +2083,15 @@ class _VipScreenState extends State<VipScreen> {
           SizedBox(height: 24.h),
           Text(
             progress.isMaxLevel
-                ? '当前已达到最高等级，请继续保持活跃以享受专属权益。'
-                : '升级还需充值 ${_formatMoney(progress.gapRecharge)}，流水 ${_formatMoney(progress.gapValidBet)}；达到条件后升级生效。',
+                ? 'vip.maxLevelHint'.tr()
+                : 'vip.upgradeGapHint'.tr(namedArgs: {
+                    'recharge': _formatMoney(progress.gapRecharge),
+                    'flow': _formatMoney(progress.gapValidBet),
+                  }),
             style: TextStyle(
                 color: const Color(0xFF999999), fontSize: 12.sp, height: 1.5),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -1969,7 +2147,7 @@ class _VipScreenState extends State<VipScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTitleWithDot('VIP 等级'),
+          _buildTitleWithDot('vip.levelTitle'.tr()),
           _buildTabs(),
           Row(
             children: [
@@ -1989,7 +2167,7 @@ class _VipScreenState extends State<VipScreen> {
                     border: Border.all(color: const Color(0xFF6B9CFF)),
                     borderRadius: BorderRadius.circular(4.r),
                   ),
-                  child: Text('当前',
+                  child: Text('vip.current'.tr(),
                       style: TextStyle(
                           color: const Color(0xFF6B9CFF), fontSize: 11.sp)),
                 ),
@@ -1998,12 +2176,21 @@ class _VipScreenState extends State<VipScreen> {
           SizedBox(height: 12.h),
           Text(
             selectedVipLevel == null
-                ? '升级条件：充值 ¥${fallbackLevelData['recharge']} + 流水 ¥${fallbackLevelData['turnover']}'
-                : '升级条件：充值 ${_formatDynamicAmount(selectedVipLevel.chargeLevel)} + 流水 ${_formatDynamicAmount(selectedVipLevel.flowingLevel)}',
+                ? 'vip.upgradeConditionFallback'.tr(namedArgs: {
+                    'recharge': '${fallbackLevelData['recharge']}',
+                    'turnover': '${fallbackLevelData['turnover']}',
+                  })
+                : 'vip.upgradeCondition'.tr(namedArgs: {
+                    'recharge':
+                        _formatDynamicAmount(selectedVipLevel.chargeLevel),
+                    'flow': _formatDynamicAmount(selectedVipLevel.flowingLevel),
+                  }),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 13.sp, color: const Color(0xFF666666)),
           ),
           SizedBox(height: 24.h),
-          Text('VIP 福利',
+          Text('vip.benefitsTitle'.tr(),
               style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
@@ -2011,42 +2198,46 @@ class _VipScreenState extends State<VipScreen> {
           SizedBox(height: 16.h),
           _buildListContainer([
             _buildListRow(
-                '升级礼金',
+                'vip.upgradeBonus'.tr(),
                 _vipValue(
                     selectedVipLevel?.levelGive, fallbackLevelData['upgrade'])),
             _buildListRow(
-                '周红包',
+                'vip.weeklyBonus'.tr(),
                 _vipValue(
                     selectedVipLevel?.weekRed, fallbackLevelData['weekly'])),
             _buildListRow(
-                '生日礼金',
+                'vip.birthdayBonus'.tr(),
                 _vipValue(selectedVipLevel?.birthdayGive,
                     fallbackLevelData['birthday'])),
             _buildListRow(
-                '每日提款次数',
+                'vip.dailyWithdrawCount'.tr(),
                 selectedVipLevel?.dayCountDrawing == null
-                    ? '${fallbackLevelData['dailyCount']} 次'
-                    : '${selectedVipLevel!.dayCountDrawing} 次'),
+                    ? 'vip.times'.tr(namedArgs: {
+                        'count': '${fallbackLevelData['dailyCount']}',
+                      })
+                    : 'vip.times'.tr(namedArgs: {
+                        'count': '${selectedVipLevel!.dayCountDrawing}',
+                      })),
             _buildListRow(
-                '每日提款额度',
+                'vip.dailyWithdrawLimit'.tr(),
                 _vipValue(selectedVipLevel?.dayAmountDrawing,
                     fallbackLevelData['dailyLimit'])),
             _buildListRow(
-                '最低提款金额',
+                'vip.minWithdraw'.tr(),
                 _vipValue(selectedVipLevel?.minDrawing,
                     fallbackLevelData['minWithdraw'])),
             _buildListRow(
-                '最低充值金额',
+                'vip.minRecharge'.tr(),
                 _vipValue(selectedVipLevel?.minRecharge,
                     fallbackLevelData['minRecharge'])),
             _buildListRow(
-                '最高充值金额',
+                'vip.maxRecharge'.tr(),
                 _vipValue(selectedVipLevel?.maxRecharge,
                     fallbackLevelData['maxRecharge']),
                 showBorder: false),
           ]),
           SizedBox(height: 24.h),
-          Text('VIP 返水比例',
+          Text('vip.rebateTitle'.tr(),
               style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
@@ -2095,7 +2286,11 @@ class _VipScreenState extends State<VipScreen> {
                   ),
                 ),
                 child: Text(
-                  isCurrent ? '$levelTitle 当前' : levelTitle,
+                  isCurrent
+                      ? 'vip.tabCurrent'.tr(namedArgs: {'title': levelTitle})
+                      : levelTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: isSelected || isCurrent
@@ -2162,13 +2357,13 @@ class _VipScreenState extends State<VipScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTitleWithDot('升级说明'),
+          _buildTitleWithDot('vip.rulesTitle'.tr()),
           SizedBox(height: 20.h),
-          _buildRuleText('1. VIP 等级共 10 级，等级越高享受福利与返水比例越高。'),
-          _buildRuleText('2. 升级需同时满足充值进度与流水进度两项条件。'),
-          _buildRuleText('3. 充值与流水统计以系统为准，存在延迟时请稍后刷新查看。'),
-          _buildRuleText('4. 每日提款次数/额度等福利以当日自然日统计口径为准。'),
-          _buildRuleText('5. 具体活动条款如与页面不一致，以平台最终规则为准。'),
+          _buildRuleText('vip.rule1'.tr()),
+          _buildRuleText('vip.rule2'.tr()),
+          _buildRuleText('vip.rule3'.tr()),
+          _buildRuleText('vip.rule4'.tr()),
+          _buildRuleText('vip.rule5'.tr()),
         ],
       ),
     );
@@ -2179,6 +2374,8 @@ class _VipScreenState extends State<VipScreen> {
       padding: EdgeInsets.only(bottom: 16.h),
       child: Text(
         text,
+        maxLines: 4,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
             fontSize: 14.sp, color: const Color(0xFF666666), height: 1.6),
       ),
@@ -2372,13 +2569,20 @@ class _VipScreenState extends State<VipScreen> {
   ) {
     final fallback = fallbackLevelData['rebates'] as Map<String, String>;
     final rows = <MapEntry<String, String>>[
-      MapEntry('体育', _rebateValue(selectedVipLevel?.sportBl, fallback['体育'])),
-      MapEntry('视讯', _rebateValue(selectedVipLevel?.liveBl, fallback['视讯'])),
-      MapEntry('电子', _rebateValue(selectedVipLevel?.gamesBl, fallback['电子'])),
-      MapEntry('棋牌', _rebateValue(selectedVipLevel?.pokerBl, fallback['棋牌'])),
-      MapEntry('捕鱼', _rebateValue(selectedVipLevel?.fishingBl, fallback['捕鱼'])),
-      MapEntry('电竞', _rebateValue(selectedVipLevel?.gamingBl, fallback['电竞'])),
-      MapEntry('彩票', _rebateValue(selectedVipLevel?.lotteryBl, fallback['彩票'])),
+      MapEntry('vip.sport'.tr(),
+          _rebateValue(selectedVipLevel?.sportBl, fallback['vip.sport'])),
+      MapEntry('vip.live'.tr(),
+          _rebateValue(selectedVipLevel?.liveBl, fallback['vip.live'])),
+      MapEntry('vip.slot'.tr(),
+          _rebateValue(selectedVipLevel?.gamesBl, fallback['vip.slot'])),
+      MapEntry('vip.poker'.tr(),
+          _rebateValue(selectedVipLevel?.pokerBl, fallback['vip.poker'])),
+      MapEntry('vip.fishing'.tr(),
+          _rebateValue(selectedVipLevel?.fishingBl, fallback['vip.fishing'])),
+      MapEntry('vip.esports'.tr(),
+          _rebateValue(selectedVipLevel?.gamingBl, fallback['vip.esports'])),
+      MapEntry('vip.lottery'.tr(),
+          _rebateValue(selectedVipLevel?.lotteryBl, fallback['vip.lottery'])),
     ];
 
     return rows.map((entry) {
@@ -2467,7 +2671,7 @@ class _MessageScreenState extends State<MessageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '消息中心'),
+      appBar: CustomNavBar(title: 'message.center'.tr()),
       body: Consumer<MessageProvider>(
         builder: (context, provider, _) {
           final messages = _filteredMessages(provider.messages);
@@ -2476,7 +2680,7 @@ class _MessageScreenState extends State<MessageScreen> {
               _buildTabs(provider.unreadCount),
               Expanded(
                 child: provider.isLoading && provider.messages.isEmpty
-                    ? const AppLoading(message: '消息加载中...')
+                    ? AppLoading(message: 'message.loading'.tr())
                     : _buildMessageList(context, provider, messages),
               ),
             ],
@@ -2488,9 +2692,9 @@ class _MessageScreenState extends State<MessageScreen> {
 
   Widget _buildTabs(int unreadCount) {
     final tabs = [
-      ('全部', unreadCount),
-      ('未读', unreadCount),
-      ('已读', 0),
+      ('message.all'.tr(), unreadCount),
+      ('message.unread'.tr(), unreadCount),
+      ('message.read'.tr(), 0),
     ];
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
@@ -2524,6 +2728,8 @@ class _MessageScreenState extends State<MessageScreen> {
                     ),
                     child: Text(
                       tab.$1,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: active ? Colors.white : AppColors.textSecondary,
                         fontSize: 14.sp,
@@ -2566,7 +2772,7 @@ class _MessageScreenState extends State<MessageScreen> {
     List<UserMessage> messages,
   ) {
     if (messages.isEmpty) {
-      return const AppEmpty(title: '暂无消息');
+      return AppEmpty(title: 'message.empty'.tr());
     }
 
     return RefreshIndicator(
@@ -2587,7 +2793,7 @@ class _MessageScreenState extends State<MessageScreen> {
               padding: EdgeInsets.only(bottom: 8.h),
               child: Center(
                 child: Text(
-                  provider.hasMore ? '' : '没有更多了',
+                  provider.hasMore ? '' : 'common.noMore'.tr(),
                   style: TextStyle(
                       color: AppColors.textSecondary, fontSize: 12.sp),
                 ),
@@ -2606,8 +2812,8 @@ class _MessageScreenState extends State<MessageScreen> {
     MessageProvider provider,
     UserMessage message,
   ) {
-    final title = _textFallback(message.title, '系统通知');
-    final content = _textFallback(message.content, '暂无内容');
+    final title = _textFallback(message.title, 'message.systemNotice'.tr());
+    final content = _textFallback(message.content, 'message.emptyContent'.tr());
     final time = _textFallback(message.createdAt, '');
     return GestureDetector(
       onTap: () async {
@@ -2616,7 +2822,9 @@ class _MessageScreenState extends State<MessageScreen> {
         } catch (error) {
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(userFormErrorMessage(error, '标记已读失败'))),
+            SnackBar(
+                content: Text(userFormErrorMessage(
+                    error, 'message.markReadFailed'.tr()))),
           );
         }
       },
@@ -2648,7 +2856,9 @@ class _MessageScreenState extends State<MessageScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '详情',
+                          'common.detail'.tr(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                               color: AppColors.primary, fontSize: 13.sp),
                         ),
@@ -2748,7 +2958,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               Padding(
                 padding: EdgeInsets.all(16.w),
                 child: Text(
-                  '选择问题类型',
+                  'feedback.selectType'.tr(),
                   style:
                       TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
@@ -2794,8 +3004,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomNavBar(
-        title: '意见反馈',
-        rightText: '反馈记录',
+        title: 'feedback.title'.tr(),
+        rightText: 'feedback.records'.tr(),
         onClickRight: () {
           context.push('/feedback-records');
         },
@@ -2806,7 +3016,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '问题类型',
+              'feedback.type'.tr(),
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.bold,
@@ -2827,7 +3037,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   children: [
                     Text(
                       feedbackProvider.isTypesLoading
-                          ? '加载中...'
+                          ? 'common.loading'.tr()
                           : _feedbackTypeTitle(_selectedType),
                       style: TextStyle(
                           fontSize: 15.sp, color: AppColors.textPrimary),
@@ -2843,7 +3053,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '问题描述',
+                  'feedback.description'.tr(),
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.bold,
@@ -2874,7 +3084,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 maxLength: _maxLength,
                 maxLines: 5,
                 decoration: InputDecoration(
-                  hintText: '请详细描述您遇到的问题或建议...',
+                  hintText: 'feedback.descriptionHint'.tr(),
                   hintStyle: TextStyle(
                       color: AppColors.textSecondary, fontSize: 14.sp),
                   border: InputBorder.none,
@@ -2884,7 +3094,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ),
             SizedBox(height: 24.h),
             Text(
-              '上传图片 (选填，最多3张)',
+              'feedback.uploadImages'.tr(),
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.bold,
@@ -2895,7 +3105,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             _buildImageGrid(feedbackProvider),
             SizedBox(height: 40.h),
             CustomButton(
-              text: feedbackProvider.isSubmitting ? '提交中...' : '提交反馈',
+              text: feedbackProvider.isSubmitting
+                  ? 'common.submitting'.tr()
+                  : 'feedback.submit'.tr(),
               onPressed: feedbackProvider.isSubmitting ? null : _handleSubmit,
             ),
           ],
@@ -2942,12 +3154,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     } on MissingPluginException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('图片选择组件未加载，请完整重启应用后重试')),
+        SnackBar(content: Text('account.imagePickerMissing'.tr())),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('选择图片失败')),
+        SnackBar(content: Text('feedback.pickImageFailed'.tr())),
       );
     }
   }
@@ -2972,7 +3184,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       if (!mounted) return;
       final error = context.read<FeedbackProvider>().error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error ?? '图片上传失败')),
+        SnackBar(content: Text(error ?? 'feedback.imageUploadFailed'.tr())),
       );
     }
   }
@@ -2981,14 +3193,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     final selectedType = _selectedType;
     if (selectedType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请选择反馈分类')),
+        SnackBar(content: Text('feedback.selectCategory'.tr())),
       );
       return;
     }
     final content = _contentController.text.trim();
     if (content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入反馈内容')),
+        SnackBar(content: Text('feedback.enterContent'.tr())),
       );
       return;
     }
@@ -3005,21 +3217,21 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       _contentController.clear();
       setState(() => _images.clear());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('反馈成功')),
+        SnackBar(content: Text('feedback.submitSuccess'.tr())),
       );
       context.push('/feedback-records');
     } catch (_) {
       if (!mounted) return;
       final error = context.read<FeedbackProvider>().error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error ?? '提交反馈失败')),
+        SnackBar(content: Text(error ?? 'feedback.submitFailed'.tr())),
       );
     }
   }
 
   String _feedbackTypeTitle(FeedbackType? type) {
     final title = type?.title?.trim();
-    return title == null || title.isEmpty ? '请选择' : title;
+    return title == null || title.isEmpty ? 'common.select'.tr() : title;
   }
 }
 
@@ -3100,7 +3312,9 @@ class _FeedbackAddImageTile extends StatelessWidget {
                   color: AppColors.textSecondary, size: 32.sp),
             SizedBox(height: 8.h),
             Text(
-              isUploading ? '上传中' : '添加图片',
+              isUploading
+                  ? 'common.uploadingNoDots'.tr()
+                  : 'feedback.addImage'.tr(),
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 12.sp,
@@ -3154,14 +3368,14 @@ class _FeedbackRecordsScreenState extends State<FeedbackRecordsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '反馈记录'),
+      appBar: CustomNavBar(title: 'feedback.records'.tr()),
       body: RefreshIndicator(
         onRefresh: () =>
             context.read<FeedbackProvider>().loadRecords(refresh: true),
         child: feedbackProvider.isLoading && !feedbackProvider.hasRemoteRecords
-            ? const AppLoading(message: '加载中...')
+            ? AppLoading(message: 'common.loading'.tr())
             : records.isEmpty
-                ? const AppEmpty(title: '暂无反馈记录')
+                ? AppEmpty(title: 'feedback.emptyRecords'.tr())
                 : ListView.builder(
                     controller: _scrollController,
                     padding: EdgeInsets.all(16.w),
@@ -3197,7 +3411,8 @@ class _FeedbackRecordsScreenState extends State<FeedbackRecordsScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        _textFallback(record.title, '默认分类'),
+                        _textFallback(
+                            record.title, 'feedback.defaultCategory'.tr()),
                         style: TextStyle(
                           fontSize: 13.sp,
                           color: AppColors.primary,
@@ -3209,7 +3424,7 @@ class _FeedbackRecordsScreenState extends State<FeedbackRecordsScreen> {
                     ),
                     SizedBox(width: 8.w),
                     Text(
-                      _textFallback(record.createdAt, '刚刚'),
+                      _textFallback(record.createdAt, 'feedback.justNow'.tr()),
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: AppColors.textSecondary,
@@ -3241,7 +3456,7 @@ class _FeedbackRecordsScreenState extends State<FeedbackRecordsScreen> {
           ),
           SizedBox(height: 12.h),
           Text(
-            _textFallback(record.content, '暂无内容'),
+            _textFallback(record.content, 'message.emptyContent'.tr()),
             style: TextStyle(
               fontSize: 14.sp,
               color: AppColors.textPrimary,
@@ -3258,7 +3473,7 @@ class _FeedbackRecordsScreenState extends State<FeedbackRecordsScreen> {
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Text(
-                '回复：${record.reply}',
+                '${'feedback.reply'.tr()}${record.reply}',
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: AppColors.textSecondary,

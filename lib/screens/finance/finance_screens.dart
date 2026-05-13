@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../api/api_exception.dart';
 import '../../models/user/user_models.dart';
 import '../../models/wallet/wallet_models.dart';
+import '../../providers/localization/language_provider.dart';
 import '../../providers/user/user_provider.dart';
 import '../../providers/wallet/wallet_provider.dart';
 import '../../theme/app_colors.dart';
@@ -33,11 +35,23 @@ class _DepositScreenState extends State<DepositScreen> {
   final TextEditingController _amountController = TextEditingController();
 
   final List<Map<String, dynamic>> _depositTypes = [
-    {'name': '微信支付', 'icon': Icons.wechat, 'color': Colors.green},
-    {'name': '支付宝', 'icon': Icons.payments, 'color': Colors.blue},
-    {'name': '银联支付', 'icon': Icons.credit_card, 'color': Colors.redAccent},
-    {'name': '云闪付', 'icon': Icons.contactless, 'color': Colors.red},
-    {'name': '京东支付', 'icon': Icons.shopping_cart, 'color': Colors.redAccent},
+    {'name': 'deposit.wechat', 'icon': Icons.wechat, 'color': Colors.green},
+    {'name': 'deposit.alipay', 'icon': Icons.payments, 'color': Colors.blue},
+    {
+      'name': 'deposit.unionPay',
+      'icon': Icons.credit_card,
+      'color': Colors.redAccent
+    },
+    {
+      'name': 'deposit.quickPay',
+      'icon': Icons.contactless,
+      'color': Colors.red
+    },
+    {
+      'name': 'deposit.jdPay',
+      'icon': Icons.shopping_cart,
+      'color': Colors.redAccent
+    },
     {'name': 'USDT-T...', 'icon': Icons.currency_bitcoin, 'color': Colors.teal},
   ];
 
@@ -70,8 +84,8 @@ class _DepositScreenState extends State<DepositScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FC), // 浅灰蓝背景
       appBar: CustomNavBar(
-        title: '充值',
-        rightText: '充值记录',
+        title: 'deposit.title'.tr(),
+        rightText: 'deposit.records'.tr(),
         onClickRight: () => context.push('/fund-management'),
       ),
       body: RefreshIndicator(
@@ -85,15 +99,15 @@ class _DepositScreenState extends State<DepositScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!_isRealNameVerified(profile)) _buildDepositAlert(),
-              _buildSectionHeader('充值类型'),
+              _buildSectionHeader('deposit.type'.tr()),
               SizedBox(height: 12.h),
               _buildTypeGrid(walletProvider),
               SizedBox(height: 16.h),
-              _buildSectionHeader('充值通道'),
+              _buildSectionHeader('deposit.channel'.tr()),
               SizedBox(height: 12.h),
               _buildChannelGrid(walletProvider),
               SizedBox(height: 16.h),
-              _buildSectionHeader('充值信息'),
+              _buildSectionHeader('deposit.info'.tr()),
               SizedBox(height: 12.h),
               _buildAmountInput(walletProvider, symbol),
               SizedBox(height: 10.h),
@@ -102,8 +116,8 @@ class _DepositScreenState extends State<DepositScreen> {
               SizedBox(height: 28.h),
               CustomButton(
                 text: walletProvider.isRechargeOrderSubmitting
-                    ? '提交中...'
-                    : '确认充值',
+                    ? 'deposit.submitting'.tr()
+                    : 'deposit.confirm'.tr(),
                 onPressed: walletProvider.isRechargeOrderSubmitting
                     ? null
                     : _submitRechargeOrder,
@@ -132,12 +146,16 @@ class _DepositScreenState extends State<DepositScreen> {
           ),
         ),
         SizedBox(width: 8.w),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
         ),
       ],
@@ -165,7 +183,9 @@ class _DepositScreenState extends State<DepositScreen> {
           SizedBox(width: 6.w),
           Expanded(
             child: Text(
-              '为保障资金安全，建议先完成实名认证',
+              'deposit.realNameTip'.tr(),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 12.sp, color: AppColors.textPrimary),
             ),
           ),
@@ -178,7 +198,9 @@ class _DepositScreenState extends State<DepositScreen> {
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Text(
-                '去认证',
+                'deposit.goVerify'.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 12.sp, color: Colors.white),
               ),
             ),
@@ -191,7 +213,7 @@ class _DepositScreenState extends State<DepositScreen> {
   Widget _buildTypeGrid(WalletProvider provider) {
     final categories = provider.depositCategories;
     if (provider.isDepositCategoriesLoading && categories.isEmpty) {
-      return const AppLoading(message: '充值类型加载中...');
+      return AppLoading(message: 'deposit.typeLoading'.tr());
     }
 
     if (categories.isNotEmpty) {
@@ -202,7 +224,7 @@ class _DepositScreenState extends State<DepositScreen> {
           for (final category in categories)
             _buildTypeItem(
               selected: provider.selectedDepositCategoryId == category.id,
-              title: category.displayTitle,
+              title: _localizedDepositText(category.displayTitle),
               badge: category.msg,
               imageUrl: category.img,
               fallbackIcon: _fallbackDepositIcon(category.displayTitle),
@@ -225,7 +247,7 @@ class _DepositScreenState extends State<DepositScreen> {
         final isSelected = _selectedType == index;
         return _buildTypeItem(
           selected: isSelected,
-          title: type['name'],
+          title: (type['name'] as String).tr(),
           fallbackIcon: type['icon'],
           fallbackColor: type['color'],
           onTap: () => setState(() => _selectedType = index),
@@ -323,7 +345,7 @@ class _DepositScreenState extends State<DepositScreen> {
   Widget _buildChannelGrid(WalletProvider provider) {
     final channels = provider.depositChannels;
     if (provider.isDepositChannelsLoading && channels.isEmpty) {
-      return const AppLoading(message: '充值通道加载中...');
+      return AppLoading(message: 'deposit.channelLoading'.tr());
     }
     if (channels.isNotEmpty) {
       return Wrap(
@@ -332,7 +354,7 @@ class _DepositScreenState extends State<DepositScreen> {
         children: [
           for (final channel in channels)
             _buildChannelItem(
-              title: channel.displayTitle,
+              title: _localizedDepositText(channel.displayTitle),
               selected: provider.selectedDepositChannelId == channel.id,
               onTap: () {
                 provider.selectDepositChannel(channel);
@@ -345,7 +367,10 @@ class _DepositScreenState extends State<DepositScreen> {
 
     if (provider.depositCategories.isNotEmpty &&
         provider.depositChannelsError == null) {
-      return const AppEmpty(title: '暂无充值通道', description: '请切换其他充值类型');
+      return AppEmpty(
+        title: 'deposit.emptyChannel'.tr(),
+        description: 'deposit.switchType'.tr(),
+      );
     }
 
     return Wrap(
@@ -475,10 +500,10 @@ class _DepositScreenState extends State<DepositScreen> {
               ),
               decoration: InputDecoration(
                 hintText: channel == null
-                    ? '请选择充值通道'
+                    ? 'deposit.selectChannel'.tr()
                     : readOnly
-                        ? '请选择固定金额'
-                        : '请输入金额',
+                        ? 'deposit.selectFixedAmount'.tr()
+                        : 'deposit.enterAmount'.tr(),
                 hintStyle: TextStyle(
                   fontSize: 16.sp,
                   color: AppColors.textSecondary.withValues(alpha: 0.5),
@@ -505,6 +530,8 @@ class _DepositScreenState extends State<DepositScreen> {
           ),
           Text(
             _limitText(channel, symbol),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 14.sp,
               color: AppColors.textSecondary,
@@ -523,7 +550,9 @@ class _DepositScreenState extends State<DepositScreen> {
     return Padding(
       padding: EdgeInsets.only(left: 4.w, bottom: 8.h),
       child: Text(
-        '参考汇率：${channel.rate}',
+        'deposit.rate'.tr(
+          namedArgs: {'rate': channel.rate?.trim() ?? ''},
+        ),
         style: TextStyle(
           fontSize: 12.sp,
           color: AppColors.danger,
@@ -630,7 +659,7 @@ class _DepositScreenState extends State<DepositScreen> {
     final provider = context.read<WalletProvider>();
     final channel = provider.selectedDepositChannel;
     if (channel == null) {
-      _showMessage('请选择充值通道');
+      _showMessage('deposit.selectChannel'.tr());
       return;
     }
 
@@ -657,16 +686,18 @@ class _DepositScreenState extends State<DepositScreen> {
   }
 
   String? _validateDepositAmount(DepositChannel channel, double? money) {
-    if (money == null || money <= 0) return '请输入有效充值金额';
+    if (money == null || money <= 0) return 'deposit.validAmount'.tr();
     if (channel.min > 0 && money < channel.min) {
-      return '充值金额不能低于${_formatAmount(channel.min)}';
+      return 'deposit.minAmount'
+          .tr(namedArgs: {'amount': _formatAmount(channel.min)});
     }
     if (channel.max > 0 && money > channel.max) {
-      return '充值金额不能高于${_formatAmount(channel.max)}';
+      return 'deposit.maxAmount'
+          .tr(namedArgs: {'amount': _formatAmount(channel.max)});
     }
     if (channel.fixedAmountOnly) {
       final matched = channel.quickAmounts.any((amount) => amount == money);
-      if (!matched) return '请选择固定充值金额';
+      if (!matched) return 'deposit.fixedAmountRequired'.tr();
     }
     return null;
   }
@@ -681,7 +712,7 @@ class _DepositScreenState extends State<DepositScreen> {
           Uri.parse(url),
           mode: LaunchMode.externalApplication,
         );
-        if (!opened) _showMessage('无法打开支付网关');
+        if (!opened) _showMessage('deposit.openGatewayFailed'.tr());
         return;
       }
       context.push(
@@ -691,7 +722,7 @@ class _DepositScreenState extends State<DepositScreen> {
       return;
     }
 
-    _showMessage('提交成功');
+    _showMessage('deposit.submitSuccess'.tr());
     if (orderId != null) {
       context.push('/deposit/order/${Uri.encodeComponent(orderId.toString())}');
     }
@@ -720,7 +751,17 @@ class _DepositScreenState extends State<DepositScreen> {
     }
     if (hasMin) return '≥ $symbol${_formatAmount(channel.min)}';
     if (hasMax) return '≤ $symbol${_formatAmount(channel.max)}';
-    return '不限额';
+    return 'deposit.noLimit'.tr();
+  }
+
+  String _localizedDepositText(String text) {
+    final value = text.trim();
+    if (value.contains('微信')) return 'deposit.wechat'.tr();
+    if (value.contains('支付宝')) return 'deposit.alipay'.tr();
+    if (value.contains('银联')) return 'deposit.unionPay'.tr();
+    if (value.contains('云闪付')) return 'deposit.quickPay'.tr();
+    if (value.contains('京东')) return 'deposit.jdPay'.tr();
+    return value;
   }
 
   String _formatAmount(double value) {
@@ -807,14 +848,17 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<WalletProvider>();
     final id = widget.orderId?.trim();
+    final languageCode = context.watch<LanguageProvider>().currentCode;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
-      appBar: const CustomNavBar(title: '订单详情'),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
+    return KeyedSubtree(
+      key: ValueKey(languageCode),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF4F6F9),
+        appBar: CustomNavBar(title: 'deposit.detail.detailTitle'.tr()),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
               Color(0xFF3B82F6),
@@ -824,16 +868,17 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
             ],
             stops: [0, 0.18, 0.45, 0.7],
           ),
-        ),
-        child: RefreshIndicator(
-          onRefresh: () async {
-            if (id == null || id.isEmpty) return;
-            await context.read<WalletProvider>().loadRechargeDetail(id);
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 24.h),
-            child: _buildBody(context, provider, id),
+          ),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              if (id == null || id.isEmpty) return;
+              await context.read<WalletProvider>().loadRechargeDetail(id);
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 24.h),
+              child: _buildBody(context, provider, id),
+            ),
           ),
         ),
       ),
@@ -844,10 +889,10 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
     if (id == null || id.isEmpty) {
       return Column(
         children: [
-          const AppError(message: '缺少订单ID，无法获取充值详情'),
+          AppError(message: 'deposit.detail.missingOrderId'.tr()),
           SizedBox(height: 24.h),
           CustomButton(
-            text: '返回充值',
+            text: 'deposit.detail.backDeposit'.tr(),
             onPressed: () => context.go('/deposit'),
           ),
         ],
@@ -855,7 +900,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
     }
 
     if (provider.isRechargeDetailLoading && provider.rechargeDetail == null) {
-      return const AppLoading(message: '订单详情加载中...');
+      return AppLoading(message: 'deposit.detail.loadingDetail'.tr());
     }
 
     if (provider.rechargeDetailError != null &&
@@ -868,7 +913,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
           ),
           SizedBox(height: 24.h),
           CustomButton(
-            text: '返回充值',
+            text: 'deposit.detail.backDeposit'.tr(),
             onPressed: () => context.go('/deposit'),
           ),
         ],
@@ -879,10 +924,10 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
     if (detail == null) {
       return Column(
         children: [
-          const AppEmpty(title: '暂无订单详情'),
+          AppEmpty(title: 'deposit.detail.emptyDetail'.tr()),
           SizedBox(height: 24.h),
           CustomButton(
-            text: '返回充值',
+            text: 'deposit.detail.backDeposit'.tr(),
             onPressed: () => context.go('/deposit'),
           ),
         ],
@@ -907,7 +952,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
           TextButton(
             onPressed: () => _openCancelSheet(context, detail),
             child: Text(
-              '取消支付',
+              'deposit.detail.cancelPay'.tr(),
               style: TextStyle(
                 color: const Color(0xFFEF4444),
                 fontSize: 14.sp,
@@ -988,7 +1033,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
           Row(
             children: [
               Text(
-                '订单ID：',
+                'deposit.detail.orderId'.tr(),
                 style:
                     TextStyle(fontSize: 12.sp, color: const Color(0xFF6B7280)),
               ),
@@ -1007,7 +1052,9 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
               if (_startTimeText(detail).isNotEmpty) ...[
                 SizedBox(width: 8.w),
                 Text(
-                  '提交：${_startTimeText(detail)}',
+                  'deposit.detail.submittedAt'.tr(namedArgs: {
+                    'time': _startTimeText(detail),
+                  }),
                   style: TextStyle(
                       fontSize: 12.sp, color: const Color(0xFF6B7280)),
                 ),
@@ -1050,7 +1097,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
           ),
           SizedBox(height: 10.h),
           Text(
-            '点击二维码可预览，请按页面信息完成转账',
+            'deposit.detail.qrHint'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12.sp, color: const Color(0xFF6B7280)),
           ),
@@ -1066,27 +1113,40 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('支付信息'),
+          _buildSectionTitle('deposit.detail.paymentInfo'.tr()),
           SizedBox(height: 10.h),
-          _buildInfoRow(context, '支付类型', _payTypeText(detail)),
-          _buildInfoRow(context, '开始时间', _startTimeText(detail, fallback: '-')),
-          _buildInfoRow(context, '货币', detail.displayCurrency),
-          _buildInfoRow(context, '充值金额', _formatAmount(detail.money),
+          _buildInfoRow(
+              context, 'deposit.detail.payType'.tr(), _payTypeText(detail)),
+          _buildInfoRow(context, 'deposit.detail.startTime'.tr(),
+              _startTimeText(detail, fallback: '-')),
+          _buildInfoRow(
+              context, 'deposit.detail.currency'.tr(), detail.displayCurrency),
+          _buildInfoRow(context, 'deposit.detail.amount'.tr(),
+              _formatAmount(detail.money),
               copy: _moneyOnlyText(detail)),
           ...rows,
           if (detail.msg?.trim().isNotEmpty == true)
-            _buildInfoRow(context, '说明', detail.msg!.trim()),
+            _buildInfoRow(
+                context, 'deposit.detail.note'.tr(), detail.msg!.trim()),
         ],
       ),
     );
   }
 
   Widget _buildRiskCard() {
-    const tips = [
-      ['请务必按页面展示的', '金额和收款信息', '完成转账。'],
-      ['请勿保存旧收款信息重复转账，', '每笔订单信息可能不同', '。'],
-      ['转账完成后请保留凭证，等待系统核对。'],
-      ['如遇到账延迟，请联系在线客服处理。'],
+    final tips = [
+      [
+        'deposit.detail.risk1a'.tr(),
+        'deposit.detail.risk1b'.tr(),
+        'deposit.detail.risk1c'.tr(),
+      ],
+      [
+        'deposit.detail.risk2a'.tr(),
+        'deposit.detail.risk2b'.tr(),
+        'deposit.detail.risk2c'.tr(),
+      ],
+      ['deposit.detail.risk3'.tr()],
+      ['deposit.detail.risk4'.tr()],
     ];
     return _buildM1Card(
       color: const Color(0xFFF8FAFC),
@@ -1094,7 +1154,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '重要提示',
+            'deposit.detail.importantTips'.tr(),
             style: TextStyle(
               color: const Color(0xFFEF4444),
               fontSize: 14.sp,
@@ -1158,17 +1218,19 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('上传凭证'),
+          _buildSectionTitle('deposit.detail.uploadProof'.tr()),
           SizedBox(height: 12.h),
           if (showHash) ...[
             Row(
               children: [
                 Expanded(
-                  child: _buildProofModeTab('交易哈希', selected: _proofMode == 0),
+                  child: _buildProofModeTab('deposit.detail.txHash'.tr(),
+                      selected: _proofMode == 0),
                 ),
                 SizedBox(width: 8.w),
                 Expanded(
-                  child: _buildProofModeTab('支付凭证', selected: _proofMode == 1),
+                  child: _buildProofModeTab('deposit.detail.payProof'.tr(),
+                      selected: _proofMode == 1),
                 ),
               ],
             ),
@@ -1189,7 +1251,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
                 maxLines: 6,
                 maxLength: 500,
                 decoration: InputDecoration(
-                  hintText: '请输入交易哈希',
+                  hintText: 'deposit.detail.enterTxHash'.tr(),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(12.w),
                   suffixIcon: IconButton(
@@ -1231,8 +1293,8 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
                           SizedBox(height: 10.h),
                           Text(
                             provider.isUploadingRechargeImage
-                                ? '上传中...'
-                                : '选择支付凭证',
+                                ? 'deposit.submitting'.tr()
+                                : 'deposit.detail.choosePayProof'.tr(),
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.w700,
@@ -1241,7 +1303,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
                           ),
                           SizedBox(height: 6.h),
                           Text(
-                            '支持 png、jpg、webp 等图片格式，最大 10MB',
+                            'deposit.detail.proofFormatTip'.tr(),
                             style: TextStyle(
                               fontSize: 13.sp,
                               color: const Color(0xFF999999),
@@ -1295,7 +1357,9 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
             SizedBox(height: 12.h),
           ],
           CustomButton(
-            text: provider.isRechargeProofSubmitting ? '提交中...' : '提交凭证',
+            text: provider.isRechargeProofSubmitting
+                ? 'deposit.submitting'.tr()
+                : 'deposit.detail.submitProof'.tr(),
             onPressed: provider.isRechargeProofSubmitting
                 ? null
                 : () => _submitProof(detail),
@@ -1307,7 +1371,8 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
 
   Widget _buildProofModeTab(String text, {required bool selected}) {
     return GestureDetector(
-      onTap: () => setState(() => _proofMode = text == '交易哈希' ? 0 : 1),
+      onTap: () => setState(
+          () => _proofMode = text == 'deposit.detail.txHash'.tr() ? 0 : 1),
       child: Container(
         height: 34.h,
         alignment: Alignment.center,
@@ -1334,7 +1399,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
       if (file == null) return;
       final bytes = await file.readAsBytes();
       if (bytes.length > 10 * 1024 * 1024) {
-        _showSnack('图片不能超过 10MB');
+        _showSnack('deposit.detail.imageTooLarge'.tr());
         return;
       }
       final result = await provider.uploadRechargeImage(
@@ -1360,31 +1425,32 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
           submitValue: submitValue,
         );
       });
-      _showSnack('上传成功');
+      _showSnack('deposit.detail.uploadSuccess'.tr());
     } on MissingPluginException {
       if (!mounted) return;
-      _showSnack('图片选择组件未加载，请完整重启应用后重试');
+      _showSnack('deposit.detail.imagePickerMissing'.tr());
     } catch (_) {
       if (!mounted) return;
-      _showSnack(provider.rechargeImageUploadError ?? '上传失败');
+      _showSnack(provider.rechargeImageUploadError ??
+          'deposit.detail.uploadFailed'.tr());
     }
   }
 
   Future<void> _submitProof(RechargeDetail detail) async {
     final id = _detailOrderId(detail);
     if (id == null || id <= 0) {
-      _showSnack('订单ID无效');
+      _showSnack('deposit.detail.invalidOrderId'.tr());
       return;
     }
     final needHash = detail.type == 3 && _proofMode == 0;
     final needProof = detail.type != 3 || _proofMode == 1;
     final hash = _txHashController.text.trim();
     if (needHash && hash.isEmpty) {
-      _showSnack('请输入交易哈希');
+      _showSnack('deposit.detail.enterTxHash'.tr());
       return;
     }
     if (needProof && _proofImage == null) {
-      _showSnack('请先上传支付凭证');
+      _showSnack('deposit.detail.uploadProofFirst'.tr());
       return;
     }
     final provider = context.read<WalletProvider>();
@@ -1397,11 +1463,12 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
         ),
       );
       if (!mounted) return;
-      _showSnack('提交成功');
+      _showSnack('deposit.detail.submitSuccess'.tr());
       context.go('/deposit/success/$id');
     } catch (_) {
       if (!mounted) return;
-      _showSnack(provider.rechargeProofSubmitError ?? '提交失败');
+      _showSnack(provider.rechargeProofSubmitError ??
+          'deposit.detail.submitFailed'.tr());
     }
   }
 
@@ -1410,12 +1477,12 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       final text = data?.text?.trim();
       if (text == null || text.isEmpty) {
-        _showSnack('剪贴板为空');
+        _showSnack('deposit.detail.clipboardEmpty'.tr());
         return;
       }
       _txHashController.text = text;
     } catch (_) {
-      _showSnack('读取剪贴板失败');
+      _showSnack('deposit.detail.clipboardReadFailed'.tr());
     }
   }
 
@@ -1439,7 +1506,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '取消支付',
+                'deposit.detail.cancelPay'.tr(),
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w800,
@@ -1450,7 +1517,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  '取消原因',
+                  'deposit.detail.cancelReason'.tr(),
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: const Color(0xFF666666),
@@ -1462,8 +1529,10 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
                 spacing: 10.w,
                 runSpacing: 10.h,
                 children: [
-                  _buildCancelReasonChip('我不想充值了'),
-                  _buildCancelReasonChip('信息填写错误'),
+                  _buildCancelReasonChip(
+                      'deposit.detail.cancelReasonNoWant'.tr()),
+                  _buildCancelReasonChip(
+                      'deposit.detail.cancelReasonWrongInfo'.tr()),
                 ],
               ),
               SizedBox(height: 12.h),
@@ -1473,7 +1542,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
                 maxLines: 3,
                 maxLength: 60,
                 decoration: InputDecoration(
-                  hintText: '请输入取消原因',
+                  hintText: 'deposit.detail.enterCancelReason'.tr(),
                   filled: true,
                   fillColor: const Color(0xFFF5F6F8),
                   border: OutlineInputBorder(
@@ -1487,7 +1556,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
                 children: [
                   Expanded(
                     child: CustomButton(
-                      text: '返回',
+                      text: 'deposit.detail.back'.tr(),
                       isPrimary: false,
                       onPressed: () => Navigator.of(sheetContext).pop(),
                     ),
@@ -1498,8 +1567,8 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
                       builder: (context, provider, _) {
                         return CustomButton(
                           text: provider.isRechargeCancelSubmitting
-                              ? '取消中...'
-                              : '确认取消',
+                              ? 'deposit.detail.canceling'.tr()
+                              : 'deposit.detail.confirmCancel'.tr(),
                           onPressed: provider.isRechargeCancelSubmitting
                               ? null
                               : () => _confirmCancel(sheetContext, detail),
@@ -1539,12 +1608,12 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
   ) async {
     final id = _detailOrderId(detail);
     if (id == null || id <= 0) {
-      _showSnack('订单ID无效');
+      _showSnack('deposit.detail.invalidOrderId'.tr());
       return;
     }
     final note = _cancelNoteController.text.trim();
     if (note.isEmpty) {
-      _showSnack('请输入取消原因');
+      _showSnack('deposit.detail.enterCancelReason'.tr());
       return;
     }
     final provider = context.read<WalletProvider>();
@@ -1554,11 +1623,12 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
       );
       if (!mounted) return;
       if (sheetContext.mounted) Navigator.of(sheetContext).pop();
-      _showSnack('取消成功');
+      _showSnack('deposit.detail.cancelSuccess'.tr());
       context.go('/deposit');
     } catch (_) {
       if (!mounted) return;
-      _showSnack(provider.rechargeCancelError ?? '取消失败');
+      _showSnack(
+          provider.rechargeCancelError ?? 'deposit.detail.cancelFailed'.tr());
     }
   }
 
@@ -1638,7 +1708,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
     return TextButton.icon(
       onPressed: () => _copyText(context, value),
       icon: Icon(Icons.copy, size: 14.sp),
-      label: const Text('复制'),
+      label: Text('deposit.detail.copy'.tr()),
       style: TextButton.styleFrom(
         foregroundColor: const Color(0xFF1989FA),
         textStyle: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w700),
@@ -1659,7 +1729,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      child: const Text('复制'),
+      child: Text('deposit.detail.copy'.tr()),
     );
   }
 
@@ -1669,36 +1739,40 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
     final type = detail.type;
 
     if (type == 4) {
-      _addRow(rows, '开户行', params?.bank);
-      _addRow(rows, '开户姓名', params?.bankName);
-      _addRow(rows, '卡号', params?.card, copy: params?.card);
-      _addRow(rows, '开户地', params?.address);
+      _addRow(rows, 'deposit.detail.bank'.tr(), params?.bank);
+      _addRow(rows, 'deposit.detail.bankName'.tr(), params?.bankName);
+      _addRow(rows, 'deposit.detail.cardNo'.tr(), params?.card, copy: params?.card);
+      _addRow(rows, 'deposit.detail.address'.tr(), params?.address);
     } else if (type == 3 || type == 5) {
-      _addRow(rows, '收款地址', params?.address, copy: params?.address);
+      _addRow(rows, 'deposit.detail.receiveAddress'.tr(), params?.address, copy: params?.address);
       if (detail.displayCurrency.toUpperCase() == 'CNY') {
         _addRow(
             rows,
-            'USDT汇率',
+            'deposit.detail.usdtRate'.tr(),
             detail.rate == null
                 ? null
                 : _formatAmount(detail.rate!, fractionDigits: 4));
-        _addRow(rows, '虚拟币数量', _cryptoAmountText(detail));
+        _addRow(rows, 'deposit.detail.cryptoAmount'.tr(), _cryptoAmountText(detail));
       }
     } else if (type == 2) {
-      _addRow(rows, '姓名', params?.name);
-      _addRow(rows, '账号', params?.account, copy: params?.account);
+      _addRow(rows, 'deposit.detail.name'.tr(), params?.name);
+      _addRow(rows, 'deposit.detail.account'.tr(), params?.account, copy: params?.account);
     } else {
-      _addRow(rows, '姓名', params?.name);
-      _addRow(rows, '账号', params?.account, copy: params?.account);
-      _addRow(rows, '收款地址', params?.address, copy: params?.address);
-      _addRow(rows, '开户行', params?.bank);
-      _addRow(rows, '开户姓名', params?.bankName);
-      _addRow(rows, '卡号', params?.card, copy: params?.card);
-      _addRow(rows, '开户地', params?.address);
+      _addRow(rows, 'deposit.detail.name'.tr(), params?.name);
+      _addRow(rows, 'deposit.detail.account'.tr(), params?.account, copy: params?.account);
+      _addRow(rows, 'deposit.detail.receiveAddress'.tr(), params?.address, copy: params?.address);
+      _addRow(rows, 'deposit.detail.bank'.tr(), params?.bank);
+      _addRow(rows, 'deposit.detail.bankName'.tr(), params?.bankName);
+      _addRow(rows, 'deposit.detail.cardNo'.tr(), params?.card, copy: params?.card);
+      _addRow(rows, 'deposit.detail.address'.tr(), params?.address);
     }
 
     if (rows.isEmpty) {
-      rows.add(_buildInfoRow(context, '支付信息', '暂无'));
+      rows.add(_buildInfoRow(
+        context,
+        'deposit.detail.paymentInfo'.tr(),
+        'deposit.detail.empty'.tr(),
+      ));
     }
     return rows;
   }
@@ -1756,18 +1830,18 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
   }
 
   String _statusText(int status) {
-    if (status == 1 || status == 2) return '充值成功';
-    if (status == 0) return '已超时';
-    if (status == 3) return '已取消';
-    if (status == 4) return '已驳回';
-    if (status == 5) return '处理中';
-    return '待支付';
+    if (status == 1 || status == 2) return 'deposit.detail.statusSuccess'.tr();
+    if (status == 0) return 'deposit.detail.statusTimeout'.tr();
+    if (status == 3) return 'deposit.detail.statusCanceled'.tr();
+    if (status == 4) return 'deposit.detail.statusRejected'.tr();
+    if (status == 5) return 'deposit.detail.statusProcessing'.tr();
+    return 'deposit.detail.statusPending'.tr();
   }
 
   String _headerTitle(RechargeDetail detail) {
-    if (detail.type == 4) return '银行卡转账';
-    if (detail.type == 2) return '支付宝充值';
-    if (detail.type == 3 || detail.type == 5) return '虚拟币充值';
+    if (detail.type == 4) return 'deposit.detail.bankTransfer'.tr();
+    if (detail.type == 2) return 'deposit.detail.alipayRecharge'.tr();
+    if (detail.type == 3 || detail.type == 5) return 'deposit.detail.cryptoRecharge'.tr();
     return _payTypeText(detail);
   }
 
@@ -1779,10 +1853,13 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
   }
 
   String _payTypeText(RechargeDetail detail) {
-    if (detail.type == 4) return '银行卡';
-    if (detail.type == 3 || detail.type == 5) return '虚拟币';
-    if (detail.type == 2) return '支付宝';
-    return detail.type == null ? '-' : '类型${detail.type}';
+    if (detail.type == 4) return 'deposit.detail.bankCard'.tr();
+    if (detail.type == 3 || detail.type == 5) return 'deposit.detail.crypto'.tr();
+    if (detail.type == 2) return 'deposit.detail.alipay'.tr();
+    return detail.type == null
+        ? '-'
+        : 'deposit.detail.typeNumber'
+            .tr(namedArgs: {'type': '${detail.type}'});
   }
 
   bool _isPending(RechargeDetail detail) => (detail.status ?? 5) == 5;
@@ -1842,7 +1919,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
     await Clipboard.setData(ClipboardData(text: text));
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已复制')),
+      SnackBar(content: Text('deposit.detail.copied'.tr())),
     );
   }
 }
@@ -1864,7 +1941,10 @@ class DepositPaySuccessScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomNavBar(title: '支付结果', showLeftArrow: false),
+      appBar: CustomNavBar(
+        title: 'deposit.success.title'.tr(),
+        showLeftArrow: false,
+      ),
       body: Center(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 32.w),
@@ -1875,7 +1955,7 @@ class DepositPaySuccessScreen extends StatelessWidget {
                   color: const Color(0xFF00B578), size: 80.sp),
               SizedBox(height: 24.h),
               Text(
-                '充值成功',
+                'deposit.success.message'.tr(),
                 style: TextStyle(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
@@ -1884,7 +1964,7 @@ class DepositPaySuccessScreen extends StatelessWidget {
               ),
               SizedBox(height: 8.h),
               Text(
-                '资金已到达您的钱包账户',
+                'deposit.success.description'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textSecondary,
@@ -1892,12 +1972,12 @@ class DepositPaySuccessScreen extends StatelessWidget {
               ),
               SizedBox(height: 48.h),
               CustomButton(
-                text: '查看钱包',
+                text: 'deposit.success.viewWallet'.tr(),
                 onPressed: () => context.go('/'),
               ),
               SizedBox(height: 16.h),
               CustomButton(
-                text: '继续充值',
+                text: 'deposit.success.continueDeposit'.tr(),
                 isPrimary: false,
                 onPressed: () =>
                     context.canPop() ? context.pop() : context.go('/deposit'),
@@ -1961,8 +2041,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomNavBar(
-        title: '提现',
-        rightText: '提现记录',
+        title: 'finance.withdraw.title'.tr(),
+        rightText: 'finance.withdraw.records'.tr(),
         onClickRight: () => context.push('/fund-management?tab=withdraw'),
       ),
       body: RefreshIndicator(
@@ -1977,11 +2057,11 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               if (!waterEnough)
                 _buildWaterLock(symbol, sumWater, okWater)
               else ...[
-                _buildSectionTitle('提现金额'),
+                _buildSectionTitle('finance.withdraw.amount'.tr()),
                 _buildAmountCard(symbol, balance, minWithdraw),
                 _buildSectionTitle(
-                  '收款卡包',
-                  actionText: '我的卡包',
+                  'finance.withdraw.wallet'.tr(),
+                  actionText: 'finance.withdraw.myCards'.tr(),
                   onActionTap: () => context.push('/cards'),
                 ),
                 _buildCardList(walletProvider, cards),
@@ -1995,10 +2075,10 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               ],
               SizedBox(height: 32.h),
               CustomButton(
-                text: '确认提现',
+                text: 'finance.withdraw.confirm'.tr(),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('提现提交功能待接入')),
+                    SnackBar(content: Text('finance.withdraw.comingSoon'.tr())),
                   );
                 },
               ),
@@ -2073,7 +2153,9 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
             left: 0,
             top: 0,
             child: Text(
-              '可提现余额',
+              'finance.withdraw.availableBalance'.tr(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 13.sp,
@@ -2110,7 +2192,11 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                     Icon(Icons.refresh, color: Colors.white, size: 14.sp),
                     SizedBox(width: 4.w),
                     Text(
-                      walletProvider.isRecyclingVenues ? '归户中' : '一键归户',
+                      walletProvider.isRecyclingVenues
+                          ? 'finance.withdraw.recycling'.tr()
+                          : 'finance.withdraw.recycle'.tr(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: Colors.white, fontSize: 12.sp),
                     ),
                   ],
@@ -2136,7 +2222,12 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  '还需 $symbol ${left.toStringAsFixed(2)} 流水可提现',
+                  'finance.withdraw.waterLock'.tr(namedArgs: {
+                    'symbol': symbol,
+                    'amount': left.toStringAsFixed(2),
+                  }),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15.sp,
                     color: AppColors.textPrimary,
@@ -2158,7 +2249,12 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
           ),
           SizedBox(height: 8.h),
           Text(
-            '当前流水：$symbol ${okWater.toStringAsFixed(2)} / $symbol ${sumWater.toStringAsFixed(2)}',
+            'finance.withdraw.currentWater'.tr(namedArgs: {
+              'ok': '$symbol ${okWater.toStringAsFixed(2)}',
+              'sum': '$symbol ${sumWater.toStringAsFixed(2)}',
+            }),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
           ),
         ],
@@ -2203,6 +2299,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               onTap: onActionTap,
               child: Text(
                 actionText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: AppColors.primary,
@@ -2251,7 +2349,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                   decoration: InputDecoration(
-                    hintText: '请输入提现金额',
+                    hintText: 'finance.withdraw.enterAmount'.tr(),
                     hintStyle: TextStyle(
                       fontSize: 16.sp,
                       color: AppColors.textSecondary.withValues(alpha: 0.3),
@@ -2265,7 +2363,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 onTap: () =>
                     _amountController.text = balance.toStringAsFixed(2),
                 child: Text(
-                  '全部',
+                  'finance.withdraw.all'.tr(),
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: AppColors.primary,
@@ -2277,7 +2375,11 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
           ),
           Divider(color: AppColors.border, height: 16.h),
           Text(
-            '单笔最低提现：$symbol ${minWithdraw > 0 ? minWithdraw.toStringAsFixed(2) : '-'}',
+            'finance.withdraw.minSingle'.tr(namedArgs: {
+              'amount': minWithdraw > 0
+                  ? '$symbol ${minWithdraw.toStringAsFixed(2)}'
+                  : '-',
+            }),
             style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
           ),
         ],
@@ -2287,17 +2389,21 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
 
   Widget _buildCardList(WalletProvider walletProvider, List<WalletCard> cards) {
     if (walletProvider.isCardsLoading && cards.isEmpty) {
-      return const AppLoading(message: '卡包加载中...');
+      return AppLoading(message: 'finance.withdraw.cardLoading'.tr());
     }
     if (cards.isEmpty) {
       return CustomCard(
         margin: EdgeInsets.only(bottom: 12.h),
         child: Column(
           children: [
-            const AppEmpty(title: '暂无收款卡包', description: '请先添加银行卡、虚拟币或支付宝'),
+            AppEmpty(
+              title: 'finance.withdraw.emptyCards'.tr(),
+              description: 'finance.withdraw.emptyCardsDesc'.tr(),
+            ),
             SizedBox(height: 12.h),
             CustomButton(
-                text: '添加卡包', onPressed: () => context.push('/add-card')),
+                text: 'finance.withdraw.addCard'.tr(),
+                onPressed: () => context.push('/add-card')),
           ],
         ),
       );
@@ -2326,7 +2432,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 Icon(Icons.add, size: 18.sp, color: AppColors.primary),
                 SizedBox(width: 6.w),
                 Text(
-                  '添加卡包',
+                  'finance.withdraw.addCard'.tr(),
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.bold,
@@ -2378,7 +2484,9 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   ),
                   SizedBox(height: 4.h),
                   Text(
-                    card.maskedCard.isEmpty ? '暂无账号' : card.maskedCard,
+                    card.maskedCard.isEmpty
+                        ? 'finance.withdraw.noAccount'.tr()
+                        : card.maskedCard,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -2448,15 +2556,24 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       margin: EdgeInsets.only(bottom: 16.h),
       child: Column(
         children: [
-          _buildRuleRow('最低提现',
+          _buildRuleRow('finance.withdraw.minWithdraw'.tr(),
               '$symbol ${minWithdraw > 0 ? minWithdraw.toStringAsFixed(2) : '-'}'),
-          _buildRuleRow('每日提现次数', dayCount == null ? '-' : '$dayCount 次'),
           _buildRuleRow(
-              '每日提现额度',
+              'finance.withdraw.dailyCount'.tr(),
+              dayCount == null
+                  ? '-'
+                  : 'finance.withdraw.times'
+                      .tr(namedArgs: {'count': '$dayCount'})),
+          _buildRuleRow(
+              'finance.withdraw.dailyLimit'.tr(),
               dayAmount == null
                   ? '-'
                   : '$symbol ${dayAmount.toStringAsFixed(2)}'),
-          _buildRuleRow('取款密码', hasPayPassword ? '已设置' : '未设置，请先设置'),
+          _buildRuleRow(
+              'finance.withdraw.payPassword'.tr(),
+              hasPayPassword
+                  ? 'finance.withdraw.set'.tr()
+                  : 'finance.withdraw.unsetPayPassword'.tr()),
         ],
       ),
     );
@@ -2467,15 +2584,24 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       padding: EdgeInsets.symmetric(vertical: 7.h),
       child: Row(
         children: [
-          Text(title,
-              style:
-                  TextStyle(fontSize: 13.sp, color: AppColors.textSecondary)),
-          const Spacer(),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 13.sp,
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600)),
+          Expanded(
+            child: Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    TextStyle(fontSize: 13.sp, color: AppColors.textSecondary)),
+          ),
+          SizedBox(width: 12.w),
+          Flexible(
+            child: Text(value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                    fontSize: 13.sp,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600)),
+          ),
         ],
       ),
     );
@@ -2486,11 +2612,12 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       await context.read<WalletProvider>().recycleVenueBalances();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('归户成功')),
+        SnackBar(content: Text('finance.withdraw.recycleSuccess'.tr())),
       );
     } catch (_) {
       if (!mounted) return;
-      final error = context.read<WalletProvider>().venueActionError ?? '归户失败';
+      final error = context.read<WalletProvider>().venueActionError ??
+          'finance.withdraw.recycleFailed'.tr();
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(error)));
     }
@@ -2535,7 +2662,10 @@ class WithdrawSuccessScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomNavBar(title: '提现申请已提交', showLeftArrow: false),
+      appBar: CustomNavBar(
+        title: 'finance.withdraw.submitTitle'.tr(),
+        showLeftArrow: false,
+      ),
       body: Center(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 32.w),
@@ -2546,7 +2676,7 @@ class WithdrawSuccessScreen extends StatelessWidget {
                   color: const Color(0xFF00B578), size: 80.sp),
               SizedBox(height: 24.h),
               Text(
-                '提现申请已提交',
+                'finance.withdraw.submitTitle'.tr(),
                 style: TextStyle(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
@@ -2555,7 +2685,7 @@ class WithdrawSuccessScreen extends StatelessWidget {
               ),
               SizedBox(height: 8.h),
               Text(
-                '预计 2 小时内到账，请留意资金变动',
+                'finance.withdraw.submitHint'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textSecondary,
@@ -2563,12 +2693,12 @@ class WithdrawSuccessScreen extends StatelessWidget {
               ),
               SizedBox(height: 48.h),
               CustomButton(
-                text: '查看提现记录',
+                text: 'finance.withdraw.viewRecords'.tr(),
                 onPressed: () => context.go('/'),
               ),
               SizedBox(height: 16.h),
               CustomButton(
-                text: '返回首页',
+                text: 'finance.withdraw.backHome'.tr(),
                 isPrimary: false,
                 onPressed: () => context.go('/'),
               ),
@@ -2591,7 +2721,7 @@ class OnlinePayDetailScreen extends StatelessWidget {
     final payUrl = url?.trim() ?? '';
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '在线支付'),
+      appBar: CustomNavBar(title: 'deposit.pay.title'.tr()),
       body: Padding(
         padding: EdgeInsets.all(16.w),
         child: Column(
@@ -2607,7 +2737,7 @@ class OnlinePayDetailScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 16.h),
                   Text(
-                    '在线支付',
+                    'deposit.pay.title'.tr(),
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
@@ -2616,7 +2746,9 @@ class OnlinePayDetailScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    payUrl.isEmpty ? '支付链接缺失' : '请在支付网关完成付款，完成后返回查看订单详情。',
+                    payUrl.isEmpty
+                        ? 'deposit.pay.missingLink'.tr()
+                        : 'deposit.pay.desc'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14.sp,
@@ -2629,14 +2761,14 @@ class OnlinePayDetailScreen extends StatelessWidget {
             ),
             SizedBox(height: 20.h),
             CustomButton(
-              text: '打开支付网关',
+              text: 'deposit.pay.openGateway'.tr(),
               onPressed:
                   payUrl.isEmpty ? null : () => _openPayUrl(context, payUrl),
             ),
             if (orderId?.trim().isNotEmpty == true) ...[
               SizedBox(height: 12.h),
               CustomButton(
-                text: '查看订单详情',
+                text: 'deposit.pay.viewOrder'.tr(),
                 isPrimary: false,
                 onPressed: () => context.push(
                   '/deposit/order/${Uri.encodeComponent(orderId!.trim())}',
@@ -2653,14 +2785,14 @@ class OnlinePayDetailScreen extends StatelessWidget {
     final uri = Uri.tryParse(url);
     if (uri == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('支付链接无效')),
+        SnackBar(content: Text('deposit.pay.invalidLink'.tr())),
       );
       return;
     }
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法打开支付网关')),
+        SnackBar(content: Text('deposit.pay.openGatewayFailed'.tr())),
       );
     }
   }
@@ -2673,31 +2805,31 @@ class TransactionRecordScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> records = [
       {
-        'title': '游戏结算',
+        'title': 'finance.record.gameSettlement'.tr(),
         'date': '2023-10-24 14:30',
         'amount': '+150.00',
-        'status': '已完成',
+        'status': 'finance.record.completed'.tr(),
         'isPositive': true
       },
       {
-        'title': '充值到账',
+        'title': 'finance.record.depositArrived'.tr(),
         'date': '2023-10-23 09:15',
         'amount': '+1000.00',
-        'status': '已完成',
+        'status': 'finance.record.completed'.tr(),
         'isPositive': true
       },
       {
-        'title': '购买道具',
+        'title': 'finance.record.buyItem'.tr(),
         'date': '2023-10-22 18:45',
         'amount': '-50.00',
-        'status': '已完成',
+        'status': 'finance.record.completed'.tr(),
         'isPositive': false
       },
     ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '交易记录'),
+      appBar: CustomNavBar(title: 'finance.record.title'.tr()),
       body: ListView.builder(
         padding: EdgeInsets.all(16.w),
         itemCount: records.length,
@@ -2769,31 +2901,31 @@ class FundRecordScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> records = [
       {
-        'title': '微信充值',
+        'title': 'deposit.wechat'.tr(),
         'date': '2023-10-24 10:20',
         'amount': '500.00',
-        'status': '充值成功',
+        'status': 'deposit.detail.statusSuccess'.tr(),
         'type': 'deposit'
       },
       {
-        'title': '银行卡提现',
+        'title': 'finance.withdraw.bankWithdraw'.tr(),
         'date': '2023-10-21 16:40',
         'amount': '2000.00',
-        'status': '处理中',
+        'status': 'deposit.detail.statusProcessing'.tr(),
         'type': 'withdraw'
       },
       {
-        'title': '支付宝充值',
+        'title': 'deposit.alipay'.tr(),
         'date': '2023-10-20 11:10',
         'amount': '100.00',
-        'status': '充值成功',
+        'status': 'deposit.detail.statusSuccess'.tr(),
         'type': 'deposit'
       },
     ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '充提记录'),
+      appBar: CustomNavBar(title: 'finance.record.fundTitle'.tr()),
       body: ListView.builder(
         padding: EdgeInsets.all(16.w),
         itemCount: records.length,
@@ -2861,7 +2993,8 @@ class FundRecordScreen extends StatelessWidget {
                       record['status'],
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: record['status'] == '处理中'
+                        color: record['status'] ==
+                                'deposit.detail.statusProcessing'.tr()
                             ? Colors.orange
                             : AppColors.textSecondary,
                       ),

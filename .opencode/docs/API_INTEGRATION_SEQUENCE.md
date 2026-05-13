@@ -1413,6 +1413,43 @@ flutter test test/widget_test.dart
 - m1 多语言底部弹窗、`config_notice.pop_up` 公告弹窗、“今日不再提示”和游戏浮窗最小化仍后置。
 - 分类区当前为视觉高保真优先，若后端分类标题变长，仍通过短标题映射和省略号避免溢出。
 
+### 2026-05-12 多语言方案约束与当前首位任务
+
+状态：已确认多语言架构方向；当前阶段首位任务调整为全项目 Flutter 专属语言包体系建设。除非修复阻断性错误，后续优先处理语言包结构、m1 翻译来源映射和页面硬编码文案替换，首页其他 m1 交互（搜索弹窗、游戏内嵌弹窗/最小化浮窗等）后置。
+
+多语言硬性规则：
+
+- Flutter 运行时语言包 `assets/i18n/*.json` 只允许维护 Flutter 自己实际使用的 key，例如 `common.*`、`nav.*`、`home.*`、`auth.*`、`game.*`、`activity.*`、`profile.*`、`finance.*`。
+- 不要在 `assets/i18n/*.json` 里同时塞 m1 全量 key 和 Flutter key；禁止把 m1 `main.*`、`page.*`、`user.*` 等全量结构长期混入 Flutter 运行时语言包。
+- m1 语言包只作为翻译来源和语义参考，不能作为 Flutter 的运行时 key 结构。
+- 后续应建立 `m1 key -> Flutter key` 的映射脚本或映射表，从 m1 `CN/TW/MY/EN/JP/KR/TH/VN` 抽取翻译值，生成 Flutter 专属语言包。
+- Flutter 静态语言文件名继续使用 locale 风格：`zh-CN.json`、`zh-TW.json`、`my-MM.json`、`en-US.json`、`ja-JP.json`、`ko-KR.json`、`th-TH.json`、`vi-VN.json`。
+- 接口请求语言继续使用 m1 业务 code：`CN/TW/MY/EN/JP/KR/TH/VN`，由 `AppLanguage` 负责 locale 与业务 code 映射。
+- 切换语言后，所有新接口请求 header `lang` 必须使用当前业务 code；`/system/getlist` 仍不要追加 query `lang`。
+- 新增页面多语言时，优先定义 Flutter key；只有翻译值可以参考 m1，不要为了复用 m1 翻译而强行在 Flutter 代码里使用 m1 Vue key。
+
+已知当前待整改：
+
+- 当前 `assets/i18n/*.json` 已先清理为 `common/home` 精简 Flutter 专属 key，但仍只是第一阶段；后续需要扩展到全项目模块 key。
+- 首页主链路静态文案已开始替换为 Flutter 自己的 `home.*` / `common.*` key；仍需继续扫描全项目硬编码中文并按模块迁移。
+- m1 非中文语言包本身存在 `...CN` 继承，未覆盖字段会保留中文；Flutter 专属语言包生成时必须标记或补齐未翻译字段，不能误认为已完整翻译。
+
+当前首位任务：全项目多语言语言包建设
+
+- 先建立 Flutter 专属语言包模块边界：`common`、`nav`、`home`、`auth`、`game`、`activity`、`profile`、`finance`、`record`、`feedback`、`settings`、`system`。
+- 扫描 `lib/**/*.dart` 的硬编码中文和现有 `.tr()` key，按页面/模块分批迁移，禁止一次性低质量替换导致 UI 回归。
+- 建立 `tool/i18n/flutter_i18n_map.json` 和生成脚本，明确哪些 Flutter key 从 m1 哪些 key 抽取翻译值；没有 m1 来源的 key 先人工补齐并标注。
+- 为语言包增加校验：所有 locale 文件 key 集合必须一致；禁止出现 m1 全量根节点 `main`、`page`、`user` 等污染 Flutter 运行时语言包。
+- 每完成一个模块，必须验证该模块在中文、英文和一种非拉丁语言（如泰文/缅文/韩文）下不出现明显溢出。
+
+首页 m1 完整对齐任务：
+
+- 首页语言切换底部弹窗的静态文案已开始接入 `.tr()`；后续继续做全语言视觉验收，验证切换语言后静态文案、Banner 过滤和新接口请求 header 同步变化。
+- `config_notice.pop_up` 公告弹窗、排序规则、`terminal` 过滤和“今日不再提示”已接入；后续只做语言包补齐和样式走查。
+- 评估首页搜索是否需要从路由跳转改为 m1 右侧全屏弹窗形态。
+- 评估游戏启动是否需要从独立 `/game-view` 改为 m1 首页内右侧全屏 popup，并补最小化浮窗。
+- 首页分类描述文案建议使用 Flutter 专属 key，例如 `home.category.liveDesc`、`home.category.lotteryDesc`、`home.category.slotDesc`，不要沿用 m1 硬编码缺陷。
+
 每开始一个接口对接任务，按以下顺序执行：
 
 1. 查 `.opencode/docs/bw-pc-api-v2（适配h5）接口文档.md`，确认接口路径、请求方法、Header、Query、Body、认证、响应结构、错误码。
@@ -1426,7 +1463,9 @@ flutter test test/widget_test.dart
 
 建议下一步：
 
-- 优先继续补首页剩余 m1 交互：多语言底部弹窗、公告弹窗 `NoticeModal` 和“今日不再提示”。
+- 首位任务：继续推进全项目 Flutter 专属语言包，先补 `auth/nav/game/activity/profile/finance` 等模块 key，并建立 m1 翻译来源映射与 key 一致性校验。
+- 语言包任务完成一个模块后，再替换对应页面硬编码中文并做多语言防溢出验证。
+- 首页搜索弹窗、游戏内嵌弹窗/最小化浮窗等 m1 剩余交互后置，除非当前语言包任务需要触达这些页面。
 - 或用真实账号验收资金记录页 `/trade/record`、`/transfers_log/getlist`、`/money_log/getlist`，确认分页、状态码、空态和币种展示。
 - 记录验收通过后，再评估接入确认提现 `POST /drawing/order`；必须先确认真实卡包、余额、VIP 规则和流水锁定字段稳定。
 
@@ -1439,14 +1478,16 @@ flutter test test/widget_test.dart
 - `/system/getlist` 已接入 `SystemService.fetchConfig()` 和 `SystemProvider.loadConfig()`。
 - Web 启动探针已经通过，Debug 日志形如 `[startup-probe] system config loaded: title=..., languages=..., banners=...`。
 - 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏列表、游戏启动、消息中心、反馈链路、活动链路、卡包列表、添加卡包、充值全链路、提现只读链路和资金记录页已有真实接口数据消费；首页分类区已按 m1 截图做高保真复刻，其余页面仍以 m1 高仿 UI fallback 为主。
+- 当前首位任务为多语言：Flutter 只维护 Flutter 专属 key，m1 语言包只作为翻译来源；不要把 m1 全量语言包和 Flutter key 混在 `assets/i18n/*.json`。已先落地 `common/home`，后续继续扩展到全项目模块。
 - 当前主 Tab 路由 `/`、`/game`、`/activity`、`/service`、`/profile` 使用 `NoTransitionPage`，底部导航点击为无动画 replace 式切换。
-- 当前验证基线：`flutter analyze lib test` 无错误，`flutter test test/widget_test.dart` 为 9 个测试通过。
+- 当前验证基线：`flutter analyze lib test` 无错误，`flutter test test/widget_test.dart` 为 12 个测试通过。
 
 下次不要重复做：
 
 - 不要重新搭建网络层。
 - 不要重新定义全局配置模型，优先复用 `HomeConfig`。
 - 不要把 `/system/getlist` 加 query `lang`。
+- 不要把 m1 全量语言包直接塞进 Flutter 运行时语言包；Flutter 语言包只保留 Flutter 实际使用 key。
 - 不要批量替换首页、游戏、钱包、活动等页面 Mock 数据。
 - 不要重建认证链路。
 - 不要贸然接入确认提现、手动转入/转出、领取返水/返利等剩余高风险资金写操作；如需接入，必须先完成对应只读链路和真实账号验证。
@@ -1454,7 +1495,7 @@ flutter test test/widget_test.dart
 
 下次优先做：
 
-- 优先补首页语言切换底部弹窗和公告弹窗，或用真实账号验收记录页分页、状态码、空态和币种展示。
+- 优先继续全项目多语言：建立 m1 -> Flutter key 映射和 key 一致性校验，补 `auth/nav/game/activity/profile/finance` 语言包，并按模块替换页面硬编码中文。
 - 或在记录与充值链路经真实账号验证后，继续接入确认提现 `POST /drawing/order`。
 - 记录页接口失败不要展示静态假交易数据；如需增强，使用真实错误态和下拉重试。
 - 页面只读消费 Provider，不让页面直接调用 Service 或 Dio。

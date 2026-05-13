@@ -3,6 +3,14 @@ import 'app_colors.dart';
 import 'app_typography.dart';
 
 class AppTheme {
+  static const _fontFamilyFallback = <String>[
+    'NotoSansSC',
+    'Roboto',
+    '.AppleSystemUIFont',
+    'Arial',
+    'sans-serif',
+  ];
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -13,7 +21,9 @@ class AppTheme {
         error: AppColors.danger,
         onSurface: AppColors.textPrimary,
       ),
-      textTheme: AppTypography.textTheme,
+      fontFamily: 'NotoSansSC',
+      fontFamilyFallback: _fontFamilyFallback,
+      textTheme: AppTypography.textTheme.apply(fontFamily: 'NotoSansSC'),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,

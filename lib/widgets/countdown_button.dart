@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:async';
 import '../theme/app_colors.dart';
 
@@ -66,13 +67,18 @@ class _CountdownButtonState extends State<CountdownButton> {
   Widget build(BuildContext context) {
     final isActive = _currentSeconds == 0 && !_isLoading;
     final text = _isLoading
-        ? '发送中...'
-        : (_currentSeconds > 0 ? '重新获取($_currentSeconds)' : '获取验证码');
+        ? 'common.sending'.tr()
+        : (_currentSeconds > 0
+            ? 'common.reacquireCountdown'
+                .tr(namedArgs: {'seconds': '$_currentSeconds'})
+            : 'common.getCode'.tr());
 
     return GestureDetector(
       onTap: isActive ? _handlePress : null,
       child: Text(
         text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 14.sp,
           color: isActive ? AppColors.primary : AppColors.textSecondary,

@@ -25,7 +25,12 @@ class _GameManagementScreenState extends State<GameManagementScreen>
 
   String _selectedDateRange = 'today';
   DateTimeRange _range = _todayRange();
-  final List<String> _dateRanges = ['today', 'yesterday', 'thisMonth', 'lastMonth'];
+  final List<String> _dateRanges = [
+    'today',
+    'yesterday',
+    'thisMonth',
+    'lastMonth'
+  ];
   int _lastLoadedTabIndex = 0;
   String? _lastLanguageCode;
 
@@ -236,7 +241,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                           ),
               ),
             ),
-            _buildRebateBottomBar(page.notFsMoney),
+            _buildRebateBottomBar(provider, page.notFsMoney),
           ],
         );
       },
@@ -251,11 +256,17 @@ class _GameManagementScreenState extends State<GameManagementScreen>
       hasShadow: true,
       child: Row(
         children: [
-          Expanded(child: _buildSummaryItem(_gm('totalRebate'), _money(page.totalFsMoney))),
+          Expanded(
+              child: _buildSummaryItem(
+                  _gm('totalRebate'), _money(page.totalFsMoney))),
           _buildVerticalDivider(),
-          Expanded(child: _buildSummaryItem(_gm('claimed'), _money(page.yesFsMoney))),
+          Expanded(
+              child:
+                  _buildSummaryItem(_gm('claimed'), _money(page.yesFsMoney))),
           _buildVerticalDivider(),
-          Expanded(child: _buildSummaryItem(_gm('unclaimed'), _money(page.notFsMoney))),
+          Expanded(
+              child:
+                  _buildSummaryItem(_gm('unclaimed'), _money(page.notFsMoney))),
         ],
       ),
     );
@@ -283,9 +294,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              _buildTag(item.claimed
-                  ? _gm('claimed')
-                  : _gm('pendingClaim'),
+              _buildTag(item.claimed ? _gm('claimed') : _gm('pendingClaim'),
                   color: item.claimed ? AppColors.success : AppColors.primary),
             ],
           ),
@@ -306,7 +315,8 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                   child: _buildRecordItem(_gm('valid'), _money(item.money),
                       alignCenter: true)),
               Expanded(
-                  child: _buildRecordItem(_gm('profitLoss'), _money(0), alignCenter: true)),
+                  child: _buildRecordItem(_gm('profitLoss'), _money(0),
+                      alignCenter: true)),
             ],
           ),
         ],
@@ -314,7 +324,8 @@ class _GameManagementScreenState extends State<GameManagementScreen>
     );
   }
 
-  Widget _buildRebateBottomBar(double amount) {
+  Widget _buildRebateBottomBar(GameManagementProvider provider, double amount) {
+    final canClaim = amount > 0 && !provider.isClaimingRebates;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
@@ -358,7 +369,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
             ),
             SizedBox(width: 12.w),
             ElevatedButton(
-              onPressed: null,
+              onPressed: canClaim ? _claimAllRebates : null,
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -369,7 +380,9 @@ class _GameManagementScreenState extends State<GameManagementScreen>
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: 128.w),
                 child: Text(
-                  _gm('claimRebate'),
+                  provider.isClaimingRebates
+                      ? 'common.submitting'.tr()
+                      : _gm('claimRebate'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 16.sp),
@@ -430,11 +443,12 @@ class _GameManagementScreenState extends State<GameManagementScreen>
           Expanded(child: _buildSummaryItem(_gm('betCount'), '${page.total}')),
           _buildVerticalDivider(),
           Expanded(
-              child: _buildSummaryItem(_gm('betAmount'), _money(page.totalBetAmount))),
+              child: _buildSummaryItem(
+                  _gm('betAmount'), _money(page.totalBetAmount))),
           _buildVerticalDivider(),
           Expanded(
-              child:
-                  _buildSummaryItem(_gm('validAmount'), _money(page.totalValidBetAmount))),
+              child: _buildSummaryItem(
+                  _gm('validAmount'), _money(page.totalValidBetAmount))),
           _buildVerticalDivider(),
           Expanded(
             child: _buildSummaryItem(
@@ -488,7 +502,8 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                   child: _buildRecordItem(_gm('bet'), _money(item.betAmount),
                       alignCenter: true)),
               Expanded(
-                  child: _buildRecordItem(_gm('valid'), _money(item.validBetAmount),
+                  child: _buildRecordItem(
+                      _gm('valid'), _money(item.validBetAmount),
                       alignCenter: true)),
               Expanded(
                 child: _buildRecordItem(
@@ -626,6 +641,23 @@ class _GameManagementScreenState extends State<GameManagementScreen>
       endDate: endDate,
       refresh: true,
     );
+  }
+
+  Future<void> _claimAllRebates() async {
+    try {
+      await context.read<GameManagementProvider>().claimAllRebates();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_gm('claimRebate'))),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      final error = context.read<GameManagementProvider>().claimRebateError ??
+          'common.loadFailed'.tr();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+    }
   }
 
   void _handleTabChanged() {

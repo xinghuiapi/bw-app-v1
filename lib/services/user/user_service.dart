@@ -30,6 +30,37 @@ class UserService extends BaseService {
     );
   }
 
+  Future<DayRevenueSummary> fetchDayRevenue() {
+    return client.post<DayRevenueSummary>(
+      ApiEndpoints.dayRevenueList,
+      decoder: DayRevenueSummary.fromResponse,
+    );
+  }
+
+  Future<RebateInfo> fetchRebateInfo() {
+    return client.post<RebateInfo>(
+      ApiEndpoints.retabeList,
+      decoder: (json) {
+        if (json is Map) {
+          return RebateInfo.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const RebateInfo();
+      },
+    );
+  }
+
+  Future<RebateClaimResult> claimRebateAmount() {
+    return client.post<RebateClaimResult>(
+      ApiEndpoints.retabeAmount,
+      decoder: (json) {
+        if (json is Map) {
+          return RebateClaimResult.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const RebateClaimResult();
+      },
+    );
+  }
+
   Future<void> updateProfile(UserProfileUpdateRequest request) {
     return client.post<void>(
       ApiEndpoints.userEdit,

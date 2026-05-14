@@ -14,6 +14,7 @@ import '../../widgets/common/app_network_image.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/search_panel_overlay.dart';
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
@@ -158,7 +159,7 @@ class _ActivityHeader extends StatelessWidget {
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            onPressed: () => context.push('/search'),
+            onPressed: () => showSearchPanel(context),
             icon: Icon(Icons.search, size: 22.sp, color: AppColors.textPrimary),
           ),
         ],

@@ -32,12 +32,21 @@ GoRouter createAppRouter(AuthProvider authProvider,
     initialLocation: RoutePaths.home,
     refreshListenable: refreshListenable,
     redirect: (context, state) {
+      final location = state.uri.toString();
+      final path = state.uri.path;
+      final telegramQuery = _telegramQueryFromUri(state.uri);
+      if (path != RoutePaths.telegramLogin &&
+          _hasTelegramQuery(telegramQuery)) {
+        final redirect = _telegramRedirectTarget(state.uri);
+        final userId = telegramQuery['user_id'] ?? '';
+        final username = telegramQuery['username'] ?? '';
+        return '${RoutePaths.telegramLogin}?user_id=${Uri.encodeComponent(userId)}&username=${Uri.encodeComponent(username)}&redirect=${Uri.encodeComponent(redirect)}';
+      }
+
       if (!authProvider.isInitialized) {
         return null;
       }
 
-      final location = state.uri.toString();
-      final path = state.uri.path;
       final isMaintenance = path == RoutePaths.maintenance;
       final isMaintaining = systemProvider?.config.siteConfig?.status == 0;
       if (isMaintaining && !isMaintenance) {
@@ -75,6 +84,42 @@ GoRouter createAppRouter(AuthProvider authProvider,
     },
     routes: _routes,
   );
+}
+
+bool _hasTelegramQuery(Map<String, String> query) {
+  return (query['user_id']?.trim().isNotEmpty ?? false) &&
+      (query['username']?.trim().isNotEmpty ?? false);
+}
+
+Map<String, String> _telegramQueryFromUri(Uri uri) {
+  if (_hasTelegramQuery(uri.queryParameters)) return uri.queryParameters;
+  final fragment = uri.fragment.trim();
+  if (fragment.isEmpty) return const <String, String>{};
+  final parsed =
+      Uri.tryParse(fragment.startsWith('/') ? fragment : '/$fragment');
+  if (parsed == null) return const <String, String>{};
+  return parsed.queryParameters;
+}
+
+String _telegramRedirectTarget(Uri uri) {
+  final query = _telegramQueryFromUri(uri);
+  final cleanQuery = Map<String, String>.from(query)
+    ..remove('user_id')
+    ..remove('username');
+  if (uri.fragment.trim().isNotEmpty &&
+      !_hasTelegramQuery(uri.queryParameters)) {
+    final fragment = uri.fragment.trim();
+    final parsed =
+        Uri.tryParse(fragment.startsWith('/') ? fragment : '/$fragment');
+    if (parsed != null) {
+      return parsed
+          .replace(queryParameters: cleanQuery.isEmpty ? null : cleanQuery)
+          .toString();
+    }
+  }
+  return uri
+      .replace(queryParameters: cleanQuery.isEmpty ? null : cleanQuery)
+      .toString();
 }
 
 final appRouter = createAppRouter(AuthProvider()..init());
@@ -299,6 +344,13 @@ final _routes = <RouteBase>[
     pageBuilder: (context, state) => _noTransitionPage(
       state,
       const DepositPaySuccessScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '/deposit/failed/:id',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      DepositPayFailedScreen(orderId: state.pathParameters['id']),
     ),
   ),
   GoRoute(

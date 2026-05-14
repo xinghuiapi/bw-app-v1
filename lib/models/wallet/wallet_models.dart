@@ -566,3 +566,49 @@ class WithdrawRequest {
         if (payPassword != null) 'pay_password': payPassword,
       };
 }
+
+class WithdrawOrderResult {
+  const WithdrawOrderResult({
+    this.id,
+    this.orderNo,
+    this.money = 0,
+    this.status,
+    this.createdAt,
+    this.raw = const <String, dynamic>{},
+  });
+
+  final int? id;
+  final String? orderNo;
+  final double money;
+  final int? status;
+  final String? createdAt;
+  final Map<String, dynamic> raw;
+
+  factory WithdrawOrderResult.fromJson(Map<String, dynamic> json) {
+    return WithdrawOrderResult(
+      id: jsonInt(json['id'] ?? json['order_id']),
+      orderNo: jsonString(json['order_no'] ?? json['orderNo']),
+      money: jsonDouble(json['money']) ?? 0,
+      status: jsonInt(json['status']),
+      createdAt: jsonString(json['created_at'] ?? json['createdAt']),
+      raw: json,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        if (id != null) 'id': id,
+        if (orderNo != null) 'order_no': orderNo,
+        'money': money,
+        if (status != null) 'status': status,
+        if (createdAt != null) 'created_at': createdAt,
+        ...raw,
+      };
+}
+
+class DeleteBankCardRequest {
+  const DeleteBankCardRequest({required this.id});
+
+  final int id;
+
+  Map<String, dynamic> toJson() => {'id': id};
+}

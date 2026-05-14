@@ -28,6 +28,7 @@ import '../widgets/common/app_network_image.dart';
 import '../widgets/home_user_action_card.dart';
 import '../widgets/notice_bar.dart';
 import '../widgets/app_download_bar.dart';
+import '../widgets/search_panel_overlay.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -229,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         SizedBox(width: 6.w),
                         GestureDetector(
-                          onTap: () => context.push('/search'),
+                          onTap: () => showSearchPanel(context),
                           child: Icon(Icons.search,
                               size: 20.sp, color: const Color(0xFF333333)),
                         ),
@@ -521,15 +522,28 @@ class _HomeScreenState extends State<HomeScreen> {
             onPageChanged: (index) => setState(() => _bannerIndex = index),
             itemBuilder: (context, index) {
               final banner = banners[index];
-              return GestureDetector(
-                onTap: () => _handleBannerTap(banner),
-                child: AppNetworkImage(
-                  url: banner.img,
-                  width: double.infinity,
-                  height: 140.h,
-                  borderRadius: BorderRadius.circular(12.r),
-                  errorWidget: _buildFallbackBanner(),
-                ),
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  IgnorePointer(
+                    child: AppNetworkImage(
+                      url: banner.img,
+                      width: double.infinity,
+                      height: 140.h,
+                      borderRadius: BorderRadius.circular(12.r),
+                      errorWidget: _buildFallbackBanner(),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12.r),
+                        onTap: () => _handleBannerTap(banner),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -749,18 +763,61 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showNoticeModalIfAllowed(List<NoticeModel> notices) async {
     final prefs = await SharedPreferences.getInstance();
     final today = _localYmd(DateTime.now());
-    if (prefs.getString(_noticeSuppressDateKey) == today) return;
+    final visibleNotices = _visiblePopupNoticesForToday(prefs, notices, today);
+    if (visibleNotices.isEmpty) return;
     if (!mounted) return;
-    final todayNoMore = await showDialog<bool>(
+    final result = await showDialog<_NoticeDialogResult>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _NoticeDialog(notices: notices),
+      builder: (_) => _NoticeDialog(notices: visibleNotices),
     );
-    if (todayNoMore == true) {
-      await prefs.setString(_noticeSuppressDateKey, today);
+    if (result?.todayNoMore == true) {
+      await _writeSuppressedNoticeIds(
+        prefs,
+        today,
+        visibleNotices.map((notice) => notice.id).toSet(),
+      );
     } else {
-      await prefs.remove(_noticeSuppressDateKey);
+      await _writeSuppressedNoticeIds(prefs, today, const <int>{});
     }
+  }
+
+  List<NoticeModel> _visiblePopupNoticesForToday(
+    SharedPreferences prefs,
+    List<NoticeModel> notices,
+    String today,
+  ) {
+    final suppressed = _readSuppressedNoticeIds(prefs, today);
+    return notices
+        .where((notice) => notice.id <= 0 || !suppressed.contains(notice.id))
+        .toList();
+  }
+
+  Set<int> _readSuppressedNoticeIds(SharedPreferences prefs, String today) {
+    final raw = prefs.getString(_noticeSuppressDateKey)?.trim() ?? '';
+    if (raw.isEmpty) return const <int>{};
+    if (raw == today) return {-1};
+    final parts = raw.split('|');
+    if (parts.length != 2 || parts.first != today) return const <int>{};
+    return parts.last
+        .split(',')
+        .map((item) => int.tryParse(item.trim()))
+        .whereType<int>()
+        .toSet();
+  }
+
+  Future<void> _writeSuppressedNoticeIds(
+    SharedPreferences prefs,
+    String today,
+    Set<int> ids,
+  ) async {
+    final normalized = ids.where((id) => id > 0).toSet();
+    if (normalized.isEmpty) {
+      await prefs.remove(_noticeSuppressDateKey);
+      return;
+    }
+    final idText = normalized.toList()..sort();
+    await prefs.setString(_noticeSuppressDateKey, '$today|${idText.join(',')}');
   }
 
   String _stripHtml(String html) {
@@ -1658,6 +1715,12 @@ class _NoticeDialog extends StatefulWidget {
   State<_NoticeDialog> createState() => _NoticeDialogState();
 }
 
+class _NoticeDialogResult {
+  const _NoticeDialogResult({required this.todayNoMore});
+
+  final bool todayNoMore;
+}
+
 class _NoticeDialogState extends State<_NoticeDialog> {
   int _index = 0;
   bool _todayNoMore = false;
@@ -1668,10 +1731,32 @@ class _NoticeDialogState extends State<_NoticeDialog> {
 
   void _close() {
     if (_todayNoMore || !_hasNext) {
-      Navigator.of(context).pop(_todayNoMore);
+      Navigator.of(context).pop(_NoticeDialogResult(todayNoMore: _todayNoMore));
       return;
     }
     setState(() => _index += 1);
+  }
+
+  Future<void> _handleNoticeTap() async {
+    final openUrl = _current.openUrl?.trim();
+    if (openUrl == null || openUrl.isEmpty) return;
+    Navigator.of(context).pop(_NoticeDialogResult(todayNoMore: _todayNoMore));
+    if (openUrl.startsWith('/')) {
+      context.push(openUrl);
+      return;
+    }
+    final uri = Uri.tryParse(openUrl);
+    if (uri == null) return;
+    if (uri.hasScheme) {
+      await launchUrl(
+        uri,
+        mode: _current.open == 1
+            ? LaunchMode.externalApplication
+            : LaunchMode.platformDefault,
+      );
+      return;
+    }
+    if (context.mounted) context.push('/$openUrl');
   }
 
   @override
@@ -1679,7 +1764,6 @@ class _NoticeDialogState extends State<_NoticeDialog> {
     final title = (_current.title?.trim().isNotEmpty ?? false)
         ? _current.title!.trim()
         : 'home.notice.titleFallback'.tr();
-    final content = _stripHtml(_current.content ?? '');
     return Dialog(
       insetPadding: EdgeInsets.symmetric(horizontal: 28.w),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
@@ -1733,15 +1817,12 @@ class _NoticeDialogState extends State<_NoticeDialog> {
               ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: 360.h),
                 child: SingleChildScrollView(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      content,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: const Color(0xFF333333),
-                        height: 1.55,
-                      ),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _handleNoticeTap,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: _NoticeContent(content: _current.content),
                     ),
                   ),
                 ),
@@ -1783,12 +1864,167 @@ class _NoticeDialogState extends State<_NoticeDialog> {
       ),
     );
   }
+}
 
-  String _stripHtml(String html) {
-    return html
+class _NoticeContent extends StatelessWidget {
+  const _NoticeContent({required this.content});
+
+  final String? content;
+
+  @override
+  Widget build(BuildContext context) {
+    final raw = content?.trim() ?? '';
+    if (raw.isEmpty) return _plainText('');
+    final sanitized = _sanitizeHtml(raw);
+    if (!_looksLikeHtml(sanitized)) return _plainText(_decodeHtml(sanitized));
+    final blocks = _parseHtmlBlocks(sanitized);
+    if (blocks.isEmpty) return _plainText(_htmlToPlainText(sanitized));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final block in blocks) _NoticeHtmlBlock(block: block),
+      ],
+    );
+  }
+
+  Widget _plainText(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 14.sp,
+        color: const Color(0xFF333333),
+        height: 1.55,
+      ),
+    );
+  }
+
+  bool _looksLikeHtml(String value) {
+    return RegExp(r'</?[a-z][\s\S]*>', caseSensitive: false).hasMatch(value);
+  }
+
+  String _sanitizeHtml(String value) {
+    return value
+        .replaceAll(
+            RegExp(r'<script[\s\S]*?</script>', caseSensitive: false), '')
+        .replaceAll(RegExp(r'<style[\s\S]*?</style>', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\son\w+\s*=\s*"[^"]*"', caseSensitive: false), '')
+        .replaceAll(RegExp(r"\son\w+\s*=\s*'[^']*'", caseSensitive: false), '')
+        .replaceAll(
+            RegExp(r'\s(href|src)\s*=\s*"\s*javascript:[^"]*"',
+                caseSensitive: false),
+            '')
+        .replaceAll(
+            RegExp(r"\s(href|src)\s*=\s*'\s*javascript:[^']*'",
+                caseSensitive: false),
+            '');
+  }
+
+  List<_NoticeHtmlBlockData> _parseHtmlBlocks(String html) {
+    final normalized = html
         .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'</p\s*>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'<[^>]*>|&nbsp;'), '')
+        .replaceAll(
+            RegExp(r'</(p|div|section|article|h[1-6])>', caseSensitive: false),
+            '\n')
+        .replaceAll(RegExp(r'</li>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</tr>', caseSensitive: false), '\n');
+    final blocks = <_NoticeHtmlBlockData>[];
+    var cursor = 0;
+    final imageRegex = RegExp(
+      r'''<img\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1[^>]*>''',
+      caseSensitive: false,
+    );
+
+    for (final match in imageRegex.allMatches(normalized)) {
+      final before = normalized.substring(cursor, match.start);
+      _appendTextBlocks(blocks, before);
+      final src = _decodeHtml(match.group(2) ?? '').trim();
+      if (src.isNotEmpty) blocks.add(_NoticeHtmlImageBlock(src));
+      cursor = match.end;
+    }
+
+    _appendTextBlocks(blocks, normalized.substring(cursor));
+    return blocks;
+  }
+
+  void _appendTextBlocks(List<_NoticeHtmlBlockData> blocks, String html) {
+    final text = _htmlToPlainText(html);
+    for (final line in text.split(RegExp(r'\n{2,}'))) {
+      final normalized = line.trim();
+      if (normalized.isNotEmpty) blocks.add(_NoticeHtmlTextBlock(normalized));
+    }
+  }
+
+  String _htmlToPlainText(String html) {
+    return _decodeHtml(html
+            .replaceAll(RegExp(r'<li\b[^>]*>', caseSensitive: false), '\n• ')
+            .replaceAll(RegExp(r'</t[dh]>', caseSensitive: false), '  ')
+            .replaceAll(RegExp(r'<[^>]+>'), ''))
+        .replaceAll(RegExp(r'[ \t]+'), ' ')
+        .replaceAll(RegExp(r' *\n *'), '\n')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
         .trim();
+  }
+
+  String _decodeHtml(String value) {
+    return value
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&apos;', "'");
+  }
+}
+
+abstract class _NoticeHtmlBlockData {
+  const _NoticeHtmlBlockData();
+}
+
+class _NoticeHtmlTextBlock extends _NoticeHtmlBlockData {
+  const _NoticeHtmlTextBlock(this.text);
+
+  final String text;
+}
+
+class _NoticeHtmlImageBlock extends _NoticeHtmlBlockData {
+  const _NoticeHtmlImageBlock(this.url);
+
+  final String url;
+}
+
+class _NoticeHtmlBlock extends StatelessWidget {
+  const _NoticeHtmlBlock({required this.block});
+
+  final _NoticeHtmlBlockData block;
+
+  @override
+  Widget build(BuildContext context) {
+    final data = block;
+    if (data is _NoticeHtmlImageBlock) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: 12.h),
+        child: AppNetworkImage(
+          url: data.url,
+          width: double.infinity,
+          height: 180.h,
+          fit: BoxFit.contain,
+          borderRadius: BorderRadius.circular(10.r),
+          optimize: false,
+        ),
+      );
+    }
+    final text = data is _NoticeHtmlTextBlock ? data.text : '';
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10.h),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14.sp,
+          color: const Color(0xFF333333),
+          height: 1.55,
+        ),
+      ),
+    );
   }
 }

@@ -77,7 +77,7 @@ class BannerModel {
   factory BannerModel.fromJson(Map<String, dynamic> json) => BannerModel(
         img: jsonString(json['img']),
         title: jsonString(json['title']),
-        openUrl: jsonString(json['open_url']),
+        openUrl: jsonString(json['open_url'] ?? json['url'] ?? json['link']),
         open: jsonInt(json['open']),
         terminal: jsonInt(json['terminal']),
         languages: _parseLanguageList(json['lang']),
@@ -118,6 +118,8 @@ class NoticeModel {
   final int? popUp;
   final int? terminal;
   final int? top;
+  final String? openUrl;
+  final int? open;
 
   const NoticeModel({
     required this.id,
@@ -126,6 +128,8 @@ class NoticeModel {
     this.popUp,
     this.terminal,
     this.top,
+    this.openUrl,
+    this.open,
   });
 
   factory NoticeModel.fromJson(Map<String, dynamic> json) => NoticeModel(
@@ -135,6 +139,8 @@ class NoticeModel {
         popUp: jsonInt(json['pop_up']),
         terminal: jsonInt(json['terminal']),
         top: jsonInt(json['top']),
+        openUrl: jsonString(json['open_url'] ?? json['url'] ?? json['link']),
+        open: jsonInt(json['open']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -144,6 +150,8 @@ class NoticeModel {
         if (popUp != null) 'pop_up': popUp,
         if (terminal != null) 'terminal': terminal,
         if (top != null) 'top': top,
+        if (openUrl != null) 'open_url': openUrl,
+        if (open != null) 'open': open,
       };
 }
 

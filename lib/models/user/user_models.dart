@@ -393,6 +393,175 @@ class VipOverview {
   }
 }
 
+class DayRevenueSummary {
+  const DayRevenueSummary({
+    this.betCount = 0,
+    this.betAmount = 0,
+    this.validBetAmount = 0,
+    this.profitLoss = 0,
+    this.unclaimedRebate = 0,
+    this.totalRebate = 0,
+    this.claimedRebate = 0,
+    this.revenue = 0,
+    this.raw = const <String, dynamic>{},
+  });
+
+  final int betCount;
+  final double betAmount;
+  final double validBetAmount;
+  final double profitLoss;
+  final double unclaimedRebate;
+  final double totalRebate;
+  final double claimedRebate;
+  final double revenue;
+  final Map<String, dynamic> raw;
+
+  factory DayRevenueSummary.fromJson(Map<String, dynamic> json) {
+    return DayRevenueSummary(
+      betCount: jsonInt(json['day_bet_count'] ??
+              json['bet_count'] ??
+              json['betCount'] ??
+              json['total']) ??
+          0,
+      betAmount: jsonDouble(json['bet_amount'] ??
+              json['betAmount'] ??
+              json['total_betAmount']) ??
+          0,
+      validBetAmount: jsonDouble(
+            json['valid_bet_amount'] ??
+                json['validBetAmount'] ??
+                json['total_validBetAmount'],
+          ) ??
+          0,
+      profitLoss: jsonDouble(
+            json['day_netAmount'] ??
+                json['profit_loss'] ??
+                json['profitLoss'] ??
+                json['net_amount'] ??
+                json['total_netAmount'],
+          ) ??
+          0,
+      unclaimedRebate: jsonDouble(
+            json['day_weiling'] ??
+                json['not_fs_money'] ??
+                json['unclaimed_rebate'] ??
+                json['unclaimedRebate'],
+          ) ??
+          0,
+      totalRebate: jsonDouble(json['day_zongfs'] ?? json['total_rebate']) ?? 0,
+      claimedRebate:
+          jsonDouble(json['day_lingqu'] ?? json['claimed_rebate']) ?? 0,
+      revenue: jsonDouble(
+              json['revenue'] ?? json['day_revenue'] ?? json['income']) ??
+          0,
+      raw: json,
+    );
+  }
+
+  factory DayRevenueSummary.fromResponse(Object? json) {
+    if (json is List && json.isNotEmpty && json.first is Map) {
+      return DayRevenueSummary.fromJson(
+          Map<String, dynamic>.from(json.first as Map));
+    }
+    if (json is Map) {
+      final map = Map<String, dynamic>.from(json);
+      final nested = jsonMap(map['data']);
+      return DayRevenueSummary.fromJson(nested ?? map);
+    }
+    return const DayRevenueSummary();
+  }
+
+  Map<String, dynamic> toJson() => {
+        'bet_count': betCount,
+        'bet_amount': betAmount,
+        'valid_bet_amount': validBetAmount,
+        'profit_loss': profitLoss,
+        'not_fs_money': unclaimedRebate,
+        'day_netAmount': profitLoss,
+        'day_bet_count': betCount,
+        'day_zongfs': totalRebate,
+        'day_lingqu': claimedRebate,
+        'day_weiling': unclaimedRebate,
+        'revenue': revenue,
+        ...raw,
+      };
+}
+
+class RebateInfo {
+  const RebateInfo({
+    this.totalMembers = 0,
+    this.effectiveMembers = 0,
+    this.claimableAmount = 0,
+    this.minRecharge = 1,
+    this.minEffectiveMembers = 1,
+    this.nextLevelMinMembers = 0,
+    this.nextLevelReward = 0,
+    this.disabled = false,
+    this.raw = const <String, dynamic>{},
+  });
+
+  final int totalMembers;
+  final int effectiveMembers;
+  final double claimableAmount;
+  final double minRecharge;
+  final int minEffectiveMembers;
+  final int nextLevelMinMembers;
+  final double nextLevelReward;
+  final bool disabled;
+  final Map<String, dynamic> raw;
+
+  factory RebateInfo.fromJson(Map<String, dynamic> json) {
+    return RebateInfo(
+      totalMembers: jsonInt(json['user_sum']) ?? 0,
+      effectiveMembers: jsonInt(json['user_youxiao']) ?? 0,
+      claimableAmount: jsonDouble(json['dailingqu']) ?? 0,
+      minRecharge: jsonDouble(json['zuidi']) ?? 1,
+      minEffectiveMembers: jsonInt(json['user_max']) ?? 1,
+      nextLevelMinMembers: jsonInt(json['user_max']) ?? 0,
+      nextLevelReward: jsonDouble(json['user_amount']) ?? 0,
+      disabled: jsonBool(json['disabled']) ?? false,
+      raw: json,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'user_sum': totalMembers,
+        'user_youxiao': effectiveMembers,
+        'dailingqu': claimableAmount,
+        'zuidi': minRecharge,
+        'user_max': minEffectiveMembers,
+        'user_amount': nextLevelReward,
+        'disabled': disabled,
+        ...raw,
+      };
+}
+
+class RebateClaimResult {
+  const RebateClaimResult({
+    this.amount = 0,
+    this.balance,
+    this.raw = const <String, dynamic>{},
+  });
+
+  final double amount;
+  final double? balance;
+  final Map<String, dynamic> raw;
+
+  factory RebateClaimResult.fromJson(Map<String, dynamic> json) {
+    return RebateClaimResult(
+      amount: jsonDouble(json['amount'] ?? json['money']) ?? 0,
+      balance: jsonDouble(json['balance']),
+      raw: json,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'amount': amount,
+        if (balance != null) 'balance': balance,
+        ...raw,
+      };
+}
+
 class UserProfileUpdateRequest {
   final String? img;
   final String? telegram;
@@ -583,8 +752,9 @@ class FeedbackRecord {
 
   bool get hasReply => reply != null && reply!.trim().isNotEmpty;
 
-  String get statusText =>
-      hasReply ? 'feedback.status.processed'.tr() : 'feedback.status.processing'.tr();
+  String get statusText => hasReply
+      ? 'feedback.status.processed'.tr()
+      : 'feedback.status.processing'.tr();
 
   Map<String, dynamic> toJson() => {
         'id': id,

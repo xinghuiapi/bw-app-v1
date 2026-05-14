@@ -89,6 +89,33 @@ class RebateRecordPage {
   }
 }
 
+class RebateClaimAllResult {
+  const RebateClaimAllResult({
+    this.amount = 0,
+    this.balance,
+    this.raw = const <String, dynamic>{},
+  });
+
+  final double amount;
+  final double? balance;
+  final Map<String, dynamic> raw;
+
+  factory RebateClaimAllResult.fromJson(Map<String, dynamic> json) {
+    return RebateClaimAllResult(
+      amount:
+          jsonDouble(json['amount'] ?? json['money'] ?? json['fs_money']) ?? 0,
+      balance: jsonDouble(json['balance']),
+      raw: json,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'amount': amount,
+        if (balance != null) 'balance': balance,
+        ...raw,
+      };
+}
+
 class RebateRecord {
   const RebateRecord({
     required this.id,

@@ -199,7 +199,7 @@ class GameItem {
   factory GameItem.fromJson(Map<String, dynamic> json) => GameItem(
         id: jsonInt(json['id']) ?? 0,
         title: jsonString(json['title']),
-        img: jsonString(json['img'])?.trim(),
+        img: jsonString(json['h5_logo'] ?? json['img'])?.trim(),
         gameCode: jsonString(json['game_code'] ?? json['code']),
         favorites: json['favorites'],
         isCategoryResult: jsonBool(json['is_category_result']),

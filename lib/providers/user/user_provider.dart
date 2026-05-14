@@ -15,10 +15,20 @@ class UserProvider extends BaseProvider<UserProfile> {
   AuthService _authService;
 
   VipOverview? vipOverview;
+  DayRevenueSummary? dayRevenue;
+  RebateInfo? rebateInfo;
+  RebateClaimResult? lastRebateClaim;
   List<VipLevel> vipLevels = const [];
   bool isVipLevelsLoading = false;
   bool isVipLevelsRefreshing = false;
+  bool isDayRevenueLoading = false;
+  bool isRebateInfoLoading = false;
+  bool isRebateClaiming = false;
+  bool isRebateDisabled = false;
   String? vipLevelsError;
+  String? dayRevenueError;
+  String? rebateInfoError;
+  String? rebateClaimError;
   bool isUploadingAvatar = false;
 
   UserProfile? get profile => data;
@@ -30,10 +40,20 @@ class UserProvider extends BaseProvider<UserProfile> {
 
   void resetForLanguageChange() {
     vipOverview = null;
+    dayRevenue = null;
+    rebateInfo = null;
+    lastRebateClaim = null;
     vipLevels = const [];
     isVipLevelsLoading = false;
     isVipLevelsRefreshing = false;
+    isDayRevenueLoading = false;
+    isRebateInfoLoading = false;
+    isRebateClaiming = false;
+    isRebateDisabled = false;
     vipLevelsError = null;
+    dayRevenueError = null;
+    rebateInfoError = null;
+    rebateClaimError = null;
     isUploadingAvatar = false;
     notifyListeners();
   }
@@ -100,6 +120,83 @@ class UserProvider extends BaseProvider<UserProfile> {
       isVipLevelsRefreshing = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadDayRevenue({bool refresh = false}) async {
+    if (isDayRevenueLoading) return;
+    if (!refresh && dayRevenue != null) return;
+
+    isDayRevenueLoading = true;
+    dayRevenueError = null;
+    notifyListeners();
+
+    try {
+      dayRevenue = await _service.fetchDayRevenue();
+    } on ApiException catch (exception) {
+      dayRevenueError = exception.message;
+      rethrow;
+    } catch (exception) {
+      dayRevenueError = exception.toString();
+      rethrow;
+    } finally {
+      isDayRevenueLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadRebateInfo({bool refresh = false}) async {
+    if (isRebateInfoLoading) return;
+    if (!refresh && rebateInfo != null) return;
+
+    isRebateInfoLoading = true;
+    rebateInfoError = null;
+    isRebateDisabled = false;
+    notifyListeners();
+
+    try {
+      rebateInfo = await _service.fetchRebateInfo();
+    } on ApiException catch (exception) {
+      rebateInfoError = exception.message;
+      if (_isNoInvitePolicy(exception.message)) {
+        isRebateDisabled = true;
+        rebateInfo = null;
+        return;
+      }
+      rethrow;
+    } catch (exception) {
+      rebateInfoError = exception.toString();
+      rethrow;
+    } finally {
+      isRebateInfoLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> claimRebateAmount() async {
+    if (isRebateClaiming) return;
+
+    isRebateClaiming = true;
+    rebateClaimError = null;
+    notifyListeners();
+
+    try {
+      lastRebateClaim = await _service.claimRebateAmount();
+      await loadRebateInfo(refresh: true);
+      await loadProfile(refresh: true).catchError((_) {});
+    } on ApiException catch (exception) {
+      rebateClaimError = exception.message;
+      rethrow;
+    } catch (exception) {
+      rebateClaimError = exception.toString();
+      rethrow;
+    } finally {
+      isRebateClaiming = false;
+      notifyListeners();
+    }
+  }
+
+  bool _isNoInvitePolicy(String message) {
+    return message.trim().contains('无可用邀请策略');
   }
 
   Future<void> updateProfile(UserProfileUpdateRequest request) async {

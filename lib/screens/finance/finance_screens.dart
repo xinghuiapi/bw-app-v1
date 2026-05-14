@@ -854,15 +854,15 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF3B82F6),
-              Color(0xFF5AA7FF),
-              Color(0xFFEAF3FF),
-              Color(0xFFF4F6F9),
-            ],
-            stops: [0, 0.18, 0.45, 0.7],
-          ),
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF3B82F6),
+                Color(0xFF5AA7FF),
+                Color(0xFFEAF3FF),
+                Color(0xFFF4F6F9),
+              ],
+              stops: [0, 0.18, 0.45, 0.7],
+            ),
           ),
           child: RefreshIndicator(
             onRefresh: () async {
@@ -1736,10 +1736,12 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
     if (type == 4) {
       _addRow(rows, 'deposit.detail.bank'.tr(), params?.bank);
       _addRow(rows, 'deposit.detail.bankName'.tr(), params?.bankName);
-      _addRow(rows, 'deposit.detail.cardNo'.tr(), params?.card, copy: params?.card);
+      _addRow(rows, 'deposit.detail.cardNo'.tr(), params?.card,
+          copy: params?.card);
       _addRow(rows, 'deposit.detail.address'.tr(), params?.address);
     } else if (type == 3 || type == 5) {
-      _addRow(rows, 'deposit.detail.receiveAddress'.tr(), params?.address, copy: params?.address);
+      _addRow(rows, 'deposit.detail.receiveAddress'.tr(), params?.address,
+          copy: params?.address);
       if (detail.displayCurrency.toUpperCase() == 'CNY') {
         _addRow(
             rows,
@@ -1747,18 +1749,23 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
             detail.rate == null
                 ? null
                 : _formatAmount(detail.rate!, fractionDigits: 4));
-        _addRow(rows, 'deposit.detail.cryptoAmount'.tr(), _cryptoAmountText(detail));
+        _addRow(rows, 'deposit.detail.cryptoAmount'.tr(),
+            _cryptoAmountText(detail));
       }
     } else if (type == 2) {
       _addRow(rows, 'deposit.detail.name'.tr(), params?.name);
-      _addRow(rows, 'deposit.detail.account'.tr(), params?.account, copy: params?.account);
+      _addRow(rows, 'deposit.detail.account'.tr(), params?.account,
+          copy: params?.account);
     } else {
       _addRow(rows, 'deposit.detail.name'.tr(), params?.name);
-      _addRow(rows, 'deposit.detail.account'.tr(), params?.account, copy: params?.account);
-      _addRow(rows, 'deposit.detail.receiveAddress'.tr(), params?.address, copy: params?.address);
+      _addRow(rows, 'deposit.detail.account'.tr(), params?.account,
+          copy: params?.account);
+      _addRow(rows, 'deposit.detail.receiveAddress'.tr(), params?.address,
+          copy: params?.address);
       _addRow(rows, 'deposit.detail.bank'.tr(), params?.bank);
       _addRow(rows, 'deposit.detail.bankName'.tr(), params?.bankName);
-      _addRow(rows, 'deposit.detail.cardNo'.tr(), params?.card, copy: params?.card);
+      _addRow(rows, 'deposit.detail.cardNo'.tr(), params?.card,
+          copy: params?.card);
       _addRow(rows, 'deposit.detail.address'.tr(), params?.address);
     }
 
@@ -1836,7 +1843,9 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
   String _headerTitle(RechargeDetail detail) {
     if (detail.type == 4) return 'deposit.detail.bankTransfer'.tr();
     if (detail.type == 2) return 'deposit.detail.alipayRecharge'.tr();
-    if (detail.type == 3 || detail.type == 5) return 'deposit.detail.cryptoRecharge'.tr();
+    if (detail.type == 3 || detail.type == 5) {
+      return 'deposit.detail.cryptoRecharge'.tr();
+    }
     return _payTypeText(detail);
   }
 
@@ -1849,12 +1858,13 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
 
   String _payTypeText(RechargeDetail detail) {
     if (detail.type == 4) return 'deposit.detail.bankCard'.tr();
-    if (detail.type == 3 || detail.type == 5) return 'deposit.detail.crypto'.tr();
+    if (detail.type == 3 || detail.type == 5) {
+      return 'deposit.detail.crypto'.tr();
+    }
     if (detail.type == 2) return 'deposit.detail.alipay'.tr();
     return detail.type == null
         ? '-'
-        : 'deposit.detail.typeNumber'
-            .tr(namedArgs: {'type': '${detail.type}'});
+        : 'deposit.detail.typeNumber'.tr(namedArgs: {'type': '${detail.type}'});
   }
 
   bool _isPending(RechargeDetail detail) => (detail.status ?? 5) == 5;
@@ -1985,6 +1995,110 @@ class DepositPaySuccessScreen extends StatelessWidget {
   }
 }
 
+class DepositPayFailedScreen extends StatelessWidget {
+  const DepositPayFailedScreen({super.key, this.orderId});
+
+  final String? orderId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: CustomNavBar(
+        title: _failedText('title', '充值失败'),
+        showLeftArrow: false,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(12.w),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(16.w, 22.h, 16.w, 18.h),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 12.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 68.w,
+                      height: 68.w,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 38.sp,
+                        color: const Color(0xFFEF4444),
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    Text(
+                      _failedText('heading', '充值失败'),
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF333333),
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    Text(
+                      _failedText('desc', '本次支付未完成，请重新发起充值。'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: const Color(0xFF999999),
+                      ),
+                    ),
+                    if (orderId?.trim().isNotEmpty == true) ...[
+                      SizedBox(height: 8.h),
+                      Text(
+                        _failedText('orderId', '订单号：{id}')
+                            .replaceAll('{id}', orderId!.trim()),
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SizedBox(height: 14.h),
+              CustomButton(
+                text: 'common.deposit'.tr(),
+                onPressed: () => context.go('/deposit'),
+              ),
+              SizedBox(height: 10.h),
+              CustomButton(
+                text: _failedText('backHome', '返回首页'),
+                isPrimary: false,
+                onPressed: () => context.go('/'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _failedText(String key, String fallback) {
+    final localeKey = 'deposit.failed.$key';
+    final value = localeKey.tr();
+    return value == localeKey ? fallback : value;
+  }
+}
+
 class WithdrawScreen extends StatefulWidget {
   const WithdrawScreen({super.key});
 
@@ -2070,12 +2184,18 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               ],
               SizedBox(height: 32.h),
               CustomButton(
-                text: 'finance.withdraw.confirm'.tr(),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('finance.withdraw.comingSoon'.tr())),
-                  );
-                },
+                text: walletProvider.isWithdrawSubmitting
+                    ? 'deposit.submitting'.tr()
+                    : 'finance.withdraw.confirm'.tr(),
+                onPressed: walletProvider.isWithdrawSubmitting
+                    ? null
+                    : () => _submitWithdraw(
+                          cards: cards,
+                          balance: balance,
+                          minWithdraw: minWithdraw,
+                          waterEnough: waterEnough,
+                          hasPayPassword: profile?.hasPayPassword ?? false,
+                        ),
               ),
               SizedBox(height: 24.h),
             ],
@@ -2616,6 +2736,66 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(error)));
     }
+  }
+
+  Future<void> _submitWithdraw({
+    required List<WalletCard> cards,
+    required double balance,
+    required double minWithdraw,
+    required bool waterEnough,
+    required bool hasPayPassword,
+  }) async {
+    if (!waterEnough) {
+      _showSnack('finance.withdraw.currentWater'.tr(namedArgs: {
+        'ok': '-',
+        'sum': '-',
+      }));
+      return;
+    }
+    if (cards.isEmpty) {
+      _showSnack('finance.withdraw.emptyCards'.tr());
+      return;
+    }
+    if (!hasPayPassword) {
+      _showSnack('finance.withdraw.unsetPayPassword'.tr());
+      return;
+    }
+    final selectedCard = cards[_activeCardIndex.clamp(0, cards.length - 1)];
+    final money = double.tryParse(_amountController.text.trim());
+    if (money == null || money <= 0) {
+      _showSnack('finance.withdraw.enterAmount'.tr());
+      return;
+    }
+    if (minWithdraw > 0 && money < minWithdraw) {
+      _showSnack('finance.withdraw.minSingle'.tr(namedArgs: {
+        'amount': minWithdraw.toStringAsFixed(2),
+      }));
+      return;
+    }
+    if (money > balance) {
+      _showSnack('finance.withdraw.availableBalance'.tr());
+      return;
+    }
+
+    try {
+      await context.read<WalletProvider>().createWithdrawOrder(
+            WithdrawRequest(id: selectedCard.id, money: money),
+          );
+      if (!mounted) return;
+      _amountController.clear();
+      context.go('/withdraw/success');
+    } catch (_) {
+      if (!mounted) return;
+      final error = context.read<WalletProvider>().withdrawSubmitError ??
+          'deposit.detail.submitFailed'.tr();
+      _showSnack(error);
+    }
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   VipLevel? _currentVipLevel(UserProvider provider) {

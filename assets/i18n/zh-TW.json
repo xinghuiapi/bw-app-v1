@@ -40,6 +40,7 @@
     "optional": "选填",
     "unnamed": "未命名",
     "search": "搜索",
+    "history": "搜索歷史",
     "reacquireCountdown": "重新取得({seconds})",
     "emptyData": "暂无数据",
     "loadFailedRetry": "加载失败，请稍后重试",
@@ -117,7 +118,18 @@
     "forgotPasswordTitle": "忘記密碼？",
     "resetPasswordDesc": "請輸入註冊手機號以重設密碼",
     "enterNewPassword": "請輸入新密碼",
-    "telegramLogin": "Telegram 登入",
+    "telegramLogin": {
+      "title": "Telegram 登入",
+      "secureLoading": "安全登入中...",
+      "firstLoading": "首次登入處理中...",
+      "missingParams": "Telegram 登入參數缺失",
+      "success": "Telegram 登入成功",
+      "failed": "Telegram 登入失敗",
+      "retryLater": "登入失敗，請稍後再試",
+      "setDefaultPassSuccess": "預設密碼設定成功",
+      "setPassFailed": "密碼設定失敗",
+      "busy": "系統繁忙，請稍後再試"
+    },
     "telegramQuickLogin": "透過 Telegram 快速登入",
     "telegramAgreement": "繼續即表示您同意我們的服務條款和隱私政策",
     "authorizeTelegram": "授權 Telegram",
@@ -589,23 +601,27 @@
     "rebateTitle": "分享返利",
     "rebateSubtitle": "(分享奖励)",
     "claimable": "可领取",
-    "claimRequirement": "总有效会员≥5人即可领取",
+    "claimRequirement": "總有效會員≥{n}人即可領取",
     "overview": "会员总览",
     "totalMembers": "会员总数",
     "validMembers": "有效会员",
-    "validMemberRule": "充值≥1元为有效",
+    "validMemberRule": "充值≥{amount}元為有效",
     "info": "分享信息",
     "inviteCode": "分享邀请码",
     "shareUrl": "分享URL",
     "qrCode": "二维码",
     "qrPreviewHint": "点击二维码可预览",
     "copy": "复制",
+    "disabled": "暫無可用邀請策略",
+    "noReward": "暫無可領取獎勵",
+    "claimSuccess": "領取成功",
+    "claimFailed": "領取失敗",
     "rulesTitle": "邀请规则说明",
     "rule1": "1. 本活动全体用户皆可参与；用户点击推荐链接分享给新用户注册并进行充值后即可获得对应推荐礼金，被推荐用户无需填写推荐码。",
     "rule2": "2. 每推荐一个新用户注册并完成首充，推荐人即可获得一次推荐礼金；推荐礼金以被推荐用户首充金额为准。",
     "rule3": "3. 本活动与【返水优惠】共享，不与其他任何优惠共享。",
     "rule4": "4. 被推荐用户需满足：每一个手机号码、电子邮箱、IP地址、相同银行卡、同一台电脑仅可注册一个会员账号；如发现违规用户，我们将保留无限期审核并扣回红利及产生利润的权利。",
-    "rule5": "5. 通过分享链接或邀请码注册的用户，将计入会员总数；邀请会员完成充值≥1元后，将计入有效会员；总有效会员≥5人后，可领取分享奖励。"
+    "rule5": "5. 透過分享連結或邀請碼註冊的用戶，將計入會員總數；邀請會員完成充值≥{amount}元後，將計入有效會員；總有效會員≥{n}人後，可領取分享獎勵。"
   },
   "feedback": {
     "selectType": "选择问题类型",
@@ -817,6 +833,13 @@
       "description": "資金已到達您的錢包帳戶",
       "viewWallet": "查看錢包",
       "continueDeposit": "繼續充值"
+    },
+    "failed": {
+      "title": "充值失敗",
+      "heading": "充值失敗",
+      "desc": "本次支付未完成，請重新發起充值。",
+      "backHome": "返回首頁",
+      "orderId": "訂單號：{id}"
     }
   },
   "gameManagement": {

@@ -15,6 +15,7 @@ class GameViewShell extends StatelessWidget {
     this.isLoading = false,
     this.errorText,
     this.onReload,
+    this.onMinimize,
   });
 
   final String title;
@@ -22,6 +23,7 @@ class GameViewShell extends StatelessWidget {
   final bool isLoading;
   final String? errorText;
   final VoidCallback? onReload;
+  final VoidCallback? onMinimize;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,7 @@ class GameViewShell extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            _GameHeader(title: title, logo: logo),
+            _GameHeader(title: title, logo: logo, onMinimize: onMinimize),
             Expanded(
               child: Stack(
                 children: [
@@ -65,10 +67,15 @@ class GameViewShell extends StatelessWidget {
 }
 
 class _GameHeader extends StatelessWidget {
-  const _GameHeader({required this.title, required this.logo});
+  const _GameHeader({
+    required this.title,
+    required this.logo,
+    this.onMinimize,
+  });
 
   final String title;
   final String? logo;
+  final VoidCallback? onMinimize;
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +89,7 @@ class _GameHeader extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: SizedBox(
-              width: 180.w,
+              width: 145.w,
               child: Text(
                 title.trim().isNotEmpty ? title.trim() : 'game.title'.tr(),
                 style: TextStyle(
@@ -108,17 +115,52 @@ class _GameHeader extends StatelessWidget {
             ),
           Align(
             alignment: Alignment.centerRight,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () =>
-                  context.canPop() ? context.pop() : context.go('/game'),
-              child: Padding(
-                padding: EdgeInsets.only(left: 18.w),
-                child: Icon(Icons.close, color: Colors.white, size: 24.sp),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (onMinimize != null)
+                  _GameHeaderAction(
+                    icon: Icons.fullscreen_exit_rounded,
+                    onTap: onMinimize!,
+                  ),
+                SizedBox(width: 6.w),
+                _GameHeaderAction(
+                  icon: Icons.close_rounded,
+                  onTap: () =>
+                      context.canPop() ? context.pop() : context.go('/game'),
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GameHeaderAction extends StatelessWidget {
+  const _GameHeaderAction({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 28.w,
+        height: 28.h,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.18),
+            width: 0.5,
+          ),
+        ),
+        child: Icon(icon, color: Colors.white, size: 18.sp),
       ),
     );
   }

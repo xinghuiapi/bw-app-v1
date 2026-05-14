@@ -1,15 +1,52 @@
 # Checkpoints
 
-- [x] Flutter 基础工程成功创建，成功执行 `flutter run`，iOS/Android 原生状态栏已配置沉浸式。
-- [x] 核心库 (`go_router`, `flutter_screenutil`, `flutter_svg`, `provider`) 无版本冲突引入。
-- [x] Web 端原有的所有 SVG 图标和位图资产 100% 导入并在 `pubspec.yaml` 中正确声明。
-- [x] `app_colors.dart` 与 Web CSS 的色彩变量（含透明度叠加）映射验证完成，无硬编码。
-- [x] `app_typography.dart` 的 `fontSize`, `height`, `fontWeight` 严格对齐原设计系统，使用 `.sp` 适配。
-- [x] 基于 `ThemeExtension` 的全局设计规范 (`BoxShadow`, `BorderRadius`) 已在全局 `MaterialApp.theme` 中生效。
-- [x] Button、Input 等基础组件的 Hover/Focus/Pressed 等交互态的微动画、色变过渡与原 Web 完全一致。
-- [x] Card 等容器组件的阴影 (Spread/Blur 半径) 效果和毛玻璃背景肉眼不可见差异。
-- [x] 路由层配置自定义 `PageTransitionsBuilder`，页面切换动画 (Slide/Fade) 与 Web 体验保持同频。
-- [x] 首页、列表页、详情页等核心页面布局代码中严格使用 `.w`/`.h` 尺寸缩放体系。
-- [x] 针对长文本、深层嵌套层级进行边界测试，在不同宽高比的模拟器上确认无 Overflow 像素溢出警告。
-- [x] 下拉菜单、折叠面板等带有物理位移效果的组件已接入补间动画 (`AnimatedSize` 等)，无生硬闪烁。
-- [x] 代码质量：运行 `flutter analyze` 零错误、零高危警告；整体 UI 对比 Web 还原率达 95% 以上。
+## 任务目标检查
+
+- [x] m1 参考源已固定为 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`。
+- [x] 当前任务目标已从“补齐大页面”调整为“补齐 m1 核心业务闭环”。
+- [x] 已确认主体页面基本覆盖 m1 路由页面。
+- [x] 已确认后续重点是写操作接口、真实数据闭环和少数 m1 交互模块。
+
+## 当前进度检查
+
+- [x] 主 Tab：首页、游戏、活动、客服、我的已实现。
+- [x] 账号页、钱包页、资金管理、游戏管理、活动详情、活动记录、反馈、消息、VIP、充值链路已完成主要 UI 和接口接入。
+- [x] `ApiEndpoints` 已覆盖 m1 主要 API。
+- [x] 基础 `Service`、`Provider`、`Model` 分层已建立。
+- [x] 已初步补齐提现、删卡、分享、今日收益、返水领取、找回密码、Telegram 等缺口所需 service/model。
+- [x] P0 写操作和真实数据入口已完成一轮 `Provider -> Screen` 接入。
+- [x] P1 m1 交互已完成基础对齐，剩余进入 P2 路由与联调细节。
+
+## P0 验收检查
+
+- [x] `/drawing/order`：提现提交可用，按钮有提交中状态，成功跳提现成功页，失败展示后端错误。
+- [x] `/member_bank/delete`：银行卡删除确认、提交、刷新列表可用。
+- [x] `/code/send`、`/password/get`：找回密码验证码发送、重置提交、成功态和错误态可用。
+- [x] `/retabe/list`、`/retabe/amount`：分享页金额、会员数、领取返利来自真实数据；邀请码按 m1 使用账号 ID，分享链接按 m1 前端规则生成 `/m1/register?invite=账号ID`，二维码按分享链接实时生成并支持预览，禁用空态、刷新逻辑、动态规则文案和领取提示已补齐；首帧不会闪现 `{amount}` 占位符。
+- [x] `/member_fs_log/claim`：游戏返水一键领取可用，成功后刷新返水记录。
+- [x] `/day_revenue/getlist`：模型完整解析 `day_netAmount`、`day_bet_count`、`day_zongfs`、`day_lingqu`、`day_weiling`；我的页卡片按 m1 实际展示投注数、净盈亏、未领取返水三项。
+
+## P1 验收检查
+
+- [x] 搜索入口对齐 m1 右侧全屏弹窗体验，并保留必要的独立页兼容；搜索业务已验证可用。
+- [x] 游戏承载页支持最小化、浮窗恢复、关闭和跨页面保留游戏状态；最小化弹窗已验证可用。
+- [x] 公告弹窗支持多公告、今日不再提示、富文本/图片、跳转和按公告粒度 suppression。
+- [x] `/deposit/failed/:id` 充值失败页或失败态路由已补齐。
+
+## P2 验收检查
+
+- [x] Telegram query 拦截逻辑对齐 m1 router。
+- [x] Telegram 登录真实接口已接入；query 拦截与首次登录默认设置密码闭环已补齐。
+- [ ] 邀请/refcode query 持久化逻辑对齐 m1。
+- [ ] `/system/getlist` 终端参数与 m1 一致并通过联调确认。
+- [ ] `/activity/details` 语言参数与 m1/后端规则一致。
+- [ ] `DayRevenueSummary`、`WithdrawOrderResult`、Telegram 相关模型字段按真实响应校准。
+
+## 质量检查
+
+- [x] 每个落地阶段执行 `dart format`。
+- [x] 每个落地阶段执行 `flutter analyze` 且无新增问题。
+- [x] 写操作均具备 loading、success、error 和防重复提交。
+- [ ] 接口失败或空数据不展示静态假数据。
+- [ ] 新增 UI 在小屏、长文本、多语言场景下无明显溢出。
+- [ ] 完成业务/API/UI 改动后同步更新任务、进度和接口文档。

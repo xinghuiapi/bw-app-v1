@@ -39,6 +39,8 @@ class WalletProvider extends ChangeNotifier {
   bool isUploadingRechargeImage = false;
   bool isRechargeProofSubmitting = false;
   bool isRechargeCancelSubmitting = false;
+  bool isWithdrawSubmitting = false;
+  bool isDeletingCard = false;
   final Map<int, bool> _cardTypeLoading = {};
 
   String? cardsError;
@@ -55,6 +57,8 @@ class WalletProvider extends ChangeNotifier {
   String? rechargeImageUploadError;
   String? rechargeProofSubmitError;
   String? rechargeCancelError;
+  String? withdrawSubmitError;
+  String? deleteCardError;
   final Map<int, String?> _cardTypeErrors = {};
 
   double get venueBalanceTotal =>
@@ -88,6 +92,8 @@ class WalletProvider extends ChangeNotifier {
     isUploadingRechargeImage = false;
     isRechargeProofSubmitting = false;
     isRechargeCancelSubmitting = false;
+    isWithdrawSubmitting = false;
+    isDeletingCard = false;
     _cardTypeLoading.clear();
     cardsError = null;
     venuesError = null;
@@ -102,6 +108,8 @@ class WalletProvider extends ChangeNotifier {
     rechargeImageUploadError = null;
     rechargeProofSubmitError = null;
     rechargeCancelError = null;
+    withdrawSubmitError = null;
+    deleteCardError = null;
     _cardTypeErrors.clear();
     notifyListeners();
   }
@@ -454,6 +462,61 @@ class WalletProvider extends ChangeNotifier {
       rethrow;
     } finally {
       isBindingCard = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteCard(DeleteBankCardRequest request) async {
+    if (isDeletingCard) return;
+
+    isDeletingCard = true;
+    deleteCardError = null;
+    notifyListeners();
+
+    try {
+      await _service.deleteCard(request);
+      await loadCards(refresh: true);
+    } on ApiException catch (exception) {
+      deleteCardError = exception.message;
+      rethrow;
+    } catch (exception) {
+      deleteCardError = exception.toString();
+      rethrow;
+    } finally {
+      isDeletingCard = false;
+      notifyListeners();
+    }
+  }
+
+  Future<WithdrawOrderResult> createWithdrawOrder(
+    WithdrawRequest request,
+  ) async {
+    if (isWithdrawSubmitting) {
+      throw ApiException(
+        type: ApiExceptionType.business,
+        message: 'finance.withdraw.submitting'.tr(),
+      );
+    }
+
+    isWithdrawSubmitting = true;
+    withdrawSubmitError = null;
+    notifyListeners();
+
+    try {
+      final result = await _service.createWithdrawOrder(request);
+      await Future.wait([
+        loadRealtimeBalance(refresh: true),
+        loadCards(refresh: true),
+      ]);
+      return result;
+    } on ApiException catch (exception) {
+      withdrawSubmitError = exception.message;
+      rethrow;
+    } catch (exception) {
+      withdrawSubmitError = exception.toString();
+      rethrow;
+    } finally {
+      isWithdrawSubmitting = false;
       notifyListeners();
     }
   }

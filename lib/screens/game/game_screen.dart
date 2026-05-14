@@ -12,6 +12,7 @@ import '../../providers/system/system_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_images.dart';
 import '../../widgets/common/app_network_image.dart';
+import '../../widgets/search_panel_overlay.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -136,7 +137,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               return _buildSiteBrand(siteConfig, context);
             },
           ),
-          Icon(Icons.search, size: 24.sp, color: const Color(0xFF333333)),
+          GestureDetector(
+            onTap: () => showSearchPanel(context),
+            child: Icon(
+              Icons.search,
+              size: 24.sp,
+              color: const Color(0xFF333333),
+            ),
+          ),
         ],
       ),
     );

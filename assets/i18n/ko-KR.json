@@ -40,6 +40,7 @@
     "optional": "선택",
     "unnamed": "이름 없음",
     "search": "검색",
+    "history": "검색 기록",
     "reacquireCountdown": "다시 받기 ({seconds})",
     "emptyData": "데이터 없음",
     "loadFailedRetry": "로드 실패, 나중에 다시 시도하세요",
@@ -117,7 +118,18 @@
     "forgotPasswordTitle": "비밀번호를 잊으셨나요?",
     "resetPasswordDesc": "등록된 휴대폰 번호를 입력해 재설정하세요",
     "enterNewPassword": "새 비밀번호를 입력하세요",
-    "telegramLogin": "Telegram 로그인",
+    "telegramLogin": {
+      "title": "Telegram 로그인",
+      "secureLoading": "안전하게 로그인 중...",
+      "firstLoading": "첫 로그인 처리 중...",
+      "missingParams": "Telegram 로그인 파라미터가 누락되었습니다",
+      "success": "Telegram 로그인 성공",
+      "failed": "Telegram 로그인 실패",
+      "retryLater": "로그인에 실패했습니다. 잠시 후 다시 시도해 주세요",
+      "setDefaultPassSuccess": "기본 비밀번호 설정 성공",
+      "setPassFailed": "비밀번호 설정 실패",
+      "busy": "시스템이 바쁩니다. 잠시 후 다시 시도해 주세요"
+    },
     "telegramQuickLogin": "Telegram으로 빠른 로그인",
     "telegramAgreement": "계속하면 서비스 약관 및 개인정보 처리방침에 동의하게 됩니다",
     "authorizeTelegram": "Telegram 인증",
@@ -589,23 +601,27 @@
     "rebateTitle": "공유 리베이트",
     "rebateSubtitle": "(공유 보상)",
     "claimable": "수령 가능",
-    "claimRequirement": "유효 회원 5명 이상이면 수령 가능",
+    "claimRequirement": "유효 회원 {n}명 이상이면 수령 가능",
     "overview": "회원 개요",
     "totalMembers": "총 회원",
     "validMembers": "유효 회원",
-    "validMemberRule": "충전 >= 1이면 유효",
+    "validMemberRule": "충전 >= {amount}이면 유효",
     "info": "공유 정보",
     "inviteCode": "초대 코드",
     "shareUrl": "공유 URL",
     "qrCode": "QR 코드",
     "qrPreviewHint": "QR 코드를 눌러 미리보기",
     "copy": "복사",
+    "disabled": "사용 가능한 초대 정책이 없습니다",
+    "noReward": "수령 가능한 보상이 없습니다",
+    "claimSuccess": "수령 성공",
+    "claimFailed": "수령 실패",
     "rulesTitle": "초대 규칙",
     "rule1": "1. 모든 사용자가 참여할 수 있습니다. 추천 링크를 공유하고 신규 사용자가 가입 및 충전하면 보상을 받을 수 있습니다.",
     "rule2": "2. 신규 사용자가 가입 후 첫 충전을 완료할 때마다 추천인은 첫 충전 금액 기준으로 보상을 받을 수 있습니다.",
     "rule3": "3. 본 이벤트는 리베이트 프로모션과 공유되며 다른 프로모션과 중복되지 않습니다.",
     "rule4": "4. 동일 휴대폰, 이메일, IP, 은행카드, 기기는 하나의 회원 계정만 등록할 수 있습니다. 위반 시 보너스와 수익을 회수할 수 있습니다.",
-    "rule5": "5. 공유 링크 또는 초대 코드로 가입한 사용자는 총 회원에 포함됩니다. 충전 1 이상 완료 시 유효 회원으로 계산되며, 유효 회원 5명 이상이면 보상을 받을 수 있습니다."
+    "rule5": "5. 공유 링크 또는 초대 코드로 가입한 사용자는 총 회원에 포함됩니다. 충전 {amount} 이상 완료 시 유효 회원으로 계산되며, 유효 회원 {n}명 이상이면 보상을 받을 수 있습니다."
   },
   "feedback": {
     "selectType": "문제 유형 선택",
@@ -817,6 +833,13 @@
       "description": "자금이 지갑 계정에 도착했습니다",
       "viewWallet": "지갑 보기",
       "continueDeposit": "계속 입금"
+    },
+    "failed": {
+      "title": "입금 실패",
+      "heading": "입금 실패",
+      "desc": "결제가 완료되지 않았습니다. 다시 입금해 주세요.",
+      "backHome": "홈으로 돌아가기",
+      "orderId": "주문 번호: {id}"
     }
   },
   "gameManagement": {

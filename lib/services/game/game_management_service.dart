@@ -30,4 +30,16 @@ class GameManagementService extends BaseService {
       },
     );
   }
+
+  Future<RebateClaimAllResult> claimAllRebates() {
+    return client.post<RebateClaimAllResult>(
+      ApiEndpoints.memberFsLogClaim,
+      decoder: (json) {
+        if (json is Map) {
+          return RebateClaimAllResult.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const RebateClaimAllResult();
+      },
+    );
+  }
 }

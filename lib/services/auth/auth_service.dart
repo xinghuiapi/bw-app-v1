@@ -65,6 +65,49 @@ class AuthService extends BaseService {
     );
   }
 
+  Future<VerificationCodeData> sendResetPasswordCode({
+    required int type,
+    String? areaCode,
+    String? phone,
+    String? email,
+  }) {
+    return client.post<VerificationCodeData>(
+      ApiEndpoints.smsCode,
+      data: <String, dynamic>{
+        'type': type,
+        if (areaCode != null && areaCode.trim().isNotEmpty)
+          'area_code': areaCode.trim(),
+        if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+        if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
+      },
+      decoder: _verificationCodeData,
+    );
+  }
+
+  Future<void> resetPassword(ResetPasswordRequest request) {
+    return client.post<void>(
+      ApiEndpoints.resetPassword,
+      data: request.toJson(),
+      decoder: (_) {},
+    );
+  }
+
+  Future<AuthToken> telegramLogin(TelegramLoginRequest request) {
+    return client.post<AuthToken>(
+      ApiEndpoints.telegramLogin,
+      data: request.toJson(),
+      decoder: AuthToken.fromResponseJson,
+    );
+  }
+
+  Future<void> setTelegramPassword(SetTelegramPasswordRequest request) {
+    return client.post<void>(
+      ApiEndpoints.telegramPassword,
+      data: request.toJson(),
+      decoder: (_) {},
+    );
+  }
+
   VerificationCodeData _verificationCodeData(Object? json) {
     if (json is Map) {
       return VerificationCodeData.fromJson(Map<String, dynamic>.from(json));

@@ -40,6 +40,7 @@
     "optional": "任意",
     "unnamed": "名称未設定",
     "search": "検索",
+    "history": "検索履歴",
     "reacquireCountdown": "再取得({seconds})",
     "emptyData": "データはありません",
     "loadFailedRetry": "読み込みに失敗しました。しばらくしてから再試行してください",
@@ -117,7 +118,18 @@
     "forgotPasswordTitle": "パスワードをお忘れですか？",
     "resetPasswordDesc": "登録済みの電話番号を入力してリセットしてください",
     "enterNewPassword": "新しいパスワードを入力",
-    "telegramLogin": "Telegram ログイン",
+    "telegramLogin": {
+      "title": "Telegram ログイン",
+      "secureLoading": "安全にログイン中...",
+      "firstLoading": "初回ログインを処理中...",
+      "missingParams": "Telegram ログインパラメータがありません",
+      "success": "Telegram ログイン成功",
+      "failed": "Telegram ログイン失敗",
+      "retryLater": "ログインに失敗しました。後でもう一度お試しください",
+      "setDefaultPassSuccess": "初期パスワードを設定しました",
+      "setPassFailed": "パスワード設定に失敗しました",
+      "busy": "システムが混雑しています。後でもう一度お試しください"
+    },
     "telegramQuickLogin": "Telegramでクイックログイン",
     "telegramAgreement": "続行すると、利用規約とプライバシーポリシーに同意したものとみなされます",
     "authorizeTelegram": "Telegramを認証",
@@ -589,23 +601,27 @@
     "rebateTitle": "紹介リベート",
     "rebateSubtitle": "（紹介報酬）",
     "claimable": "受取可能",
-    "claimRequirement": "有効会員が合計5人以上で受取可能",
+    "claimRequirement": "有効会員が合計{n}人以上で受取可能",
     "overview": "会員概要",
     "totalMembers": "会員総数",
     "validMembers": "有効会員",
-    "validMemberRule": "入金1元以上で有効",
+    "validMemberRule": "入金{amount}元以上で有効",
     "info": "シェア情報",
     "inviteCode": "紹介招待コード",
     "shareUrl": "シェアURL",
     "qrCode": "QRコード",
     "qrPreviewHint": "QRコードをタップしてプレビュー",
     "copy": "コピー",
+    "disabled": "利用可能な招待ポリシーがありません",
+    "noReward": "受け取れる報酬はありません",
+    "claimSuccess": "受取成功",
+    "claimFailed": "受取失敗",
     "rulesTitle": "招待ルール説明",
     "rule1": "1. 本キャンペーンは全ユーザーが参加できます。ユーザーが紹介リンクを新規ユーザーに共有し、登録と入金が完了すると対応する紹介ボーナスを獲得できます。紹介されたユーザーは招待コードを入力する必要はありません。",
     "rule2": "2. 新規ユーザーを1人紹介し、初回入金が完了するたびに、紹介者は紹介ボーナスを1回受け取れます。紹介ボーナスは紹介されたユーザーの初回入金額を基準とします。",
     "rule3": "3. 本キャンペーンはリベート特典と共有されますが、その他の特典とは併用できません。",
     "rule4": "4. 紹介されたユーザーは、電話番号、メールアドレス、IPアドレス、同一銀行カード、同一端末につき1つの会員アカウントのみ登録できます。違反ユーザーが確認された場合、当社は無期限の審査、ボーナスおよび利益の回収を行う権利を留保します。",
-    "rule5": "5. シェアリンクまたは招待コードで登録したユーザーは会員総数に計上されます。招待会員が1元以上入金すると有効会員に計上されます。有効会員が合計5人以上になるとシェア報酬を受け取れます。"
+    "rule5": "5. シェアリンクまたは招待コードで登録したユーザーは会員総数に計上されます。招待会員が{amount}元以上入金すると有効会員に計上されます。有効会員が合計{n}人以上になるとシェア報酬を受け取れます。"
   },
   "feedback": {
     "selectType": "問題タイプを選択",
@@ -817,6 +833,13 @@
       "description": "資金がウォレット口座に到着しました",
       "viewWallet": "ウォレットを見る",
       "continueDeposit": "入金を続ける"
+    },
+    "failed": {
+      "title": "入金失敗",
+      "heading": "入金失敗",
+      "desc": "支払いが完了しませんでした。もう一度入金してください。",
+      "backHome": "ホームへ戻る",
+      "orderId": "注文番号：{id}"
     }
   },
   "gameManagement": {

@@ -8,24 +8,36 @@
 
 UI 和页面对接逻辑来源：`/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`
 
+m1 术语约定：本文档及本项目所有任务中，“m1”或“m1 项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`，不得使用同级其他历史目录或相似项目替代。
+
 Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，仅参考网络、状态、模型、缓存、错误处理和平台能力等实现经验，不参考页面对接逻辑。
 
-## 1. 暂停边界
+## 1. 当前任务边界
 
-当前不执行以下工作：
+当前任务目标已经从“规划接口对接顺序”调整为“完成 m1 核心业务闭环收尾”。主体页面已基本具备 Flutter 对应实现，后续重点是把 m1 写操作、真实数据和关键交互补齐到当前 Flutter 架构中。
 
-- 不把页面 Mock 数据替换为真实接口。
-- 不修改登录态、Token 存储或路由拦截逻辑。
-- 不新增接口请求依赖。
-- 不提交、不推送、不更新 Git 状态。
+当前允许并优先执行以下工作：
 
-当前允许的工作：
+- 把已定义但未接到页面的 m1 接口接入 `Provider -> Screen`。
+- 补齐写操作的 loading、success、error、防重复提交和刷新逻辑。
+- 校准模型字段，避免 Screen 直接解析原始 Map。
+- 已补齐 m1 少数交互模块：右侧搜索弹窗、游戏最小化浮窗、公告弹窗增强、充值失败页；下一阶段进入 P2 路由与联调细节。
+- 按完成项同步更新本文档、`ENGINEERING_BUSINESSIZATION_PLAN.md` 和 `docs/UI_REPLICA_PROGRESS.md`。
 
-- 梳理接口对接顺序。
-- 补充或校准模型字段。
-- 标记接口依赖关系、风险和前置条件。
-- 后续按本顺序逐步拆分实施任务。
-- 对低风险只读接口做 Service、Provider、Model 和 UI fallback 的最小接入。
+当前仍不主动执行以下工作：
+
+- 不重做已完成高仿 UI。
+- 不整包复制 m1 Vue template/CSS。
+- 不把旧 Flutter 项目作为页面业务逻辑来源。
+- 不主动提交、不推送、不更新 Git 状态，除非用户明确要求。
+
+## 1.1 当前收尾进度快照
+
+- 页面覆盖：m1 主体路由页面基本已有 Flutter 对应实现；`/deposit/failed/:id` 充值失败页已补齐。
+- endpoint 覆盖：m1 主要 API 已基本定义在 `ApiEndpoints`。
+- service/model 覆盖：提现、删卡、分享返利、今日收益、返水领取、找回密码、Telegram 等闭环所需 service/model 已补齐。
+- P0 闭环：提现提交、银行卡删除、找回密码、Telegram 登录、分享返利、游戏返水领取、我的页今日收益已完成 `Provider -> Screen` 一轮接入。
+- 优先方向：P1 交互体验补齐已完成；接下来做 P2 深链、邀请参数、系统配置 terminal、活动语言参数和字段联调。
 
 ## 2. 总体原则
 
@@ -40,6 +52,40 @@ Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，
 - 每个阶段完成后必须格式化、静态分析，并尽量验证页面不破坏高保真 UI。
 
 ## 3. 阶段顺序
+
+### Current Closing Sequence: m1 业务闭环收尾
+
+当前优先执行顺序如下，优先级高于历史 Phase 描述中的旧规划口径：
+
+1. **P0 Provider 状态层补齐**
+
+- [x] `WalletProvider`：接入提现提交和银行卡删除状态。
+- [x] `AuthProvider`：接入找回密码、Telegram 登录和设置密码状态。
+- [x] `UserProvider`：接入今日收益、分享返利信息和领取返利状态。
+- [x] `GameManagementProvider`：接入游戏返水一键领取状态。
+
+2. **P0 页面业务闭环**
+
+- [x] `WithdrawScreen`：接 `/drawing/order`，替换 `comingSoon`。
+- [x] `BankCardListScreen`：接 `/member_bank/delete`，增加删除确认和刷新。
+- [x] `ResetPasswordScreen`：接 `/code/send`、`/password/get`。
+- [x] `ShareScreen`：接 `/retabe/list`、`/retabe/amount`，移除静态金额/会员/邀请码/链接。
+- [x] `GameManagementScreen`：启用 `/member_fs_log/claim`。
+- [x] `ProfileScreen`：接 `/day_revenue/getlist`。
+
+3. **P1 m1 交互体验补齐**
+
+- [x] 首页/游戏/活动搜索改为页面内右侧全屏弹窗体验，并接入搜索历史、热门/全部/收藏、分页、收藏和游戏启动。
+- [x] 游戏承载页补齐最小化、浮窗恢复、跨页面保留游戏状态。
+- [x] 公告弹窗补齐富文本、图片、跳转和按公告粒度本地关闭状态。
+- [x] 补齐 `/deposit/failed/:id` 充值失败页。
+
+4. **P2 路由与联调细节**
+
+- [x] Telegram query 拦截：任意路由出现 `user_id`、`username` 时转 `/telegram-login` 并保留 redirect；Telegram 登录页已按 m1 自动登录并处理首次登录默认设密。
+- [ ] 邀请/refcode query 持久化。
+- [ ] `/system/getlist` 与 m1 `{ terminal: 2 }` 规则对齐。
+- [ ] `/activity/details?lang=CN`、`DayRevenueSummary` 等字段按真实接口返回校准。
 
 ### Phase 0: 对接准备
 
@@ -1413,9 +1459,9 @@ flutter test test/widget_test.dart
 - m1 多语言底部弹窗、`config_notice.pop_up` 公告弹窗、“今日不再提示”和游戏浮窗最小化仍后置。
 - 分类区当前为视觉高保真优先，若后端分类标题变长，仍通过短标题映射和省略号避免溢出。
 
-### 2026-05-12 多语言方案约束与当前首位任务
+### 2026-05-12 多语言方案约束与后续优先级
 
-状态：已确认多语言架构方向；当前阶段首位任务调整为全项目 Flutter 专属语言包体系建设。除非修复阻断性错误，后续优先处理语言包结构、m1 翻译来源映射和页面硬编码文案替换，首页其他 m1 交互（搜索弹窗、游戏内嵌弹窗/最小化浮窗等）后置。
+状态：多语言架构方向已确认，前端静态 UI 文案多语言已完成收尾；后续不再把“全项目 Flutter 专属语言包体系建设”作为首位任务。多语言仅保留校验、视觉走查和新增页面文案补齐，当前开发优先级转入 P1 m1 交互补齐：右侧搜索弹窗、游戏最小化浮窗、公告弹窗增强和充值失败页。
 
 多语言硬性规则：
 
@@ -1428,26 +1474,26 @@ flutter test test/widget_test.dart
 - 切换语言后，所有新接口请求 header `lang` 必须使用当前业务 code；`/system/getlist` 仍不要追加 query `lang`。
 - 新增页面多语言时，优先定义 Flutter key；只有翻译值可以参考 m1，不要为了复用 m1 翻译而强行在 Flutter 代码里使用 m1 Vue key。
 
-已知当前待整改：
+多语言后续维护项：
 
-- 当前 `assets/i18n/*.json` 已先清理为 `common/home` 精简 Flutter 专属 key，但仍只是第一阶段；后续需要扩展到全项目模块 key。
-- 首页主链路静态文案已开始替换为 Flutter 自己的 `home.*` / `common.*` key；仍需继续扫描全项目硬编码中文并按模块迁移。
-- m1 非中文语言包本身存在 `...CN` 继承，未覆盖字段会保留中文；Flutter 专属语言包生成时必须标记或补齐未翻译字段，不能误认为已完整翻译。
+- 新增页面或弹窗时继续使用 Flutter 专属 key，不直接沿用 m1 Vue key。
+- 保持 `assets/i18n/*.json` 与 `en-US.json` key 集合一致，并通过 `tool/i18n/validate_i18n.js` 校验。
+- 继续做真实浏览器多语言视觉走查，重点验证长文本、按钮、Tab、小屏和非拉丁语言溢出。
+- m1 非中文语言包本身存在 `...CN` 继承，未覆盖字段会保留中文；后续新增翻译值时必须标记或补齐未翻译字段，不能误认为已完整翻译。
 
-当前首位任务：全项目多语言语言包建设
+当前首位任务：P1 m1 交互补齐
 
-- 先建立 Flutter 专属语言包模块边界：`common`、`nav`、`home`、`auth`、`game`、`activity`、`profile`、`finance`、`record`、`feedback`、`settings`、`system`。
-- 扫描 `lib/**/*.dart` 的硬编码中文和现有 `.tr()` key，按页面/模块分批迁移，禁止一次性低质量替换导致 UI 回归。
-- 建立 `tool/i18n/flutter_i18n_map.json` 和生成脚本，明确哪些 Flutter key 从 m1 哪些 key 抽取翻译值；没有 m1 来源的 key 先人工补齐并标注。
-- 为语言包增加校验：所有 locale 文件 key 集合必须一致；禁止出现 m1 全量根节点 `main`、`page`、`user` 等污染 Flutter 运行时语言包。
-- 每完成一个模块，必须验证该模块在中文、英文和一种非拉丁语言（如泰文/缅文/韩文）下不出现明显溢出。
+- 首页、游戏、活动搜索入口从独立 `/search` 页面优先改为 m1 右侧全屏弹窗体验，并抽离现有 `SearchScreen` 内容为可复用组件。
+- 游戏承载补齐最小化、跨页面浮窗恢复和关闭逻辑，对齐 m1 `GamePlay.vue`。
+- 首页公告弹窗继续增强富文本、图片公告、跳转规则和按公告 ID/日期控制“今日不再提示”。
+- 补齐 `/deposit/failed/:id` 充值失败页，或将失败态路由映射到现有结果页。
 
 首页 m1 完整对齐任务：
 
-- 首页语言切换底部弹窗的静态文案已开始接入 `.tr()`；后续继续做全语言视觉验收，验证切换语言后静态文案、Banner 过滤和新接口请求 header 同步变化。
-- `config_notice.pop_up` 公告弹窗、排序规则、`terminal` 过滤和“今日不再提示”已接入；后续只做语言包补齐和样式走查。
-- 评估首页搜索是否需要从路由跳转改为 m1 右侧全屏弹窗形态。
-- 评估游戏启动是否需要从独立 `/game-view` 改为 m1 首页内右侧全屏 popup，并补最小化浮窗。
+- 首页语言切换底部弹窗静态文案已接入 `.tr()`；后续只做全语言视觉验收，验证切换语言后静态文案、Banner 过滤和新接口请求 header 同步变化。
+- `config_notice.pop_up` 公告弹窗、排序规则、`terminal` 过滤和“今日不再提示”已接入；后续继续做富文本/图片/跳转规则和样式走查。
+- 首页搜索需要从路由跳转优先改为 m1 右侧全屏弹窗形态。
+- 游戏启动后续评估从独立 `/game-view` 扩展为 m1 首页内右侧全屏 popup，并补最小化浮窗。
 - 首页分类描述文案建议使用 Flutter 专属 key，例如 `home.category.liveDesc`、`home.category.lotteryDesc`、`home.category.slotDesc`，不要沿用 m1 硬编码缺陷。
 
 每开始一个接口对接任务，按以下顺序执行：
@@ -1463,9 +1509,10 @@ flutter test test/widget_test.dart
 
 建议下一步：
 
-- 首位任务：继续推进全项目 Flutter 专属语言包，先补 `auth/nav/game/activity/profile/finance` 等模块 key，并建立 m1 翻译来源映射与 key 一致性校验。
-- 语言包任务完成一个模块后，再替换对应页面硬编码中文并做多语言防溢出验证。
-- 首页搜索弹窗、游戏内嵌弹窗/最小化浮窗等 m1 剩余交互后置，除非当前语言包任务需要触达这些页面。
+- 首位任务：进入 P1 m1 交互补齐，优先做右侧全屏搜索弹窗；抽离 `SearchScreen` 内容为复用组件，并接入首页、游戏、活动入口。
+- 第二优先级：游戏内嵌弹窗/最小化浮窗，补全跨页面恢复和关闭状态。
+- 第三优先级：公告弹窗增强和 `/deposit/failed/:id` 充值失败页。
+- 多语言仅作为新增 UI 的配套维护和视觉走查，不再作为当前首位开发任务。
 - 或用真实账号验收资金记录页 `/trade/record`、`/transfers_log/getlist`、`/money_log/getlist`，确认分页、状态码、空态和币种展示。
 - 记录验收通过后，再评估接入确认提现 `POST /drawing/order`；必须先确认真实卡包、余额、VIP 规则和流水锁定字段稳定。
 
@@ -1478,7 +1525,7 @@ flutter test test/widget_test.dart
 - `/system/getlist` 已接入 `SystemService.fetchConfig()` 和 `SystemProvider.loadConfig()`。
 - Web 启动探针已经通过，Debug 日志形如 `[startup-probe] system config loaded: title=..., languages=..., banners=...`。
 - 当前首页、个人中心、VIP、游戏大厅分类、厂商列表、子游戏列表、游戏启动、消息中心、反馈链路、活动链路、卡包列表、添加卡包、充值全链路、提现只读链路和资金记录页已有真实接口数据消费；首页分类区已按 m1 截图做高保真复刻，其余页面仍以 m1 高仿 UI fallback 为主。
-- 当前首位任务为多语言：Flutter 只维护 Flutter 专属 key，m1 语言包只作为翻译来源；不要把 m1 全量语言包和 Flutter key 混在 `assets/i18n/*.json`。已先落地 `common/home`，后续继续扩展到全项目模块。
+- 当前首位任务为 P1 m1 交互补齐：优先右侧全屏搜索弹窗，其次游戏最小化浮窗、公告弹窗增强和 `/deposit/failed/:id`。多语言静态 UI 文案已完成收尾，后续仅做新增文案维护和视觉走查。
 - 当前主 Tab 路由 `/`、`/game`、`/activity`、`/service`、`/profile` 使用 `NoTransitionPage`，底部导航点击为无动画 replace 式切换。
 - 当前验证基线：`flutter analyze lib test` 无错误，`flutter test test/widget_test.dart` 为 12 个测试通过。
 

@@ -51,11 +51,16 @@ class ApiEndpoints {
   static const rechargeProof = '/recharge/img';
   static const rechargeCancel = '/recharge/cancel';
   static const drawingList = '/drawing/getlist';
+  static const drawingOrder = '/drawing/order';
   static const bankList = '/bank/getlist';
   static const memberBankBinding = '/member_bank/binding';
+  static const memberBankDelete = '/member_bank/delete';
   static const gameRecordList = '/gamerecord/getlist';
   static const memberFsLogList = '/member_fs_log/getlist';
   static const memberFsLogClaim = '/member_fs_log/claim';
+  static const retabeList = '/retabe/list';
+  static const retabeAmount = '/retabe/amount';
+  static const dayRevenueList = '/day_revenue/getlist';
 }
 
 const authIgnoredPaths = <String>{

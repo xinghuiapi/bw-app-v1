@@ -1,9 +1,12 @@
 import 'dart:ui_web' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:web/web.dart' as web;
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../providers/game/floating_game_provider.dart';
 import 'game_view_screen_interface.dart';
 import 'game_view_shell.dart';
 
@@ -48,7 +51,16 @@ class _GameViewScreenState extends State<GameViewScreen> {
     return GameViewShell(
       title: widget.title ?? 'game.title'.tr(),
       errorText: _hasValidUrl ? null : 'game.invalidUrl'.tr(),
+      onMinimize: _minimize,
       child: HtmlElementView(viewType: _viewId),
     );
+  }
+
+  void _minimize() {
+    context.read<FloatingGameProvider>().minimize(
+          url: widget.url,
+          title: widget.title ?? 'game.title'.tr(),
+        );
+    context.canPop() ? context.pop() : context.go('/game');
   }
 }

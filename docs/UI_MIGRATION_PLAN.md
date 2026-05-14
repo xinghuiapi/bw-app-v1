@@ -2,6 +2,7 @@
 
 > **目标项目**: `flutter_ui_project`
 > **UI 与页面对接逻辑参考**: `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1` (Vue3 + Vant 移动端架构)
+> **m1 术语约定**: 本项目所有“m1”或“m1 项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`，不得使用同级其他历史目录或相似项目替代。
 > **Flutter 工程能力参考**: `/Users/john/Documents/trae_projects/flutter-v1` (旧 Flutter 项目，仅参考工程经验，不参考页面对接逻辑)
 > **当前总体进度**: ~98% (核心业务页面已完成，仅剩极少数边缘占位页待完善)
 

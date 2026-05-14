@@ -50,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (messageProvider.messages.isEmpty && !messageProvider.isLoading) {
         messageProvider.loadMessages();
       }
+      context.read<UserProvider>().loadDayRevenue().catchError((_) {});
     });
   }
 
@@ -62,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final accountId = profile == null ? '88—' : profile.id.toString();
     final symbol = _textFallback(profile?.symbol, '¥');
     final balance = _amountText(profile?.balance, fallback: '0.00');
+    final dayRevenue = userProvider.dayRevenue;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -373,8 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               SizedBox(width: 8.w),
                               Flexible(
-                                child: Text(
-                                    _profileText('profile.todayProfit'),
+                                child: Text(_profileText('profile.todayProfit'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -383,8 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         color: AppColors.textPrimary)),
                               ),
                               SizedBox(width: 8.w),
-                              Text(
-                                  _profileText('profile.todayDate'),
+                              Text(_profileText('profile.todayDate'),
                                   style: TextStyle(
                                       color: AppColors.textSecondary,
                                       fontSize: 12.sp)),
@@ -392,18 +392,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         SizedBox(width: 8.w),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.refresh,
-                                color: const Color(0xFF4A8AF4), size: 16.sp),
-                            SizedBox(width: 4.w),
-                            Text(
-                                _profileText('user.refresh'),
-                                style: TextStyle(
-                                    color: const Color(0xFF4A8AF4),
-                                    fontSize: 14.sp)),
-                          ],
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: userProvider.isDayRevenueLoading
+                              ? null
+                              : () => context
+                                  .read<UserProvider>()
+                                  .loadDayRevenue(refresh: true)
+                                  .catchError((_) {}),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.refresh,
+                                  color: const Color(0xFF4A8AF4), size: 16.sp),
+                              SizedBox(width: 4.w),
+                              Text(
+                                  userProvider.isDayRevenueLoading
+                                      ? _profileText('common.loading')
+                                      : _profileText('user.refresh'),
+                                  style: TextStyle(
+                                      color: const Color(0xFF4A8AF4),
+                                      fontSize: 14.sp)),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -413,7 +424,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Expanded(
                           child: Column(
                             children: [
-                              Text('0',
+                              Text((dayRevenue?.betCount ?? 0).toString(),
                                   style: TextStyle(
                                       fontSize: 20.sp,
                                       fontWeight: FontWeight.bold,
@@ -446,7 +457,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Expanded(
                           child: Column(
                             children: [
-                              Text('0.00',
+                              Text(
+                                  _amountText(dayRevenue?.profitLoss,
+                                      fallback: '0.00'),
                                   style: TextStyle(
                                       fontSize: 20.sp,
                                       fontWeight: FontWeight.bold,
@@ -479,7 +492,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Expanded(
                           child: Column(
                             children: [
-                              Text('0.00',
+                              Text(
+                                  _amountText(dayRevenue?.unclaimedRebate,
+                                      fallback: '0.00'),
                                   style: TextStyle(
                                       fontSize: 20.sp,
                                       fontWeight: FontWeight.bold,
@@ -534,8 +549,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         SizedBox(width: 8.w),
                         Expanded(
-                          child: Text(
-                              _profileText('profile.moreServices'),
+                          child: Text(_profileText('profile.moreServices'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -574,11 +588,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _profileText('profile.bankCard'),
                             context,
                             '/cards'),
-                        _buildServiceItem(
-                            Icons.reply_outlined,
-                            _profileText('profile.share'),
-                            context,
-                            '/share'),
+                        _buildServiceItem(Icons.reply_outlined,
+                            _profileText('profile.share'), context, '/share'),
                         _buildServiceItem(Icons.workspace_premium_outlined,
                             'VIP', context, '/vip'),
                         _buildServiceItem(
@@ -586,11 +597,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _profileText('profile.feedback'),
                             context,
                             '/feedback'),
-                        _buildServiceItem(
-                            Icons.lightbulb_outline,
-                            _profileText('profile.comingSoon'),
-                            context,
-                            null),
+                        _buildServiceItem(Icons.lightbulb_outline,
+                            _profileText('profile.comingSoon'), context, null),
                       ],
                     ),
                   ],
@@ -1631,6 +1639,7 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
       icon: _iconForCard(card),
       imageUrl: card.imageUrl,
       qrCodeUrl: card.qrCodeUrl,
+      onDelete: () => _confirmDeleteCard(card),
     );
   }
 
@@ -1642,6 +1651,7 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
     required IconData icon,
     String? imageUrl,
     String? qrCodeUrl,
+    VoidCallback? onDelete,
   }) {
     final hasImage = imageUrl != null && imageUrl.trim().isNotEmpty;
     final hasQrCode = qrCodeUrl != null && qrCodeUrl.trim().isNotEmpty;
@@ -1739,6 +1749,28 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
                   ),
                 ),
               ],
+              if (onDelete != null) ...[
+                SizedBox(width: 8.w),
+                GestureDetector(
+                  onTap: onDelete,
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(999.r),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.28),
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.delete_outline,
+                      size: 15.sp,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           SizedBox(height: 24.h),
@@ -1795,6 +1827,54 @@ class _BankCardListScreenState extends State<BankCardListScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteCard(WalletCard card) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('common.confirm'.tr()),
+        content: Text(
+            'wallet.deleteCardConfirm'.tr() == 'wallet.deleteCardConfirm'
+                ? 'Confirm delete this card?'
+                : 'wallet.deleteCardConfirm'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text('common.cancel'.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('common.confirm'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!mounted) return;
+    final walletProvider = context.read<WalletProvider>();
+    try {
+      await walletProvider.deleteCard(
+        DeleteBankCardRequest(id: card.id),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'wallet.deleteCardSuccess'.tr() == 'wallet.deleteCardSuccess'
+                    ? 'Deleted successfully'
+                    : 'wallet.deleteCardSuccess'.tr())),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      final error = walletProvider.deleteCardError ??
+          ('wallet.deleteCardFailed'.tr() == 'wallet.deleteCardFailed'
+              ? 'Delete failed'
+              : 'wallet.deleteCardFailed'.tr());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+    }
   }
 
   Color _colorForCard(WalletCard card) {
@@ -3456,7 +3536,7 @@ class _FeedbackRecordsScreenState extends State<FeedbackRecordsScreen> {
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Text(
-              '${'feedback.reply'.tr()}${_textFallback(record.reply, '')}',
+                '${'feedback.reply'.tr()}${_textFallback(record.reply, '')}',
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: AppColors.textSecondary,

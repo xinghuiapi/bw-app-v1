@@ -20,8 +20,10 @@ class GameManagementProvider extends ChangeNotifier {
   bool isRebateLoadingMore = false;
   bool isGameLoading = false;
   bool isGameLoadingMore = false;
+  bool isClaimingRebates = false;
   String? rebateError;
   String? gameError;
+  String? claimRebateError;
 
   String _startDate = '';
   String _endDate = '';
@@ -39,8 +41,10 @@ class GameManagementProvider extends ChangeNotifier {
     isRebateLoadingMore = false;
     isGameLoading = false;
     isGameLoadingMore = false;
+    isClaimingRebates = false;
     rebateError = null;
     gameError = null;
+    claimRebateError = null;
     _startDate = '';
     _endDate = '';
     _rebateRequestSerial++;
@@ -80,6 +84,8 @@ class GameManagementProvider extends ChangeNotifier {
         ),
       );
       if (serial != _rebateRequestSerial) return;
+      _startDate = startDate;
+      _endDate = endDate;
       rebatePage = refresh
           ? next
           : next.copyWith(records: [...rebatePage.records, ...next.records]);
@@ -125,6 +131,8 @@ class GameManagementProvider extends ChangeNotifier {
         ),
       );
       if (serial != _gameRequestSerial) return;
+      _startDate = startDate;
+      _endDate = endDate;
       gamePage = refresh
           ? next
           : next.copyWith(records: [...gamePage.records, ...next.records]);
@@ -147,5 +155,30 @@ class GameManagementProvider extends ChangeNotifier {
 
   Future<void> loadMoreGames() {
     return loadGames(startDate: _startDate, endDate: _endDate);
+  }
+
+  Future<void> claimAllRebates() async {
+    if (isClaimingRebates) return;
+    isClaimingRebates = true;
+    claimRebateError = null;
+    notifyListeners();
+
+    try {
+      await _service.claimAllRebates();
+      await loadRebates(
+        startDate: _startDate,
+        endDate: _endDate,
+        refresh: true,
+      );
+    } on ApiException catch (exception) {
+      claimRebateError = exception.message;
+      rethrow;
+    } catch (exception) {
+      claimRebateError = exception.toString();
+      rethrow;
+    } finally {
+      isClaimingRebates = false;
+      notifyListeners();
+    }
   }
 }

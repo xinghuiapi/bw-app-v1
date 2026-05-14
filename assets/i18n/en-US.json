@@ -40,6 +40,7 @@
     "optional": "Optional",
     "unnamed": "Unnamed",
     "search": "Search",
+    "history": "History",
     "reacquireCountdown": "Resend ({seconds})",
     "emptyData": "No data",
     "loadFailedRetry": "Load failed, please try again later",
@@ -117,7 +118,18 @@
     "forgotPasswordTitle": "Forgot Password?",
     "resetPasswordDesc": "Enter your registered phone number to reset",
     "enterNewPassword": "Please enter new password",
-    "telegramLogin": "Telegram Login",
+    "telegramLogin": {
+      "title": "Telegram Login",
+      "secureLoading": "Securely logging in...",
+      "firstLoading": "First login, setting up your account...",
+      "missingParams": "Telegram login parameters are missing",
+      "success": "Telegram login successful",
+      "failed": "Telegram login failed",
+      "retryLater": "Login failed, please try again later",
+      "setDefaultPassSuccess": "Default password set successfully",
+      "setPassFailed": "Failed to set password",
+      "busy": "System busy, please try again later"
+    },
     "telegramQuickLogin": "Quick Login via Telegram",
     "telegramAgreement": "By continuing, you agree to our Terms of Service and Privacy Policy",
     "authorizeTelegram": "Authorize Telegram",
@@ -589,23 +601,27 @@
     "rebateTitle": "Referral Rebate",
     "rebateSubtitle": "(Referral Reward)",
     "claimable": "Claimable",
-    "claimRequirement": "Claim after at least 5 valid members",
+    "claimRequirement": "Claim after at least {n} valid members",
     "overview": "Member Overview",
     "totalMembers": "Total Members",
     "validMembers": "Valid Members",
-    "validMemberRule": "Recharge >= 1 to be valid",
+    "validMemberRule": "Recharge >= {amount} to be valid",
     "info": "Share Info",
     "inviteCode": "Invite Code",
     "shareUrl": "Share URL",
     "qrCode": "QR Code",
     "qrPreviewHint": "Tap QR code to preview",
     "copy": "Copy",
+    "disabled": "No invitation policy is available",
+    "noReward": "No reward available to claim",
+    "claimSuccess": "Claim successful",
+    "claimFailed": "Claim failed",
     "rulesTitle": "Invitation Rules",
     "rule1": "1. All users can join this campaign. Share your referral link with new users. Rewards are available after they register and recharge. New users do not need to enter an invite code.",
     "rule2": "2. For each new user who registers and completes the first recharge, the referrer can receive one referral reward based on the first recharge amount.",
     "rule3": "3. This campaign is shared with rebate promotions, but not with any other promotion.",
     "rule4": "4. Each phone number, email, IP address, bank card, and device can register only one member account. We reserve the right to review, revoke bonuses, and recover profits for violations.",
-    "rule5": "5. Users registered via your share link or invite code count as total members. Members who recharge at least 1 count as valid members. Rewards can be claimed after at least 5 valid members."
+    "rule5": "5. Users registered via your share link or invite code count as total members. Members who recharge at least {amount} count as valid members. Rewards can be claimed after at least {n} valid members."
   },
   "feedback": {
     "selectType": "Select issue type",
@@ -817,6 +833,13 @@
       "description": "Funds have arrived in your wallet account",
       "viewWallet": "View Wallet",
       "continueDeposit": "Continue Deposit"
+    },
+    "failed": {
+      "title": "Deposit Failed",
+      "heading": "Deposit Failed",
+      "desc": "The payment was not completed. Please try depositing again.",
+      "backHome": "Back to Home",
+      "orderId": "Order ID: {id}"
     }
   },
   "gameManagement": {

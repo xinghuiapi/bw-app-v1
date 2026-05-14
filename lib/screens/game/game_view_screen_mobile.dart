@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../providers/game/floating_game_provider.dart';
 import 'game_view_screen_interface.dart';
 import 'game_view_shell.dart';
 
@@ -64,6 +67,7 @@ class _GameViewScreenState extends State<GameViewScreen> {
       isLoading: _isLoading,
       errorText: _errorText,
       onReload: _errorText == null ? null : _reload,
+      onMinimize: _minimize,
       child: !_hasController
           ? const SizedBox.shrink()
           : WebViewWidget(controller: _controller),
@@ -78,5 +82,13 @@ class _GameViewScreenState extends State<GameViewScreen> {
       _errorText = null;
     });
     _controller.loadRequest(uri);
+  }
+
+  void _minimize() {
+    context.read<FloatingGameProvider>().minimize(
+          url: widget.url,
+          title: widget.title ?? 'game.title'.tr(),
+        );
+    context.canPop() ? context.pop() : context.go('/game');
   }
 }

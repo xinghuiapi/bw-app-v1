@@ -19,6 +19,10 @@ class AuthProvider extends BaseProvider<void> {
   bool isCaptchaLoading = false;
   bool isSendingSmsCode = false;
   bool isSendingEmailCode = false;
+  bool isSendingResetCode = false;
+  bool isResettingPassword = false;
+  bool isTelegramLoggingIn = false;
+  bool isSettingTelegramPassword = false;
 
   void bindClient(DioClient client) {
     _authService = AuthService(client);
@@ -161,6 +165,93 @@ class AuthProvider extends BaseProvider<void> {
       rethrow;
     } finally {
       isSendingEmailCode = false;
+      notifyListeners();
+    }
+  }
+
+  Future<VerificationCodeData> sendResetPasswordCode({
+    required int type,
+    String? areaCode,
+    String? phone,
+    String? email,
+  }) async {
+    if (isSendingResetCode) {
+      return const VerificationCodeData(message: 'auth.codeSending');
+    }
+    isSendingResetCode = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      return await _authService.sendResetPasswordCode(
+        type: type,
+        areaCode: areaCode,
+        phone: phone,
+        email: email,
+      );
+    } catch (err) {
+      error = err.toString();
+      rethrow;
+    } finally {
+      isSendingResetCode = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> resetPassword(ResetPasswordRequest request) async {
+    if (isResettingPassword) return;
+    isResettingPassword = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      await _authService.resetPassword(request);
+    } catch (err) {
+      error = err.toString();
+      rethrow;
+    } finally {
+      isResettingPassword = false;
+      notifyListeners();
+    }
+  }
+
+  Future<AuthToken?> telegramLogin(TelegramLoginRequest request) async {
+    if (isTelegramLoggingIn) return null;
+    isTelegramLoggingIn = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final token = await _authService.telegramLogin(request);
+      await saveTokens(
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        tokenType: token.tokenType,
+        expiresIn: token.expiresIn,
+      );
+      return token;
+    } catch (err) {
+      error = err.toString();
+      rethrow;
+    } finally {
+      isTelegramLoggingIn = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> setTelegramPassword(SetTelegramPasswordRequest request) async {
+    if (isSettingTelegramPassword) return;
+    isSettingTelegramPassword = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      await _authService.setTelegramPassword(request);
+    } catch (err) {
+      error = err.toString();
+      rethrow;
+    } finally {
+      isSettingTelegramPassword = false;
       notifyListeners();
     }
   }

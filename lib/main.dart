@@ -44,6 +44,7 @@ class _AppProvidersState extends State<AppProviders> {
   late final UserProvider _userProvider;
   late final SystemProvider _systemProvider;
   late final GameProvider _gameProvider;
+  late final FloatingGameProvider _floatingGameProvider;
   late final GameManagementProvider _gameManagementProvider;
   late final ActivityProvider _activityProvider;
   late final FeedbackProvider _feedbackProvider;
@@ -60,6 +61,7 @@ class _AppProvidersState extends State<AppProviders> {
     _systemProvider = SystemProvider();
     _userProvider = UserProvider();
     _gameProvider = GameProvider();
+    _floatingGameProvider = FloatingGameProvider();
     _gameManagementProvider = GameManagementProvider();
     _activityProvider = ActivityProvider();
     _feedbackProvider = FeedbackProvider();
@@ -99,6 +101,7 @@ class _AppProvidersState extends State<AppProviders> {
     _authProvider.dispose();
     _userProvider.dispose();
     _gameProvider.dispose();
+    _floatingGameProvider.dispose();
     _gameManagementProvider.dispose();
     _feedbackProvider.dispose();
     _recordProvider.dispose();
@@ -117,6 +120,7 @@ class _AppProvidersState extends State<AppProviders> {
         ChangeNotifierProvider(create: (_) => HomeProvider()),
         ChangeNotifierProvider.value(value: _userProvider),
         ChangeNotifierProvider.value(value: _gameProvider),
+        ChangeNotifierProvider.value(value: _floatingGameProvider),
         ChangeNotifierProvider.value(value: _gameManagementProvider),
         ChangeNotifierProvider.value(value: _feedbackProvider),
         ChangeNotifierProvider.value(value: _walletProvider),

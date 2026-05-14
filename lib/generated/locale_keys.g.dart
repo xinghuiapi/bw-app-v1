@@ -2,7 +2,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-abstract class LocaleKeys {
+abstract class  LocaleKeys {
   static const common_cancel = 'common.cancel';
   static const common_login = 'common.login';
   static const common_register = 'common.register';
@@ -43,6 +43,7 @@ abstract class LocaleKeys {
   static const common_optional = 'common.optional';
   static const common_unnamed = 'common.unnamed';
   static const common_search = 'common.search';
+  static const common_history = 'common.history';
   static const common_reacquireCountdown = 'common.reacquireCountdown';
   static const common_emptyData = 'common.emptyData';
   static const common_loadFailedRetry = 'common.loadFailedRetry';
@@ -118,6 +119,16 @@ abstract class LocaleKeys {
   static const auth_forgotPasswordTitle = 'auth.forgotPasswordTitle';
   static const auth_resetPasswordDesc = 'auth.resetPasswordDesc';
   static const auth_enterNewPassword = 'auth.enterNewPassword';
+  static const auth_telegramLogin_title = 'auth.telegramLogin.title';
+  static const auth_telegramLogin_secureLoading = 'auth.telegramLogin.secureLoading';
+  static const auth_telegramLogin_firstLoading = 'auth.telegramLogin.firstLoading';
+  static const auth_telegramLogin_missingParams = 'auth.telegramLogin.missingParams';
+  static const auth_telegramLogin_success = 'auth.telegramLogin.success';
+  static const auth_telegramLogin_failed = 'auth.telegramLogin.failed';
+  static const auth_telegramLogin_retryLater = 'auth.telegramLogin.retryLater';
+  static const auth_telegramLogin_setDefaultPassSuccess = 'auth.telegramLogin.setDefaultPassSuccess';
+  static const auth_telegramLogin_setPassFailed = 'auth.telegramLogin.setPassFailed';
+  static const auth_telegramLogin_busy = 'auth.telegramLogin.busy';
   static const auth_telegramLogin = 'auth.telegramLogin';
   static const auth_telegramQuickLogin = 'auth.telegramQuickLogin';
   static const auth_telegramAgreement = 'auth.telegramAgreement';
@@ -177,8 +188,6 @@ abstract class LocaleKeys {
   static const user_logout = 'user.logout';
   static const user_walletBalance = 'user.walletBalance';
   static const user_refresh = 'user.refresh';
-  static const user_gender_male = 'user.gender.male';
-  static const user_gender_female = 'user.gender.female';
   static const user_gender_secret = 'user.gender.secret';
   static const user_gender = 'user.gender';
   static const user = 'user';
@@ -313,8 +322,6 @@ abstract class LocaleKeys {
   static const account_avatarUploadFailed = 'account.avatarUploadFailed';
   static const account_saveSuccess = 'account.saveSuccess';
   static const account_saveFailed = 'account.saveFailed';
-  static const account_male = 'account.male';
-  static const account_female = 'account.female';
   static const account_private = 'account.private';
   static const account_phoneBoundTitle = 'account.phoneBoundTitle';
   static const account_phoneBoundMessage = 'account.phoneBoundMessage';
@@ -576,6 +583,10 @@ abstract class LocaleKeys {
   static const share_qrCode = 'share.qrCode';
   static const share_qrPreviewHint = 'share.qrPreviewHint';
   static const share_copy = 'share.copy';
+  static const share_disabled = 'share.disabled';
+  static const share_noReward = 'share.noReward';
+  static const share_claimSuccess = 'share.claimSuccess';
+  static const share_claimFailed = 'share.claimFailed';
   static const share_rulesTitle = 'share.rulesTitle';
   static const share_rule1 = 'share.rule1';
   static const share_rule2 = 'share.rule2';
@@ -696,14 +707,6 @@ abstract class LocaleKeys {
   static const deposit_detail_amount = 'deposit.detail.amount';
   static const deposit_detail_note = 'deposit.detail.note';
   static const deposit_detail_importantTips = 'deposit.detail.importantTips';
-  static const deposit_detail_risk1a = 'deposit.detail.risk1a';
-  static const deposit_detail_risk1b = 'deposit.detail.risk1b';
-  static const deposit_detail_risk1c = 'deposit.detail.risk1c';
-  static const deposit_detail_risk2a = 'deposit.detail.risk2a';
-  static const deposit_detail_risk2b = 'deposit.detail.risk2b';
-  static const deposit_detail_risk2c = 'deposit.detail.risk2c';
-  static const deposit_detail_risk3 = 'deposit.detail.risk3';
-  static const deposit_detail_risk4 = 'deposit.detail.risk4';
   static const deposit_detail_uploadProof = 'deposit.detail.uploadProof';
   static const deposit_detail_txHash = 'deposit.detail.txHash';
   static const deposit_detail_payProof = 'deposit.detail.payProof';
@@ -730,7 +733,6 @@ abstract class LocaleKeys {
   static const deposit_detail_confirmCancel = 'deposit.detail.confirmCancel';
   static const deposit_detail_cancelSuccess = 'deposit.detail.cancelSuccess';
   static const deposit_detail_cancelFailed = 'deposit.detail.cancelFailed';
-  static const deposit_detail_copy = 'deposit.detail.copy';
   static const deposit_detail_copied = 'deposit.detail.copied';
   static const deposit_detail_bankTransfer = 'deposit.detail.bankTransfer';
   static const deposit_detail_alipayRecharge = 'deposit.detail.alipayRecharge';
@@ -754,6 +756,15 @@ abstract class LocaleKeys {
   static const deposit_detail_name = 'deposit.detail.name';
   static const deposit_detail_account = 'deposit.detail.account';
   static const deposit_detail_empty = 'deposit.detail.empty';
+  static const deposit_detail_risk1a = 'deposit.detail.risk1a';
+  static const deposit_detail_risk1b = 'deposit.detail.risk1b';
+  static const deposit_detail_risk1c = 'deposit.detail.risk1c';
+  static const deposit_detail_risk2a = 'deposit.detail.risk2a';
+  static const deposit_detail_risk2b = 'deposit.detail.risk2b';
+  static const deposit_detail_risk2c = 'deposit.detail.risk2c';
+  static const deposit_detail_risk3 = 'deposit.detail.risk3';
+  static const deposit_detail_risk4 = 'deposit.detail.risk4';
+  static const deposit_detail_copy = 'deposit.detail.copy';
   static const deposit_detail_detailTitle = 'deposit.detail.detailTitle';
   static const deposit_detail_typeNumber = 'deposit.detail.typeNumber';
   static const deposit_detail = 'deposit.detail';
@@ -784,6 +795,12 @@ abstract class LocaleKeys {
   static const deposit_success_viewWallet = 'deposit.success.viewWallet';
   static const deposit_success_continueDeposit = 'deposit.success.continueDeposit';
   static const deposit_success = 'deposit.success';
+  static const deposit_failed_title = 'deposit.failed.title';
+  static const deposit_failed_heading = 'deposit.failed.heading';
+  static const deposit_failed_desc = 'deposit.failed.desc';
+  static const deposit_failed_backHome = 'deposit.failed.backHome';
+  static const deposit_failed_orderId = 'deposit.failed.orderId';
+  static const deposit_failed = 'deposit.failed';
   static const deposit = 'deposit';
   static const gameManagement_title = 'gameManagement.title';
   static const gameManagement_queryDate = 'gameManagement.queryDate';
@@ -828,4 +845,5 @@ abstract class LocaleKeys {
   static const maintenance_retry = 'maintenance.retry';
   static const maintenance_backHome = 'maintenance.backHome';
   static const maintenance = 'maintenance';
+
 }

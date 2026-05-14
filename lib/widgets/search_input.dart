@@ -8,6 +8,7 @@ class SearchInput extends StatefulWidget {
   final VoidCallback? onSearch;
   final VoidCallback? onClear;
   final bool autoFocus;
+  final TextEditingController? controller;
 
   const SearchInput({
     super.key,
@@ -16,6 +17,7 @@ class SearchInput extends StatefulWidget {
     this.onSearch,
     this.onClear,
     this.autoFocus = false,
+    this.controller,
   });
 
   @override
@@ -28,7 +30,7 @@ class _SearchInputState extends State<SearchInput> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
+    _controller = widget.controller ?? TextEditingController();
     _controller.addListener(() {
       setState(() {});
     });
@@ -36,7 +38,7 @@ class _SearchInputState extends State<SearchInput> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget.controller == null) _controller.dispose();
     super.dispose();
   }
 

@@ -40,6 +40,7 @@
     "optional": "Tùy chọn",
     "unnamed": "Chưa đặt tên",
     "search": "Tìm kiếm",
+    "history": "Lịch sử tìm kiếm",
     "reacquireCountdown": "Gửi lại ({seconds})",
     "emptyData": "Không có dữ liệu",
     "loadFailedRetry": "Tải thất bại, vui lòng thử lại sau",
@@ -117,7 +118,18 @@
     "forgotPasswordTitle": "Quên mật khẩu?",
     "resetPasswordDesc": "Nhập số điện thoại đã đăng ký để đặt lại",
     "enterNewPassword": "Nhập mật khẩu mới",
-    "telegramLogin": "Đăng nhập Telegram",
+    "telegramLogin": {
+      "title": "Đăng nhập Telegram",
+      "secureLoading": "Đang đăng nhập an toàn...",
+      "firstLoading": "Đang xử lý lần đăng nhập đầu tiên...",
+      "missingParams": "Thiếu tham số đăng nhập Telegram",
+      "success": "Đăng nhập Telegram thành công",
+      "failed": "Đăng nhập Telegram thất bại",
+      "retryLater": "Đăng nhập thất bại, vui lòng thử lại sau",
+      "setDefaultPassSuccess": "Đặt mật khẩu mặc định thành công",
+      "setPassFailed": "Đặt mật khẩu thất bại",
+      "busy": "Hệ thống bận, vui lòng thử lại sau"
+    },
     "telegramQuickLogin": "Đăng nhập nhanh qua Telegram",
     "telegramAgreement": "Khi tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư của chúng tôi",
     "authorizeTelegram": "Ủy quyền Telegram",
@@ -589,23 +601,27 @@
     "rebateTitle": "Hoàn trả chia sẻ",
     "rebateSubtitle": "(Thưởng chia sẻ)",
     "claimable": "Có thể nhận",
-    "claimRequirement": "Có ít nhất 5 thành viên hợp lệ để nhận",
+    "claimRequirement": "Có ít nhất {n} thành viên hợp lệ để nhận",
     "overview": "Tổng quan thành viên",
     "totalMembers": "Tổng thành viên",
     "validMembers": "Thành viên hợp lệ",
-    "validMemberRule": "Nạp >= 1 là hợp lệ",
+    "validMemberRule": "Nạp >= {amount} là hợp lệ",
     "info": "Thông tin chia sẻ",
     "inviteCode": "Mã mời",
     "shareUrl": "URL chia sẻ",
     "qrCode": "Mã QR",
     "qrPreviewHint": "Chạm mã QR để xem trước",
     "copy": "Sao chép",
+    "disabled": "Không có chính sách mời khả dụng",
+    "noReward": "Không có thưởng để nhận",
+    "claimSuccess": "Nhận thành công",
+    "claimFailed": "Nhận thất bại",
     "rulesTitle": "Quy tắc mời",
     "rule1": "1. Tất cả người dùng đều có thể tham gia. Chia sẻ liên kết cho người dùng mới đăng ký và nạp tiền để nhận thưởng.",
     "rule2": "2. Mỗi người dùng mới đăng ký và hoàn tất nạp đầu tiên, người giới thiệu có thể nhận thưởng theo số tiền nạp đầu tiên.",
     "rule3": "3. Hoạt động này dùng chung với ưu đãi hoàn trả, không dùng chung với ưu đãi khác.",
     "rule4": "4. Mỗi số điện thoại, email, IP, thẻ ngân hàng và thiết bị chỉ được đăng ký một tài khoản. Vi phạm có thể bị thu hồi thưởng và lợi nhuận.",
-    "rule5": "5. Người dùng đăng ký qua liên kết hoặc mã mời được tính vào tổng thành viên. Nạp ít nhất 1 sẽ tính là thành viên hợp lệ; đủ 5 thành viên hợp lệ có thể nhận thưởng."
+    "rule5": "5. Người dùng đăng ký qua liên kết hoặc mã mời được tính vào tổng thành viên. Nạp ít nhất {amount} sẽ tính là thành viên hợp lệ; đủ {n} thành viên hợp lệ có thể nhận thưởng."
   },
   "feedback": {
     "selectType": "Chọn loại vấn đề",
@@ -817,6 +833,13 @@
       "description": "Tiền đã vào tài khoản ví của bạn",
       "viewWallet": "Xem ví",
       "continueDeposit": "Tiếp tục nạp"
+    },
+    "failed": {
+      "title": "Nạp tiền thất bại",
+      "heading": "Nạp tiền thất bại",
+      "desc": "Thanh toán chưa hoàn tất. Vui lòng nạp lại.",
+      "backHome": "Về trang chủ",
+      "orderId": "Mã đơn hàng: {id}"
     }
   },
   "gameManagement": {

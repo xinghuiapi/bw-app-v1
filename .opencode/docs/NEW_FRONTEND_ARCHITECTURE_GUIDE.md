@@ -4,6 +4,8 @@
 
 核心定位：当前 Flutter UI 已按 m1 项目完成高仿，后续要在这套高仿 UI 上接入 m1 的页面业务逻辑和真实接口，同时参考旧 Flutter 项目补齐合格 Flutter 工程应具备的路由、网络、认证、状态、模型、缓存、错误处理和平台能力。
 
+**m1 术语约定**：本文档及本项目所有任务中，“m1”或“m1 项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`，不得使用同级其他历史目录或相似项目替代。
+
 ## 1. 项目定位
 
 当前项目路径：`/Users/john/Documents/trae_projects/flutter_ui_project`

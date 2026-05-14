@@ -74,6 +74,23 @@ class GameService extends BaseService {
     );
   }
 
+  Future<List<GameItem>> fetchFavoriteGamesFromRecommend() {
+    return client.post<List<GameItem>>(
+      ApiEndpoints.interfaceRecommend,
+      decoder: (json) {
+        if (json is! List) return const [];
+        return json
+            .whereType<Map>()
+            .map((item) => GameItem.fromJson(Map<String, dynamic>.from(item)))
+            .where((item) =>
+                item.id > 0 &&
+                item.title?.isNotEmpty == true &&
+                item.isFavorite)
+            .toList();
+      },
+    );
+  }
+
   bool _hasRecoLabel(dynamic label) {
     if (label == null) return false;
     if (label is List) {

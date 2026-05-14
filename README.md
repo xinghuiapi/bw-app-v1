@@ -17,8 +17,10 @@
 - 已补齐全局字体回退，统一修复中文、英文和混排场景的字体缺失问题。
 - 已完成前端静态 UI 文案多语言收口：`common`、`auth`、`home`、`game`、`activity`、`service`、`settings`、`about`、`account`、`wallet`、`message`、`security`、`finance`、`deposit`、`share`、`feedback`、`vip`、`gameManagement`、`maintenance` 等模块均由 locale 提供。
 - 已完成非英语语言包混合语言清理：`ja-JP`、`ko-KR`、`th-TH`、`vi-VN`、`my-MM` 不再保留明显英文/中文占位；`CN.json` 已同步为 `zh-CN.json`，避免旧简体包回退导致英文显示。
+- 静态 UI 多语言已收尾：locale JSON/key 对齐、生成 key 对齐、直接 `.tr()` key 检查、动态 helper key 检查、`flutter analyze` 和 Web 构建均已通过。
 - 已清理会误导用户的静态业务 mock/fallback 数据；接口失败或空数据时展示空态/错误提示，不再展示假消息、假活动、假游戏、假场馆或假反馈记录。
 - 语言切换时会同步清理语言敏感缓存，并让相关页面重新加载最新文案。
+- 后续剩余工作集中在 m1 剩余交互与写操作闭环：提现提交、分享返利、返水领取、找回密码、Telegram 登录、首页公告弹窗、游戏最小化浮窗、银行卡删除和今日收益数据等，详见 `docs/UI_REPLICA_PROGRESS.md`。
 
 ## 多语言边界
 
@@ -36,8 +38,11 @@
 - 非英语语言包不得保留明显英文原文占位；日语允许正常日文汉字，繁中允许繁体汉字。
 - `ko-KR`、`th-TH`、`vi-VN`、`my-MM` 不得残留中文占位。
 - 完整验证至少运行：`flutter analyze`、`flutter build web --no-web-resources-cdn`、locale key 对齐脚本和 mixed-language 审计脚本。
+- 截至当前收尾版本，上述静态 UI 多语言校验已通过；后续新增文案或页面时继续按本口径复验。
 
 ## 参考源边界
+
+**m1 术语约定**：在本项目所有对话、任务、文档和代码评审中，只要提到“m1”或“m1 项目”，均固定指向 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`。不得用同级其他历史目录或相似项目替代。
 
 | 参考源 | 角色 | 用途 | 禁止事项 |
 | --- | --- | --- | --- |

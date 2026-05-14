@@ -38,6 +38,21 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
   int? launchingGameId;
   String? launchError;
 
+  GameListPage searchPage = const GameListPage();
+  bool isSearchLoading = false;
+  bool isSearchLoadingMore = false;
+  bool hasSearchLoaded = false;
+  String? searchError;
+  String _searchWord = '';
+  String _searchLabel = '';
+  int _searchSize = 10;
+  int _searchRequestSerial = 0;
+
+  List<GameItem> favoriteGames = const [];
+  bool isFavoriteGamesLoading = false;
+  bool hasFavoriteGamesLoaded = false;
+  String? favoriteGamesError;
+
   List<GameLobbyCategory> get categories => data ?? const [];
 
   void resetForLanguageChange() {
@@ -64,12 +79,29 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
     favoritingGameId = null;
     launchingGameId = null;
     launchError = null;
+    searchPage = const GameListPage();
+    isSearchLoading = false;
+    isSearchLoadingMore = false;
+    hasSearchLoaded = false;
+    searchError = null;
+    _searchWord = '';
+    _searchLabel = '';
+    favoriteGames = const [];
+    isFavoriteGamesLoading = false;
+    hasFavoriteGamesLoaded = false;
+    favoriteGamesError = null;
     notifyListeners();
   }
 
   bool get hasMoreSubList {
     final currentPage = subListPage.currentPage ?? 0;
     final lastPage = subListPage.lastPage ?? currentPage;
+    return currentPage < lastPage;
+  }
+
+  bool get hasMoreSearch {
+    final currentPage = searchPage.currentPage ?? 0;
+    final lastPage = searchPage.lastPage ?? currentPage;
     return currentPage < lastPage;
   }
 
@@ -342,6 +374,136 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
     }
   }
 
+  Future<void> loadSearchGames({
+    String searchWord = '',
+    String label = '',
+    int page = 1,
+    int size = 10,
+    bool refresh = true,
+  }) async {
+    final normalizedWord = searchWord.trim();
+    final normalizedLabel = label.trim();
+    final isSameQuery = _searchWord == normalizedWord &&
+        _searchLabel == normalizedLabel &&
+        searchPage.currentPage == page;
+    if ((isSearchLoading || isSearchLoadingMore) && isSameQuery) return;
+    if (normalizedWord.isEmpty && normalizedLabel.isEmpty) {
+      searchPage = const GameListPage();
+      hasSearchLoaded = false;
+      searchError = null;
+      notifyListeners();
+      return;
+    }
+
+    _searchWord = normalizedWord;
+    _searchLabel = normalizedLabel;
+    _searchSize = size;
+    final requestSerial = ++_searchRequestSerial;
+    isSearchLoading = true;
+    searchError = null;
+    if (refresh) {
+      hasSearchLoaded = false;
+      searchPage = const GameListPage();
+    }
+    notifyListeners();
+
+    try {
+      final nextPage = await _service.fetchGameList(
+        code: '',
+        game: '',
+        page: page,
+        size: size,
+        searchWord: normalizedLabel.isEmpty ? normalizedWord : '',
+        label: normalizedLabel,
+      );
+      if (requestSerial != _searchRequestSerial) return;
+      searchPage = nextPage;
+      hasSearchLoaded = true;
+      searchError = null;
+    } on ApiException catch (exception) {
+      if (requestSerial != _searchRequestSerial) return;
+      searchError = exception.message;
+      hasSearchLoaded = true;
+    } catch (exception) {
+      if (requestSerial != _searchRequestSerial) return;
+      searchError = exception.toString();
+      hasSearchLoaded = true;
+    } finally {
+      if (requestSerial == _searchRequestSerial) {
+        isSearchLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> loadMoreSearchGames() async {
+    if (isSearchLoading || isSearchLoadingMore || !hasMoreSearch) return;
+    if (_searchWord.isEmpty && _searchLabel.isEmpty) return;
+
+    final currentPage = searchPage.currentPage ?? 1;
+    final requestSerial = ++_searchRequestSerial;
+    isSearchLoadingMore = true;
+    searchError = null;
+    notifyListeners();
+
+    try {
+      final nextPage = await _service.fetchGameList(
+        code: '',
+        game: '',
+        page: currentPage + 1,
+        size: _searchSize,
+        searchWord: _searchLabel.isEmpty ? _searchWord : '',
+        label: _searchLabel,
+      );
+      if (requestSerial != _searchRequestSerial) return;
+      searchPage = nextPage.copyWith(
+        data: <GameItem>[
+          ...searchPage.data,
+          ...nextPage.data,
+        ],
+      );
+      hasSearchLoaded = true;
+      searchError = null;
+    } on ApiException catch (exception) {
+      if (requestSerial != _searchRequestSerial) return;
+      searchError = exception.message;
+    } catch (exception) {
+      if (requestSerial != _searchRequestSerial) return;
+      searchError = exception.toString();
+    } finally {
+      if (requestSerial == _searchRequestSerial) {
+        isSearchLoadingMore = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> loadFavoriteGames({bool refresh = false}) async {
+    if (isFavoriteGamesLoading ||
+        (!refresh && hasFavoriteGamesLoaded && favoriteGames.isNotEmpty)) {
+      return;
+    }
+    isFavoriteGamesLoading = true;
+    favoriteGamesError = null;
+    if (refresh) favoriteGames = const [];
+    notifyListeners();
+
+    try {
+      favoriteGames = await _service.fetchFavoriteGamesFromRecommend();
+      hasFavoriteGamesLoaded = true;
+      favoriteGamesError = null;
+    } on ApiException catch (exception) {
+      favoriteGamesError = exception.message;
+      hasFavoriteGamesLoaded = true;
+    } catch (exception) {
+      favoriteGamesError = exception.toString();
+      hasFavoriteGamesLoaded = true;
+    } finally {
+      isFavoriteGamesLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> toggleGameFavorite(GameItem game) async {
     final id = game.id;
     if (id <= 0 || favoritingGameId == id) return;
@@ -359,6 +521,16 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
                 (item) => item.id == id ? item.copyWith(favorited: next) : item)
             .toList(),
       );
+      searchPage = searchPage.copyWith(
+        data: searchPage.data
+            .map(
+                (item) => item.id == id ? item.copyWith(favorited: next) : item)
+            .toList(),
+      );
+      favoriteGames = favoriteGames
+          .map((item) => item.id == id ? item.copyWith(favorited: next) : item)
+          .where((item) => item.isFavorite)
+          .toList();
     } on ApiException catch (exception) {
       subListError = exception.message;
       rethrow;

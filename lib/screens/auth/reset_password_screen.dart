@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:provider/provider.dart';
+import '../../models/auth/auth_models.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_text_field.dart';
@@ -18,6 +22,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _phoneController = TextEditingController();
   final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
+  int _countdown = 0;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _phoneController.dispose();
+    _codeController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +94,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 SizedBox(
                   height: 44.h,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed:
+                        context.watch<AuthProvider>().isSendingResetCode ||
+                                _countdown > 0
+                            ? null
+                            : _sendCode,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                       foregroundColor: AppColors.primary,
@@ -89,7 +108,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                     ),
                     child: Text(
-                      context.tr('auth.getCode'),
+                      _countdown > 0
+                          ? 'common.reacquireCountdown'.tr(
+                              namedArgs: {'seconds': '$_countdown'},
+                            )
+                          : context.tr('auth.getCode'),
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
@@ -112,14 +135,96 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
             SizedBox(height: 32.h),
             CustomButton(
-              text: context.tr('auth.resetPassword'),
-              onPressed: () {
-                context.canPop() ? context.pop() : context.go('/login');
-              },
+              text: context.watch<AuthProvider>().isResettingPassword
+                  ? 'common.submitting'.tr()
+                  : context.tr('auth.resetPassword'),
+              onPressed: context.watch<AuthProvider>().isResettingPassword
+                  ? null
+                  : _submitReset,
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _sendCode() async {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      _showSnack(context.tr('auth.enterPhone'));
+      return;
+    }
+    try {
+      await context.read<AuthProvider>().sendResetPasswordCode(
+            type: 1,
+            areaCode: '+86',
+            phone: phone,
+          );
+      if (!mounted) return;
+      _startCountdown();
+      _showSnack(context.tr('auth.codeSent'));
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(context.read<AuthProvider>().error ??
+          context.tr('common.loadFailed'));
+    }
+  }
+
+  Future<void> _submitReset() async {
+    final phone = _phoneController.text.trim();
+    final code = _codeController.text.trim();
+    final password = _passwordController.text.trim();
+    if (phone.isEmpty) {
+      _showSnack(context.tr('auth.enterPhone'));
+      return;
+    }
+    if (code.isEmpty) {
+      _showSnack(context.tr('auth.enterCode'));
+      return;
+    }
+    if (password.isEmpty) {
+      _showSnack(context.tr('auth.enterNewPassword'));
+      return;
+    }
+    try {
+      await context.read<AuthProvider>().resetPassword(
+            ResetPasswordRequest(
+              type: 1,
+              areaCode: '+86',
+              phone: phone,
+              code: code,
+              password: password,
+            ),
+          );
+      if (!mounted) return;
+      _showSnack(context.tr('common.save'));
+      context.go('/login');
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(context.read<AuthProvider>().error ??
+          context.tr('common.loadFailed'));
+    }
+  }
+
+  void _startCountdown() {
+    _timer?.cancel();
+    setState(() => _countdown = 60);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_countdown <= 1) {
+        timer.cancel();
+        setState(() => _countdown = 0);
+        return;
+      }
+      setState(() => _countdown -= 1);
+    });
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }

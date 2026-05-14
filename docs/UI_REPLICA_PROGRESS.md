@@ -30,18 +30,18 @@
 - **消息通知** (`MessageScreen`)：**【深度对齐】** 新增顶部“全部/未读/已读” Tab 分类过滤器，实现了未读红点 (`Badge`) 点击消除并实时变更为已读状态的业务逻辑。
 - **意见反馈** (`FeedbackScreen` & `FeedbackRecordsScreen`)：**【深度对齐】** 补齐了问题分类选择、多行文本框 300 字限制与实时字数统计器；问题分类弹窗已加最大高度和滚动约束，修复分类过多时的溢出；图片区域已接入 `/img/save`，支持最多 3 张图片上传、缩略图预览、删除，并在提交时传给 `/feedback/to.img`。反馈类型、提交反馈和反馈记录真实接口均已接入，并保留 fallback。
 - **充值中心** (`DepositScreen`)：**【对齐 m1 并接入真实链路】** 充值渠道单选网格列表、自适应大字体的金额输入框、带快捷金额选项与实时汇率提示，重构了浅灰蓝背景与立体感卡片，完美还原“充值类型”、“充值通道”与“充值信息”三个模块的蓝点标题排版；已接入 `/deposit/class`、`/deposit/getlist` 和 `/recharge/order`，提交成功后按 m1 规则进入在线支付或充值详情。
-- **提现中心** (`WithdrawScreen`)：提现银行卡信息展示、全部提现快捷键。
+- **提现中心** (`WithdrawScreen`)：提现银行卡信息展示、全部提现快捷键；已接入 `/drawing/order` 提现提交、提交中状态、余额/流水/取款密码校验、成功跳转和错误提示。
 - **财务记录** (`TransactionRecordScreen` & `FundRecordScreen`)：实现了基于盈亏状态动态变色、红蓝上下箭头动态图标的流水列表。
 - **个人资料** (`UserProfileScreen`)：已对齐 m1 资料编辑结构，支持实名、手机、邮箱、性别、生日、QQ、Telegram 展示/编辑；头像入口已接入相册选择、`/img/save` 上传和 `/user/edit.img` 保存流程。
 - **系统设置** (`SettingScreen`)：完成各类设置项的入口卡片构建；“关于我们”已从占位提示改为进入 `AboutUsScreen`。
 - **关于我们** (`AboutUsScreen`)：新增只读站点信息页，复用 `/system/getlist.config_site` 展示 Logo、站点名称、平台介绍、域名、版本、APP 下载、客服入口和 TG 客服，支持下拉刷新和 fallback 展示。
-- **银行卡管理** (`BankCardListScreen`)：带有银行专属背景色、虚线卡号、及底部悬浮“添加银行卡”按钮的高保真列表。
+- **银行卡管理** (`BankCardListScreen`)：带有银行专属背景色、虚线卡号、及底部悬浮“添加银行卡”按钮的高保真列表；已接入 `/member_bank/delete` 删除确认、提交和刷新列表。
 - **活动详情** (`ActivityDetailScreen`)：基于截图复刻并接入 `/activity/details` 数据，支持通过活动 ID 展示标题、发放方式、倍数、时间和活动说明；活动说明已支持安全富文本降级渲染和图片展示；手动活动底部按钮已接入 `/activity/apply`，支持提交中禁用、成功提示和后端错误提示。
 - **活动申请记录** (`ActivityRecordScreen`)：已对齐 m1 `ActivityApplyRecords.vue` 并接入 `/activity/record`，支持申请记录分页、下拉刷新、滚动加载、空态、状态标签、账号和申请时间展示，接口失败保留 fallback。
-- **游戏管理** (`GameManagementScreen`)：基于截图复刻与精修，实现带“查询日期”筛选项与“返水记录”、“游戏记录”双 Tab。移除默认下划线，卡片应用 `16.r` 大圆角与柔和阴影提升立体感，底部常驻栏采用 `Column+Expanded` 隔离实现防溢出；已接入 `/member_fs_log/getlist` 返水记录和 `/gamerecord/getlist` 游戏记录，只读展示统计、分页、下拉刷新和空态，接口空数组不再显示静态记录；日期筛选按钮支持横向滚动防溢出，记录卡片/统计卡片/空态已按 m1 移动端信息密度精修，记录模型已按 m1 字段区分返水/游戏记录避免误展示，领取返水写操作后置。
+- **游戏管理** (`GameManagementScreen`)：基于截图复刻与精修，实现带“查询日期”筛选项与“返水记录”、“游戏记录”双 Tab。移除默认下划线，卡片应用 `16.r` 大圆角与柔和阴影提升立体感，底部常驻栏采用 `Column+Expanded` 隔离实现防溢出；已接入 `/member_fs_log/getlist` 返水记录和 `/gamerecord/getlist` 游戏记录，展示统计、分页、下拉刷新和空态，接口空数组不再显示静态记录；日期筛选按钮支持横向滚动防溢出，记录卡片/统计卡片/空态已按 m1 移动端信息密度精修，记录模型已按 m1 字段区分返水/游戏记录避免误展示；底部领取按钮已接入 `/member_fs_log/claim`，成功后刷新返水记录。
 - **资金管理** (`FundManagementScreen`)：基于截图复刻与精修，统一收口了原有的“我的钱包”、“充提记录”、“交易记录”、“银行卡管理”入口。实现带“查询日期”筛选项，以及“充值记录”、“提现记录”、“转账记录”、“账户明细”四个 Tab 切换。卡片长文本使用 `Flexible` + `TextOverflow.ellipsis` 防止水平挤压，底部统一配置了“没有更多了”状态提示。
 - **我的钱包/场馆余额** (`MyWalletScreen`)：**【基于截图深度复刻】** 重构了“场馆余额”功能模块，实现带蓝色渐变及底部内嵌按钮组的高质感钱包卡片，并采用 `GridView.builder` 实现了带比例控制 (`childAspectRatio`) 的场馆资金网格布局，配置了场馆自动转账开关。
-- **分享赚钱** (`ShareScreen`)：**【基于截图深度复刻】** 完成了推广分享页的高保真复刻。实现了“分享返利”、“会员总览”、“分享信息（含二维码与复制链接）”以及“邀请规则说明”四个专属卡片，精准还原了字体大小、间距、蓝点标题及边框细节。
+- **分享赚钱** (`ShareScreen`)：**【基于截图深度复刻】** 完成了推广分享页的高保真复刻。实现了“分享返利”、“会员总览”、“分享信息（含二维码与复制链接）”以及“邀请规则说明”四个专属卡片，精准还原了字体大小、间距、蓝点标题及边框细节；已接入 `/retabe/list` 真实金额和会员统计，通过 `/retabe/amount` 领取返利；邀请码按 m1 使用账号 ID，分享链接按 m1 前端规则生成 `/m1/register?invite=账号ID`，二维码已从静态占位改为按分享链接实时生成并支持点击预览；已补齐 m1 “无可用邀请策略”空态、下拉刷新 profile+返利、无奖励/领取成功提示，以及领取条件/有效会员规则/规则 5 的动态参数；首帧使用默认有效充值金额避免 `{amount}` 占位符闪现。
 
 ### 用户表单类 (Forms) - [Sprint 1 完成]
 - **绑定手机号** (`BindPhoneScreen`)：实现带获取验证码倒计时功能的表单；已接入短信验证码发送接口和 `/user/edit` 绑定提交。
@@ -58,7 +58,7 @@
 - **提现成功** (`WithdrawSuccessScreen`)：大图标反馈及预计到账提示。
 - **线上支付** (`OnlinePayDetailScreen`)：支持接收 `/recharge/order` 返回的支付 URL 和订单 ID，可外部打开支付网关并跳转订单详情。
 
-### 多语言与文案修复 (i18n & Copy)
+### 多语言与文案修复 (i18n & Copy) - [静态 UI 已收尾]
 - 已接入 `easy_localization`，并完成 `zh-CN`、`zh-TW`、`en-US`、`ja-JP`、`ko-KR`、`th-TH`、`vi-VN`、`my-MM` 共 8 套 locale 的静态 UI 文案收口。
 - 已覆盖 `common`、`auth`、`nav`、`home`、`game`、`search`、`activity`、`service`、`profile`、`settings`、`about`、`account`、`wallet`、`message`、`security`、`finance`、`deposit`、`share`、`feedback`、`vip`、`gameManagement`、`maintenance` 等模块。
 - 已修复非英语语言包中与日语包同类的问题：语言包 key 虽对齐但 value 混入英文/中文占位。当前 `ko-KR`、`th-TH`、`vi-VN`、`my-MM` 已完成英文原文和中文残留清理。
@@ -66,24 +66,67 @@
 - `lib/generated/locale_keys.g.dart` 已按 `en-US.json` 重新生成，当前与 825 个 locale key 对齐。
 - 前端多语言边界已明确：只翻译静态 UI 文案；接口返回的游戏名、活动/公告内容、支付渠道名称、客服名称、站点信息、用户数据和后端错误 message 等动态数据由后端按语言返回，前端不做二次翻译。
 - 已清理展示为真实业务内容的静态 mock/fallback 数据；接口失败或空数据时展示空态/错误提示，不再展示假游戏、假场馆、假消息、假活动或假反馈记录。
+- 当前静态 UI 多语言已完成收尾验证：locale JSON/key 对齐、直接 `.tr()` key 检查、动态 helper key 检查、生成 key 对齐、`flutter analyze` 和 `flutter build web --no-web-resources-cdn` 均已通过。
 
 ---
 
-## 🟢 2. 当前首位任务：多语言体系 (Top Priority: I18n)
-*Flutter 专属语言包体系已完成静态文案收口，当前进入真实页面视觉验收阶段。*
+## 🟢 2. 多语言体系 (I18n) - [静态 UI 已收尾]
+*Flutter 专属语言包体系已完成静态 UI 文案收尾；后续仅保留真实页面视觉验收和接口动态数据多语言协同。*
 
 ### 多语言静态文案
 - [x] **全项目 Flutter 专属语言包建设**：`assets/i18n/*.json` 已按 Flutter 实际使用的静态 UI key 对齐，所有语言包与 `en-US.json` key 结构一致。
 - [x] **生成 key 对齐**：`lib/generated/locale_keys.g.dart` 已按 `en-US.json` 重新生成，与 825 个 locale key 一致。
 - [x] **硬编码与本地兜底收口**：资金管理、游戏管理、个人中心等页面已移除本地中文/英文静态文案兜底，统一走 locale。
 - [x] **混合语言清理**：已按“日语包中英混合问题”的同一标准清理 `ko-KR`、`th-TH`、`vi-VN`、`my-MM` 的英文/中文占位。
-- [ ] **多语言视觉走查**：仍需真实切换每种语言验证文本溢出、按钮截断、Tab 宽度、长句换行和小屏布局稳定性。
+- [x] **静态 UI 多语言收尾验证**：JSON/key 对齐、生成 key 对齐、`.tr()` key 存在性、动态 helper key、mixed-language 审计、`flutter analyze` 和 Web 构建均已通过。
+- [ ] **多语言视觉走查**：作为后续验收项，真实切换每种语言验证文本溢出、按钮截断、Tab 宽度、长句换行和小屏布局稳定性。
 
 ## 🟡 3. 待精修与开发页面 (Pending / Stubbed)
-*剩余极少数分享与维护等边缘状态页待完善，当前让位于多语言任务。*
+*主体页面已基本完成，后续重点转为 m1 剩余交互模块、写操作接口和真实数据闭环。*
+
+### 当前收尾目标与方向
+- **任务目标**：当前阶段目标不是继续大规模补页面，而是把已完成的 m1 高仿 Flutter UI 接入真实业务闭环，达到核心资金、账号、收益和游戏链路可验收。
+- **当前进度**：m1 主体路由页面在 Flutter 中基本都有对应实现；P1 搜索弹窗、游戏最小化浮窗、公告弹窗增强和 `/deposit/failed/:id` 充值失败页已完成。当前主要差距集中在 P2 路由授权、邀请参数、系统配置 terminal、语言参数和模型字段联调。
+- **任务方向**：P0 资金/账号/收益闭环和 P1 m1 体验补齐已完成一轮接入，下一步进入 P2：Telegram 深链、邀请/refcode 持久化、`/system/getlist` terminal、活动详情语言参数和关键模型字段校准。
+- **执行原则**：每个闭环按 `m1 views/api/router -> Flutter Model/Service -> Provider -> Screen -> 验证 -> 文档` 顺序推进，不把接口调用直接散落在 Screen 中。
 
 ### 边缘业务与占位页
 - [x] `MaintenanceScreen` (系统维护中占位页)：已接入 `/maintenance`，当 `/system/getlist.config_site.status == 0` 时全局跳转维护页。
+
+### m1 剩余模块与交互
+- [x] **首页公告弹窗 `NoticeModal`**：Flutter `_NoticeDialog` 已对齐 m1 多公告弹窗，支持今日不再提示、富文本降级渲染、图片公告、公告跳转字段，以及按公告 ID/日期控制本地关闭状态。
+- [x] **首页/游戏/活动右侧搜索弹窗**：已抽离 `SearchScreen` 内容为共享 `SearchPanel`，首页、游戏、活动搜索入口改为 m1 同款页面内右侧全屏弹窗，独立 `/search` 路由继续复用同一内容组件；搜索业务已按 m1 接入 `/gamelist/getlist` 搜索/热门分页、搜索历史、收藏列表、收藏切换和 `/game/login` 游戏启动链路，并已完成验证。
+- [x] **游戏内嵌浮窗/最小化继续游戏**：当前 `/game-view` 承载页已新增最小化入口，顶部栏按 m1 保持左侧标题、中间 Logo、右侧最小化/关闭操作区；`FloatingGameProvider` 保存当前游戏 session，主 Tab Shell 展示恢复/关闭浮窗，支持跨页面继续游戏，最小化弹窗已验证可用。
+- [x] **分享赚钱真实数据闭环**：`ShareScreen` 已接入返利信息、可领取金额、会员统计、邀请码/分享链接、真实二维码预览、禁用空态和领取返利。
+- [x] **提现提交闭环**：提现页已接入真实提现订单提交、提交中状态、成功/失败处理和提现成功页跳转。
+- [x] **银行卡删除**：已补齐银行卡删除确认、删除接口和删除后列表刷新。
+- [x] **找回密码真实提交**：`ResetPasswordScreen` 已接入验证码发送、重置密码提交、错误提示和成功态。
+- [x] **Telegram 登录接口接入**：`TelegramLoginScreen` 已按 m1 改为自动 loading 登录页，接入任意路由 `user_id/username` query 拦截、redirect 保留、登录态保存，以及首次登录默认设置密码 `123456` 闭环。
+- [x] **游戏返水一键领取**：底部领取按钮已接入 `/member_fs_log/claim`，支持领取中状态、错误提示和记录刷新。
+- [x] **我的页今日收益/未领取返水数据**：个人中心已接入今日投注数、今日盈亏、未领取返水等真实数据。
+- [x] **充值失败页 `/deposit/failed/:id`**：已按 m1 `DepositPayFailed.vue` 新增 `DepositPayFailedScreen` 和 `/deposit/failed/:id` 路由，提供失败卡片、重新充值和返回首页入口。
+
+### 待对接接口清单
+| 接口 | m1 用途 | 当前 Flutter 状态 | 优先级 |
+| --- | --- | --- | --- |
+| `/drawing/order` | 创建提现订单 | 已接入 Provider 和提现页 | 高 |
+| `/member_bank/delete` | 删除银行卡 | 已接入 Provider 和卡列表页 | 高 |
+| `/code/send` | 找回密码验证码 | 已接入 ResetPassword 页面 | 高 |
+| `/password/get` | 找回密码提交 | 已接入 ResetPassword 页面 | 高 |
+| `/retabe/list` | 分享返利信息、会员统计、邀请码/分享链接 | 已接入 Provider 和分享页 | 高 |
+| `/retabe/amount` | 领取分享返利 | 已接入领取按钮 | 高 |
+| `/member_fs_log/claim` | 游戏返水领取 | 已接入 Provider 和底部按钮 | 高 |
+| `/day_revenue/getlist` | 我的页今日收益、投注数、未领取返水 | 已接入 Provider 和我的页 | 高 |
+| `/telegram/login` | Telegram 登录 | 页面已调用并保存登录态；路由 query 拦截未实现 | 中 |
+| `/telegram/password` | Telegram 设置密码 | endpoint/service/model 已补，页面未调用 | 中 |
+
+### P2 待开发任务
+
+- [x] **Telegram query 拦截**：对齐 m1 `router.beforeEach`，任意路由带 `user_id`、`username` 时转 `/telegram-login`，并保留去除授权 query 后的 redirect。
+- [ ] **邀请/refcode 持久化**：对齐 m1 `persistRefCodeFromQuery`，在任意路由读取邀请参数并持久化，注册页自动带入。
+- [ ] **系统配置 terminal 联调**：确认 `/system/getlist` 是否需要 `{ terminal: 2 }`，并统一 banner、公告、语言、站点配置使用规则。
+- [ ] **活动详情语言参数**：确认 `/activity/details?lang=CN` 是否为后端必要规则，并按当前语言兼容。
+- [ ] **关键模型字段校准**：用真实响应复核 `DayRevenueSummary`、`WithdrawOrderResult`、`TelegramLoginResult`，补齐页面实际使用字段和边界状态。
 
 ---
 
@@ -117,13 +160,13 @@
   - 主 Tab 已完成无动画切换；后续可评估是否用 `ShellRoute` 收敛底部导航重复维护。
 - 使用 `ui-fidelity-checker` 进行全量走查，确保在小屏/大屏设备上的边界约束（防溢出）坚如磐石。
 
-### 当前进行中：多语言视觉验收与接口协同
-- 静态 UI 文案多语言已完成代码/资源层面收口，后续重点转为真实浏览器逐页视觉验收。
+### 后续事项：多语言视觉验收与接口协同
+- 静态 UI 文案多语言已完成收尾，后续重点转为真实浏览器逐页视觉验收。
 - 需要重点检查：登录/注册、首页、游戏大厅、充值、充值详情、在线支付、提现、资金管理、场馆钱包、个人中心、反馈、VIP、分享、维护页。
 - 视觉验收维度：文本溢出、按钮截断、Tab 横向滚动、小屏换行、泰语/缅甸语行高、越南语长句、韩语紧凑排版。
 - 接口动态数据不纳入前端翻译；如页面仍出现中文动态内容，需要后端按语言返回或提供稳定 code/type/status 映射。
 - 仍建议后续把依赖中文字符串的业务判断改为依赖接口 code/type，例如支付方式图标、登录失效判断等。
-- 当前验证结果：locale JSON/key 对齐通过，直接 `.tr()` key 检查通过，动态 helper key 检查通过，`flutter analyze` 无问题，`flutter build web --no-web-resources-cdn` 构建成功。
+- 当前收尾验证结果：locale JSON/key 对齐通过，直接 `.tr()` key 检查通过，动态 helper key 检查通过，生成 key 对齐通过，`flutter analyze` 无问题，`flutter build web --no-web-resources-cdn` 构建成功。
 
 ---
 *本文档由 Agent 自动维护，将在后续复刻任务中持续更新进度。*

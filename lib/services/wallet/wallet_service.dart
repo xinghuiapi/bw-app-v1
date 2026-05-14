@@ -127,6 +127,27 @@ class WalletService extends BaseService {
     );
   }
 
+  Future<void> deleteCard(DeleteBankCardRequest request) {
+    return client.post<void>(
+      ApiEndpoints.memberBankDelete,
+      data: request.toJson(),
+      decoder: (_) {},
+    );
+  }
+
+  Future<WithdrawOrderResult> createWithdrawOrder(WithdrawRequest request) {
+    return client.post<WithdrawOrderResult>(
+      ApiEndpoints.drawingOrder,
+      data: request.toJson(),
+      decoder: (json) {
+        if (json is Map) {
+          return WithdrawOrderResult.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const WithdrawOrderResult();
+      },
+    );
+  }
+
   Future<void> submitRechargeProof(RechargeProofRequest request) {
     return client.post<void>(
       ApiEndpoints.rechargeProof,

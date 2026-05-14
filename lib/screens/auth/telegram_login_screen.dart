@@ -35,15 +35,6 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final redirect = _redirectTarget(
-      GoRouterState.of(context).uri.queryParameters['redirect'],
-    );
-    if (context.watch<AuthProvider>().isAuthenticated && !_didNavigate) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _goAfterLogin(redirect);
-      });
-    }
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       body: Center(
@@ -159,8 +150,25 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
 
   String _redirectTarget(String? raw) {
     final value = raw?.trim() ?? '';
-    if (value.startsWith('/')) return value;
-    return '/';
+    if (!value.startsWith('/')) return '/';
+
+    final parsed = Uri.tryParse(value);
+    if (parsed == null) return '/';
+
+    if (parsed.path == '/telegram-login') {
+      return _redirectTarget(parsed.queryParameters['redirect']);
+    }
+
+    final cleanQuery = Map<String, String>.from(parsed.queryParameters)
+      ..remove('user_id')
+      ..remove('username')
+      ..remove('redirect');
+
+    return Uri(
+      path: parsed.path.isEmpty ? '/' : parsed.path,
+      queryParameters: cleanQuery.isEmpty ? null : cleanQuery,
+      fragment: parsed.fragment.isEmpty ? null : parsed.fragment,
+    ).toString();
   }
 
   Future<void> _delayedGo(String redirect, {required int milliseconds}) async {
@@ -171,20 +179,17 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
 
   void _goAfterLogin(String redirect) {
     if (!mounted || _didNavigate) return;
-    _didNavigate = true;
     final target = redirect.isEmpty ? '/' : redirect;
     if (kDebugMode) {
       debugPrint('[telegram-login] redirect to $target');
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _didNavigate = true;
+    final router = GoRouter.of(context);
+    router.replace(target);
+    Timer(const Duration(milliseconds: 120), () {
       if (!mounted) return;
-      final router = GoRouter.of(context);
-      router.go(target);
-      Timer(const Duration(milliseconds: 120), () {
-        if (!mounted) return;
-        final current = GoRouterState.of(context).uri.path;
-        if (current == '/telegram-login') router.replace(target);
-      });
+      final current = GoRouterState.of(context).uri.path;
+      if (current == '/telegram-login') router.replace(target);
     });
   }
 

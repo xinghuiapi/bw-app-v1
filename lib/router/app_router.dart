@@ -47,6 +47,10 @@ GoRouter createAppRouter(AuthProvider authProvider,
         return null;
       }
 
+      if (authProvider.isAuthenticated && path == RoutePaths.telegramLogin) {
+        return _authRedirectTarget(state.uri.queryParameters['redirect']);
+      }
+
       final isMaintenance = path == RoutePaths.maintenance;
       final isMaintaining = systemProvider?.config.siteConfig?.status == 0;
       if (isMaintaining && !isMaintenance) {
@@ -70,11 +74,7 @@ GoRouter createAppRouter(AuthProvider authProvider,
       }
 
       if (authProvider.isAuthenticated && path == RoutePaths.login) {
-        final redirect = state.uri.queryParameters['redirect'];
-        if (redirect != null && redirect.isNotEmpty) {
-          return Uri.decodeComponent(redirect);
-        }
-        return RoutePaths.home;
+        return _authRedirectTarget(state.uri.queryParameters['redirect']);
       }
 
       if (isAuthRoute || requiresAuth) {
@@ -102,24 +102,49 @@ Map<String, String> _telegramQueryFromUri(Uri uri) {
 }
 
 String _telegramRedirectTarget(Uri uri) {
-  final query = _telegramQueryFromUri(uri);
-  final cleanQuery = Map<String, String>.from(query)
-    ..remove('user_id')
-    ..remove('username');
   if (uri.fragment.trim().isNotEmpty &&
       !_hasTelegramQuery(uri.queryParameters)) {
     final fragment = uri.fragment.trim();
     final parsed =
         Uri.tryParse(fragment.startsWith('/') ? fragment : '/$fragment');
     if (parsed != null) {
-      return parsed
-          .replace(queryParameters: cleanQuery.isEmpty ? null : cleanQuery)
-          .toString();
+      final cleanQuery = Map<String, String>.from(parsed.queryParameters)
+        ..remove('user_id')
+        ..remove('username');
+      return _replaceQuery(parsed, cleanQuery).toString();
     }
   }
-  return uri
-      .replace(queryParameters: cleanQuery.isEmpty ? null : cleanQuery)
-      .toString();
+  final cleanQuery = Map<String, String>.from(uri.queryParameters)
+    ..remove('user_id')
+    ..remove('username');
+  return _replaceQuery(uri, cleanQuery).toString();
+}
+
+String _authRedirectTarget(String? raw) {
+  final value = raw?.trim() ?? '';
+  if (!value.startsWith('/')) return RoutePaths.home;
+
+  final parsed = Uri.tryParse(value);
+  if (parsed == null) return RoutePaths.home;
+
+  if (parsed.path == RoutePaths.telegramLogin ||
+      parsed.path == RoutePaths.login) {
+    return _authRedirectTarget(parsed.queryParameters['redirect']);
+  }
+
+  final cleanQuery = Map<String, String>.from(parsed.queryParameters)
+    ..remove('user_id')
+    ..remove('username')
+    ..remove('redirect');
+  return _replaceQuery(parsed, cleanQuery).toString();
+}
+
+Uri _replaceQuery(Uri uri, Map<String, String> query) {
+  return Uri(
+    path: uri.path.isEmpty ? RoutePaths.home : uri.path,
+    queryParameters: query.isEmpty ? null : query,
+    fragment: uri.fragment.isEmpty ? null : uri.fragment,
+  );
 }
 
 final appRouter = createAppRouter(AuthProvider()..init());

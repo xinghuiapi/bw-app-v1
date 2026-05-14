@@ -30,6 +30,11 @@ class AuthProvider extends BaseProvider<void> {
 
   Future<void> init() async {
     final token = await _tokenStorage.readAccessToken();
+    if (isAuthenticated && accessToken?.isNotEmpty == true) {
+      isInitialized = true;
+      notifyListeners();
+      return;
+    }
     isAuthenticated = token != null && token.isNotEmpty;
     accessToken = token;
     isInitialized = true;

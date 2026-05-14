@@ -22,6 +22,19 @@ class MessageProvider extends BaseProvider<List<UserMessage>> {
     _service = UserService(client);
   }
 
+  void resetForLanguageChange() {
+    data = null;
+    error = null;
+    isLoading = false;
+    isRefreshing = false;
+    isSubmitting = false;
+    currentPage = 1;
+    lastPage = 1;
+    isLoadingMore = false;
+    loadMoreError = null;
+    notifyListeners();
+  }
+
   Future<void> loadMessages({bool refresh = false}) async {
     if (isLoading || isRefreshing) return;
     if (refresh) {
@@ -40,10 +53,8 @@ class MessageProvider extends BaseProvider<List<UserMessage>> {
       error = null;
     } on ApiException catch (exception) {
       error = exception.message;
-      if (data == null) data = _fallbackMessages;
     } catch (exception) {
       error = exception.toString();
-      if (data == null) data = _fallbackMessages;
     } finally {
       isLoading = false;
       isRefreshing = false;
@@ -89,27 +100,3 @@ class MessageProvider extends BaseProvider<List<UserMessage>> {
     notifyListeners();
   }
 }
-
-const _fallbackMessages = <UserMessage>[
-  UserMessage(
-    id: -1,
-    title: '充值成功通知',
-    content: '您的账户已成功充值 10,000 元，当前余额为 15,200 元。',
-    createdAt: '10:30',
-    type: 1,
-  ),
-  UserMessage(
-    id: -2,
-    title: 'VIP 等级提升',
-    content: '恭喜！您的 VIP 等级已提升至 VIP3，快去查看专属特权吧！',
-    createdAt: '昨天',
-    type: 1,
-  ),
-  UserMessage(
-    id: -3,
-    title: '周末狂欢活动开启',
-    content: '周末狂欢送不停，登录即送免费抽奖机会，最高可得 8,888 元！',
-    createdAt: '04-20',
-    type: 2,
-  ),
-];

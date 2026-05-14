@@ -10,7 +10,7 @@ class ActivityProvider extends BaseProvider<List<ActivityItem>> {
 
   ActivityService _service;
   List<ActivityCategory> categories = const [
-    ActivityCategory(id: 0, title: '全部')
+    ActivityCategory(id: 0, title: 'activity.categoryAll')
   ];
   int selectedCategoryId = 0;
   ActivityItem? selectedDetail;
@@ -24,9 +24,9 @@ class ActivityProvider extends BaseProvider<List<ActivityItem>> {
   String? recordsError;
   String? applyError;
 
-  List<ActivityItem> get activities => data ?? _fallbackActivities;
+  List<ActivityItem> get activities => data ?? const [];
   bool get hasRemoteActivities => data != null;
-  List<ActivityApplyRecord> get records => activityRecords ?? _fallbackRecords;
+  List<ActivityApplyRecord> get records => activityRecords ?? const [];
   bool get hasRemoteRecords => activityRecords != null;
   bool get hasMoreRecords => recordCurrentPage < recordLastPage;
 
@@ -34,12 +34,33 @@ class ActivityProvider extends BaseProvider<List<ActivityItem>> {
     _service = ActivityService(client);
   }
 
+  void resetForLanguageChange() {
+    data = null;
+    error = null;
+    isLoading = false;
+    isRefreshing = false;
+    isSubmitting = false;
+    categories = const [ActivityCategory(id: 0, title: 'activity.categoryAll')];
+    selectedCategoryId = 0;
+    selectedDetail = null;
+    activityRecords = null;
+    recordCurrentPage = 1;
+    recordLastPage = 1;
+    isRecordsLoading = false;
+    isRecordsRefreshing = false;
+    isRecordsLoadingMore = false;
+    isApplying = false;
+    recordsError = null;
+    applyError = null;
+    notifyListeners();
+  }
+
   Future<void> loadCategories({bool refresh = false}) async {
     if (isLoading || isRefreshing) return;
     try {
       final remoteCategories = await _service.fetchCategories();
       categories = [
-        const ActivityCategory(id: 0, title: '全部'),
+        const ActivityCategory(id: 0, title: 'activity.categoryAll'),
         ...remoteCategories.where((item) => item.id > 0),
       ];
       if (!categories.any((item) => item.id == selectedCategoryId)) {
@@ -72,10 +93,8 @@ class ActivityProvider extends BaseProvider<List<ActivityItem>> {
       error = null;
     } on ApiException catch (exception) {
       error = exception.message;
-      data ??= _fallbackActivities;
     } catch (exception) {
       error = exception.toString();
-      data ??= _fallbackActivities;
     } finally {
       isLoading = false;
       isRefreshing = false;
@@ -126,10 +145,8 @@ class ActivityProvider extends BaseProvider<List<ActivityItem>> {
       recordsError = null;
     } on ApiException catch (exception) {
       recordsError = exception.message;
-      activityRecords ??= _fallbackRecords;
     } catch (exception) {
       recordsError = exception.toString();
-      activityRecords ??= _fallbackRecords;
     } finally {
       isRecordsLoading = false;
       isRecordsRefreshing = false;
@@ -184,39 +201,3 @@ class ActivityProvider extends BaseProvider<List<ActivityItem>> {
     }
   }
 }
-
-const _fallbackActivities = <ActivityItem>[
-  ActivityItem(
-    id: 1,
-    title: '首充送 100%',
-    img: 'assets/images/cp.jpg',
-    content: '新用户首次充值可获得高达100%返利。',
-    type: 1,
-    lasting: 1,
-  ),
-  ActivityItem(
-    id: 2,
-    title: '周末狂欢',
-    img: 'assets/images/dz.jpg',
-    content: '周末登录即送免费抽奖机会。',
-    type: 1,
-    lasting: 1,
-  ),
-  ActivityItem(
-    id: 3,
-    title: 'VIP 专属福利',
-    img: 'assets/images/zr.jpg',
-    content: 'VIP等级越高，返水比例越高。',
-    type: 1,
-    lasting: 1,
-  ),
-];
-
-const _fallbackRecords = <ActivityApplyRecord>[
-  ActivityApplyRecord(
-    username: 'xhdemo',
-    status: 1,
-    applyTime: '2026-03-24 01:24:58',
-    title: 'shoudong',
-  ),
-];

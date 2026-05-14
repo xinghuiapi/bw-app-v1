@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -41,7 +42,9 @@ class MaintenanceScreen extends StatelessWidget {
               ),
               SizedBox(height: 24.h),
               Text(
-                title?.isNotEmpty == true ? title! : '系统维护中',
+                title?.isNotEmpty == true
+                    ? title!
+                    : 'maintenance.title'.tr(),
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 22.sp,
@@ -53,7 +56,7 @@ class MaintenanceScreen extends StatelessWidget {
               Text(
                 description?.isNotEmpty == true
                     ? description!
-                    : '平台正在进行系统维护，请稍后再试。',
+                    : 'maintenance.description'.tr(),
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 14.sp,
@@ -63,14 +66,14 @@ class MaintenanceScreen extends StatelessWidget {
               ),
               SizedBox(height: 32.h),
               CustomButton(
-                text: '重新检测',
+                text: 'maintenance.retry'.tr(),
                 onPressed: () => _retry(context),
               ),
               SizedBox(height: 12.h),
               TextButton(
                 onPressed: () => context.go('/'),
                 child: Text(
-                  '返回首页',
+                  'maintenance.backHome'.tr(),
                   style: TextStyle(
                     color: AppColors.primary,
                     fontSize: 14.sp,

@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 import '../core/json_utils.dart';
 
 class ActivityCategory {
@@ -51,7 +53,9 @@ class ActivityItem {
     );
   }
 
-  String get typeText => type == 2 ? '手动申请' : '系统发放';
+  String get typeText => type == 2
+      ? 'activity.type.manual'.tr()
+      : 'activity.type.system'.tr();
 
   String get multipleText {
     final value = multiple;
@@ -59,11 +63,11 @@ class ActivityItem {
     final normalized = value == value.roundToDouble()
         ? value.toInt().toString()
         : value.toString();
-    return '$normalized倍';
+    return 'activity.multiple'.tr(namedArgs: {'value': normalized});
   }
 
   String get timeText {
-    if (lasting == 1) return '长期活动';
+    if (lasting == 1) return 'activity.longTerm'.tr();
     final start = startTime ?? '';
     final end = endTime ?? '';
     if (start.isNotEmpty && end.isNotEmpty) return '$start ~ $end';
@@ -125,10 +129,10 @@ class ActivityApplyRecord {
   }
 
   String get statusText {
-    if (status == 1) return '申请中';
-    if (status == 2) return '已通过';
-    if (status == 3) return '已拒绝';
-    return '未知状态';
+    if (status == 1) return 'activity.status.applying'.tr();
+    if (status == 2) return 'activity.status.approved'.tr();
+    if (status == 3) return 'activity.status.rejected'.tr();
+    return 'activity.status.unknown'.tr();
   }
 
   bool get isApproved => status == 2;

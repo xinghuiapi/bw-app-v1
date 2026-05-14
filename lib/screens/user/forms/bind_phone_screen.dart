@@ -142,7 +142,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
             areaCode: '+86',
           );
       if (!mounted) return false;
-      _showMessage(result.message);
+      _showMessage(_localizedResultMessage(result.message));
       return true;
     } catch (error) {
       if (!mounted) return false;
@@ -157,6 +157,11 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
     final text = value.trim();
     if (text.length < 7) return text;
     return '${text.substring(0, 3)}****${text.substring(text.length - 4)}';
+  }
+
+  String _localizedResultMessage(String message) {
+    final text = message.trim();
+    return text.startsWith('auth.') ? text.tr() : text;
   }
 
   void _showMessage(String message) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/search_input.dart';
@@ -40,9 +41,9 @@ class _SearchScreenState extends State<SearchScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildEmpty('全部游戏'),
-                  _buildGameGrid(),
-                  _buildEmpty('我的收藏'),
+                  _buildEmpty('game.allGames'.tr()),
+                  _buildEmpty('game.noGame'.tr()),
+                  _buildEmpty('game.favorites'.tr()),
                 ],
               ),
             ),
@@ -69,9 +70,9 @@ class _SearchScreenState extends State<SearchScreen>
               ),
             ),
           ),
-          const Expanded(
+          Expanded(
             child: SearchInput(
-              hintText: '搜索游戏、活动...',
+              hintText: 'search.hint'.tr(),
               autoFocus: true,
             ),
           ),
@@ -81,7 +82,7 @@ class _SearchScreenState extends State<SearchScreen>
               // Handle search
             },
             child: Text(
-              '搜索',
+              'common.search'.tr(),
               style: TextStyle(
                 fontSize: 16.sp,
                 color: AppColors.primary,
@@ -114,184 +115,11 @@ class _SearchScreenState extends State<SearchScreen>
         indicatorWeight: 3.h,
         dividerColor: Colors.transparent, // 移除下划线防溢出和高保真
         tabAlignment: TabAlignment.fill,
-        tabs: const [
-          Tab(text: '全部'),
-          Tab(text: '热门游戏'),
-          Tab(text: '我的收藏'),
+        tabs: [
+          Tab(text: 'game.all'.tr()),
+          Tab(text: 'game.hotGames'.tr()),
+          Tab(text: 'game.favorites'.tr()),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGameGrid() {
-    // Mock data based on screenshot
-    final games = [
-      {
-        'name': '加拿大P...',
-        'image': 'https://picsum.photos/200?1',
-        'isFav': false
-      },
-      {'name': '加拿大28', 'image': 'https://picsum.photos/200?2', 'isFav': false},
-      {
-        'name': '澳门六...',
-        'image': 'https://picsum.photos/200?3',
-        'isFav': false
-      },
-      {
-        'name': '香港六...',
-        'image': 'https://picsum.photos/200?4',
-        'isFav': false
-      },
-      {'name': 'DB体育', 'image': 'https://picsum.photos/200?5', 'isFav': false},
-      {
-        'name': '竞速11选5',
-        'image': 'https://picsum.photos/200?6',
-        'isFav': false
-      },
-      {
-        'name': '澳门六...',
-        'image': 'https://picsum.photos/200?7',
-        'isFav': false
-      },
-      {
-        'name': '极速六...',
-        'image': 'https://picsum.photos/200?8',
-        'isFav': false
-      },
-      {
-        'name': '香港六...',
-        'image': 'https://picsum.photos/200?9',
-        'isFav': false
-      },
-      {'name': '百家乐', 'image': 'https://picsum.photos/200?10', 'isFav': false},
-      {
-        'name': '星际水...',
-        'image': 'https://picsum.photos/200?11',
-        'isFav': false
-      },
-      {
-        'name': '超级牛...',
-        'image': 'https://picsum.photos/200?12',
-        'isFav': false
-      },
-      {'name': '大三元', 'image': 'https://picsum.photos/200?13', 'isFav': false},
-      {'name': '星际水...', 'image': '', 'isFav': false}, // mock error image
-      {'name': '超级牛...', 'image': '', 'isFav': false},
-      {'name': '大三元', 'image': '', 'isFav': false},
-      {'name': '赏金猎人', 'image': '', 'isFav': false},
-      {'name': '赏金猎人', 'image': 'https://picsum.photos/200?18', 'isFav': false},
-      {
-        'name': '赏金大...',
-        'image': 'https://picsum.photos/200?19',
-        'isFav': true
-      }, // blue heart
-      {'name': '双喜临门', 'image': 'https://picsum.photos/200?20', 'isFav': false},
-    ];
-
-    return Container(
-      color: AppColors.background,
-      child: GridView.builder(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          crossAxisSpacing: 12.w,
-          mainAxisSpacing: 16.h,
-          childAspectRatio:
-              0.72, // Adjust to prevent overflow and match screenshot
-        ),
-        itemCount: games.length,
-        itemBuilder: (context, index) {
-          final game = games[index];
-          return _buildGameItem(
-            game['name'] as String,
-            game['image'] as String,
-            game['isFav'] as bool,
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildGameItem(String name, String image, bool isFavorite) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Expanded(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                      16.r), // Rounded rectangle like in the screenshot
-                  color: Colors.white,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: image.isNotEmpty
-                    ? Image.network(
-                        image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildImagePlaceholder(),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(color: Colors.grey[200]);
-                        },
-                      )
-                    : _buildImagePlaceholder(),
-              ),
-              Positioned(
-                top: 4.h,
-                right: 4.w,
-                child: Container(
-                  padding: EdgeInsets.all(4.w),
-                  decoration: BoxDecoration(
-                    color: isFavorite
-                        ? Colors.white
-                        : Colors.black.withValues(alpha: 0.3),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    size: 12.sp,
-                    color: isFavorite ? AppColors.primary : Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 8.h),
-        Text(
-          name,
-          style: TextStyle(
-            fontSize: 12.sp,
-            color: AppColors.textPrimary,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImagePlaceholder() {
-    return Container(
-      color: const Color(0xFFF5F5F5),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image_not_supported,
-                size: 24.sp, color: Colors.grey[400]),
-            SizedBox(height: 4.h),
-            Text(
-              '游戏',
-              style: TextStyle(fontSize: 10.sp, color: Colors.grey[400]),
-            )
-          ],
-        ),
       ),
     );
   }

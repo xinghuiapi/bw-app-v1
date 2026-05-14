@@ -709,7 +709,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
       if (!mounted) return;
       _startSmsCountdown();
-      _showMessage(result.message);
+      _showMessage(_localizedResultMessage(result.message));
     } catch (error) {
       if (!mounted) return;
       _showErrorMessage(_errorMessage(error));
@@ -728,7 +728,7 @@ class _LoginScreenState extends State<LoginScreen> {
           await context.read<AuthProvider>().sendEmailCode(email: email);
       if (!mounted) return;
       _startEmailCountdown();
-      _showMessage(result.message);
+      _showMessage(_localizedResultMessage(result.message));
     } catch (error) {
       if (!mounted) return;
       _showErrorMessage(_errorMessage(error));
@@ -769,6 +769,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return (error.error as ApiException).message;
     }
     return error.toString();
+  }
+
+  String _localizedResultMessage(String message) {
+    final text = message.trim();
+    return text.startsWith('auth.') ? text.tr() : text;
   }
 
   void _showMessage(String message) {

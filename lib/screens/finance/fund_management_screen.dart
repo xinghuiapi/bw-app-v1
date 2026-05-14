@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/wallet/record_models.dart';
 import '../../providers/record/record_provider.dart';
+import '../../providers/localization/language_provider.dart';
 import '../../providers/user/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_card.dart';
@@ -27,10 +29,11 @@ class _FundManagementScreenState extends State<FundManagementScreen>
   final ScrollController _transferScrollController = ScrollController();
   final ScrollController _accountScrollController = ScrollController();
 
-  String _selectedDateRange = '今天';
+  String _selectedDateRange = 'today';
   DateTimeRange _range = _todayRange();
-  final List<String> _dateRanges = ['今天', '昨日', '本月', '上月'];
+  final List<String> _dateRanges = ['today', 'yesterday', 'thisMonth', 'lastMonth'];
   int _lastLoadedTabIndex = 0;
+  String? _lastLanguageCode;
 
   @override
   void initState() {
@@ -66,29 +69,41 @@ class _FundManagementScreenState extends State<FundManagementScreen>
 
   @override
   Widget build(BuildContext context) {
+    final languageCode = context.watch<LanguageProvider>().currentCode;
+    if (_lastLanguageCode == null) {
+      _lastLanguageCode = languageCode;
+    } else if (_lastLanguageCode != languageCode) {
+      _lastLanguageCode = languageCode;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadCurrentTab();
+      });
+    }
     final profile = context.watch<UserProvider>().profile;
     final symbol = profile?.symbol?.trim().isNotEmpty == true
         ? profile!.symbol!.trim()
         : '¥';
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '资金管理'),
-      body: Column(
-        children: [
-          _buildDateFilter(),
-          _buildTabBar(),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildTradeTab(FundRecordTab.deposit, symbol),
-                _buildTradeTab(FundRecordTab.withdraw, symbol),
-                _buildTransferTab(symbol),
-                _buildAccountTab(symbol),
-              ],
+      appBar: CustomNavBar(title: _fundText('title')),
+      body: KeyedSubtree(
+        key: ValueKey(languageCode),
+        child: Column(
+          children: [
+            _buildDateFilter(),
+            _buildTabBar(),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildTradeTab(FundRecordTab.deposit, symbol),
+                  _buildTradeTab(FundRecordTab.withdraw, symbol),
+                  _buildTransferTab(symbol),
+                  _buildAccountTab(symbol),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -107,7 +122,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '查询日期',
+                  _fundText('queryDate'),
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.bold,
@@ -155,7 +170,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                           ),
                         ),
                         child: Text(
-                          range,
+                          _dateRangeLabel(range),
                           style: TextStyle(
                             fontSize: 12.sp,
                             fontWeight: isSelected
@@ -205,11 +220,11 @@ class _FundManagementScreenState extends State<FundManagementScreen>
           dividerColor: Colors.transparent,
           labelStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
           unselectedLabelStyle: TextStyle(fontSize: 14.sp),
-          tabs: const [
-            Tab(text: '充值记录', height: 42),
-            Tab(text: '提现记录', height: 42),
-            Tab(text: '转账记录', height: 42),
-            Tab(text: '账户明细', height: 42),
+          tabs: [
+            Tab(text: _fundText('depositRecords'), height: 42),
+            Tab(text: _fundText('withdrawRecords'), height: 42),
+            Tab(text: _fundText('transferRecords'), height: 42),
+            Tab(text: _fundText('accountDetails'), height: 42),
           ],
         ),
       ),
@@ -229,7 +244,9 @@ class _FundManagementScreenState extends State<FundManagementScreen>
               ? const Center(child: CircularProgressIndicator())
               : records.isEmpty
                   ? _buildEmptyList(
-                      tab == FundRecordTab.deposit ? '暂无充值记录' : '暂无提现记录')
+                      tab == FundRecordTab.deposit
+                          ? _fundText('emptyDeposit')
+                          : _fundText('emptyWithdraw'))
                   : ListView.builder(
                       controller: _controllerFor(tab),
                       padding: EdgeInsets.only(bottom: 20.h),
@@ -259,7 +276,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
           child: provider.isLoading(tab) && records.isEmpty
               ? const Center(child: CircularProgressIndicator())
               : records.isEmpty
-                  ? _buildEmptyList('暂无转账记录')
+                  ? _buildEmptyList(_fundText('emptyTransfer'))
                   : ListView.builder(
                       controller: _transferScrollController,
                       padding: EdgeInsets.only(bottom: 20.h),
@@ -289,7 +306,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
           child: provider.isLoading(tab) && records.isEmpty
               ? const Center(child: CircularProgressIndicator())
               : records.isEmpty
-                  ? _buildEmptyList('暂无账户明细')
+                  ? _buildEmptyList(_fundText('emptyAccount'))
                   : ListView.builder(
                       controller: _accountScrollController,
                       padding: EdgeInsets.only(bottom: 20.h),
@@ -318,7 +335,9 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     return _buildRecordCard(
       title: item.title.isNotEmpty
           ? item.title
-          : (tab == FundRecordTab.deposit ? '充值' : '提现'),
+          : (tab == FundRecordTab.deposit
+          ? _fundText('depositTitle')
+          : _fundText('withdrawTitle')),
       status: status.$1,
       statusColor: status.$2,
       amount: _money(item.money, symbol),
@@ -334,8 +353,10 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     final statusColor = item.status == 1 ? AppColors.success : AppColors.danger;
     return _buildRecordCard(
       title:
-          '${item.code.isNotEmpty ? item.code : '场馆'} ${item.isIn ? '转入' : '转出'}',
-      status: item.status == 1 ? '成功' : '失败',
+          '${item.code.isNotEmpty ? item.code : _fundText('venue')} ${item.isIn ? _fundText('transferIn') : _fundText('transferOut')}',
+      status: item.status == 1
+          ? _fundText('success')
+          : _fundText('failed'),
       statusColor: statusColor,
       amount: '${item.isIn ? '+' : '-'}${_money(item.money, symbol)}',
       orderNo: item.order,
@@ -398,7 +419,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
           ),
           SizedBox(height: 12.h),
           Text(
-            '订单号：${orderNo.isEmpty ? '-' : orderNo}',
+            _fundText('orderNo', {'orderNo': orderNo.isEmpty ? '-' : orderNo}),
             style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
           ),
           if (note.isNotEmpty) ...[
@@ -430,7 +451,10 @@ class _FundManagementScreenState extends State<FundManagementScreen>
         .map((type) => type.name)
         .firstOrNull;
     final title =
-        typeName ?? (item.moneyTypeId > 0 ? '类型 ${item.moneyTypeId}' : '账户变动');
+        typeName ??
+            (item.moneyTypeId > 0
+                ? _fundText('typeNumber', {'type': '${item.moneyTypeId}'})
+                : _fundText('accountChange'));
     return CustomCard(
       margin: EdgeInsets.only(left: 16.w, right: 16.w, top: 12.h),
       padding: EdgeInsets.all(16.w),
@@ -461,7 +485,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                       SizedBox(width: 8.w),
                       Expanded(
                         child: Text(
-                          item.note,
+                          _maybeTranslate(item.note),
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: AppColors.textSecondary,
@@ -493,7 +517,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '余额：${_money(item.afterMoney, symbol)}',
+                _fundText('balance', {'amount': _money(item.afterMoney, symbol)}),
                 style:
                     TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
               ),
@@ -531,7 +555,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 16.h),
       child: Text(
-        hasMore ? '' : '没有更多了',
+        hasMore ? '' : 'common.noMore'.tr(),
         textAlign: TextAlign.center,
         style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp),
       ),
@@ -589,9 +613,9 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     setState(() {
       _selectedDateRange = range;
       _range = switch (range) {
-        '昨日' => _yesterdayRange(),
-        '本月' => _monthRange(DateTime.now()),
-        '上月' => _lastMonthRange(),
+        'yesterday' => _yesterdayRange(),
+        'thisMonth' => _monthRange(DateTime.now()),
+        'lastMonth' => _lastMonthRange(),
         _ => _todayRange(),
       };
     });
@@ -611,15 +635,29 @@ class _FundManagementScreenState extends State<FundManagementScreen>
   }
 
   (String, Color) _tradeStatus(int status, FundRecordTab tab) {
-    if (status == 1) return ('成功', AppColors.success);
-    if (status == 0) return ('已超时', AppColors.danger);
+    if (status == 1) return (_fundText('success'), AppColors.success);
+    if (status == 0) return (_fundText('timeout'), AppColors.danger);
     if (status == 5) {
-      return (tab == FundRecordTab.deposit ? '充值中' : '处理中', AppColors.warning);
+      return (
+        tab == FundRecordTab.deposit
+            ? _fundText('depositing')
+            : _fundText('processing'),
+        AppColors.warning
+      );
     }
-    if (status == 2) return ('人工确认', AppColors.warning);
-    if (status == 3) return ('用户取消', AppColors.danger);
-    if (status == 4) return ('已拒绝', AppColors.danger);
-    return ('未知', AppColors.primary);
+    if (status == 2) return (_fundText('manualConfirm'), AppColors.warning);
+    if (status == 3) return (_fundText('userCanceled'), AppColors.danger);
+    if (status == 4) return (_fundText('rejected'), AppColors.danger);
+    return (_fundText('unknown'), AppColors.primary);
+  }
+
+  String _dateRangeLabel(String range) {
+    return switch (range) {
+      'yesterday' => _fundText('yesterday'),
+      'thisMonth' => _fundText('thisMonth'),
+      'lastMonth' => _fundText('lastMonth'),
+      _ => _fundText('today'),
+    };
   }
 
   bool _isTradeFailed(int status) => status == 0 || status == 3 || status == 4;
@@ -650,6 +688,17 @@ class _FundManagementScreenState extends State<FundManagementScreen>
 
   String _monthDay(DateTime date) {
     return '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  String _fundText(String key, [Map<String, String> args = const {}]) {
+    final fullKey = 'finance.fund.$key';
+    return fullKey.tr(namedArgs: args);
+  }
+
+  String _maybeTranslate(String value) {
+    final text = value.trim();
+    if (text.startsWith('finance.fund.')) return _fundText(text.split('.').last);
+    return text;
   }
 
   static DateTimeRange _todayRange() {

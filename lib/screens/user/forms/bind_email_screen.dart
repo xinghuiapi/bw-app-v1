@@ -141,7 +141,7 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
             email: email,
           );
       if (!mounted) return false;
-      _showMessage(result.message);
+      _showMessage(_localizedResultMessage(result.message));
       return true;
     } catch (error) {
       if (!mounted) return false;
@@ -158,6 +158,11 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
     final atIndex = text.indexOf('@');
     if (atIndex <= 1) return text;
     return '${text.substring(0, 1)}***${text.substring(atIndex)}';
+  }
+
+  String _localizedResultMessage(String message) {
+    final text = message.trim();
+    return text.startsWith('auth.') ? text.tr() : text;
   }
 
   void _showMessage(String message) {

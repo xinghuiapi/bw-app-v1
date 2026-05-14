@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 import '../core/json_utils.dart';
 import '../core/paginated_response.dart';
 
@@ -131,24 +133,28 @@ class UserProfile {
 
   bool get isEmailBound => _hasText(email);
 
-  String get realNameStatusText => hasRealName ? '已认证' : '未认证';
+  String get realNameStatusText =>
+      hasRealName ? 'common.verified'.tr() : 'common.unverified'.tr();
 
-  String get payPasswordStatusText => hasPayPassword ? '已设置' : '未设置';
+  String get payPasswordStatusText =>
+      hasPayPassword ? 'common.set'.tr() : 'common.notSet'.tr();
 
   String get genderText {
     final text = gender?.trim();
-    if (text == null || text.isEmpty) return '未设置';
-    if (text == 'male') return '男';
-    if (text == 'female') return '女';
-    if (text == 'secret') return '保密';
+    if (text == null || text.isEmpty) return 'common.notSet'.tr();
+    if (text == 'male') return 'user.gender.male'.tr();
+    if (text == 'female') return 'user.gender.female'.tr();
+    if (text == 'secret') return 'user.gender.secret'.tr();
     return text;
   }
 
-  String get birthdayText => _hasText(bornTime) ? bornTime!.trim() : '未设置';
+  String get birthdayText =>
+      _hasText(bornTime) ? bornTime!.trim() : 'common.notSet'.tr();
 
-  String get qqText => _hasText(qq) ? qq!.trim() : '未填写';
+  String get qqText => _hasText(qq) ? qq!.trim() : 'common.notFilled'.tr();
 
-  String get telegramText => _hasText(telegram) ? telegram!.trim() : '未填写';
+  String get telegramText =>
+      _hasText(telegram) ? telegram!.trim() : 'common.notFilled'.tr();
 
   String get displayVipLevel {
     final value = vipLevel ?? vip;
@@ -577,7 +583,8 @@ class FeedbackRecord {
 
   bool get hasReply => reply != null && reply!.trim().isNotEmpty;
 
-  String get statusText => hasReply ? '已处理' : '处理中';
+  String get statusText =>
+      hasReply ? 'feedback.status.processed'.tr() : 'feedback.status.processing'.tr();
 
   Map<String, dynamic> toJson() => {
         'id': id,

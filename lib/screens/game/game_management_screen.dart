@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/game/game_management_models.dart';
 import '../../providers/game/game_management_provider.dart';
+import '../../providers/localization/language_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_nav_bar.dart';
@@ -21,10 +23,11 @@ class _GameManagementScreenState extends State<GameManagementScreen>
   final ScrollController _rebateScrollController = ScrollController();
   final ScrollController _gameScrollController = ScrollController();
 
-  String _selectedDateRange = '今天';
+  String _selectedDateRange = 'today';
   DateTimeRange _range = _todayRange();
-  final List<String> _dateRanges = ['今天', '昨日', '本月', '上月'];
+  final List<String> _dateRanges = ['today', 'yesterday', 'thisMonth', 'lastMonth'];
   int _lastLoadedTabIndex = 0;
+  String? _lastLanguageCode;
 
   @override
   void initState() {
@@ -47,9 +50,18 @@ class _GameManagementScreenState extends State<GameManagementScreen>
 
   @override
   Widget build(BuildContext context) {
+    final languageCode = context.watch<LanguageProvider>().currentCode;
+    if (_lastLanguageCode == null) {
+      _lastLanguageCode = languageCode;
+    } else if (_lastLanguageCode != languageCode) {
+      _lastLanguageCode = languageCode;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadRecords();
+      });
+    }
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomNavBar(title: '游戏管理'),
+      appBar: CustomNavBar(title: _gm('title')),
       body: Column(
         children: [
           _buildDateFilter(),
@@ -82,7 +94,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '查询日期',
+                  _gm('queryDate'),
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.bold,
@@ -134,7 +146,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                           ),
                         ),
                         child: Text(
-                          range,
+                          _dateRangeLabel(range),
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 12.sp,
@@ -183,9 +195,9 @@ class _GameManagementScreenState extends State<GameManagementScreen>
           dividerColor: Colors.transparent,
           labelStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
           unselectedLabelStyle: TextStyle(fontSize: 16.sp),
-          tabs: const [
-            Tab(text: '返水记录', height: 42),
-            Tab(text: '游戏记录', height: 42),
+          tabs: [
+            Tab(text: _gm('rebateRecords'), height: 42),
+            Tab(text: _gm('gameRecords'), height: 42),
           ],
         ),
       ),
@@ -207,7 +219,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                 child: provider.isRebateLoading && records.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : records.isEmpty
-                        ? _buildEmptyList('暂无返水记录')
+                        ? _buildEmptyList(_gm('emptyRebate'))
                         : ListView.builder(
                             controller: _rebateScrollController,
                             padding: EdgeInsets.only(bottom: 16.h),
@@ -239,11 +251,11 @@ class _GameManagementScreenState extends State<GameManagementScreen>
       hasShadow: true,
       child: Row(
         children: [
-          Expanded(child: _buildSummaryItem('总返水', _money(page.totalFsMoney))),
+          Expanded(child: _buildSummaryItem(_gm('totalRebate'), _money(page.totalFsMoney))),
           _buildVerticalDivider(),
-          Expanded(child: _buildSummaryItem('已领取', _money(page.yesFsMoney))),
+          Expanded(child: _buildSummaryItem(_gm('claimed'), _money(page.yesFsMoney))),
           _buildVerticalDivider(),
-          Expanded(child: _buildSummaryItem('未领取', _money(page.notFsMoney))),
+          Expanded(child: _buildSummaryItem(_gm('unclaimed'), _money(page.notFsMoney))),
         ],
       ),
     );
@@ -271,7 +283,9 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              _buildTag(item.claimed ? '已领取' : '待领取',
+              _buildTag(item.claimed
+                  ? _gm('claimed')
+                  : _gm('pendingClaim'),
                   color: item.claimed ? AppColors.success : AppColors.primary),
             ],
           ),
@@ -286,13 +300,13 @@ class _GameManagementScreenState extends State<GameManagementScreen>
           Row(
             children: [
               Expanded(
-                  child: _buildRecordItem('返水', _money(item.fsMoney),
+                  child: _buildRecordItem(_gm('rebate'), _money(item.fsMoney),
                       alignCenter: true)),
               Expanded(
-                  child: _buildRecordItem('有效', _money(item.money),
+                  child: _buildRecordItem(_gm('valid'), _money(item.money),
                       alignCenter: true)),
               Expanded(
-                  child: _buildRecordItem('盈亏', _money(0), alignCenter: true)),
+                  child: _buildRecordItem(_gm('profitLoss'), _money(0), alignCenter: true)),
             ],
           ),
         ],
@@ -315,26 +329,34 @@ class _GameManagementScreenState extends State<GameManagementScreen>
       ),
       child: SafeArea(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('可领取',
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _gm('claimable'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        color: AppColors.textSecondary, fontSize: 12.sp)),
-                SizedBox(height: 4.h),
-                Text(
-                  _money(amount),
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary, fontSize: 12.sp),
                   ),
-                ),
-              ],
+                  SizedBox(height: 4.h),
+                  Text(
+                    _money(amount),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
+            SizedBox(width: 12.w),
             ElevatedButton(
               onPressed: null,
               style: ElevatedButton.styleFrom(
@@ -342,9 +364,17 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24.r),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
               ),
-              child: Text('领取返水', style: TextStyle(fontSize: 16.sp)),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 128.w),
+                child: Text(
+                  _gm('claimRebate'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16.sp),
+                ),
+              ),
             ),
           ],
         ),
@@ -367,7 +397,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
                 child: provider.isGameLoading && records.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : records.isEmpty
-                        ? _buildEmptyList('暂无游戏记录')
+                        ? _buildEmptyList(_gm('emptyGame'))
                         : ListView.builder(
                             controller: _gameScrollController,
                             itemCount: records.length + (isEmpty ? 0 : 1),
@@ -397,18 +427,18 @@ class _GameManagementScreenState extends State<GameManagementScreen>
       hasShadow: true,
       child: Row(
         children: [
-          Expanded(child: _buildSummaryItem('注单笔数', '${page.total}')),
+          Expanded(child: _buildSummaryItem(_gm('betCount'), '${page.total}')),
           _buildVerticalDivider(),
           Expanded(
-              child: _buildSummaryItem('投注金额', _money(page.totalBetAmount))),
+              child: _buildSummaryItem(_gm('betAmount'), _money(page.totalBetAmount))),
           _buildVerticalDivider(),
           Expanded(
               child:
-                  _buildSummaryItem('有效金额', _money(page.totalValidBetAmount))),
+                  _buildSummaryItem(_gm('validAmount'), _money(page.totalValidBetAmount))),
           _buildVerticalDivider(),
           Expanded(
             child: _buildSummaryItem(
-              '盈亏',
+              _gm('profitLoss'),
               _money(page.totalNetAmount),
               valueColor: page.totalNetAmount < 0 ? AppColors.danger : null,
             ),
@@ -455,14 +485,14 @@ class _GameManagementScreenState extends State<GameManagementScreen>
           Row(
             children: [
               Expanded(
-                  child: _buildRecordItem('投注', _money(item.betAmount),
+                  child: _buildRecordItem(_gm('bet'), _money(item.betAmount),
                       alignCenter: true)),
               Expanded(
-                  child: _buildRecordItem('有效', _money(item.validBetAmount),
+                  child: _buildRecordItem(_gm('valid'), _money(item.validBetAmount),
                       alignCenter: true)),
               Expanded(
                 child: _buildRecordItem(
-                  '盈亏',
+                  _gm('profitLoss'),
                   _money(item.netAmount),
                   valueColor: item.netAmount < 0 ? AppColors.danger : null,
                   alignCenter: true,
@@ -553,7 +583,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 16.h),
       child: Text(
-        hasMore ? '' : '没有更多了',
+        hasMore ? '' : 'common.noMore'.tr(),
         textAlign: TextAlign.center,
         style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp),
       ),
@@ -627,9 +657,9 @@ class _GameManagementScreenState extends State<GameManagementScreen>
     setState(() {
       _selectedDateRange = range;
       _range = switch (range) {
-        '昨日' => _yesterdayRange(),
-        '本月' => _monthRange(DateTime.now()),
-        '上月' => _lastMonthRange(),
+        'yesterday' => _yesterdayRange(),
+        'thisMonth' => _monthRange(DateTime.now()),
+        'lastMonth' => _lastMonthRange(),
         _ => _todayRange(),
       };
     });
@@ -647,28 +677,45 @@ class _GameManagementScreenState extends State<GameManagementScreen>
     return '¥ ${value.toStringAsFixed(2)}';
   }
 
-  String _typeLabel(String code) {
-    const map = {
-      'sports': '体育',
-      'live': '真人',
-      'slots': '电子',
-      'game': '游戏',
-      'chess': '棋牌',
-      'poker': '棋牌',
-      'fishing': '捕鱼',
-      'esports': '电竞',
+  String _dateRangeLabel(String range) {
+    return switch (range) {
+      'yesterday' => _gm('yesterday'),
+      'thisMonth' => _gm('thisMonth'),
+      'lastMonth' => _gm('lastMonth'),
+      _ => _gm('today'),
     };
-    return map[code] ?? (code.isNotEmpty ? code : '未知');
+  }
+
+  String _typeLabel(String code) {
+    final key = switch (code) {
+      'sports' => 'gameManagement.types.sports',
+      'live' => 'gameManagement.types.live',
+      'slots' => 'gameManagement.types.slots',
+      'game' => 'gameManagement.types.game',
+      'chess' => 'gameManagement.types.chess',
+      'poker' => 'gameManagement.types.chess',
+      'fishing' => 'gameManagement.types.fishing',
+      'esports' => 'gameManagement.types.esports',
+      _ => '',
+    };
+    if (key.isEmpty) return code.isNotEmpty ? code : _gm('unknown');
+    return _trKey(key);
   }
 
   String _statusLabel(int status) {
     return switch (status) {
-      1 => '已结算',
-      2 => '未结算',
-      3 => '无效注单',
-      4 => '已退款',
+      1 => _gm('status.settled'),
+      2 => _gm('status.unsettled'),
+      3 => _gm('status.invalid'),
+      4 => _gm('status.refunded'),
       _ => '',
     };
+  }
+
+  String _gm(String key) => _trKey('gameManagement.$key');
+
+  String _trKey(String key) {
+    return key.tr();
   }
 
   String _shortTime(String value) {

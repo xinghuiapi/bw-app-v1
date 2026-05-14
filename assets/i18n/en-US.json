@@ -42,7 +42,14 @@
     "search": "Search",
     "reacquireCountdown": "Resend ({seconds})",
     "emptyData": "No data",
-    "loadFailedRetry": "Load failed, please try again later"
+    "loadFailedRetry": "Load failed, please try again later",
+    "refresh": "Refresh",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "set": "Set",
+    "select": "Select",
+    "sending": "Sending",
+    "getCode": "Get code"
   },
   "nav": {
     "home": "Home",
@@ -113,7 +120,9 @@
     "telegramLogin": "Telegram Login",
     "telegramQuickLogin": "Quick Login via Telegram",
     "telegramAgreement": "By continuing, you agree to our Terms of Service and Privacy Policy",
-    "authorizeTelegram": "Authorize Telegram"
+    "authorizeTelegram": "Authorize Telegram",
+    "codeSending": "Verification code is being sent",
+    "codeSent": "Verification code sent"
   },
   "game": {
     "title": "Game",
@@ -169,7 +178,12 @@
     "edit": "Edit",
     "logout": "Log out",
     "walletBalance": "Wallet Balance",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "secret": "Private"
+    }
   },
   "activity": {
     "empty": "No promotions yet",
@@ -183,7 +197,20 @@
     "applyFailed": "Application failed",
     "emptyRecords": "No application records",
     "account": "Account",
-    "time": "Time"
+    "time": "Time",
+    "categoryAll": "All",
+    "multiple": "{value}x",
+    "longTerm": "Long-term",
+    "type": {
+      "manual": "Manual Application",
+      "system": "System Issued"
+    },
+    "status": {
+      "applying": "Applying",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "unknown": "Unknown Status"
+    }
   },
   "service": {
     "title": "Support Center",
@@ -227,8 +254,6 @@
     "safeDomainCopied": "Safe domain copied",
     "recommendedGames": "Recommended",
     "hotGames": "Hot Games",
-    "fallbackRecommendedGame": "Recommended {index}",
-    "fallbackHotGame": "Hot Game {index}",
     "category": {
       "live": "Live Casino",
       "lottery": "Lottery",
@@ -322,7 +347,9 @@
     "realNameTip": "For your fund safety, please complete real-name verification. The verified info must match the withdrawal bank card.",
     "verificationStatus": "Verification Status",
     "completedVerification": "Verified",
-    "submitVerification": "Submit Verification"
+    "submitVerification": "Submit Verification",
+    "realName": "Real Name",
+    "enterRealName": "Please enter your real name"
   },
   "wallet": {
     "bankCardManagement": "Bank Cards",
@@ -333,7 +360,10 @@
     "emptyCardsDesc": "Your bank cards or crypto addresses will appear here after binding.",
     "noCardNumber": "No card number",
     "qrCode": "QR Code",
-    "receiptQrCode": "Payment QR Code"
+    "receiptQrCode": "Payment QR Code",
+    "rechargeSubmitting": "Deposit order is being submitted, please wait",
+    "imageUploading": "Image is uploading, please wait",
+    "receivingAccount": "Receiving Account"
   },
   "message": {
     "center": "Messages",
@@ -473,7 +503,85 @@
       "set": "Set",
       "unsetPayPassword": "Not set. Please set it first",
       "recycleSuccess": "Recycled successfully",
-      "recycleFailed": "Recycle failed"
+      "recycleFailed": "Recycle failed",
+      "submitTitle": "Withdrawal Request Submitted",
+      "submitHint": "Expected to arrive within 2 hours. Please watch for balance changes.",
+      "viewRecords": "View Withdrawal Records",
+      "backHome": "Back to Home",
+      "bankWithdraw": "Bank Withdrawal"
+    },
+    "record": {
+      "title": "Transaction Records",
+      "fundTitle": "Deposit and Withdrawal Records",
+      "gameSettlement": "Game Settlement",
+      "depositArrived": "Deposit Arrived",
+      "buyItem": "Purchase Item",
+      "completed": "Completed"
+    },
+    "wallet": {
+      "title": "My Wallet",
+      "transferRecords": "Transfer Records",
+      "balance": "Wallet Balance",
+      "balanceFallback": "Realtime balance is not synced yet. Showing profile balance. {message}",
+      "venueMode": "Venue Mode",
+      "venueModeDesc": "Auto transfer is enabled by default. Balance follows you into venues. Turn it off to transfer in/out manually.",
+      "venueList": "Venue List",
+      "recycling": "Recycling...",
+      "recycle": "Recycle Funds",
+      "venueLoading": "Loading venue balances...",
+      "emptyVenue": "No venue balance",
+      "emptyVenueDesc": "Log in to view venue balances",
+      "autoTransferEnabled": "Auto transfer enabled",
+      "manualTransferEnabled": "Switched to manual transfer",
+      "transferModeFailed": "Failed to switch transfer mode",
+      "recycleSuccess": "Recycle successful",
+      "recycleFailed": "Recycle failed",
+      "venueBalance": "Venue Balance",
+      "transferAmount": "Transfer Amount",
+      "enterTransferAmount": "Enter transfer amount",
+      "processing": "Processing...",
+      "transferIn": "Transfer In",
+      "transferOut": "Transfer Out",
+      "validTransferAmount": "Enter a valid transfer amount",
+      "transferInSuccess": "Transfer in successful",
+      "transferOutSuccess": "Transfer out successful",
+      "transferInFailed": "Transfer in failed",
+      "transferOutFailed": "Transfer out failed",
+      "venueFallback": "Venue balances are not synced yet. Showing default venues. {message}"
+    },
+    "fund": {
+      "title": "Fund Management",
+      "queryDate": "Query Date",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisMonth": "This Month",
+      "lastMonth": "Last Month",
+      "depositRecords": "Deposit Records",
+      "withdrawRecords": "Withdrawal Records",
+      "transferRecords": "Transfer Records",
+      "accountDetails": "Account Details",
+      "emptyDeposit": "No deposit records",
+      "emptyWithdraw": "No withdrawal records",
+      "emptyTransfer": "No transfer records",
+      "emptyAccount": "No account details",
+      "venue": "Venue",
+      "transferIn": "Transfer In",
+      "transferOut": "Transfer Out",
+      "success": "Success",
+      "failed": "Failed",
+      "orderNo": "Order No.: {orderNo}",
+      "typeNumber": "Type {type}",
+      "accountChange": "Account Change",
+      "balance": "Balance: {amount}",
+      "timeout": "Timed Out",
+      "depositing": "Depositing",
+      "processing": "Processing",
+      "manualConfirm": "Manual Confirmation",
+      "userCanceled": "User Canceled",
+      "rejected": "Rejected",
+      "unknown": "Unknown",
+      "depositTitle": "Deposit Records",
+      "withdrawTitle": "Withdrawal Records"
     }
   },
   "share": {
@@ -518,7 +626,18 @@
     "emptyRecords": "No feedback records",
     "defaultCategory": "Default category",
     "justNow": "Just now",
-    "reply": "Reply: "
+    "reply": "Reply: ",
+    "types": {
+      "game": "Game Issue",
+      "finance": "Deposit/Withdrawal Issue",
+      "activity": "Promotion Issue",
+      "accountSecurity": "Account Security",
+      "suggestion": "Other Suggestion"
+    },
+    "status": {
+      "processed": "Processed",
+      "processing": "Processing"
+    }
   },
   "vip": {
     "title": "VIP",
@@ -699,5 +818,52 @@
       "viewWallet": "View Wallet",
       "continueDeposit": "Continue Deposit"
     }
+  },
+  "gameManagement": {
+    "title": "Game Management",
+    "queryDate": "Query Date",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "rebateRecords": "Rebate Records",
+    "gameRecords": "Game Records",
+    "emptyRebate": "No rebate records",
+    "emptyGame": "No game records",
+    "totalRebate": "Total Rebate",
+    "claimed": "Claimed",
+    "unclaimed": "Unclaimed",
+    "pendingClaim": "Pending Claim",
+    "rebate": "Rebate",
+    "valid": "Valid",
+    "profitLoss": "P/L",
+    "claimable": "Claimable",
+    "claimRebate": "Claim Rebate",
+    "betCount": "Bet Count",
+    "betAmount": "Bet Amount",
+    "validAmount": "Valid Amount",
+    "bet": "Bet",
+    "unknown": "Unknown",
+    "types": {
+      "sports": "Sports",
+      "live": "Live Casino",
+      "slots": "Slots",
+      "game": "Game",
+      "chess": "Chess",
+      "fishing": "Fishing",
+      "esports": "Esports"
+    },
+    "status": {
+      "settled": "Settled",
+      "unsettled": "Unsettled",
+      "invalid": "Invalid Bet",
+      "refunded": "Refunded"
+    }
+  },
+  "maintenance": {
+    "title": "System Maintenance",
+    "description": "The platform is under maintenance. Please try again later.",
+    "retry": "Check Again",
+    "backHome": "Back Home"
   }
 }

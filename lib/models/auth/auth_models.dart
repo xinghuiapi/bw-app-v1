@@ -192,7 +192,7 @@ class VerificationCodeData {
   final int? expire;
 
   const VerificationCodeData({
-    this.message = '验证码已发送',
+    this.message = 'auth.codeSent',
     this.code,
     this.key,
     this.captchaImg,
@@ -202,7 +202,7 @@ class VerificationCodeData {
 
   factory VerificationCodeData.fromJson(Map<String, dynamic> json) {
     return VerificationCodeData(
-      message: jsonString(json['msg'] ?? json['message']) ?? '验证码已发送',
+      message: jsonString(json['msg'] ?? json['message']) ?? 'auth.codeSent',
       code: jsonString(json['code']),
       key: jsonString(json['captcha_key'] ?? json['key']),
       captchaImg: jsonString(json['captcha_img']),

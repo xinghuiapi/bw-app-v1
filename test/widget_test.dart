@@ -9,6 +9,8 @@ import 'package:flutter_ui_project/config/api_endpoints.dart';
 import 'package:flutter_ui_project/localization/app_language.dart';
 import 'package:flutter_ui_project/models/auth/auth_models.dart';
 import 'package:flutter_ui_project/models/home/home_models.dart';
+import 'package:flutter_ui_project/models/game/game_models.dart';
+import 'package:flutter_ui_project/models/wallet/wallet_models.dart';
 import 'package:flutter_ui_project/router/route_paths.dart';
 
 void main() {
@@ -189,6 +191,22 @@ void main() {
         expect(nextOptions.queryParameters.containsKey('lang'), isFalse);
       }),
     );
+  });
+
+  test('remote display titles are preserved for localization-sensitive data', () {
+    final depositCategory = DepositCategory.fromJson(
+      const {'id': 1, 'title': '支付宝充值', 'code': 'alipay'},
+    );
+    final depositChannel = DepositChannel.fromJson(
+      const {'id': 2, 'title': '微信扫码', 'type': 'wechat'},
+    );
+    final gameCategory = GameLobbyCategory.fromJson(
+      const {'id': 3, 'title': '真人视讯', 'code': 'live'},
+    );
+
+    expect(depositCategory.displayTitle, '支付宝充值');
+    expect(depositChannel.displayTitle, '微信扫码');
+    expect(gameCategory.title, '真人视讯');
   });
 
   test('login request serializes dynamic login types', () {

@@ -117,7 +117,7 @@ class AuthProvider extends BaseProvider<void> {
     int type = 1,
   }) async {
     if (isSendingSmsCode) {
-      return const VerificationCodeData(message: '验证码发送中');
+      return const VerificationCodeData(message: 'auth.codeSending');
     }
     isSendingSmsCode = true;
     error = null;
@@ -144,7 +144,7 @@ class AuthProvider extends BaseProvider<void> {
     String? username,
   }) async {
     if (isSendingEmailCode) {
-      return const VerificationCodeData(message: '验证码发送中');
+      return const VerificationCodeData(message: 'auth.codeSending');
     }
     isSendingEmailCode = true;
     error = null;

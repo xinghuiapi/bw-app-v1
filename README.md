@@ -15,8 +15,27 @@
 - 已完成核心页面的高仿 UI 复刻与主要业务对接。
 - 已接入 `easy_localization`，并扩展到多套 locale：`zh-CN`、`zh-TW`、`en-US`、`ja-JP`、`ko-KR`、`th-TH`、`vi-VN`、`my-MM`。
 - 已补齐全局字体回退，统一修复中文、英文和混排场景的字体缺失问题。
-- 已对充值、提现、消息、活动、VIP、个人资料等模块做持续的多语言和防溢出修复。
-- 资金页正在继续清理充值详情、支付凭证和提现结果页的剩余中文文案。
+- 已完成前端静态 UI 文案多语言收口：`common`、`auth`、`home`、`game`、`activity`、`service`、`settings`、`about`、`account`、`wallet`、`message`、`security`、`finance`、`deposit`、`share`、`feedback`、`vip`、`gameManagement`、`maintenance` 等模块均由 locale 提供。
+- 已完成非英语语言包混合语言清理：`ja-JP`、`ko-KR`、`th-TH`、`vi-VN`、`my-MM` 不再保留明显英文/中文占位；`CN.json` 已同步为 `zh-CN.json`，避免旧简体包回退导致英文显示。
+- 已清理会误导用户的静态业务 mock/fallback 数据；接口失败或空数据时展示空态/错误提示，不再展示假消息、假活动、假游戏、假场馆或假反馈记录。
+- 语言切换时会同步清理语言敏感缓存，并让相关页面重新加载最新文案。
+
+## 多语言边界
+
+- 前端只翻译静态 UI 文案，例如按钮、标题、表单提示、空态、toast、弹窗、页面说明和本地状态文案。
+- 接口返回的动态数据不在前端翻译，例如游戏名称、活动标题/内容、公告内容、站点名称、客服名称、支付渠道名称、用户昵称、订单号、金额、时间和后端错误 message。
+- 如需动态数据多语言，应由后端根据当前语言返回对应内容，或返回稳定 `code/type/status` 后由前端映射到静态 key。
+- 专有名词和产品名可保留原文，例如 `Telegram`、`Alipay`、`USDT`、`VIP`、`QR Code`、`WeChat Pay`、`UnionPay`、`QuickPass`。
+
+## 多语言校验口径
+
+- 所有 `assets/i18n/*.json` 必须是合法 JSON。
+- 所有语言包 key 结构必须与 `assets/i18n/en-US.json` 完全一致。
+- `lib/generated/locale_keys.g.dart` 必须与 `en-US.json` key 集合一致。
+- 所有直接 `.tr()` 使用的静态 key 必须存在于 `en-US.json`。
+- 非英语语言包不得保留明显英文原文占位；日语允许正常日文汉字，繁中允许繁体汉字。
+- `ko-KR`、`th-TH`、`vi-VN`、`my-MM` 不得残留中文占位。
+- 完整验证至少运行：`flutter analyze`、`flutter build web --no-web-resources-cdn`、locale key 对齐脚本和 mixed-language 审计脚本。
 
 ## 参考源边界
 

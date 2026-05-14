@@ -32,6 +32,20 @@ class RecordProvider extends ChangeNotifier {
     _service = RecordService(client);
   }
 
+  void resetForLanguageChange() {
+    depositPage = const RecordPage<TradeRecord>();
+    withdrawPage = const RecordPage<TradeRecord>();
+    transferPage = const RecordPage<TransferRecord>();
+    accountPage = const MoneyLogPage();
+    _loading.clear();
+    _loadingMore.clear();
+    _serials.updateAll((_, value) => value + 1);
+    _errors.clear();
+    _startDate = '';
+    _endDate = '';
+    notifyListeners();
+  }
+
   bool isLoading(FundRecordTab tab) => _loading[tab] ?? false;
   bool isLoadingMore(FundRecordTab tab) => _loadingMore[tab] ?? false;
   String? error(FundRecordTab tab) => _errors[tab];

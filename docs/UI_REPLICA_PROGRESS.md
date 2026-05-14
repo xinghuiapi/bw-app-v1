@@ -59,21 +59,25 @@
 - **线上支付** (`OnlinePayDetailScreen`)：支持接收 `/recharge/order` 返回的支付 URL 和订单 ID，可外部打开支付网关并跳转订单详情。
 
 ### 多语言与文案修复 (i18n & Copy)
-- 已接入 `easy_localization` 并持续扩展多语言 key，覆盖 `common`、`settings`、`about`、`account`、`wallet`、`message`、`security`、`finance`、`share`、`feedback`、`vip`、`activity`、`deposit` 等模块。
-- 已补齐 `zh-CN`、`zh-TW`、`en-US`、`ja-JP`、`ko-KR`、`th-TH`、`vi-VN`、`my-MM` 共 8 套 locale。
-- 充值页已将部分深层 key 调整为浅层 `deposit.*`，避免运行时直接显示 key 的问题。
-- 资金页、个人页和公共组件的中文残留正在持续清理，并同步做长文案防溢出处理。
+- 已接入 `easy_localization`，并完成 `zh-CN`、`zh-TW`、`en-US`、`ja-JP`、`ko-KR`、`th-TH`、`vi-VN`、`my-MM` 共 8 套 locale 的静态 UI 文案收口。
+- 已覆盖 `common`、`auth`、`nav`、`home`、`game`、`search`、`activity`、`service`、`profile`、`settings`、`about`、`account`、`wallet`、`message`、`security`、`finance`、`deposit`、`share`、`feedback`、`vip`、`gameManagement`、`maintenance` 等模块。
+- 已修复非英语语言包中与日语包同类的问题：语言包 key 虽对齐但 value 混入英文/中文占位。当前 `ko-KR`、`th-TH`、`vi-VN`、`my-MM` 已完成英文原文和中文残留清理。
+- `CN.json` 已同步为 `zh-CN.json`，避免简体 fallback 加载旧包后出现英文；`zh-TW.json` 保持繁体中文，`ja-JP.json` 保持日语汉字，不按中文残留处理。
+- `lib/generated/locale_keys.g.dart` 已按 `en-US.json` 重新生成，当前与 825 个 locale key 对齐。
+- 前端多语言边界已明确：只翻译静态 UI 文案；接口返回的游戏名、活动/公告内容、支付渠道名称、客服名称、站点信息、用户数据和后端错误 message 等动态数据由后端按语言返回，前端不做二次翻译。
+- 已清理展示为真实业务内容的静态 mock/fallback 数据；接口失败或空数据时展示空态/错误提示，不再展示假游戏、假场馆、假消息、假活动或假反馈记录。
 
 ---
 
-## 🟡 2. 当前首位任务：多语言体系 (Top Priority: I18n)
-*当前阶段优先级调整为 Flutter 专属语言包体系建设；除阻断性错误外，其他 m1 交互复刻后置。*
+## 🟢 2. 当前首位任务：多语言体系 (Top Priority: I18n)
+*Flutter 专属语言包体系已完成静态文案收口，当前进入真实页面视觉验收阶段。*
 
 ### 多语言静态文案
-- [ ] **全项目 Flutter 专属语言包建设（首位任务）**：`assets/i18n/*.json` 只保留 Flutter 实际使用 key，禁止同时混入 m1 全量 key 和 Flutter key。m1 `CN/TW/MY/EN/JP/KR/TH/VN` 语言包仅作为翻译来源，通过映射表生成 Flutter 的 `common/nav/home/auth/game/activity/profile/finance/record/feedback/settings/system` 等模块 key。
-- [ ] **m1 -> Flutter key 映射与生成脚本**：新增映射表和生成/校验脚本，保证所有 locale 文件 key 集合一致，并阻止 `main/page/user` 等 m1 全量根节点进入 Flutter 运行时语言包。
-- [ ] **按模块替换硬编码中文**：已先覆盖首页主链路和公告弹窗；后续优先处理 `auth/nav/game/activity/profile/finance`，每个模块完成后做中文、英文和一种非拉丁语言的防溢出验证。
-- [ ] **多语言视觉走查**：切换语言后验证静态文案、接口 header `lang`、Banner 语言过滤和页面布局稳定性。
+- [x] **全项目 Flutter 专属语言包建设**：`assets/i18n/*.json` 已按 Flutter 实际使用的静态 UI key 对齐，所有语言包与 `en-US.json` key 结构一致。
+- [x] **生成 key 对齐**：`lib/generated/locale_keys.g.dart` 已按 `en-US.json` 重新生成，与 825 个 locale key 一致。
+- [x] **硬编码与本地兜底收口**：资金管理、游戏管理、个人中心等页面已移除本地中文/英文静态文案兜底，统一走 locale。
+- [x] **混合语言清理**：已按“日语包中英混合问题”的同一标准清理 `ko-KR`、`th-TH`、`vi-VN`、`my-MM` 的英文/中文占位。
+- [ ] **多语言视觉走查**：仍需真实切换每种语言验证文本溢出、按钮截断、Tab 宽度、长句换行和小屏布局稳定性。
 
 ## 🟡 3. 待精修与开发页面 (Pending / Stubbed)
 *剩余极少数分享与维护等边缘状态页待完善，当前让位于多语言任务。*
@@ -113,18 +117,13 @@
   - 主 Tab 已完成无动画切换；后续可评估是否用 `ShellRoute` 收敛底部导航重复维护。
 - 使用 `ui-fidelity-checker` 进行全量走查，确保在小屏/大屏设备上的边界约束（防溢出）坚如磐石。
 
-### 当前进行中：资金页与文案收尾
-- 继续清理 `lib/screens/finance/finance_screens.dart` 中充值详情、在线支付、提现结果页剩余硬编码中文。
-- 继续补齐 `deposit.detail.*` 与 `deposit.pay.*` 的文案 key。
-- 对订单详情、支付信息、凭证上传、取消支付等长文本区域继续做防溢出收尾。
-- 已修复充值详情“重要提示”段落的风险文案拆分，避免 key 直接显示。
-- 已补齐充值详情风险提示子 key：`risk1a` / `risk1b` / `risk1c` / `risk2a` / `risk2b` / `risk2c` / `risk3` / `risk4`。
-- 已修复 `_trOr` 重复声明/作用域错误，确保充值详情页和相关页面可正常编译启动。
-- 已让充值详情页 `KeyedSubtree + context.watch<LanguageProvider>()` 跟随语言切换重建，避免英文切回中文后仍显示旧语言。
-- 已补齐支付详情页剩余静态中文/英文标签，并同步 `deposit.detail.detailTitle`、`deposit.detail.copy` 等缺失 key。
-- 已补充 `LanguageProvider` 导入，修复充值详情页语言切换重建时的编译错误。
-- 已修复 `zh-CN.json` 顶层 `deposit` 文案被英文覆盖的问题，恢复充值页中文主文案。
-- 已整理充值页完整 key：`deposit.*`、`deposit.detail.*`、`deposit.pay.*`、`deposit.success.*` 均由 locale 提供，代码不再使用本地文案兜底。
+### 当前进行中：多语言视觉验收与接口协同
+- 静态 UI 文案多语言已完成代码/资源层面收口，后续重点转为真实浏览器逐页视觉验收。
+- 需要重点检查：登录/注册、首页、游戏大厅、充值、充值详情、在线支付、提现、资金管理、场馆钱包、个人中心、反馈、VIP、分享、维护页。
+- 视觉验收维度：文本溢出、按钮截断、Tab 横向滚动、小屏换行、泰语/缅甸语行高、越南语长句、韩语紧凑排版。
+- 接口动态数据不纳入前端翻译；如页面仍出现中文动态内容，需要后端按语言返回或提供稳定 code/type/status 映射。
+- 仍建议后续把依赖中文字符串的业务判断改为依赖接口 code/type，例如支付方式图标、登录失效判断等。
+- 当前验证结果：locale JSON/key 对齐通过，直接 `.tr()` key 检查通过，动态 helper key 检查通过，`flutter analyze` 无问题，`flutter build web --no-web-resources-cdn` 构建成功。
 
 ---
 *本文档由 Agent 自动维护，将在后续复刻任务中持续更新进度。*

@@ -19,12 +19,29 @@ class FeedbackProvider extends BaseProvider<List<FeedbackRecord>> {
   bool isUploadingImage = false;
   String? loadMoreError;
 
-  List<FeedbackRecord> get records => data ?? _fallbackFeedbackRecords;
+  List<FeedbackRecord> get records => data ?? const [];
   bool get hasRemoteRecords => data != null;
   bool get hasMore => currentPage < lastPage;
 
   void bindClient(DioClient client) {
     _service = UserService(client);
+  }
+
+  void resetForLanguageChange() {
+    data = null;
+    error = null;
+    isLoading = false;
+    isRefreshing = false;
+    isSubmitting = false;
+    types = _fallbackFeedbackTypes;
+    isTypesLoading = false;
+    typesError = null;
+    currentPage = 1;
+    lastPage = 1;
+    isLoadingMore = false;
+    isUploadingImage = false;
+    loadMoreError = null;
+    notifyListeners();
   }
 
   Future<void> loadTypes({bool refresh = false}) async {
@@ -123,10 +140,8 @@ class FeedbackProvider extends BaseProvider<List<FeedbackRecord>> {
       error = null;
     } on ApiException catch (exception) {
       error = exception.message;
-      data ??= _fallbackFeedbackRecords;
     } catch (exception) {
       error = exception.toString();
-      data ??= _fallbackFeedbackRecords;
     } finally {
       isLoading = false;
       isRefreshing = false;
@@ -157,26 +172,9 @@ class FeedbackProvider extends BaseProvider<List<FeedbackRecord>> {
 }
 
 const _fallbackFeedbackTypes = <FeedbackType>[
-  FeedbackType(id: -1, title: '游戏问题'),
-  FeedbackType(id: -2, title: '充提问题'),
-  FeedbackType(id: -3, title: '活动问题'),
-  FeedbackType(id: -4, title: '账户安全'),
-  FeedbackType(id: -5, title: '其他建议'),
-];
-
-const _fallbackFeedbackRecords = <FeedbackRecord>[
-  FeedbackRecord(
-    id: -1,
-    title: '游戏问题',
-    content: '游戏大厅加载速度有时候比较慢，希望能优化一下。',
-    createdAt: '2024-04-20 14:30',
-  ),
-  FeedbackRecord(
-    id: -2,
-    title: '其他建议',
-    content: '建议增加夜间模式，晚上玩的时候太刺眼了。',
-    reply: '感谢您的建议，我们会持续优化体验。',
-    createdAt: '2024-04-15 09:15',
-    updatedAt: '2024-04-15 10:20',
-  ),
+  FeedbackType(id: -1, title: 'feedback.types.game'),
+  FeedbackType(id: -2, title: 'feedback.types.finance'),
+  FeedbackType(id: -3, title: 'feedback.types.activity'),
+  FeedbackType(id: -4, title: 'feedback.types.accountSecurity'),
+  FeedbackType(id: -5, title: 'feedback.types.suggestion'),
 ];

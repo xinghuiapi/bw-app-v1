@@ -42,7 +42,14 @@
     "search": "搜索",
     "reacquireCountdown": "重新获取({seconds})",
     "emptyData": "暂无数据",
-    "loadFailedRetry": "加载失败，请稍后重试"
+    "loadFailedRetry": "加载失败，请稍后重试",
+    "refresh": "刷新",
+    "verified": "已认证",
+    "unverified": "未认证",
+    "set": "已设置",
+    "select": "请选择",
+    "sending": "发送中",
+    "getCode": "获取验证码"
   },
   "nav": {
     "home": "首页",
@@ -113,7 +120,9 @@
     "telegramLogin": "Telegram 登录",
     "telegramQuickLogin": "通过 Telegram 快速登录",
     "telegramAgreement": "继续即表示您同意我们的服务条款和隐私政策",
-    "authorizeTelegram": "授权 Telegram"
+    "authorizeTelegram": "授权 Telegram",
+    "codeSending": "验证码发送中",
+    "codeSent": "验证码已发送"
   },
   "game": {
     "title": "游戏",
@@ -169,7 +178,12 @@
     "edit": "修改",
     "logout": "退出登录",
     "walletBalance": "钱包余额",
-    "refresh": "刷新"
+    "refresh": "刷新",
+    "gender": {
+      "male": "男",
+      "female": "女",
+      "secret": "保密"
+    }
   },
   "activity": {
     "empty": "暂无活动",
@@ -183,7 +197,20 @@
     "applyFailed": "申请失败",
     "emptyRecords": "暂无申请记录",
     "account": "账号",
-    "time": "时间"
+    "time": "时间",
+    "categoryAll": "全部",
+    "multiple": "{value}倍",
+    "longTerm": "长期活动",
+    "type": {
+      "manual": "手动申请",
+      "system": "系统发放"
+    },
+    "status": {
+      "applying": "申请中",
+      "approved": "已通过",
+      "rejected": "已拒绝",
+      "unknown": "未知状态"
+    }
   },
   "service": {
     "title": "客服中心",
@@ -227,8 +254,6 @@
     "safeDomainCopied": "已复制安全域名",
     "recommendedGames": "推荐游戏",
     "hotGames": "热门游戏",
-    "fallbackRecommendedGame": "推荐游戏 {index}",
-    "fallbackHotGame": "热门游戏 {index}",
     "category": {
       "live": "真人视讯",
       "lottery": "彩票游戏",
@@ -322,7 +347,9 @@
     "realNameTip": "为了保障您的资金安全，请完成实名认证。认证信息需与提现银行卡信息一致。",
     "verificationStatus": "认证状态",
     "completedVerification": "已完成认证",
-    "submitVerification": "提交认证"
+    "submitVerification": "提交认证",
+    "realName": "真实姓名",
+    "enterRealName": "请输入真实姓名"
   },
   "wallet": {
     "bankCardManagement": "银行卡管理",
@@ -333,7 +360,10 @@
     "emptyCardsDesc": "绑定银行卡或虚拟币地址后会展示在这里",
     "noCardNumber": "暂无卡号",
     "qrCode": "二维码",
-    "receiptQrCode": "收款二维码"
+    "receiptQrCode": "收款二维码",
+    "rechargeSubmitting": "充值订单提交中，请稍候",
+    "imageUploading": "图片上传中，请稍候",
+    "receivingAccount": "收款账户"
   },
   "message": {
     "center": "消息中心",
@@ -473,7 +503,85 @@
       "set": "已设置",
       "unsetPayPassword": "未设置，请先设置",
       "recycleSuccess": "归户成功",
-      "recycleFailed": "归户失败"
+      "recycleFailed": "归户失败",
+      "submitTitle": "提现申请已提交",
+      "submitHint": "预计 2 小时内到账，请留意资金变动",
+      "viewRecords": "查看提现记录",
+      "backHome": "返回首页",
+      "bankWithdraw": "银行卡提现"
+    },
+    "record": {
+      "title": "交易记录",
+      "fundTitle": "充提记录",
+      "gameSettlement": "游戏结算",
+      "depositArrived": "充值到账",
+      "buyItem": "购买道具",
+      "completed": "已完成"
+    },
+    "wallet": {
+      "title": "我的钱包",
+      "transferRecords": "转账记录",
+      "balance": "钱包余额",
+      "balanceFallback": "实时余额暂未同步，当前展示账户资料余额。{message}",
+      "venueMode": "场馆模式",
+      "venueModeDesc": "默认开启自动转账模式（余额自动携带进入场馆，关闭后需手动转入/转出）",
+      "venueList": "场馆列表",
+      "recycling": "归户中...",
+      "recycle": "资金一键归户",
+      "venueLoading": "场馆余额加载中...",
+      "emptyVenue": "暂无场馆余额",
+      "emptyVenueDesc": "登录后可查看各场馆余额",
+      "autoTransferEnabled": "已开启自动转账",
+      "manualTransferEnabled": "已切换为手动转账",
+      "transferModeFailed": "转账模式切换失败",
+      "recycleSuccess": "一键回收成功",
+      "recycleFailed": "一键回收失败",
+      "venueBalance": "场馆余额",
+      "transferAmount": "转账金额",
+      "enterTransferAmount": "请输入转账金额",
+      "processing": "处理中...",
+      "transferIn": "转入",
+      "transferOut": "转出",
+      "validTransferAmount": "请输入有效转账金额",
+      "transferInSuccess": "转入成功",
+      "transferOutSuccess": "转出成功",
+      "transferInFailed": "转入失败",
+      "transferOutFailed": "转出失败",
+      "venueFallback": "场馆余额暂未同步，当前展示默认场馆。{message}"
+    },
+    "fund": {
+      "title": "资金管理",
+      "queryDate": "查询日期",
+      "today": "今天",
+      "yesterday": "昨日",
+      "thisMonth": "本月",
+      "lastMonth": "上月",
+      "depositRecords": "充值记录",
+      "withdrawRecords": "提现记录",
+      "transferRecords": "转账记录",
+      "accountDetails": "账户明细",
+      "emptyDeposit": "暂无充值记录",
+      "emptyWithdraw": "暂无提现记录",
+      "emptyTransfer": "暂无转账记录",
+      "emptyAccount": "暂无账户明细",
+      "venue": "场馆",
+      "transferIn": "转入",
+      "transferOut": "转出",
+      "success": "成功",
+      "failed": "失败",
+      "orderNo": "订单号：{orderNo}",
+      "typeNumber": "类型 {type}",
+      "accountChange": "账户变动",
+      "balance": "余额：{amount}",
+      "timeout": "已超时",
+      "depositing": "充值中",
+      "processing": "处理中",
+      "manualConfirm": "人工确认",
+      "userCanceled": "用户取消",
+      "rejected": "已拒绝",
+      "unknown": "未知",
+      "depositTitle": "充值记录",
+      "withdrawTitle": "提现记录"
     }
   },
   "share": {
@@ -518,7 +626,18 @@
     "emptyRecords": "暂无反馈记录",
     "defaultCategory": "默认分类",
     "justNow": "刚刚",
-    "reply": "回复："
+    "reply": "回复：",
+    "types": {
+      "game": "游戏问题",
+      "finance": "充提问题",
+      "activity": "活动问题",
+      "accountSecurity": "账户安全",
+      "suggestion": "其他建议"
+    },
+    "status": {
+      "processed": "已处理",
+      "processing": "处理中"
+    }
   },
   "vip": {
     "title": "VIP",
@@ -699,5 +818,52 @@
       "viewWallet": "查看钱包",
       "continueDeposit": "继续充值"
     }
+  },
+  "gameManagement": {
+    "title": "游戏管理",
+    "queryDate": "查询日期",
+    "today": "今天",
+    "yesterday": "昨日",
+    "thisMonth": "本月",
+    "lastMonth": "上月",
+    "rebateRecords": "返水记录",
+    "gameRecords": "游戏记录",
+    "emptyRebate": "暂无返水记录",
+    "emptyGame": "暂无游戏记录",
+    "totalRebate": "总返水",
+    "claimed": "已领取",
+    "unclaimed": "未领取",
+    "pendingClaim": "待领取",
+    "rebate": "返水",
+    "valid": "有效",
+    "profitLoss": "盈亏",
+    "claimable": "可领取",
+    "claimRebate": "领取返水",
+    "betCount": "注单笔数",
+    "betAmount": "投注金额",
+    "validAmount": "有效金额",
+    "bet": "投注",
+    "unknown": "未知",
+    "types": {
+      "sports": "体育",
+      "live": "真人",
+      "slots": "电子",
+      "game": "游戏",
+      "chess": "棋牌",
+      "fishing": "捕鱼",
+      "esports": "电竞"
+    },
+    "status": {
+      "settled": "已结算",
+      "unsettled": "未结算",
+      "invalid": "无效注单",
+      "refunded": "已退款"
+    }
+  },
+  "maintenance": {
+    "title": "系统维护中",
+    "description": "平台正在进行系统维护，请稍后再试。",
+    "retry": "重新检测",
+    "backHome": "返回首页"
   }
 }

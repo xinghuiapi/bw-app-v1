@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../api/api_exception.dart';
 import '../../api/dio_client.dart';
@@ -61,6 +62,48 @@ class WalletProvider extends ChangeNotifier {
 
   void bindClient(DioClient client) {
     _service = WalletService(client);
+  }
+
+  void resetForLanguageChange() {
+    cards = const [];
+    venues = const [];
+    depositCategories = const [];
+    depositChannels = const [];
+    cardTypes.clear();
+    rechargeDetail = null;
+    selectedDepositCategoryId = null;
+    selectedDepositChannelId = null;
+    isCardsLoading = false;
+    isCardsRefreshing = false;
+    isVenuesLoading = false;
+    isRecyclingVenues = false;
+    isVenueTransferSubmitting = false;
+    isTransferModeSubmitting = false;
+    isDepositCategoriesLoading = false;
+    isDepositChannelsLoading = false;
+    isRechargeOrderSubmitting = false;
+    isRechargeDetailLoading = false;
+    isBindingCard = false;
+    isUploadingCardImage = false;
+    isUploadingRechargeImage = false;
+    isRechargeProofSubmitting = false;
+    isRechargeCancelSubmitting = false;
+    _cardTypeLoading.clear();
+    cardsError = null;
+    venuesError = null;
+    venueActionError = null;
+    transferModeError = null;
+    depositCategoriesError = null;
+    depositChannelsError = null;
+    rechargeOrderError = null;
+    rechargeDetailError = null;
+    bindCardError = null;
+    cardImageUploadError = null;
+    rechargeImageUploadError = null;
+    rechargeProofSubmitError = null;
+    rechargeCancelError = null;
+    _cardTypeErrors.clear();
+    notifyListeners();
   }
 
   bool isCardTypeLoading(int type) => _cardTypeLoading[type] ?? false;
@@ -322,9 +365,9 @@ class WalletProvider extends ChangeNotifier {
     DepositOrderRequest request,
   ) async {
     if (isRechargeOrderSubmitting) {
-      throw const ApiException(
+      throw ApiException(
         type: ApiExceptionType.business,
-        message: '充值订单提交中，请稍候',
+        message: 'wallet.rechargeSubmitting'.tr(),
       );
     }
 
@@ -420,9 +463,9 @@ class WalletProvider extends ChangeNotifier {
     required String filename,
   }) async {
     if (isUploadingCardImage) {
-      throw const ApiException(
+      throw ApiException(
         type: ApiExceptionType.business,
-        message: '图片上传中，请稍候',
+        message: 'wallet.imageUploading'.tr(),
       );
     }
 
@@ -462,9 +505,9 @@ class WalletProvider extends ChangeNotifier {
     required String filename,
   }) async {
     if (isUploadingRechargeImage) {
-      throw const ApiException(
+      throw ApiException(
         type: ApiExceptionType.business,
-        message: '图片上传中，请稍候',
+        message: 'wallet.imageUploading'.tr(),
       );
     }
 

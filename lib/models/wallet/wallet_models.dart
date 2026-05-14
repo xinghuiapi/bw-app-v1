@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 import '../core/json_utils.dart';
 
 class WalletCard {
@@ -57,23 +59,25 @@ class WalletCard {
   bool get isAlipay => type == 3;
 
   String get typeName {
-    if (isBankCard) return '银行卡';
-    if (isCrypto) return '虚拟币';
-    if (isAlipay) return '支付宝';
+    if (isBankCard) return 'finance.bankCard'.tr();
+    if (isCrypto) return 'finance.crypto'.tr();
+    if (isAlipay) return 'finance.alipay'.tr();
     final titleValue = displayTitle;
     if (RegExp(r'USDT|TRC20|ERC20|BTC|ETH', caseSensitive: false)
         .hasMatch(titleValue)) {
-      return '虚拟币';
+      return 'finance.crypto'.tr();
     }
-    if (titleValue.contains('支付宝')) return '支付宝';
-    return '收款账户';
+    if (titleValue.contains('支付宝')) return 'finance.alipay'.tr();
+    return 'wallet.receivingAccount'.tr();
   }
 
   String get maskedCard {
     final value = displayCard.trim();
     if (value.isEmpty) return '';
     if (value.length <= 4) return value;
-    if (isCrypto || typeName == '虚拟币') {
+    if (isCrypto ||
+        RegExp(r'USDT|TRC20|ERC20|BTC|ETH', caseSensitive: false)
+            .hasMatch(displayTitle)) {
       final head = value.length > 6 ? value.substring(0, 6) : value;
       final tailLength = value.length >= 6 ? 6 : value.length;
       final tail = value.substring(value.length - tailLength);

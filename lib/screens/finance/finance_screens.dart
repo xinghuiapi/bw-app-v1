@@ -756,12 +756,7 @@ class _DepositScreenState extends State<DepositScreen> {
 
   String _localizedDepositText(String text) {
     final value = text.trim();
-    if (value.contains('微信')) return 'deposit.wechat'.tr();
-    if (value.contains('支付宝')) return 'deposit.alipay'.tr();
-    if (value.contains('银联')) return 'deposit.unionPay'.tr();
-    if (value.contains('云闪付')) return 'deposit.quickPay'.tr();
-    if (value.contains('京东')) return 'deposit.jdPay'.tr();
-    return value;
+    return value.startsWith('deposit.') ? value.tr() : value;
   }
 
   String _formatAmount(double value) {

@@ -13,13 +13,19 @@ import '../models/home/home_models.dart';
 import '../localization/app_language.dart';
 import '../providers/localization/language_provider.dart';
 import '../providers/auth/auth_provider.dart';
+import '../providers/activity/activity_provider.dart';
+import '../providers/feedback/feedback_provider.dart';
+import '../providers/game/game_management_provider.dart';
 import '../providers/game/game_provider.dart';
+import '../providers/message/message_provider.dart';
+import '../providers/record/record_provider.dart';
 import '../providers/system/system_provider.dart';
 import '../providers/user/user_provider.dart';
 import '../providers/wallet/wallet_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_images.dart';
 import '../widgets/common/app_network_image.dart';
+import '../widgets/home_user_action_card.dart';
 import '../widgets/notice_bar.dart';
 import '../widgets/app_download_bar.dart';
 
@@ -32,7 +38,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const _noticeSuppressDateKey = 'm1_notice_suppress_date';
-  static const int _fallbackRecoGameCount = 5;
 
   bool _showDownloadBar = true;
   bool _showBalance = true;
@@ -322,15 +327,15 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         return Container(
-          height: MediaQuery.sizeOf(context).height * 0.7,
+          height: MediaQuery.sizeOf(context).height * 0.76,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
           ),
           child: Column(
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -339,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text(
                         'common.cancel'.tr(),
                         style: TextStyle(
-                          fontSize: 15.sp,
+                          fontSize: 18.sp,
                           color: const Color(0xFF999999),
                         ),
                       ),
@@ -347,8 +352,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       'home.selectLanguage'.tr(),
                       style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w700,
                         color: const Color(0xFF333333),
                       ),
                     ),
@@ -360,30 +365,37 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: ListView.separated(
                   itemCount: languages.length,
-                  separatorBuilder: (_, __) => const Divider(
+                  separatorBuilder: (_, __) => Divider(
                     height: 1,
-                    indent: 56,
-                    color: Color(0xFFF5F6F8),
+                    indent: 62.w,
+                    color: const Color(0xFFF5F6F8),
                   ),
                   itemBuilder: (context, index) {
                     final language = languages[index];
-                    final code = AppLanguage.normalize(language.code);
+                    final code = _languageOptionCode(language.code);
+                    final supported = AppLanguage.supportedCodes.contains(code);
                     final selected =
                         code == context.read<LanguageProvider>().currentCode;
                     return ListTile(
+                      minVerticalPadding: 0,
+                      minLeadingWidth: 38.w,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 24.w),
+                      visualDensity: VisualDensity.standard,
                       leading: _buildLanguageIcon(language.img),
                       title: Text(
                         language.title ?? code,
                         style: TextStyle(
-                          fontSize: 15.sp,
+                          fontSize: 20.sp,
                           color: const Color(0xFF333333),
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                       trailing: selected
                           ? Icon(Icons.check,
-                              color: AppColors.primary, size: 20.sp)
+                              color: AppColors.primary, size: 30.sp)
                           : null,
                       onTap: () async {
+                        if (!supported) return;
                         final rootContext = this.context;
                         final gameProvider = rootContext.read<GameProvider>();
                         final currentSystemProvider =
@@ -392,12 +404,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             rootContext.read<LanguageProvider>();
                         Navigator.of(sheetContext).pop();
                         if (selected) return;
-                        gameProvider.resetForLanguageChange();
                         await currentLanguageProvider.changeLanguage(
                           rootContext,
                           code,
                         );
-                        if (!mounted) return;
+                        if (!rootContext.mounted) return;
+                        _resetLanguageSensitiveProviders(rootContext);
                         await currentSystemProvider.loadConfig(refresh: true);
                         if (!mounted) return;
                         _didTryOpenNotice = false;
@@ -418,13 +430,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _resetLanguageSensitiveProviders(BuildContext context) {
+    context.read<GameProvider>().resetForLanguageChange();
+    context.read<GameManagementProvider>().resetForLanguageChange();
+    context.read<WalletProvider>().resetForLanguageChange();
+    context.read<RecordProvider>().resetForLanguageChange();
+    context.read<ActivityProvider>().resetForLanguageChange();
+    context.read<FeedbackProvider>().resetForLanguageChange();
+    context.read<MessageProvider>().resetForLanguageChange();
+    context.read<UserProvider>().resetForLanguageChange();
+  }
+
   List<LanguageConfig> _availableLanguages(List<LanguageConfig> languages) {
     final normalized = languages
         .where((item) => (item.code ?? '').trim().isNotEmpty)
         .map(
           (item) => LanguageConfig(
             title: item.title,
-            code: AppLanguage.normalize(item.code),
+            code: _languageOptionCode(item.code),
             img: item.img,
             requiredStatus: item.requiredStatus,
           ),
@@ -443,25 +466,44 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  String _languageOptionCode(String? raw) {
+    final value = raw?.trim().toUpperCase() ?? '';
+    if (value.isEmpty) return '';
+    if (value == 'CN' || value == 'ZH' || value == 'ZH-CN') return 'CN';
+    if (value == 'TW' ||
+        value == 'TC' ||
+        value == 'ZH-TW' ||
+        value == 'ZH-HK') {
+      return 'TW';
+    }
+    if (value == 'MY' || value == 'MM' || value == 'MYANMAR') return 'MY';
+    if (value == 'EN' || value == 'EN-US' || value == 'EN-GB') return 'EN';
+    if (value == 'JP' || value == 'JA' || value == 'JA-JP') return 'JP';
+    if (value == 'KR' || value == 'KO' || value == 'KO-KR') return 'KR';
+    if (value == 'TH' || value == 'TH-TH') return 'TH';
+    if (value == 'VN' || value == 'VI' || value == 'VI-VN') return 'VN';
+    return value;
+  }
+
   Widget _buildLanguageIcon(String? image) {
     final url = image?.trim();
     if (url == null || url.isEmpty) {
       return CircleAvatar(
-        radius: 10.r,
+        radius: 14.r,
         backgroundColor: const Color(0xFFE4EFFF),
-        child: Icon(Icons.language, size: 14.sp, color: AppColors.primary),
+        child: Icon(Icons.language, size: 16.sp, color: AppColors.primary),
       );
     }
     return ClipOval(
       child: AppNetworkImage(
         url: url,
-        width: 20.w,
-        height: 20.w,
+        width: 28.w,
+        height: 28.w,
         fit: BoxFit.cover,
         errorWidget: CircleAvatar(
-          radius: 10.r,
+          radius: 14.r,
           backgroundColor: const Color(0xFFE4EFFF),
-          child: Icon(Icons.language, size: 14.sp, color: AppColors.primary),
+          child: Icon(Icons.language, size: 16.sp, color: AppColors.primary),
         ),
       ),
     );
@@ -742,220 +784,26 @@ class _HomeScreenState extends State<HomeScreen> {
     final symbol = _siteText(profile?.symbol, fallback: '¥');
     final balance = _amountText(profile?.balance, fallback: '0.00');
 
-    return Container(
-      margin: EdgeInsets.only(top: 12.h),
-      padding: EdgeInsets.all(10.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.02),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 5,
-            child: isLoggedIn
-                ? SizedBox(
-                    height: 46.h,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                username,
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF333333),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            SizedBox(width: 4.w),
-                            Container(
-                              height: 16.h,
-                              padding: EdgeInsets.symmetric(horizontal: 6.w),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFBCC3D4),
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: Text(
-                                vipText,
-                                style: TextStyle(
-                                  fontSize: 9.sp,
-                                  height: 1,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 4.w),
-                            GestureDetector(
-                              onTap: () =>
-                                  setState(() => _showBalance = !_showBalance),
-                              child: Icon(
-                                _showBalance
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                size: 15.sp,
-                                color: const Color(0xFF999999),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 2.h),
-                        Row(
-                          children: [
-                            Text(
-                              symbol,
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                height: 1,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF333333),
-                              ),
-                            ),
-                            Flexible(
-                              child: Text(
-                                _showBalance ? balance : '***',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  height: 1,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF333333),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 8.w),
-                            GestureDetector(
-                              onTap: _refreshAccount,
-                              child: Icon(Icons.refresh,
-                                  size: 15.sp, color: const Color(0xFF999999)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'home.welcome'.tr(),
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF333333),
-                          height: 1,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 2.h),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: _buildCompactAuthButton(
-                              text: 'common.login'.tr(),
-                              filled: true,
-                              onTap: () => context.push('/login'),
-                            ),
-                          ),
-                          SizedBox(width: 6.w),
-                          Flexible(
-                            child: _buildCompactAuthButton(
-                              text: 'common.register'.tr(),
-                              filled: false,
-                              onTap: () => context.push('/register'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-          ),
-          Container(
-            width: 1.w,
-            height: 40.h,
-            color: const Color(0xFFEEEEEE),
-            margin: EdgeInsets.symmetric(horizontal: 10.w),
-          ),
-          Expanded(
-            flex: 5,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Expanded(
-                  child: _buildActionItem(
-                      Icons.monetization_on_outlined,
-                      'common.deposit'.tr(),
-                      true,
-                      () => context.push('/deposit')),
-                ),
-                Expanded(
-                  child: _buildActionItem(
-                      Icons.account_balance_wallet_outlined,
-                      'common.withdraw'.tr(),
-                      false,
-                      () => context.push('/withdraw')),
-                ),
-                Expanded(
-                  child: _buildActionItem(
-                      Icons.headset_mic_outlined,
-                      'common.service'.tr(),
-                      false,
-                      () => context.push('/service')),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompactAuthButton({
-    required String text,
-    required bool filled,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: 22.h,
-        constraints: BoxConstraints(minWidth: 52.w),
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: filled ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(12.r),
-          border: filled ? null : Border.all(color: AppColors.primary),
-        ),
-        child: Text(
-          text,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 10.sp,
-            height: 1,
-            color: filled ? Colors.white : AppColors.primary,
-          ),
-        ),
-      ),
+    return HomeUserActionCard(
+      isLoggedIn: isLoggedIn,
+      username: username,
+      vipText: vipText,
+      symbol: symbol,
+      balance: balance,
+      showBalance: _showBalance,
+      welcomeText: 'home.welcome'.tr(),
+      loginText: 'common.login'.tr(),
+      registerText: 'common.register'.tr(),
+      depositText: 'common.deposit'.tr(),
+      withdrawText: 'common.withdraw'.tr(),
+      serviceText: 'common.service'.tr(),
+      onToggleBalance: () => setState(() => _showBalance = !_showBalance),
+      onRefresh: _refreshAccount,
+      onLogin: () => context.push('/login'),
+      onRegister: () => context.push('/register'),
+      onDeposit: () => context.push('/deposit'),
+      onWithdraw: () => context.push('/withdraw'),
+      onService: () => context.push('/service'),
     );
   }
 
@@ -981,38 +829,6 @@ class _HomeScreenState extends State<HomeScreen> {
           .loadRealtimeBalance(refresh: true)
           .catchError((_) {}),
     ]);
-  }
-
-  Widget _buildActionItem(
-      IconData icon, String text, bool highlight, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 32.w,
-            height: 32.w,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.white, size: 18.sp),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 11.sp,
-              color: highlight ? AppColors.primary : const Color(0xFF666666),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildGameLobby() {
@@ -1331,6 +1147,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _shortCategoryTitleByCode(GameLobbyCategory category) {
+    final title = category.title.trim();
+    if (title.isNotEmpty) return _shortCategoryTitle(title);
     final localized = switch (category.code) {
       'live' => 'home.category.liveShort'.tr(),
       'lottery' => 'home.category.lotteryShort'.tr(),
@@ -1413,11 +1231,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Center(child: CircularProgressIndicator()),
             )
           else
-            _buildRecoGameList(
-              remoteGames,
-              hasRemoteData: hasRemoteData,
-              launchingGameId: launchingGameId,
-            ),
+            hasRemoteData
+                ? _buildRecoGameList(
+                    remoteGames,
+                    launchingGameId: launchingGameId,
+                  )
+                : _buildEmptyGameSection('game.noGame'.tr()),
         ],
       ),
     );
@@ -1425,7 +1244,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRecoGameList(
     List<RecommendedGame> games, {
-    required bool hasRemoteData,
     required int? launchingGameId,
   }) {
     final cardSize = _recoGameCardSize;
@@ -1434,15 +1252,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: hasRemoteData
-              ? games
-                  .map((game) => _buildRemoteRecoGameCard(
-                        game,
-                        isLaunching: launchingGameId == game.id,
-                      ))
-                  .toList()
-              : List.generate(
-                  _fallbackRecoGameCount, _buildFallbackRecoGameCard),
+          children: games
+              .map((game) => _buildRemoteRecoGameCard(
+                    game,
+                    isLaunching: launchingGameId == game.id,
+                  ))
+              .toList(),
         ),
       ),
     );
@@ -1621,46 +1436,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildFallbackRecoGameCard(int index) {
-    final cardSize = _recoGameCardSize;
-    return Container(
-      width: cardSize,
-      margin: EdgeInsets.only(right: _recoGameCardGap),
-      child: Column(
-        children: [
-          SizedBox(
-            width: cardSize,
-            height: cardSize,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16.r),
-                image: const DecorationImage(
-                  image: AssetImage(AppImages.dz),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 8.h),
-          SizedBox(
-            height: 22,
-            child: Center(
-              child: Text(
-                'home.fallbackRecommendedGame'.tr(namedArgs: {
-                  'index': '${index + 1}',
-                }),
-                style:
-                    TextStyle(fontSize: 13.sp, color: const Color(0xFF333333)),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildHotGamesSection() {
     final gameProvider = context.watch<GameProvider>();
     final hotGames = gameProvider.hotGames;
@@ -1680,11 +1455,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Center(child: CircularProgressIndicator()),
             )
           else
-            _buildHotGameGrid(
-              hotGames,
-              hasRemoteData: hasRemoteData,
-              launchingGameId: launchingGameId,
-            ),
+            hasRemoteData
+                ? _buildHotGameGrid(
+                    hotGames,
+                    launchingGameId: launchingGameId,
+                  )
+                : _buildEmptyGameSection('game.noGame'.tr()),
         ],
       ),
     );
@@ -1692,10 +1468,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHotGameGrid(
     List<GameItem> games, {
-    required bool hasRemoteData,
     required int? launchingGameId,
   }) {
-    final itemCount = hasRemoteData ? games.length : 6;
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -1705,9 +1479,8 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSpacing: 16.h,
         childAspectRatio: 0.8,
       ),
-      itemCount: itemCount,
+      itemCount: games.length,
       itemBuilder: (context, index) {
-        if (!hasRemoteData) return _buildFallbackHotGameCard(index);
         final game = games[index];
         return _buildRemoteHotGameCard(
           game,
@@ -1758,20 +1531,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFallbackHotGameCard(int index) {
-    return Column(
-      children: [
-        Expanded(child: _buildHotFallbackImage()),
-        SizedBox(height: 8.h),
-        Text(
-          'home.fallbackHotGame'.tr(namedArgs: {
-            'index': '${index + 1}',
-          }),
-          style: TextStyle(fontSize: 13.sp, color: const Color(0xFF333333)),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+  Widget _buildEmptyGameSection(String message) {
+    return SizedBox(
+      height: 96.h,
+      child: Center(
+        child: Text(
+          message,
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
         ),
-      ],
+      ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -20,18 +21,6 @@ class MyWalletScreen extends StatefulWidget {
 }
 
 class _MyWalletScreenState extends State<MyWalletScreen> {
-  static const _fallbackVenues = [
-    VenueBalance(id: 1, title: 'PA接口', code: 'AG', money: 0),
-    VenueBalance(id: 3, title: 'DG视讯', code: 'DG', money: 0),
-    VenueBalance(id: 4, title: '乐游棋牌', code: 'LEG', money: 0),
-    VenueBalance(id: 5, title: '沙巴体育', code: 'IBC', money: 0),
-    VenueBalance(id: 6, title: '三晟体育', code: 'SS', money: 0),
-    VenueBalance(id: 7, title: '雷火电竞', code: 'TFG', money: 0),
-    VenueBalance(id: 8, title: '百盛棋牌', code: 'BSQP', money: 0),
-    VenueBalance(id: 9, title: '欧博视讯', code: 'AB', money: 0),
-    VenueBalance(id: 10, title: 'FB体育', code: 'FB', money: 0),
-  ];
-
   bool _showBalance = true;
   VenueBalance? _activeVenue;
   final _amountController = TextEditingController();
@@ -62,9 +51,9 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomNavBar(
-        title: '我的钱包',
+        title: 'finance.wallet.title'.tr(),
         rightIcon: Text(
-          '转账记录',
+          'finance.wallet.transferRecords'.tr(),
           style: TextStyle(
             fontSize: 14.sp,
             color: AppColors.primary,
@@ -139,7 +128,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
               Row(
                 children: [
                   Text(
-                    '钱包余额',
+                    'finance.wallet.balance'.tr(),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14.sp,
@@ -177,7 +166,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                     ),
                     SizedBox(width: 4.w),
                     Text(
-                      '刷新',
+                      'common.refresh'.tr(),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 14.sp,
@@ -214,7 +203,9 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
           if (walletProvider.balanceError != null) ...[
             SizedBox(height: 8.h),
             Text(
-              '实时余额暂未同步，当前展示账户资料余额。${walletProvider.balanceError}',
+              'finance.wallet.balanceFallback'.tr(namedArgs: {
+                'message': walletProvider.balanceError ?? '',
+              }),
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.85),
                 fontSize: 11.sp,
@@ -248,7 +239,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                         ),
                         SizedBox(width: 8.w),
                         Text(
-                          '充值',
+                          'deposit.title'.tr(),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16.sp,
@@ -281,7 +272,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                         ),
                         SizedBox(width: 8.w),
                         Text(
-                          '提现',
+                          'finance.withdraw.title'.tr(),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16.sp,
@@ -313,7 +304,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildTitleWithDot('场馆模式'),
+              _buildTitleWithDot('finance.wallet.venueMode'.tr()),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -351,7 +342,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
           ],
           SizedBox(height: 12.h),
           Text(
-            '默认开启自动转账模式（余额自动携带进入场馆，关闭后需手动转入/转出）',
+            'finance.wallet.venueModeDesc'.tr(),
             style: TextStyle(
               fontSize: 13.sp,
               color: AppColors.textSecondary,
@@ -364,9 +355,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
   }
 
   Widget _buildVenueListCard(WalletProvider walletProvider) {
-    final showFallback =
-        walletProvider.venuesError != null && walletProvider.venues.isEmpty;
-    final venues = showFallback ? _fallbackVenues : walletProvider.venues;
+    final venues = walletProvider.venues;
     return CustomCard(
       padding: EdgeInsets.all(16.w),
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -376,7 +365,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildTitleWithDot('场馆列表'),
+              _buildTitleWithDot('finance.wallet.venueList'.tr()),
               GestureDetector(
                 onTap: walletProvider.isRecyclingVenues ? null : _recycleVenues,
                 child: Row(
@@ -390,7 +379,9 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                     ),
                     SizedBox(width: 4.w),
                     Text(
-                      walletProvider.isRecyclingVenues ? '归户中...' : '资金一键归户',
+                      walletProvider.isRecyclingVenues
+                          ? 'finance.wallet.recycling'.tr()
+                          : 'finance.wallet.recycle'.tr(),
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: walletProvider.isRecyclingVenues
@@ -406,19 +397,19 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
           ),
           if (walletProvider.isVenuesLoading && venues.isEmpty) ...[
             SizedBox(height: 16.h),
-            const AppLoading(message: '场馆余额加载中...'),
+            AppLoading(message: 'finance.wallet.venueLoading'.tr()),
           ] else if (venues.isEmpty) ...[
             SizedBox(height: 16.h),
-            const AppEmpty(
-              title: '暂无场馆余额',
-              description: '登录后可查看各场馆余额',
+            AppEmpty(
+              title: 'finance.wallet.emptyVenue'.tr(),
+              description: 'finance.wallet.emptyVenueDesc'.tr(),
             ),
           ] else ...[
             if (walletProvider.venueActionError != null) ...[
               SizedBox(height: 12.h),
               _buildActionError(walletProvider.venueActionError!),
             ],
-            if (showFallback) ...[
+            if (walletProvider.venuesError != null) ...[
               SizedBox(height: 12.h),
               _buildFallbackNotice(walletProvider.venuesError!),
             ],
@@ -437,7 +428,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
               itemBuilder: (context, index) {
                 final venue = venues[index];
                 return GestureDetector(
-                  onTap: showFallback ? null : () => _openVenueSheet(venue),
+                  onTap: () => _openVenueSheet(venue),
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFF7F8FA),
@@ -447,7 +438,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          venue.title,
+                          _venueTitle(venue),
                           style: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.bold,
@@ -495,11 +486,16 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
       await userProvider.loadProfile(refresh: true).catchError((_) {});
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(enabled ? '已开启自动转账' : '已切换为手动转账')),
+        SnackBar(
+          content: Text(enabled
+              ? 'finance.wallet.autoTransferEnabled'.tr()
+              : 'finance.wallet.manualTransferEnabled'.tr()),
+        ),
       );
     } catch (_) {
       if (!mounted) return;
-      final message = walletProvider.transferModeError ?? '转账模式切换失败';
+      final message = walletProvider.transferModeError ??
+          'finance.wallet.transferModeFailed'.tr();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
@@ -512,11 +508,12 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
       await walletProvider.recycleVenueBalances();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('一键回收成功')),
+        SnackBar(content: Text('finance.wallet.recycleSuccess'.tr())),
       );
     } catch (_) {
       if (!mounted) return;
-      final message = walletProvider.venueActionError ?? '一键回收失败';
+      final message =
+          walletProvider.venueActionError ?? 'finance.wallet.recycleFailed'.tr();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
@@ -551,7 +548,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        active.title,
+                          _venueTitle(active),
                         style: TextStyle(
                           fontSize: 16.sp,
                           color: AppColors.textPrimary,
@@ -575,7 +572,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '场馆余额',
+                          'finance.wallet.venueBalance'.tr(),
                           style: TextStyle(
                             fontSize: 13.sp,
                             color: AppColors.textSecondary,
@@ -609,7 +606,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '转账金额',
+                          'finance.wallet.transferAmount'.tr(),
                           style: TextStyle(
                             fontSize: 13.sp,
                             color: AppColors.textSecondary,
@@ -622,7 +619,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                           ),
                           textAlign: TextAlign.right,
                           decoration: InputDecoration(
-                            hintText: '请输入转账金额',
+                            hintText: 'finance.wallet.enterTransferAmount'.tr(),
                             border: InputBorder.none,
                             hintStyle: TextStyle(
                               fontSize: 14.sp,
@@ -667,8 +664,8 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                           : () => _submitVenueTransfer(active, true),
                       child: Text(
                         walletProvider.isVenueTransferSubmitting
-                            ? '处理中...'
-                            : '转入',
+                            ? 'finance.wallet.processing'.tr()
+                            : 'finance.wallet.transferIn'.tr(),
                       ),
                     ),
                   ),
@@ -680,7 +677,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                       onPressed: walletProvider.isVenueTransferSubmitting
                           ? null
                           : () => _submitVenueTransfer(active, false),
-                      child: const Text('转出'),
+                      child: Text('finance.wallet.transferOut'.tr()),
                     ),
                   ),
                 ],
@@ -705,7 +702,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
     final amount = _parseAmount(_amountController.text);
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入有效转账金额')),
+        SnackBar(content: Text('finance.wallet.validTransferAmount'.tr())),
       );
       return;
     }
@@ -720,12 +717,18 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
       if (!mounted) return;
       _amountController.clear();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isIn ? '转入成功' : '转出成功')),
+        SnackBar(
+          content: Text(isIn
+              ? 'finance.wallet.transferInSuccess'.tr()
+              : 'finance.wallet.transferOutSuccess'.tr()),
+        ),
       );
     } catch (_) {
       if (!mounted) return;
-      final message =
-          walletProvider.venueActionError ?? (isIn ? '转入失败' : '转出失败');
+      final message = walletProvider.venueActionError ??
+          (isIn
+              ? 'finance.wallet.transferInFailed'.tr()
+              : 'finance.wallet.transferOutFailed'.tr());
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
@@ -762,7 +765,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
         border: Border.all(color: const Color(0xFFFFD9A1)),
       ),
       child: Text(
-        '场馆余额暂未同步，当前展示默认场馆。$message',
+        'finance.wallet.venueFallback'.tr(namedArgs: {'message': message}),
         style: TextStyle(
           fontSize: 12.sp,
           color: const Color(0xFFB36B00),
@@ -806,6 +809,11 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
     final parsed = double.tryParse(value.trim());
     if (parsed == null || parsed <= 0) return 0;
     return (parsed * 100).floor() / 100;
+  }
+
+  String _venueTitle(VenueBalance venue) {
+    final title = venue.title.trim();
+    return title.startsWith('finance.') ? title.tr() : title;
   }
 
   String _formatMoney(double value) => value.toStringAsFixed(2);

@@ -782,7 +782,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _applyReturnedCaptcha(result);
       _startSmsCountdown(
           _countdownSeconds(context.read<SystemProvider>().config.smsConfig));
-      _showMessage(result.message);
+      _showMessage(_localizedResultMessage(result.message));
     } catch (error) {
       if (!mounted) return;
       _showErrorMessage(_errorMessage(error));
@@ -812,7 +812,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _startEmailCountdown(
         _countdownSeconds(context.read<SystemProvider>().config.mailConfig),
       );
-      _showMessage(result.message);
+      _showMessage(_localizedResultMessage(result.message));
     } catch (error) {
       if (!mounted) return;
       _showErrorMessage(_errorMessage(error));
@@ -875,6 +875,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   ) {
     if (!_isVisible(config, code)) return '';
     return controller.text.trim();
+  }
+
+  String _localizedResultMessage(String message) {
+    final text = message.trim();
+    return text.startsWith('auth.') ? text.tr() : text;
   }
 
   Object _qqValue(HomeConfig config) {

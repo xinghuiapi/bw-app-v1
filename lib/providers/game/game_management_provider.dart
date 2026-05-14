@@ -32,6 +32,22 @@ class GameManagementProvider extends ChangeNotifier {
     _service = GameManagementService(client);
   }
 
+  void resetForLanguageChange() {
+    rebatePage = const RebateRecordPage();
+    gamePage = const GameRecordPage();
+    isRebateLoading = false;
+    isRebateLoadingMore = false;
+    isGameLoading = false;
+    isGameLoadingMore = false;
+    rebateError = null;
+    gameError = null;
+    _startDate = '';
+    _endDate = '';
+    _rebateRequestSerial++;
+    _gameRequestSerial++;
+    notifyListeners();
+  }
+
   bool get hasMoreRebate => rebatePage.currentPage < rebatePage.lastPage;
   bool get hasMoreGame => gamePage.currentPage < gamePage.lastPage;
 

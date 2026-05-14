@@ -138,7 +138,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               _profileText(
                                 'profile.accountId',
-                                fallback: 'Account ID: $accountId',
                                 namedArgs: {'id': accountId},
                               ),
                               style: TextStyle(
@@ -187,8 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               children: [
                                 Flexible(
                                   child: Text(
-                                    _profileText('user.walletBalance',
-                                        fallback: 'Wallet Balance'),
+                                    _profileText('user.walletBalance'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -214,8 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 SizedBox(width: 4.w),
                                 Flexible(
                                   child: Text(
-                                    _profileText('user.refresh',
-                                        fallback: 'Refresh'),
+                                    _profileText('user.refresh'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -291,8 +288,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     SizedBox(width: 6.w),
                                     Flexible(
                                       child: Text(
-                                          _profileText('common.deposit',
-                                              fallback: 'Deposit'),
+                                          _profileText('common.deposit'),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -331,8 +327,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     SizedBox(width: 6.w),
                                     Flexible(
                                       child: Text(
-                                          _profileText('common.withdraw',
-                                              fallback: 'Withdraw'),
+                                          _profileText('common.withdraw'),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -379,8 +374,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               SizedBox(width: 8.w),
                               Flexible(
                                 child: Text(
-                                    _profileText('profile.todayProfit',
-                                        fallback: "Today's Profit"),
+                                    _profileText('profile.todayProfit'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -390,8 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               SizedBox(width: 8.w),
                               Text(
-                                  _profileText('profile.todayDate',
-                                      fallback: 'Today'),
+                                  _profileText('profile.todayDate'),
                                   style: TextStyle(
                                       color: AppColors.textSecondary,
                                       fontSize: 12.sp)),
@@ -406,8 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: const Color(0xFF4A8AF4), size: 16.sp),
                             SizedBox(width: 4.w),
                             Text(
-                                _profileText('user.refresh',
-                                    fallback: 'Refresh'),
+                                _profileText('user.refresh'),
                                 style: TextStyle(
                                     color: const Color(0xFF4A8AF4),
                                     fontSize: 14.sp)),
@@ -432,8 +424,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                        _profileText('profile.betCount',
-                                            fallback: 'Bets'),
+                                        _profileText('profile.betCount'),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -466,8 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                        _profileText('profile.totalProfitLoss',
-                                            fallback: 'Total P/L'),
+                                        _profileText('profile.totalProfitLoss'),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -500,8 +490,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                        _profileText('profile.unclaimedRebate',
-                                            fallback: 'Rebate'),
+                                        _profileText('profile.unclaimedRebate'),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -546,8 +535,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
-                              _profileText('profile.moreServices',
-                                  fallback: 'More Services'),
+                              _profileText('profile.moreServices'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -568,44 +556,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _buildServiceItem(
                             Icons.grid_view_rounded,
-                            _profileText('profile.gameManagement',
-                                fallback: 'Games'),
+                            _profileText('profile.gameManagement'),
                             context,
                             '/game-management'),
                         _buildServiceItem(
                             Icons.account_balance_wallet_outlined,
-                            _profileText('profile.fundManagement',
-                                fallback: 'Funds'),
+                            _profileText('profile.fundManagement'),
                             context,
                             '/fund-management'),
                         _buildServiceItem(
                             Icons.swap_horiz,
-                            _profileText('profile.venueBalance',
-                                fallback: 'Venues'),
+                            _profileText('profile.venueBalance'),
                             context,
                             '/wallet'),
                         _buildServiceItem(
                             Icons.credit_card_outlined,
-                            _profileText('profile.bankCard', fallback: 'Cards'),
+                            _profileText('profile.bankCard'),
                             context,
                             '/cards'),
                         _buildServiceItem(
                             Icons.reply_outlined,
-                            _profileText('profile.share', fallback: 'Share'),
+                            _profileText('profile.share'),
                             context,
                             '/share'),
                         _buildServiceItem(Icons.workspace_premium_outlined,
                             'VIP', context, '/vip'),
                         _buildServiceItem(
                             Icons.chat_bubble_outline,
-                            _profileText('profile.feedback',
-                                fallback: 'Feedback'),
+                            _profileText('profile.feedback'),
                             context,
                             '/feedback'),
                         _buildServiceItem(
                             Icons.lightbulb_outline,
-                            _profileText('profile.comingSoon',
-                                fallback: 'Soon'),
+                            _profileText('profile.comingSoon'),
                             context,
                             null),
                       ],
@@ -721,11 +704,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _profileText(
     String key, {
-    required String fallback,
     Map<String, String>? namedArgs,
   }) {
-    final translated = key.tr(namedArgs: namedArgs);
-    return translated == key ? fallback : translated;
+    return key.tr(namedArgs: namedArgs);
   }
 }
 
@@ -2907,7 +2888,8 @@ class _MessageScreenState extends State<MessageScreen> {
 
   String _textFallback(String? value, String fallback) {
     final text = value?.trim();
-    return text == null || text.isEmpty ? fallback : text;
+    if (text == null || text.isEmpty) return fallback;
+    return text.startsWith('message.') ? text.tr() : text;
   }
 }
 
@@ -3231,7 +3213,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   String _feedbackTypeTitle(FeedbackType? type) {
     final title = type?.title?.trim();
-    return title == null || title.isEmpty ? 'common.select'.tr() : title;
+    if (title == null || title.isEmpty) return 'common.select'.tr();
+    return title.startsWith('feedback.') ? title.tr() : title;
   }
 }
 
@@ -3473,7 +3456,7 @@ class _FeedbackRecordsScreenState extends State<FeedbackRecordsScreen> {
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Text(
-                '${'feedback.reply'.tr()}${record.reply}',
+              '${'feedback.reply'.tr()}${_textFallback(record.reply, '')}',
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: AppColors.textSecondary,
@@ -3489,6 +3472,7 @@ class _FeedbackRecordsScreenState extends State<FeedbackRecordsScreen> {
 
   String _textFallback(String? value, String fallback) {
     final text = value?.trim();
-    return text == null || text.isEmpty ? fallback : text;
+    if (text == null || text.isEmpty) return fallback;
+    return text.startsWith('feedback.') ? text.tr() : text;
   }
 }

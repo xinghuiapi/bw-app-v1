@@ -85,7 +85,6 @@ class _AppProvidersState extends State<AppProviders> {
     _messageProvider.bindClient(_dioClient);
     _recordProvider.bindClient(_dioClient);
     _walletProvider.bindClient(_dioClient);
-    _languageProvider.init().catchError((_) {});
     _authProvider.init().then((_) async {
       if (!_authProvider.isAuthenticated) return;
       await _userProvider.loadProfile();
@@ -144,6 +143,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncStoredLocale();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final systemProvider = context.read<SystemProvider>();
       final languageProvider = context.read<LanguageProvider>();
       systemProvider.loadConfig().then((_) {
@@ -151,7 +154,11 @@ class _MyAppState extends State<MyApp> {
 
         languageProvider
             .applyBackendDefault(systemProvider.config.languages)
-            .then((changed) {
+            .then((changed) async {
+          if (!mounted) return;
+          await context.setLocale(
+            AppLanguage.toLocale(languageProvider.currentCode),
+          );
           if (changed) systemProvider.loadConfig(refresh: true);
         }).catchError((_) {});
 
@@ -166,6 +173,15 @@ class _MyAppState extends State<MyApp> {
         );
       });
     });
+  }
+
+  Future<void> _syncStoredLocale() async {
+    final languageProvider = context.read<LanguageProvider>();
+    if (!languageProvider.initialized) {
+      await languageProvider.init();
+    }
+    if (!mounted) return;
+    await context.setLocale(AppLanguage.toLocale(languageProvider.currentCode));
   }
 
   @override

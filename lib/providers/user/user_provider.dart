@@ -28,6 +28,16 @@ class UserProvider extends BaseProvider<UserProfile> {
     _authService = AuthService(client);
   }
 
+  void resetForLanguageChange() {
+    vipOverview = null;
+    vipLevels = const [];
+    isVipLevelsLoading = false;
+    isVipLevelsRefreshing = false;
+    vipLevelsError = null;
+    isUploadingAvatar = false;
+    notifyListeners();
+  }
+
   Future<void> loadProfile({bool refresh = false}) async {
     if (isLoading || isRefreshing) return;
 

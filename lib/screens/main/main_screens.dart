@@ -201,7 +201,7 @@ class _ActivityCategoryTabs extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    category.title,
+                    category.id == 0 ? category.title.tr() : category.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -230,6 +230,11 @@ class _ActivityCategoryTabs extends StatelessWidget {
       ),
     );
   }
+}
+
+String _localizedActivityText(String value) {
+  final text = value.trim();
+  return text.startsWith('activity.') ? text.tr() : text;
 }
 
 class _ActivityCard extends StatelessWidget {
@@ -285,7 +290,7 @@ class _ActivityCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.title,
+                    _localizedActivityText(item.title),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -357,7 +362,7 @@ class _ActivityImage extends StatelessWidget {
           ),
         ),
         child: Text(
-          item.title,
+          _localizedActivityText(item.title),
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -470,7 +475,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    activity.title,
+                                    _localizedActivityText(activity.title),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -667,6 +672,7 @@ class _ActivityContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final raw = content?.trim() ?? '';
     if (raw.isEmpty) return _plainText(context, 'activity.emptyContent'.tr());
+    if (raw.startsWith('activity.')) return _plainText(context, raw.tr());
 
     final sanitized = _sanitizeHtml(raw);
     if (!_looksLikeHtml(sanitized)) {

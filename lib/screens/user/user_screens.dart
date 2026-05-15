@@ -422,32 +422,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            children: [
-                              Text((dayRevenue?.betCount ?? 0).toString(),
-                                  style: TextStyle(
-                                      fontSize: 20.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary)),
-                              SizedBox(height: 8.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                        _profileText('profile.betCount'),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            color: const Color(0xFF4A8AF4),
-                                            fontSize: 12.sp)),
-                                  ),
-                                  Icon(Icons.chevron_right,
-                                      color: const Color(0xFF4A8AF4),
-                                      size: 12.sp),
-                                ],
-                              ),
-                            ],
+                          child: _buildProfitItem(
+                            context,
+                            value: (dayRevenue?.betCount ?? 0).toString(),
+                            label: _profileText('profile.betCount'),
                           ),
                         ),
                         Container(
@@ -455,34 +433,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 20.h,
                             color: Colors.grey.withValues(alpha: 0.2)),
                         Expanded(
-                          child: Column(
-                            children: [
-                              Text(
-                                  _amountText(dayRevenue?.profitLoss,
-                                      fallback: '0.00'),
-                                  style: TextStyle(
-                                      fontSize: 20.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary)),
-                              SizedBox(height: 8.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                        _profileText('profile.totalProfitLoss'),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            color: const Color(0xFF4A8AF4),
-                                            fontSize: 12.sp)),
-                                  ),
-                                  Icon(Icons.chevron_right,
-                                      color: const Color(0xFF4A8AF4),
-                                      size: 12.sp),
-                                ],
-                              ),
-                            ],
+                          child: _buildProfitItem(
+                            context,
+                            value: _amountText(dayRevenue?.profitLoss,
+                                fallback: '0.00'),
+                            label: _profileText('profile.totalProfitLoss'),
                           ),
                         ),
                         Container(
@@ -490,34 +445,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 20.h,
                             color: Colors.grey.withValues(alpha: 0.2)),
                         Expanded(
-                          child: Column(
-                            children: [
-                              Text(
-                                  _amountText(dayRevenue?.unclaimedRebate,
-                                      fallback: '0.00'),
-                                  style: TextStyle(
-                                      fontSize: 20.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary)),
-                              SizedBox(height: 8.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                        _profileText('profile.unclaimedRebate'),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            color: const Color(0xFF4A8AF4),
-                                            fontSize: 12.sp)),
-                                  ),
-                                  Icon(Icons.chevron_right,
-                                      color: const Color(0xFF4A8AF4),
-                                      size: 12.sp),
-                                ],
-                              ),
-                            ],
+                          child: _buildProfitItem(
+                            context,
+                            value: _amountText(dayRevenue?.unclaimedRebate,
+                                fallback: '0.00'),
+                            label: _profileText('profile.unclaimedRebate'),
+                            showDot: (dayRevenue?.unclaimedRebate ?? 0) > 0,
                           ),
                         ),
                       ],
@@ -629,6 +562,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(fontSize: 12.sp, color: AppColors.textPrimary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfitItem(
+    BuildContext context, {
+    required String value,
+    required String label,
+    bool showDot = false,
+  }) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => context.push('/game-manage?tab=rebate'),
+      child: Column(
+        children: [
+          Text(value,
+              style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary)),
+          SizedBox(height: 8.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: const Color(0xFF4A8AF4), fontSize: 12.sp)),
+                    if (showDot)
+                      Positioned(
+                        right: -5.w,
+                        top: -3.h,
+                        child: Container(
+                          width: 6.w,
+                          height: 6.w,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFF4D4F),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right,
+                  color: const Color(0xFF4A8AF4), size: 12.sp),
+            ],
           ),
         ],
       ),
@@ -1093,7 +1080,11 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
   String _siteText(String? value, {required String fallback}) {
     final text = value?.trim();
     if (text == null || text.isEmpty || text == '-') return fallback;
-    return _stripHtml(text);
+    final normalized = _stripHtml(text);
+    if (normalized == '本次新增功能旨在优化操作效率、完善业务场景，提升用户使用体验，适配日常运营及管理需求，无额外操作') {
+      return 'about.fallbackDescription'.tr();
+    }
+    return normalized;
   }
 
   String _stripHtml(String html) {

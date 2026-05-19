@@ -47,10 +47,12 @@
 - **绑定手机号** (`BindPhoneScreen`)：实现带获取验证码倒计时功能的表单；已接入短信验证码发送接口和 `/user/edit` 绑定提交。
 - **绑定邮箱** (`BindEmailScreen`)：实现邮箱输入及验证码验证表单；已接入邮箱验证码发送接口和 `/user/edit` 绑定提交。
 - **修改登录密码** (`ChangePasswordScreen`)：包含旧密码验证、新密码双重输入的表单。
-- **设置资金密码** (`WithdrawPasswordScreen`)：6位纯数字安全密码设置表单。
+- **找回密码** (`ResetPasswordScreen`)：已按 m1 补齐手机号、邮箱、真实姓名 + 取款密码三种找回方式；新增确认新密码输入、手机号区号选择器、验证码发送与 `/password/get` 提交闭环，并使用 `ui-ux-pro-max` 优化为安全蓝单列验证页。
+- **设置/修改资金密码** (`WithdrawPasswordScreen`)：6位纯数字安全密码设置表单；已设置状态下补齐旧取款密码输入框与本地校验，请求 payload 按 m1 保持只提交新的 `pay_password`。
 - **实名认证** (`RealNameScreen`)：姓名输入、认证状态和安全提示；已接入 `/user/edit` 提交 `real_name`，成功后刷新 `/token/user`，已实名保持只读禁用。
 - **添加银行卡** (`AddBankCardScreen`)：持卡人、卡号、开户行信息输入表单。
 - **公共输入组件**：升级 `CustomTextField`，支持焦点状态变色、`suffixIcon` 清除按钮及错误红字提示。新增 `CountdownButton` 实现验证码倒计时效果。
+- **兑换码** (`RedemptionCodeScreen`)：已补齐 m1 `/redemption-code` 页面，包含兑换码输入、粘贴、提交、兑换记录列表、下拉刷新和空态；接口接入 `/redemption/code`、`/redemption/getlist`，页面 UI 已使用 `ui-ux-pro-max` 优化为奖励渐变卡片与记录卡片。
 
 ### 结果与过渡页 (Feedback & Transitions)
 - **充值订单详情** (`DepositOrderDetailScreen`)：已对齐 m1 `DepositOrderDetail.vue`，实现渐变背景、状态金额卡、二维码卡、支付信息卡、风险提示、凭证上传卡和取消支付底部弹窗；已接入 `/recharge/details`、`/img/save?name=recharge`、`/recharge/img` 和 `/recharge/cancel`，支持图片凭证、虚拟币交易哈希和取消原因提交。
@@ -86,8 +88,8 @@
 
 ### 当前收尾目标与方向
 - **任务目标**：当前阶段目标不是继续大规模补页面，而是把已完成的 m1 高仿 Flutter UI 接入真实业务闭环，达到核心资金、账号、收益和游戏链路可验收。
-- **当前进度**：m1 主体路由页面在 Flutter 中基本都有对应实现；P1 搜索弹窗、游戏最小化浮窗、公告弹窗增强和 `/deposit/failed/:id` 充值失败页已完成。当前主要差距集中在 P2 路由授权、邀请参数、系统配置 terminal、语言参数和模型字段联调。
-- **任务方向**：P0 资金/账号/收益闭环和 P1 m1 体验补齐已完成一轮接入，下一步进入 P2：Telegram 深链、邀请/refcode 持久化、`/system/getlist` terminal、活动详情语言参数和关键模型字段校准。
+- **当前进度**：m1 主体路由页面在 Flutter 中基本都有对应实现；P1 搜索弹窗、游戏最小化浮窗、公告弹窗增强和 `/deposit/failed/:id` 充值失败页已完成。P2 路由授权、邀请参数、系统配置 terminal、活动详情语言参数和表单缺失补齐已完成，当前主要差距集中在登录验证码机制、手机号区号机制、添加收款方式上传分类、系统配置脏 URL 兼容、模型字段联调和真实账号冒烟。
+- **任务方向**：P0 资金/账号/收益闭环和 P1 m1 体验补齐已完成一轮接入；P2 路由授权、邀请参数、系统配置、活动语言参数和关键模型字段兼容校准已完成，剩余重点为 m1 517 机制差异收口、真实账号冒烟和上线安全/性能硬化。
 - **执行原则**：每个闭环按 `m1 views/api/router -> Flutter Model/Service -> Provider -> Screen -> 验证 -> 文档` 顺序推进，不把接口调用直接散落在 Screen 中。
 
 ### 边缘业务与占位页
@@ -101,6 +103,9 @@
 - [x] **提现提交闭环**：提现页已接入真实提现订单提交、提交中状态、成功/失败处理和提现成功页跳转。
 - [x] **银行卡删除**：已补齐银行卡删除确认、删除接口和删除后列表刷新。
 - [x] **找回密码真实提交**：`ResetPasswordScreen` 已接入验证码发送、重置密码提交、错误提示和成功态。
+- [x] **找回密码多方式补齐**：`ResetPasswordScreen` 已对齐 m1 支持手机号、邮箱、真实姓名 + 取款密码三种方式，并补齐确认新密码和手机号区号选择。
+- [x] **兑换码闭环**：新增 `RedemptionCodeScreen` 与 `/redemption-code` 路由，接入兑换码提交、记录列表、粘贴、刷新、空态和错误提示。
+- [x] **资金密码修改补齐**：`WithdrawPasswordScreen` 在已设置资金密码时展示旧取款密码输入框，并做 6 位数字校验。
 - [x] **Telegram 登录接口接入**：`TelegramLoginScreen` 已按 m1 改为自动 loading 登录页，接入任意路由 `user_id/username` query 拦截、redirect 保留、登录态保存，以及首次登录默认设置密码 `123456` 闭环。
 - [x] **游戏返水一键领取**：底部领取按钮已接入 `/member_fs_log/claim`，支持领取中状态、错误提示和记录刷新。
 - [x] **我的页今日收益/未领取返水数据**：个人中心已接入今日投注数、今日盈亏、未领取返水等真实数据。
@@ -117,16 +122,24 @@
 | `/retabe/amount` | 领取分享返利 | 已接入领取按钮 | 高 |
 | `/member_fs_log/claim` | 游戏返水领取 | 已接入 Provider 和底部按钮 | 高 |
 | `/day_revenue/getlist` | 我的页今日收益、投注数、未领取返水 | 已接入 Provider 和我的页 | 高 |
+| `/redemption/code` | 兑换码提交 | 已接入 UserProvider 和兑换码页 | 中 |
+| `/redemption/getlist` | 兑换码记录列表 | 已接入 UserProvider 和兑换码页 | 中 |
 | `/telegram/login` | Telegram 登录 | 页面已调用并保存登录态；路由 query 拦截未实现 | 中 |
 | `/telegram/password` | Telegram 设置密码 | endpoint/service/model 已补，页面未调用 | 中 |
 
 ### P2 待开发任务
 
 - [x] **Telegram query 拦截**：对齐 m1 `router.beforeEach`，任意路由带 `user_id`、`username` 时转 `/telegram-login`，并保留去除授权 query 后的 redirect。
-- [ ] **邀请/refcode 持久化**：对齐 m1 `persistRefCodeFromQuery`，在任意路由读取邀请参数并持久化，注册页自动带入。
-- [ ] **系统配置 terminal 联调**：确认 `/system/getlist` 是否需要 `{ terminal: 2 }`，并统一 banner、公告、语言、站点配置使用规则。
-- [ ] **活动详情语言参数**：确认 `/activity/details?lang=CN` 是否为后端必要规则，并按当前语言兼容。
-- [ ] **关键模型字段校准**：用真实响应复核 `DayRevenueSummary`、`WithdrawOrderResult`、`TelegramLoginResult`，补齐页面实际使用字段和边界状态。
+- [x] **邀请/refcode 持久化**：对齐 m1 `persistRefCodeFromQuery`，在任意路由读取邀请参数并持久化，注册页自动带入。
+- [x] **系统配置 terminal 联调**：确认 `/system/getlist` 是否需要 `{ terminal: 2 }`，并统一 banner、公告、语言、站点配置使用规则。
+- [x] **活动详情语言参数**：确认 `/activity/details?lang=CN` 是否为后端必要规则，并按当前语言兼容。
+- [x] **关键模型字段校准**：已按 m1 页面/API 响应规则复核 `DayRevenueSummary`、`WithdrawOrderResult`、Telegram 登录/设密相关模型；Telegram 兼容 `access_token/token` 与双层 `data`，提现结果兼容订单号、金额、手续费、状态文本、message 和包装结构。
+- [x] **登录验证码机制补齐**：已对齐 m1 `Login.vue` 的 `m1_login_fail_count`、`config_pic.login_error`、失败 3 次后图形验证码、成功清零和发送验证码返回 captcha 应用机制。
+- [x] **登录手机号区号补齐**：`LoginScreen` 手机号登录已支持国家/地区区号选择，`area_code` 不再固定 `+86`。
+- [x] **绑定手机号国际化评估**：`BindPhoneScreen` 已补区号选择，中国区号保留中国手机号正则，其他区号使用通用数字长度校验。
+- [x] **添加收款方式接口细节确认**：`/img/save.name` 已按 m1 调整为 `recharge`，`/member_bank/binding` payload 已补实名姓名 `name` 字段；仍建议真实接口冒烟确认。
+- [ ] **系统配置 URL 归一化补强**：按 m1 `system.js` 清洗规则复核 logo、app 下载、客服链接、banner、notice 跳转等 URL 脏数据兼容。
+- [ ] **Web 标题机制评估**：如 Web 端需要对齐 m1 router，按页面 title + `config_site.title` 更新浏览器标题。
 
 ---
 

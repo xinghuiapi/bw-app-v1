@@ -317,7 +317,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                     : 'finance.confirmAdd'.tr(),
                 onPressed: walletProvider.isBindingCard
                     ? null
-                    : () => _submit(walletProvider, hasRealName),
+                    : () => _submit(walletProvider, hasRealName, realName),
               ),
             ],
           ),
@@ -873,7 +873,11 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
     );
   }
 
-  Future<void> _submit(WalletProvider walletProvider, bool hasRealName) async {
+  Future<void> _submit(
+    WalletProvider walletProvider,
+    bool hasRealName,
+    String realName,
+  ) async {
     if (walletProvider.isBindingCard) return;
     if ((_selectedCategory == 1 || _selectedCategory == 3) && !hasRealName) {
       _showSnack('finance.completeRealNameRequired'.tr());
@@ -903,6 +907,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
       card: card,
       address: _selectedCategory == 1 ? _branchController.text.trim() : '',
       alias: _aliasController.text.trim(),
+      name: realName,
       img: _qrImage?.submitValue ?? '',
     );
 

@@ -139,12 +139,7 @@ class WalletService extends BaseService {
     return client.post<WithdrawOrderResult>(
       ApiEndpoints.drawingOrder,
       data: request.toJson(),
-      decoder: (json) {
-        if (json is Map) {
-          return WithdrawOrderResult.fromJson(Map<String, dynamic>.from(json));
-        }
-        return const WithdrawOrderResult();
-      },
+      decoder: WithdrawOrderResult.fromResponse,
     );
   }
 
@@ -175,7 +170,7 @@ class WalletService extends BaseService {
     required List<int> bytes,
     required String filename,
   }) {
-    return _uploadImage(bytes: bytes, filename: filename, name: 'member_bank');
+    return _uploadImage(bytes: bytes, filename: filename, name: 'recharge');
   }
 
   Future<UploadImageResult> _uploadImage({

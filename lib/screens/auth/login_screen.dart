@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/api_exception.dart';
 import '../../models/auth/auth_models.dart';
+import '../../models/home/home_models.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/system/system_provider.dart';
 import '../../providers/user/user_provider.dart';
@@ -31,14 +33,44 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCodeController = TextEditingController();
   final _captchaController = TextEditingController();
 
+  static const _loginFailKey = 'm1_login_fail_count';
+  static const _captchaFailThreshold = 3;
+  static const _countryOptions = <_CountryOption>[
+    _CountryOption('中国', '+86'),
+    _CountryOption('中国香港', '+852'),
+    _CountryOption('中国澳门', '+853'),
+    _CountryOption('中国台湾', '+886'),
+    _CountryOption('美国/加拿大', '+1'),
+    _CountryOption('日本', '+81'),
+    _CountryOption('韩国', '+82'),
+    _CountryOption('英国', '+44'),
+    _CountryOption('澳大利亚', '+61'),
+    _CountryOption('新加坡', '+65'),
+    _CountryOption('马来西亚', '+60'),
+    _CountryOption('泰国', '+66'),
+    _CountryOption('法国', '+33'),
+    _CountryOption('德国', '+49'),
+    _CountryOption('意大利', '+39'),
+    _CountryOption('西班牙', '+34'),
+    _CountryOption('俄罗斯', '+7'),
+    _CountryOption('印度', '+91'),
+  ];
+
   bool _showPassword = false;
   String _activeTab = 'username'; // 'username' or 'phone'
-  final String _selectedCountryCode = '+86';
+  String _selectedCountryCode = '+86';
   String? _formError;
+  int _loginFailCount = 0;
   int _smsCountdown = 0;
   int _emailCountdown = 0;
   Timer? _smsTimer;
   Timer? _emailTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLoginFailCount();
+  }
 
   @override
   void dispose() {
@@ -212,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final config = systemProvider.config;
     final availableTabs = _availableTabs(systemProvider);
-    final showCaptcha = config.captchaConfig?.loginStatus == 1;
+    final showCaptcha = _shouldShowCaptcha(systemProvider);
     if (showCaptcha && context.read<AuthProvider>().captcha == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.read<AuthProvider>().loadCaptcha();
@@ -481,9 +513,7 @@ class _LoginScreenState extends State<LoginScreen> {
           placeholder: context.tr('auth.enterPhone'),
           keyboardType: TextInputType.phone,
           prefixWidget: GestureDetector(
-            onTap: () {
-              // TODO: Show country picker bottom sheet
-            },
+            onTap: _showCountryPicker,
             child: Container(
               margin: EdgeInsets.only(right: 16.w),
               padding: EdgeInsets.only(right: 16.w),
@@ -677,6 +707,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _formError = null);
       await authProvider.login(request);
       if (!mounted) return;
+      await _resetLoginFailCount();
       await context.read<UserProvider>().loadProfile();
       if (!mounted) return;
       final redirectPath = widget.redirectPath;
@@ -687,8 +718,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } catch (error) {
       if (!mounted) return;
+      await _bumpLoginFailCount();
       _showErrorMessage(_errorMessage(error));
-      if (showCaptcha) {
+      if (_shouldShowCaptcha(context.read<SystemProvider>())) {
         _captchaController.clear();
         await context.read<AuthProvider>().loadCaptcha();
       }
@@ -708,6 +740,7 @@ class _LoginScreenState extends State<LoginScreen> {
             areaCode: _selectedCountryCode,
           );
       if (!mounted) return;
+      _applyReturnedCaptcha(result);
       _startSmsCountdown();
       _showMessage(_localizedResultMessage(result.message));
     } catch (error) {
@@ -727,6 +760,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final result =
           await context.read<AuthProvider>().sendEmailCode(email: email);
       if (!mounted) return;
+      _applyReturnedCaptcha(result);
       _startEmailCountdown();
       _showMessage(_localizedResultMessage(result.message));
     } catch (error) {
@@ -737,7 +771,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _startSmsCountdown() {
     _smsTimer?.cancel();
-    setState(() => _smsCountdown = 60);
+    setState(() => _smsCountdown = _countdownSeconds(
+          context.read<SystemProvider>().config.smsConfig,
+        ));
     _smsTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return timer.cancel();
       if (_smsCountdown <= 1) {
@@ -751,7 +787,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _startEmailCountdown() {
     _emailTimer?.cancel();
-    setState(() => _emailCountdown = 60);
+    setState(() => _emailCountdown = _countdownSeconds(
+          context.read<SystemProvider>().config.mailConfig,
+        ));
     _emailTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return timer.cancel();
       if (_emailCountdown <= 1) {
@@ -774,6 +812,142 @@ class _LoginScreenState extends State<LoginScreen> {
   String _localizedResultMessage(String message) {
     final text = message.trim();
     return text.startsWith('auth.') ? text.tr() : text;
+  }
+
+  bool _shouldShowCaptcha(SystemProvider systemProvider) {
+    final config = systemProvider.config.captchaConfig;
+    if (config?.codeType != null && config!.codeType != 1) return false;
+    if (config?.loginStatus == 1) return true;
+    return config?.loginError == 1 && _loginFailCount >= _captchaFailThreshold;
+  }
+
+  Future<void> _loadLoginFailCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() => _loginFailCount = prefs.getInt(_loginFailKey) ?? 0);
+  }
+
+  Future<void> _bumpLoginFailCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final next = (prefs.getInt(_loginFailKey) ?? _loginFailCount) + 1;
+    await prefs.setInt(_loginFailKey, next);
+    if (!mounted) return;
+    setState(() => _loginFailCount = next);
+  }
+
+  Future<void> _resetLoginFailCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_loginFailKey, 0);
+    if (!mounted) return;
+    setState(() => _loginFailCount = 0);
+  }
+
+  void _applyReturnedCaptcha(VerificationCodeData result) {
+    final captcha = result.captcha;
+    if (captcha == null) return;
+    context.read<AuthProvider>().applyCaptcha(captcha);
+    setState(() => _captchaController.clear());
+  }
+
+  int _countdownSeconds(VerifyConfig? config) {
+    final expire = config?.expire;
+    if (expire != null && expire > 0) return expire * 60;
+    return 60;
+  }
+
+  Future<void> _showCountryPicker() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+      ),
+      builder: (sheetContext) {
+        var keyword = '';
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final normalized = keyword.trim().toLowerCase();
+            final countries = normalized.isEmpty
+                ? _countryOptions
+                : _countryOptions
+                    .where((item) =>
+                        item.name.toLowerCase().contains(normalized) ||
+                        item.code.contains(normalized))
+                    .toList(growable: false);
+            return SafeArea(
+              child: SizedBox(
+                height: 0.78.sh,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
+                      child: Row(
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            child: Text('common.cancel'.tr()),
+                          ),
+                          Expanded(
+                            child: Text(
+                              _authText('countryCode', '选择国家/地区'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 64.w),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: TextField(
+                        onChanged: (value) =>
+                            setSheetState(() => keyword = value),
+                        decoration: InputDecoration(
+                          hintText: _authText('searchCountry', '搜索国家或区号'),
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: const Color(0xFFF5F6F8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            borderSide: BorderSide.none,
+                          ),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: countries.length,
+                        itemBuilder: (context, index) {
+                          final item = countries[index];
+                          return ListTile(
+                            title: Text(item.name),
+                            trailing: Text(item.code),
+                            selected: item.code == _selectedCountryCode,
+                            onTap: () =>
+                                Navigator.of(sheetContext).pop(item.code),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (selected == null || selected.isEmpty || !mounted) return;
+    setState(() => _selectedCountryCode = selected);
   }
 
   void _showMessage(String message) {
@@ -844,4 +1018,17 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  String _authText(String key, String fallback) {
+    final fullKey = 'auth.$key';
+    final value = fullKey.tr();
+    return value == fullKey ? fallback : value;
+  }
+}
+
+class _CountryOption {
+  const _CountryOption(this.name, this.code);
+
+  final String name;
+  final String code;
 }

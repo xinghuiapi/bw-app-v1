@@ -22,6 +22,28 @@ class BindPhoneScreen extends StatefulWidget {
 class _BindPhoneScreenState extends State<BindPhoneScreen> {
   final _phoneController = TextEditingController();
   final _codeController = TextEditingController();
+  String _selectedCountryCode = '+86';
+
+  static const _countryOptions = <_CountryOption>[
+    _CountryOption('中国', '+86'),
+    _CountryOption('中国香港', '+852'),
+    _CountryOption('中国澳门', '+853'),
+    _CountryOption('中国台湾', '+886'),
+    _CountryOption('美国/加拿大', '+1'),
+    _CountryOption('日本', '+81'),
+    _CountryOption('韩国', '+82'),
+    _CountryOption('英国', '+44'),
+    _CountryOption('澳大利亚', '+61'),
+    _CountryOption('新加坡', '+65'),
+    _CountryOption('马来西亚', '+60'),
+    _CountryOption('泰国', '+66'),
+    _CountryOption('法国', '+33'),
+    _CountryOption('德国', '+49'),
+    _CountryOption('意大利', '+39'),
+    _CountryOption('西班牙', '+34'),
+    _CountryOption('俄罗斯', '+7'),
+    _CountryOption('印度', '+91'),
+  ];
 
   @override
   void dispose() {
@@ -68,6 +90,24 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                   hintText: 'account.enterPhoneNumber'.tr(),
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  prefixIcon: GestureDetector(
+                    onTap: _showCountryPicker,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _selectedCountryCode,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Icon(Icons.keyboard_arrow_down,
+                            size: 16.sp, color: AppColors.textPrimary),
+                      ],
+                    ),
+                  ),
                 ),
                 SizedBox(height: 24.h),
                 Text(
@@ -118,7 +158,11 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
     if (provider.isSubmitting) return;
     try {
       await provider.updateProfile(
-        UserProfileUpdateRequest(phone: phone, areaCode: '+86', code: code),
+        UserProfileUpdateRequest(
+          phone: phone,
+          areaCode: _selectedCountryCode,
+          code: code,
+        ),
       );
       if (!mounted) return;
       _showMessage('account.bindSuccess'.tr());
@@ -139,7 +183,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
     try {
       final result = await context.read<UserProvider>().sendPhoneCode(
             phone: phone,
-            areaCode: '+86',
+            areaCode: _selectedCountryCode,
           );
       if (!mounted) return false;
       _showMessage(_localizedResultMessage(result.message));
@@ -151,7 +195,12 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
     }
   }
 
-  bool _isPhone(String value) => RegExp(r'^1\d{10}$').hasMatch(value);
+  bool _isPhone(String value) {
+    final digits = value.replaceAll(RegExp(r'\D'), '');
+    if (_selectedCountryCode == '+86')
+      return RegExp(r'^1\d{10}$').hasMatch(digits);
+    return RegExp(r'^\d{5,18}$').hasMatch(digits);
+  }
 
   String _maskPhone(String value) {
     final text = value.trim();
@@ -172,6 +221,114 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
   void _exitPage() {
     context.canPop() ? context.pop() : context.go('/profile');
   }
+
+  Future<void> _showCountryPicker() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+      ),
+      builder: (sheetContext) {
+        var keyword = '';
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final normalized = keyword.trim().toLowerCase();
+            final countries = normalized.isEmpty
+                ? _countryOptions
+                : _countryOptions
+                    .where((item) =>
+                        item.name.toLowerCase().contains(normalized) ||
+                        item.code.contains(normalized))
+                    .toList(growable: false);
+            return SafeArea(
+              child: SizedBox(
+                height: 0.78.sh,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
+                      child: Row(
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            child: Text('common.cancel'.tr()),
+                          ),
+                          Expanded(
+                            child: Text(
+                              _authText('countryCode', '选择国家/地区'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 64.w),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: TextField(
+                        onChanged: (value) =>
+                            setSheetState(() => keyword = value),
+                        decoration: InputDecoration(
+                          hintText: _authText('searchCountry', '搜索国家或区号'),
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: const Color(0xFFF5F6F8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            borderSide: BorderSide.none,
+                          ),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: countries.length,
+                        itemBuilder: (context, index) {
+                          final item = countries[index];
+                          return ListTile(
+                            title: Text(item.name),
+                            trailing: Text(item.code),
+                            selected: item.code == _selectedCountryCode,
+                            onTap: () =>
+                                Navigator.of(sheetContext).pop(item.code),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (selected == null || selected.isEmpty || !mounted) return;
+    setState(() => _selectedCountryCode = selected);
+  }
+
+  String _authText(String key, String fallback) {
+    final fullKey = 'auth.$key';
+    final value = fullKey.tr();
+    return value == fullKey ? fallback : value;
+  }
+}
+
+class _CountryOption {
+  const _CountryOption(this.name, this.code);
+
+  final String name;
+  final String code;
 }
 
 class _BoundStatusCard extends StatelessWidget {

@@ -36,8 +36,8 @@ Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，
 - 页面覆盖：m1 主体路由页面基本已有 Flutter 对应实现；`/deposit/failed/:id` 充值失败页已补齐。
 - endpoint 覆盖：m1 主要 API 已基本定义在 `ApiEndpoints`。
 - service/model 覆盖：提现、删卡、分享返利、今日收益、返水领取、找回密码、Telegram 等闭环所需 service/model 已补齐。
-- P0 闭环：提现提交、银行卡删除、找回密码、Telegram 登录、分享返利、游戏返水领取、我的页今日收益已完成 `Provider -> Screen` 一轮接入。
-- 优先方向：P1 交互体验补齐已完成；接下来做 P2 深链、邀请参数、系统配置 terminal、活动语言参数和字段联调。
+- P0/P2 闭环：提现提交、银行卡删除、找回密码、Telegram 登录、分享返利、游戏返水领取、我的页今日收益已完成 `Provider -> Screen` 一轮接入；本轮已追加找回密码多方式、修改资金密码旧密码输入、提现取款密码输入和兑换码页面闭环。
+- 优先方向：P1 交互体验补齐已完成；P2 深链、邀请参数、系统配置 terminal、活动语言参数和关键模型字段兼容校准已完成；上线安全硬化已启动，当前已补齐 URL policy、外链校验、游戏承载 URL 拦截和禁用全局写操作自动重试，接下来做真实账号冒烟、Web token 风险治理和部署安全策略。
 
 ## 2. 总体原则
 
@@ -69,9 +69,13 @@ Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，
 - [x] `WithdrawScreen`：接 `/drawing/order`，替换 `comingSoon`。
 - [x] `BankCardListScreen`：接 `/member_bank/delete`，增加删除确认和刷新。
 - [x] `ResetPasswordScreen`：接 `/code/send`、`/password/get`。
+- [x] `ResetPasswordScreen`：按 m1 补齐手机号、邮箱、真实姓名 + 取款密码三种找回方式，支持确认新密码和手机号区号选择。
 - [x] `ShareScreen`：接 `/retabe/list`、`/retabe/amount`，移除静态金额/会员/邀请码/链接。
 - [x] `GameManagementScreen`：启用 `/member_fs_log/claim`。
 - [x] `ProfileScreen`：接 `/day_revenue/getlist`。
+- [x] `WithdrawScreen`：补齐 6 位取款密码输入、校验和 `pay_password` 提交。
+- [x] `WithdrawPasswordScreen`：已设置资金密码时补齐旧取款密码输入框和本地校验，接口仍按 m1 只提交新 `pay_password`。
+- [x] `RedemptionCodeScreen`：新增 `/redemption-code` 页面与入口，接 `/redemption/code`、`/redemption/getlist`，支持提交、粘贴、记录、刷新和空态。
 
 3. **P1 m1 交互体验补齐**
 
@@ -83,9 +87,22 @@ Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，
 4. **P2 路由与联调细节**
 
 - [x] Telegram query 拦截：任意路由出现 `user_id`、`username` 时转 `/telegram-login` 并保留 redirect；Telegram 登录页已按 m1 自动登录并处理首次登录默认设密。
-- [ ] 邀请/refcode query 持久化。
-- [ ] `/system/getlist` 与 m1 `{ terminal: 2 }` 规则对齐。
-- [ ] `/activity/details?lang=CN`、`DayRevenueSummary` 等字段按真实接口返回校准。
+- [x] 邀请/refcode query 持久化。
+- [x] `/system/getlist` 与 m1 `{ terminal: 2 }` 规则对齐。
+- [x] `/activity/details?lang=CN` 规则兼容。
+- [x] `DayRevenueSummary`、`WithdrawOrderResult`、Telegram 登录/设密相关字段按 m1 响应包装和页面使用规则完成兼容校准。
+
+5. **P2 m1 517 剩余字段与机制差异**
+
+- [x] `LoginScreen`：补齐 m1 `m1_login_fail_count`、`config_pic.login_error`、失败 3 次后图形验证码、成功清零机制。
+- [x] `LoginScreen`：补齐手机号登录区号选择器，提交 `area_code` 使用选择值。
+- [x] `LoginScreen`：短信/邮箱验证码发送后应用后端返回的 `captcha_key/captcha_img/captcha_code`。
+- [x] `BindPhoneScreen`：补齐国际区号，避免固定 `+86`；中国区号保留中国手机号正则，其他区号使用通用数字长度校验。
+- [ ] `ActivityService`：真实接口冒烟确认 `/activity/details` 的 `lang=CN` 固定规则或当前语言规则。
+- [x] `WalletService.uploadCardImage`：`/img/save` 的 `name` 参数已按 m1 调整为 `recharge`；仍需真实接口冒烟确认。
+- [x] `BindCardRequest`：绑定银行卡/支付宝时已带已实名姓名 `name` 字段，兼容后端可能校验姓名的场景。
+- [ ] `SystemService/HomeConfig`：补强 m1 同等级配置 URL 归一化，覆盖 logo、app、客服、banner、notice 跳转等字段。
+- [ ] Router：复核匿名白名单和 m1 一致，确认新增 `/redemption-code` 等页面必须登录。
 
 ### Phase 0: 对接准备
 

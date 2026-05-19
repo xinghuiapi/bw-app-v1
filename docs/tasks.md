@@ -2,7 +2,7 @@
 
 ## 当前任务目标
 
-把当前 Flutter 主工程从“m1 高仿 UI 基本完成”推进到“m1 核心业务闭环可验收”。后续任务不再以大规模补页面为主，而是按 m1 项目 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1` 对齐以下内容：
+把当前 Flutter 主工程从“m1 高仿 UI 基本完成”推进到“m1 核心业务闭环可验收”。后续任务不再以大规模补页面为主，而是按 m1 项目 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` 对齐以下内容：
 
 - 页面入口和路由行为。
 - m1 `views/**` 的页面生命周期、按钮事件、弹窗、分页、刷新和跳转规则。
@@ -21,8 +21,9 @@
 - [x] P0 页面闭环已完成一轮接入：提现提交、银行卡删除、找回密码、Telegram 登录、分享返利、游戏返水领取、我的页今日收益。
 - [x] 已按 m1 504 项目复核分享页和今日收益字段：分享页邀请码/链接由账号 ID 前端生成，二维码按链接实时生成并支持预览，禁用空态、刷新逻辑、动态规则文案和领取提示已对齐 m1；已修复首帧 `{amount}` 占位符闪现；今日收益模型完整覆盖五字段且卡片按 m1 展示三项。
 - [x] P1 m1 体验补齐已完成：右侧搜索弹窗、游戏最小化浮窗、公告富文本/图片/跳转、充值失败页均已接入并完成基础验证。
-- [ ] 当前剩余重点已进入 P2：Telegram 深链、邀请/refcode 持久化、系统配置 terminal、活动详情语言参数和关键模型字段兼容校准已完成；安全硬化已启动并完成统一 URL policy、外链校验、游戏承载拦截和禁用全局写操作自动重试，剩余真实账号冒烟、Web token 风险治理与部署安全策略。
-- [ ] 新增表单输入缺失修复目标：已按 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` 核查 m1 输入型页面，提现页取款密码输入框已补齐；剩余重点为找回密码多方式输入、修改取款密码旧密码输入、兑换码页面。
+- [ ] 当前剩余重点已进入 P2 收尾：Telegram 深链、邀请/refcode 持久化、系统配置 terminal、活动详情语言参数和关键模型字段兼容校准已完成；安全硬化已启动并完成统一 URL policy、外链校验、游戏承载拦截和禁用全局写操作自动重试，剩余真实账号冒烟、Web token 风险治理与部署安全策略。
+- [x] 表单输入缺失修复目标：已按 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` 核查 m1 输入型页面，提现取款密码、找回密码多方式、修改取款密码旧密码输入、兑换码页面已补齐。
+- [ ] 新增 m1 517 剩余差异修复目标：登录验证码策略、登录手机号区号选择、验证码返回图形验证码处理、绑手机国际区号、添加收款方式图片上传分类和绑定姓名已补齐；剩余活动详情语言参数真实冒烟、系统配置 URL 归一化、路由白名单和 Web 标题等确认项。
 
 ## 当前任务方向
 
@@ -32,6 +33,7 @@
 2. P1 m1 体验补齐：右侧搜索弹窗、游戏最小化浮窗、公告弹窗增强、充值失败页。
 3. P2 授权和联调细节：Telegram 深链登录/设置密码、邀请/refcode 持久化、接口字段联调校准。
 4. P2 表单完整性修复：按 m1 输入框和提交 payload 对齐找回密码、资金密码修改、兑换码等漏迁移表单。
+5. P2 m1 517 剩余机制差异：优先补登录验证码/区号/验证码返回 captcha，再做绑定手机国际化、活动详情语言、添加收款方式上传分类和系统配置脏 URL 兼容确认。
 
 ## 执行步骤
 
@@ -97,6 +99,23 @@
 - [x] `WithdrawPasswordScreen` 在已设置资金密码时补齐旧取款密码输入框和本地必填校验，对齐 m1 修改资金密码流程；请求 payload 仍按 m1 只提交新 `pay_password`。
 - [x] 评估并补齐 `RedemptionCode` 兑换码页面：兑换码 textarea、粘贴按钮、提交按钮、兑换记录列表、`/api/redemption/code` 和 `/api/redemption/getlist` 接口闭环。
 - [ ] 完成上述表单后执行小屏/多语言视觉检查，重点验证输入框 placeholder、错误提示、按钮文案不显示 locale key 且不溢出。
+
+### Task 7: m1 517 剩余字段与机制差异
+
+- [x] `LoginScreen` 补齐 m1 `m1_login_fail_count` 机制：登录失败计数持久化，登录成功后清零。
+- [x] `LoginScreen` 图形验证码策略对齐 m1：除 `config_pic.login_status == 1` 外，还需支持 `config_pic.login_error == 1 && failCount >= 3` 时显示图形验证码。
+- [x] `LoginScreen` 补齐手机号登录国家/地区区号选择器，不再固定 `+86`；提交 `area_code` 使用用户选择值。
+- [x] `LoginScreen` 短信/邮箱验证码发送后，如果后端返回 `captcha_key`、`captcha_img` 或 `captcha_code`，需要应用到当前图形验证码并清空输入，对齐 m1 登录验证码风控流程。
+- [x] `LoginScreen` 验证码倒计时按 `config_send.expire`、`config_mail.expire` 配置化，缺省 60 秒。
+- [x] `BindPhoneScreen` 补齐国家/地区区号选择器，避免绑定手机号固定提交 `area_code: '+86'`；中国区号继续使用中国手机号正则，其他区号使用 5-18 位数字通用校验。
+- [ ] `ActivityService.fetchActivityDetails` 用真实账号/环境确认 `/activity/details` 的 `lang` 是否必须固定 `CN`，还是可使用当前语言；必要时按 m1 固定 `lang=CN` 或做后端兼容分支。
+- [x] `AddBankCardScreen`/`WalletService.uploadCardImage` 已按 m1 调整添加银行卡、支付宝、虚拟币二维码上传时 `/img/save` 的 `name` 参数为 `recharge`；仍建议真实接口冒烟确认。
+- [x] `AddBankCardScreen` 绑定 payload 已补已实名姓名 `name` 字段，覆盖银行卡/支付宝后端可能要求姓名的场景。
+- [ ] `AddBankCardScreen` 评估是否补齐 m1 收款类型 tab 图标机制，从 `/bank/getlist` 或系统配置读取并展示银行/虚拟币/支付宝类型图标。
+- [ ] 用户资料缓存机制差异确认：m1 会缓存 `m1_account_info` 并写入 `currency` symbol，Flutter 是否需要弱网缓存兜底需按真实业务决定。
+- [ ] 系统配置字段归一化补强：对 logo、app_icon、app_download、service_link、banner、notice open_url 等配置 URL 做 m1 同等级清洗，避免反引号、引号、空格和重复斜杠导致资源异常。
+- [ ] 路由鉴权白名单复核：确认 `/redemption-code`、资金、卡片、记录等页面均与 m1 登录要求一致；匿名可访问页面仅保留首页、登录、注册、找回密码、客服、维护页、Telegram 登录。
+- [ ] Flutter Web document title 机制评估：如 Web 端需要对齐 m1，按路由标题 + `config_site.title` 更新浏览器标题。
 
 ## 非目标
 

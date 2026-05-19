@@ -98,43 +98,52 @@ class RegisterRequest {
 
 class AuthToken {
   final String accessToken;
+  final String? rawToken;
   final String? tokenType;
   final int? expiresIn;
   final String? refreshToken;
   final bool? oneLogin;
   final bool? isOneLogin;
+  final Map<String, dynamic> raw;
 
   const AuthToken({
     required this.accessToken,
+    this.rawToken,
     this.tokenType,
     this.expiresIn,
     this.refreshToken,
     this.oneLogin,
     this.isOneLogin,
+    this.raw = const <String, dynamic>{},
   });
 
   factory AuthToken.fromJson(Map<String, dynamic> json) => AuthToken(
-        accessToken: jsonString(json['access_token']) ?? '',
+        accessToken: jsonString(json['access_token'] ?? json['token']) ?? '',
+        rawToken: jsonString(json['token']),
         tokenType: jsonString(json['token_type']),
         expiresIn: jsonInt(json['expires_in']),
         refreshToken: jsonString(json['refresh_token']),
         oneLogin: jsonBool(json['one_login']),
         isOneLogin: jsonBool(json['is_one_login']),
+        raw: json,
       );
 
   factory AuthToken.fromResponseJson(Object? json) {
     final map = jsonMap(json) ?? const <String, dynamic>{};
-    final tokenMap = jsonMap(map['data']) ?? map;
+    final firstData = jsonMap(map['data']) ?? map;
+    final tokenMap = jsonMap(firstData['data']) ?? firstData;
     return AuthToken.fromJson(tokenMap);
   }
 
   Map<String, dynamic> toJson() => {
         'access_token': accessToken,
+        if (rawToken != null) 'token': rawToken,
         if (tokenType != null) 'token_type': tokenType,
         if (expiresIn != null) 'expires_in': expiresIn,
         if (refreshToken != null) 'refresh_token': refreshToken,
         if (oneLogin != null) 'one_login': oneLogin,
         if (isOneLogin != null) 'is_one_login': isOneLogin,
+        ...raw,
       };
 }
 

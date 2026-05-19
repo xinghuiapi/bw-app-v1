@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 
 import '../config/app_env.dart';
@@ -142,11 +141,6 @@ class DioClient {
         onAuthExpired: onAuthExpired,
       ),
       CacheInterceptor(cacheManager: _cacheManager),
-      RetryInterceptor(
-        dio: _dio,
-        retries: 1,
-        retryDelays: const <Duration>[Duration(milliseconds: 500)],
-      ),
       ErrorInterceptor(),
       if (AppEnv.enableNetworkLog && kDebugMode)
         LogInterceptor(

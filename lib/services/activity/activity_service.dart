@@ -1,9 +1,13 @@
 import '../../config/api_endpoints.dart';
+import '../../localization/app_language.dart';
 import '../../models/activity/activity_models.dart';
 import '../base_service.dart';
 
 class ActivityService extends BaseService {
-  const ActivityService(super.client);
+  ActivityService(super.client, {String Function()? currentLanguage})
+      : _currentLanguage = currentLanguage;
+
+  final String Function()? _currentLanguage;
 
   Future<List<ActivityCategory>> fetchCategories() {
     return client.post<List<ActivityCategory>>(
@@ -29,9 +33,11 @@ class ActivityService extends BaseService {
   }
 
   Future<ActivityItem?> fetchActivityDetails(int id) {
+    final language = AppLanguage.normalize(_currentLanguage?.call());
     return client.post<ActivityItem?>(
       ApiEndpoints.activityDetails,
       data: id <= 0 ? null : {'id': id},
+      queryParameters: {'lang': language},
       decoder: (json) {
         final list = _activityListFromResponse(json);
         if (id <= 0) return list.firstOrNull;

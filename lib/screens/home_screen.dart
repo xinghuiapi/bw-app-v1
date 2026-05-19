@@ -7,7 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart' show LaunchMode;
 import '../models/game/game_models.dart';
 import '../models/home/home_models.dart';
 import '../localization/app_language.dart';
@@ -22,12 +22,13 @@ import '../providers/record/record_provider.dart';
 import '../providers/system/system_provider.dart';
 import '../providers/user/user_provider.dart';
 import '../providers/wallet/wallet_provider.dart';
+import '../security/url_policy.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_images.dart';
 import '../widgets/common/app_network_image.dart';
+import '../widgets/common/retry_empty_state.dart';
 import '../widgets/home_user_action_card.dart';
 import '../widgets/notice_bar.dart';
-import '../widgets/app_download_bar.dart';
 import '../widgets/search_panel_overlay.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -40,12 +41,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const _noticeSuppressDateKey = 'm1_notice_suppress_date';
 
-  bool _showDownloadBar = true;
   bool _showBalance = true;
   bool _didTryOpenNotice = false;
   final PageController _bannerController = PageController();
   int _bannerIndex = 0;
   Timer? _bannerTimer;
+  List<GameLobbyCategory> _homeCategories = const [];
 
   double get _recoGameCardSize {
     final scaled = 100.w;
@@ -67,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final gameProvider = context.read<GameProvider>();
-      gameProvider.loadCategories();
+      _loadHomeCategories();
       gameProvider.loadRecommendedGames();
       gameProvider.loadHotGames();
       _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
@@ -119,66 +120,62 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHomeBody() {
     return Column(
       children: [
-        if (_showDownloadBar)
-          SafeArea(
-            bottom: false,
-            child: Selector<SystemProvider, SiteConfig?>(
-              selector: (_, provider) => provider.config.siteConfig,
-              builder: (context, siteConfig, child) {
-                return AppDownloadBar(
-                  title: _siteText(siteConfig?.title,
-                      fallback: 'home.appTitle'.tr()),
-                  description: _siteText(
-                    siteConfig?.appDesc ?? siteConfig?.desc,
-                    fallback: 'home.appDescription'.tr(),
-                  ),
-                  buttonText: 'home.downloadNow'.tr(),
-                  logo: _buildSiteIcon(siteConfig?.logo),
-                  onDownload: () => _handleDownloadTap(siteConfig),
-                  onClose: () {
-                    setState(() {
-                      _showDownloadBar = false;
-                    });
-                  },
-                );
-              },
-            ),
-          ),
         Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(bottom: 12.h),
-            child: Column(
-              children: [
-                _buildTopBannerSection(),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 12),
-                      Selector<SystemProvider, List<NoticeModel>>(
-                        selector: (_, provider) => provider.config.notices,
-                        builder: (context, notices, child) {
-                          return NoticeBar(
-                            text: _noticeText(notices),
-                            leftIcon: const Icon(Icons.volume_up_outlined),
-                            backgroundColor: Colors.white,
-                            color: AppColors.primary,
-                          );
-                        },
-                      ),
-                      _buildUserActionCard(),
-                      _buildGameLobby(),
-                      _buildRecoGamesSection(),
-                      _buildHotGamesSection(),
-                    ],
+          child: RefreshIndicator(
+            onRefresh: _refreshHomeData,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.only(bottom: 12.h),
+              child: Column(
+                children: [
+                  _buildTopBannerSection(),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        Selector<SystemProvider, List<NoticeModel>>(
+                          selector: (_, provider) => provider.config.notices,
+                          builder: (context, notices, child) {
+                            return NoticeBar(
+                              text: _noticeText(notices),
+                              leftIcon: const Icon(Icons.volume_up_outlined),
+                              backgroundColor: Colors.white,
+                              color: AppColors.primary,
+                            );
+                          },
+                        ),
+                        _buildUserActionCard(),
+                        _buildGameLobby(),
+                        _buildRecoGamesSection(),
+                        _buildHotGamesSection(),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _refreshHomeData() async {
+    final gameProvider = context.read<GameProvider>();
+    await Future.wait([
+      _loadHomeCategories(refresh: true).catchError((_) {}),
+      gameProvider.loadRecommendedGames(refresh: true).catchError((_) {}),
+      gameProvider.loadHotGames(refresh: true).catchError((_) {}),
+    ]);
+  }
+
+  Future<void> _loadHomeCategories({bool refresh = false}) async {
+    final categories = await context.read<GameProvider>().fetchCategories(
+          refresh: refresh,
+        );
+    if (!mounted) return;
+    setState(() => _homeCategories = categories);
   }
 
   Widget _buildTopBannerSection() {
@@ -191,8 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       padding: EdgeInsets.only(
-        top:
-            _showDownloadBar ? 12.h : MediaQuery.of(context).padding.top + 12.h,
+        top: MediaQuery.of(context).padding.top + 12.h,
         left: 12.w,
         right: 12.w,
       ),
@@ -415,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         if (!mounted) return;
                         _didTryOpenNotice = false;
                         await Future.wait([
-                          gameProvider.loadCategories(refresh: true),
+                          _loadHomeCategories(refresh: true),
                           gameProvider.loadRecommendedGames(refresh: true),
                           gameProvider.loadHotGames(refresh: true),
                         ]);
@@ -667,19 +663,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSiteIcon(String? iconUrl) {
-    if (iconUrl == null || iconUrl.trim().isEmpty) {
-      return SizedBox(width: 36.w, height: 36.w);
-    }
-    return AppNetworkImage(
-      url: iconUrl,
-      width: 36.w,
-      height: 36.w,
-      borderRadius: BorderRadius.circular(8.r),
-      errorWidget: SizedBox(width: 36.w, height: 36.w),
-    );
-  }
-
   String _siteText(String? value, {required String fallback}) {
     final text = value?.trim();
     return text == null || text.isEmpty ? fallback : text;
@@ -690,14 +673,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final amount = num.tryParse(value.toString());
     if (amount == null) return value.toString();
     return amount.toStringAsFixed(2);
-  }
-
-  Future<void> _handleDownloadTap(SiteConfig? siteConfig) async {
-    final downloadUrl = (siteConfig?.appDownload?.trim().isNotEmpty ?? false)
-        ? siteConfig!.appDownload!.trim()
-        : siteConfig?.apkDownload?.trim();
-    if (downloadUrl == null || downloadUrl.isEmpty) return;
-    await _openUrl(downloadUrl);
   }
 
   Future<void> _handleBannerTap(BannerModel banner) async {
@@ -714,11 +689,14 @@ class _HomeScreenState extends State<HomeScreen> {
     context.push(openUrl.startsWith('/') ? openUrl : '/$openUrl');
   }
 
-  Future<void> _openUrl(String url, {bool external = false}) async {
-    final uri = Uri.tryParse(url.trim());
-    if (uri == null) return;
-    final opened = await launchUrl(
-      uri,
+  Future<void> _openUrl(
+    String url, {
+    bool external = false,
+    ExternalUrlType type = ExternalUrlType.banner,
+  }) async {
+    final opened = await UrlPolicy.launchExternal(
+      url,
+      type: type,
       mode: external
           ? LaunchMode.externalApplication
           : LaunchMode.platformDefault,
@@ -889,7 +867,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildGameLobby() {
-    final categories = context.watch<GameProvider>().categories;
+    final categories = _homeCategories;
     final live = _homeCategory(categories, 'live', 'home.category.live'.tr());
     final lottery =
         _homeCategory(categories, 'lottery', 'home.category.lottery'.tr());
@@ -1287,13 +1265,18 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 128.h,
               child: const Center(child: CircularProgressIndicator()),
             )
+          else if (hasRemoteData)
+            _buildRecoGameList(
+              remoteGames,
+              launchingGameId: launchingGameId,
+            )
+          else if ((gameProvider.recommendedError ?? '').trim().isNotEmpty)
+            _buildErrorGameSection(
+              gameProvider.recommendedError!,
+              () => gameProvider.loadRecommendedGames(refresh: true),
+            )
           else
-            hasRemoteData
-                ? _buildRecoGameList(
-                    remoteGames,
-                    launchingGameId: launchingGameId,
-                  )
-                : _buildEmptyGameSection('game.noGame'.tr()),
+            _buildEmptyGameSection('game.noGame'.tr()),
         ],
       ),
     );
@@ -1351,11 +1334,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       url: game.img ?? '',
                       width: cardSize,
                       height: cardSize,
-                      errorWidget: Image.asset(
-                        AppImages.dz,
+                      optimize: false,
+                      errorWidget: _buildGameImageFallback(
                         width: cardSize,
                         height: cardSize,
-                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
@@ -1457,16 +1439,17 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         return;
       }
-      final uri = Uri.tryParse(urlText);
-      if (uri == null) {
+      if (UrlPolicy.gameUri(urlText) == null) {
         messenger.showSnackBar(
           SnackBar(content: Text('common.invalidGameUrl'.tr())),
         );
         return;
       }
       if (result.nesting == false) {
-        final opened =
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
+        final opened = await UrlPolicy.launchExternal(
+          urlText,
+          type: ExternalUrlType.game,
+        );
         if (!opened && mounted) {
           messenger.showSnackBar(
             SnackBar(content: Text('common.openGameFailed'.tr())),
@@ -1511,13 +1494,18 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 180.h,
               child: const Center(child: CircularProgressIndicator()),
             )
+          else if (hasRemoteData)
+            _buildHotGameGrid(
+              hotGames,
+              launchingGameId: launchingGameId,
+            )
+          else if ((gameProvider.hotGamesError ?? '').trim().isNotEmpty)
+            _buildErrorGameSection(
+              gameProvider.hotGamesError!,
+              () => gameProvider.loadHotGames(refresh: true),
+            )
           else
-            hasRemoteData
-                ? _buildHotGameGrid(
-                    hotGames,
-                    launchingGameId: launchingGameId,
-                  )
-                : _buildEmptyGameSection('game.noGame'.tr()),
+            _buildEmptyGameSection('game.noGame'.tr()),
         ],
       ),
     );
@@ -1567,6 +1555,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     url: game.img ?? '',
                     width: double.infinity,
                     height: double.infinity,
+                    optimize: false,
                     errorWidget: _buildHotFallbackImage(),
                   ),
                 ),
@@ -1600,16 +1589,41 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildErrorGameSection(String message, VoidCallback onRetry) {
+    return RetryEmptyState(
+      message: message,
+      onRetry: onRetry,
+      height: 136.h,
+      compact: true,
+    );
+  }
+
   Widget _buildHotFallbackImage() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16.r),
-        image: const DecorationImage(
-          image: AssetImage(AppImages.by),
-          fit: BoxFit.cover,
-        ),
+    return _buildGameImageFallback(
+      width: double.infinity,
+      height: double.infinity,
+      borderRadius: BorderRadius.circular(16.r),
+    );
+  }
+
+  Widget _buildGameImageFallback({
+    required double width,
+    required double height,
+    BorderRadius? borderRadius,
+  }) {
+    final child = Container(
+      width: width,
+      height: height,
+      color: const Color(0xFFEFF3F8),
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        size: 28.sp,
+        color: AppColors.textSecondary,
       ),
     );
+    if (borderRadius == null) return child;
+    return ClipRRect(borderRadius: borderRadius, child: child);
   }
 
   Widget _buildGameMask(String text) {
@@ -1745,11 +1759,11 @@ class _NoticeDialogState extends State<_NoticeDialog> {
       context.push(openUrl);
       return;
     }
-    final uri = Uri.tryParse(openUrl);
-    if (uri == null) return;
-    if (uri.hasScheme) {
-      await launchUrl(
-        uri,
+    final uri = UrlPolicy.externalUri(openUrl, type: ExternalUrlType.banner);
+    if (uri != null) {
+      await UrlPolicy.launchExternal(
+        openUrl,
+        type: ExternalUrlType.banner,
         mode: _current.open == 1
             ? LaunchMode.externalApplication
             : LaunchMode.platformDefault,

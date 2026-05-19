@@ -3,19 +3,22 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/game/game_models.dart';
 import '../../models/home/home_models.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/game/game_provider.dart';
 import '../../providers/system/system_provider.dart';
+import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_images.dart';
 import '../../widgets/common/app_network_image.dart';
+import '../../widgets/common/retry_empty_state.dart';
 import '../../widgets/search_panel_overlay.dart';
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  const GameScreen({super.key, this.initialCode});
+
+  final String? initialCode;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -24,6 +27,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTabIndex = 0;
+  String _appliedInitialCode = '';
 
   @override
   void initState() {
@@ -55,9 +59,21 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     if (remoteLength > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
+        if (_applyInitialCodeIfNeeded()) return;
         _selectCategory(nextIndex);
       });
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant GameScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialCode == widget.initialCode) return;
+    _appliedInitialCode = '';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _applyInitialCodeIfNeeded();
+    });
   }
 
   @override
@@ -87,6 +103,21 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     provider.loadGamesByCode(category.code);
   }
 
+  bool _applyInitialCodeIfNeeded() {
+    final code = widget.initialCode?.trim() ?? '';
+    if (code.isEmpty || code == _appliedInitialCode) return false;
+    final provider = context.read<GameProvider>();
+    final categories = provider.categories;
+    final index = categories.indexWhere((category) => category.code == code);
+    if (index < 0) return false;
+    _appliedInitialCode = code;
+    if (_tabController.length > index) {
+      _tabController.animateTo(index);
+    }
+    _selectCategory(index);
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameProvider = context.watch<GameProvider>();
@@ -110,7 +141,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             if (hasRemoteCategories) _buildTabs(gameProvider),
             Expanded(
               child: hasRemoteCategories
-                  ? _buildProviderGrid(
+                  ? _buildRefreshableProviderGrid(
                       gameProvider,
                       remoteCategories[selectedIndex],
                     )
@@ -192,11 +223,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   Widget _buildSiteLogo(String? logoUrl) {
     final fallback = ClipOval(
-      child: Image.asset(
-        AppImages.hero,
+      child: Container(
         width: 28.w,
         height: 28.w,
-        fit: BoxFit.cover,
+        color: const Color(0xFFE4EFFF),
+        alignment: Alignment.center,
+        child: Icon(Icons.casino, size: 16.sp, color: AppColors.primary),
       ),
     );
     if (logoUrl == null || logoUrl.trim().isEmpty) return fallback;
@@ -223,6 +255,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         controller: _tabController,
         isScrollable: true,
         tabAlignment: TabAlignment.start,
+        dividerColor: Colors.transparent,
         indicatorColor: AppColors.primary,
         indicatorWeight: 3.h,
         indicatorSize: TabBarIndicatorSize.label,
@@ -238,13 +271,70 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildEmptyState(String? message) {
-    return Center(
-      child: Text(
-        message?.trim().isNotEmpty == true
-            ? message!.trim()
-            : 'game.noGameCategory'.tr(),
-        style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
-      ),
+    final hasError = message?.trim().isNotEmpty == true;
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(height: 150.h),
+        if (hasError)
+          RetryEmptyState(
+            message: message!.trim(),
+            onRetry: () => context.read<GameProvider>().loadCategories(
+                  refresh: true,
+                ),
+          )
+        else
+          Center(
+            child: Text(
+              'game.noGameCategory'.tr(),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildProviderEmptyState(GameProvider provider, String code) {
+    final hasError = provider.error?.trim().isNotEmpty == true;
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(height: 150.h),
+        if (hasError)
+          RetryEmptyState(
+            message: provider.error!.trim(),
+            onRetry: () => provider.loadGamesByCode(
+              code,
+              refresh: true,
+            ),
+          )
+        else
+          Center(
+            child: Text(
+              'game.noGame'.tr(),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _refreshCurrentCategory(GameProvider provider) async {
+    await provider.loadCategories(refresh: true);
+    final categories = provider.categories;
+    if (categories.isEmpty) return;
+    final index = _selectedTabIndex.clamp(0, categories.length - 1);
+    _selectedTabIndex = index;
+    await provider.loadGamesByCode(categories[index].code, refresh: true);
+  }
+
+  Widget _buildRefreshableProviderGrid(
+    GameProvider provider,
+    GameLobbyCategory category,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () => _refreshCurrentCategory(provider),
+      child: _buildProviderGrid(provider, category),
     );
   }
 
@@ -255,15 +345,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
     final games = category.games;
     if (games.isEmpty) {
-      return Center(
-        child: Text(
-          'game.noGame'.tr(),
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
-        ),
-      );
+      return _buildProviderEmptyState(provider, category.code);
     }
 
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding:
           EdgeInsets.only(left: 12.w, right: 12.w, top: 12.h, bottom: 24.h),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -396,16 +482,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         );
         return;
       }
-      if (Uri.tryParse(urlText) == null) {
+      if (UrlPolicy.gameUri(urlText) == null) {
         messenger.showSnackBar(
           SnackBar(content: Text('game.invalidUrl'.tr())),
         );
         return;
       }
       if (result.nesting == false) {
-        final opened = await launchUrl(
-          Uri.parse(urlText),
-          mode: LaunchMode.externalApplication,
+        final opened = await UrlPolicy.launchExternal(
+          urlText,
+          type: ExternalUrlType.game,
         );
         if (!opened && mounted) {
           messenger.showSnackBar(
@@ -431,11 +517,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildProviderCover(String? logoUrl, int itemCount) {
-    final fallback = Image.asset(
-      AppImages.zr,
-      fit: BoxFit.cover,
-      alignment: Alignment.center,
-    );
+    final fallback = _buildProviderCoverFallback();
     if (logoUrl == null || logoUrl.trim().isEmpty) return fallback;
     final crossAxisCount = itemCount <= 1
         ? 1
@@ -448,7 +530,20 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       url: logoUrl,
       width: cardWidth,
       height: cardWidth / 0.72,
+      optimize: false,
       errorWidget: fallback,
+    );
+  }
+
+  Widget _buildProviderCoverFallback() {
+    return Container(
+      color: const Color(0xFFEFF3F8),
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        size: 30.sp,
+        color: AppColors.textSecondary,
+      ),
     );
   }
 }

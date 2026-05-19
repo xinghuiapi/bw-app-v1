@@ -4,11 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/activity/activity_models.dart';
 import '../../models/home/home_models.dart';
 import '../../models/user/user_models.dart';
 import '../../providers/providers.dart';
+import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/app_network_image.dart';
 import '../../widgets/custom_nav_bar.dart';
@@ -103,8 +103,9 @@ class _ActivityHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = MediaQuery.paddingOf(context).top;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+      padding: EdgeInsets.fromLTRB(16.w, topPadding + 10.h, 16.w, 10.h),
       color: Colors.white,
       child: Row(
         children: [
@@ -959,8 +960,7 @@ class ServiceScreen extends StatelessWidget {
       return;
     }
 
-    final uri = Uri.tryParse(value);
-    if (uri == null) {
+    if (UrlPolicy.externalUri(value, type: ExternalUrlType.service) == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('service.invalidLink'.tr())),
       );
@@ -969,7 +969,10 @@ class ServiceScreen extends StatelessWidget {
 
     bool opened = false;
     try {
-      opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      opened = await UrlPolicy.launchExternal(
+        value,
+        type: ExternalUrlType.service,
+      );
     } on MissingPluginException {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

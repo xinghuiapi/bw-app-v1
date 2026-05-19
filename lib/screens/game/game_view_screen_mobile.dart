@@ -5,6 +5,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../providers/game/floating_game_provider.dart';
+import '../../security/url_policy.dart';
 import 'game_view_screen_interface.dart';
 import 'game_view_shell.dart';
 
@@ -24,7 +25,8 @@ class _GameViewScreenState extends State<GameViewScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.url.trim().isEmpty || Uri.tryParse(widget.url.trim()) == null) {
+    final initialUri = UrlPolicy.gameUri(widget.url);
+    if (initialUri == null) {
       _isLoading = false;
       _errorText = 'game.invalidUrl'.tr();
       return;
@@ -54,9 +56,14 @@ class _GameViewScreenState extends State<GameViewScreen> {
               });
             }
           },
+          onNavigationRequest: (request) {
+            return UrlPolicy.isAllowedGameNavigation(request.url)
+                ? NavigationDecision.navigate
+                : NavigationDecision.prevent;
+          },
         ),
       )
-      ..loadRequest(Uri.parse(widget.url.trim()));
+      ..loadRequest(initialUri);
     _hasController = true;
   }
 
@@ -75,7 +82,7 @@ class _GameViewScreenState extends State<GameViewScreen> {
   }
 
   void _reload() {
-    final uri = Uri.tryParse(widget.url.trim());
+    final uri = UrlPolicy.gameUri(widget.url);
     if (uri == null || !_hasController) return;
     setState(() {
       _isLoading = true;

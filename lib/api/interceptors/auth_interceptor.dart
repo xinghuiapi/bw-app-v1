@@ -100,11 +100,14 @@ class AuthInterceptor extends Interceptor {
       return true;
     }
     final data = response.data;
-    if (data is Map<String, dynamic>) {
+    if (data is Map) {
       final code = data['code'];
-      if (code == 401 || code == 403 || code == '401' || code == '403') {
+      final normalizedCode =
+          code is int ? code : int.tryParse(code?.toString() ?? '');
+      if (normalizedCode == 401 || normalizedCode == 403) {
         return true;
       }
+      if (normalizedCode == 200) return false;
       final message = _messageFromResponse(response)?.toLowerCase() ?? '';
       return message.contains('token') ||
           message.contains('unauthorized') ||
@@ -119,7 +122,7 @@ class AuthInterceptor extends Interceptor {
 
   String? _messageFromResponse(Response<dynamic> response) {
     final data = response.data;
-    if (data is Map<String, dynamic>) {
+    if (data is Map) {
       return (data['msg'] ?? data['message'])?.toString();
     }
     return null;

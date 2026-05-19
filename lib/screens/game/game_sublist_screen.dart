@@ -5,10 +5,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/game/game_models.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/game/game_provider.dart';
+import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_images.dart';
 import '../../widgets/common/app_network_image.dart';
@@ -279,32 +279,6 @@ class _GameSubListScreenState extends State<GameSubListScreen>
                       ),
                     ),
                   Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(8.r),
-                          bottomRight: Radius.circular(12.r),
-                        ),
-                      ),
-                      child: Text(
-                        widget.title?.trim().isNotEmpty == true
-                            ? widget.title!.trim().split('').take(2).join()
-                            : 'PG',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.w800,
-                          height: 1.1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
                     top: 6.h,
                     right: 6.w,
                     child: GestureDetector(
@@ -391,16 +365,16 @@ class _GameSubListScreenState extends State<GameSubListScreen>
         );
         return;
       }
-      if (Uri.tryParse(urlText) == null) {
+      if (UrlPolicy.gameUri(urlText) == null) {
         messenger.showSnackBar(
           SnackBar(content: Text('game.invalidUrl'.tr())),
         );
         return;
       }
       if (result.nesting == false) {
-        final opened = await launchUrl(
-          Uri.parse(urlText),
-          mode: LaunchMode.externalApplication,
+        final opened = await UrlPolicy.launchExternal(
+          urlText,
+          type: ExternalUrlType.game,
         );
         if (!opened && mounted) {
           messenger.showSnackBar(
@@ -498,14 +472,27 @@ class _GameSubListScreenState extends State<GameSubListScreen>
   }
 
   Widget _buildRemoteCover(String? imageUrl) {
-    final fallback = Image.asset(AppImages.dz, fit: BoxFit.cover);
+    final fallback = _buildCoverFallback();
     if (imageUrl == null || imageUrl.trim().isEmpty) return fallback;
     final cardWidth = (1.sw - 32.w - 36.w) / 4;
     return AppNetworkImage(
       url: imageUrl,
       width: cardWidth,
       height: cardWidth,
+      optimize: false,
       errorWidget: fallback,
+    );
+  }
+
+  Widget _buildCoverFallback() {
+    return Container(
+      color: const Color(0xFFEFF3F8),
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        size: 24.sp,
+        color: AppColors.textSecondary,
+      ),
     );
   }
 

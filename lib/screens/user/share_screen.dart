@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../config/app_env.dart';
 import '../../providers/user/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
@@ -606,8 +607,16 @@ class _ShareScreenState extends State<ShareScreen> {
 
   String _shareUrl(String inviteCode) {
     if (inviteCode == '-') return '-';
-    final origin = Uri.base.origin;
+    final origin = _shareOrigin();
     return '$origin/m1/register?invite=${Uri.encodeComponent(inviteCode)}';
+  }
+
+  String _shareOrigin() {
+    final assetUri = Uri.tryParse(AppEnv.assetBaseUrl.trim());
+    if (assetUri != null && assetUri.hasScheme && assetUri.host.isNotEmpty) {
+      return assetUri.origin;
+    }
+    return 'https://apis.xh-demo.com';
   }
 
   String _textFallback(String? value, String fallback) {

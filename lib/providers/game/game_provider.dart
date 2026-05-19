@@ -124,6 +124,10 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
 
   bool hasCategoryLoaded(String code) => _loadedCodes.contains(code.trim());
 
+  Future<List<GameLobbyCategory>> fetchCategories({bool refresh = false}) {
+    return _service.fetchInterfaceClasses(refresh: refresh);
+  }
+
   Future<void> loadRecommendedGames({bool refresh = false}) async {
     if (isRecommendedLoading ||
         (!refresh && hasRecommendedLoaded && recommendedGames.isNotEmpty)) {
@@ -135,29 +139,17 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
     notifyListeners();
 
     try {
-      recommendedGames = await _service.fetchRecommendedGames();
-      if (recommendedGames.isEmpty) {
-        recommendedGames =
-            await _service.fetchRecommendedGamesFromInterfaceList();
-      }
+      recommendedGames = await _service.fetchRecommendedGamesFromInterfaceList(
+        refresh: refresh,
+      );
       hasRecommendedLoaded = true;
       recommendedError = null;
     } on ApiException catch (exception) {
       recommendedError = exception.message;
-      try {
-        recommendedGames =
-            await _service.fetchRecommendedGamesFromInterfaceList();
-        recommendedError = null;
-      } catch (_) {}
-      hasRecommendedLoaded = true;
+      if (recommendedGames.isNotEmpty) hasRecommendedLoaded = true;
     } catch (exception) {
       recommendedError = exception.toString();
-      try {
-        recommendedGames =
-            await _service.fetchRecommendedGamesFromInterfaceList();
-        recommendedError = null;
-      } catch (_) {}
-      hasRecommendedLoaded = true;
+      if (recommendedGames.isNotEmpty) hasRecommendedLoaded = true;
     } finally {
       isRecommendedLoading = false;
       notifyListeners();
@@ -181,6 +173,7 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
         page: 1,
         size: 30,
         label: 'hot',
+        refresh: refresh,
       );
       hotGames =
           page.data.where((item) => item.title?.isNotEmpty == true).toList();
@@ -188,10 +181,10 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
       hotGamesError = null;
     } on ApiException catch (exception) {
       hotGamesError = exception.message;
-      hasHotGamesLoaded = true;
+      if (hotGames.isNotEmpty) hasHotGamesLoaded = true;
     } catch (exception) {
       hotGamesError = exception.toString();
-      hasHotGamesLoaded = true;
+      if (hotGames.isNotEmpty) hasHotGamesLoaded = true;
     } finally {
       isHotGamesLoading = false;
       notifyListeners();
@@ -206,7 +199,7 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
     notifyListeners();
 
     try {
-      data = await _service.fetchInterfaceClasses();
+      data = await _service.fetchInterfaceClasses(refresh: refresh);
       error = null;
       debugPrint('[game] interface/class parsed=${categories.length}');
     } on ApiException catch (exception) {
@@ -219,13 +212,9 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
       isLoading = false;
       notifyListeners();
     }
-
-    if (categories.isNotEmpty) {
-      loadGamesByCode(categories.first.code);
-    }
   }
 
-  Future<void> loadGamesByCode(String code) async {
+  Future<void> loadGamesByCode(String code, {bool refresh = false}) async {
     final normalizedCode = code.trim();
     if (normalizedCode.isEmpty || _loadingCodes.contains(normalizedCode)) {
       return;
@@ -235,7 +224,10 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
     notifyListeners();
 
     try {
-      final games = await _service.fetchInterfaceList(code: normalizedCode);
+      final games = await _service.fetchInterfaceList(
+        code: normalizedCode,
+        refresh: refresh,
+      );
       data = categories
           .map((category) => category.code == normalizedCode
               ? category.copyWith(games: games)
@@ -248,13 +240,9 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
     } on ApiException catch (exception) {
       error = exception.message;
       debugPrint('[game] interface/list code=$normalizedCode api error=$error');
-      _setCategoryGames(normalizedCode, const []);
-      _loadedCodes.add(normalizedCode);
     } catch (exception) {
       error = exception.toString();
       debugPrint('[game] interface/list code=$normalizedCode error=$error');
-      _setCategoryGames(normalizedCode, const []);
-      _loadedCodes.add(normalizedCode);
     } finally {
       _loadingCodes.remove(normalizedCode);
       notifyListeners();

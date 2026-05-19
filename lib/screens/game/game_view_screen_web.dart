@@ -7,6 +7,7 @@ import 'package:web/web.dart' as web;
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../providers/game/floating_game_provider.dart';
+import '../../security/url_policy.dart';
 import 'game_view_screen_interface.dart';
 import 'game_view_shell.dart';
 
@@ -24,14 +25,15 @@ class _GameViewScreenState extends State<GameViewScreen> {
   @override
   void initState() {
     super.initState();
-    _hasValidUrl =
-        widget.url.trim().isNotEmpty && Uri.tryParse(widget.url.trim()) != null;
+    final initialUri = UrlPolicy.gameUri(widget.url);
+    _hasValidUrl = initialUri != null;
     _viewId =
         'game-view-${widget.url.hashCode}-${DateTime.now().microsecondsSinceEpoch}';
     ui.platformViewRegistry.registerViewFactory(_viewId, (int viewId) {
       final element = web.HTMLIFrameElement()
-        ..src = _hasValidUrl ? widget.url.trim() : 'about:blank'
+        ..src = initialUri?.toString() ?? 'about:blank'
         ..allow = 'fullscreen; autoplay; picture-in-picture'
+        ..referrerPolicy = 'strict-origin-when-cross-origin'
         ..setAttribute(
           'sandbox',
           'allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation-by-user-activation',

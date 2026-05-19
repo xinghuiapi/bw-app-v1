@@ -43,7 +43,11 @@ class SystemProvider extends BaseProvider<HomeConfig> {
       final config = await _service.fetchConfig();
       _initialized = true;
       data = config;
-      await _cache.write(config, languageCode: _languageGetter());
+      await _cache.write(
+        config,
+        languageCode: _languageGetter(),
+        terminal: SystemService.h5Terminal,
+      );
       error = null;
     } on ApiException catch (exception) {
       _initialized = true;
@@ -60,7 +64,10 @@ class SystemProvider extends BaseProvider<HomeConfig> {
 
   Future<void> _loadCachedConfig() async {
     try {
-      final cached = await _cache.read(languageCode: _languageGetter());
+      final cached = await _cache.read(
+        languageCode: _languageGetter(),
+        terminal: SystemService.h5Terminal,
+      );
       if (cached == null) return;
       data = cached;
       error = null;

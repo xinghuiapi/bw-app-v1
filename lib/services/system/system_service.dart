@@ -5,9 +5,12 @@ import '../base_service.dart';
 class SystemService extends BaseService {
   const SystemService(super.client);
 
+  static const h5Terminal = 2;
+
   Future<HomeConfig> fetchConfig() {
     return client.post<HomeConfig>(
       ApiEndpoints.systemConfig,
+      data: const {'terminal': h5Terminal},
       decoder: (json) {
         final payload = Map<String, dynamic>.from(json as Map);
         final config = payload['data'] is Map ? payload['data'] : payload;

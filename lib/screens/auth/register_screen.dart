@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +14,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/system/system_provider.dart';
 import '../../providers/user/user_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/ref_code_storage.dart';
 import '../../widgets/common/captcha_image.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -40,13 +42,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _showPassword = false;
   bool _showConfirmPassword = false;
   bool _showPayPassword = false;
-  final String _selectedCountryCode = '+86';
+  String _selectedCountryCode = '+86';
   String? _formError;
   int _smsCountdown = 0;
   int _emailCountdown = 0;
   Timer? _smsTimer;
   Timer? _emailTimer;
   String? _selectedCurrencyCode;
+  bool _didApplyStoredRefCode = false;
+
+  static const _countryOptions = <_CountryOption>[
+    _CountryOption('中国', '+86'),
+    _CountryOption('中国香港', '+852'),
+    _CountryOption('中国澳门', '+853'),
+    _CountryOption('中国台湾', '+886'),
+    _CountryOption('美国/加拿大', '+1'),
+    _CountryOption('日本', '+81'),
+    _CountryOption('韩国', '+82'),
+    _CountryOption('英国', '+44'),
+    _CountryOption('澳大利亚', '+61'),
+    _CountryOption('新加坡', '+65'),
+    _CountryOption('马来西亚', '+60'),
+    _CountryOption('泰国', '+66'),
+    _CountryOption('法国', '+33'),
+    _CountryOption('德国', '+49'),
+    _CountryOption('意大利', '+39'),
+    _CountryOption('西班牙', '+34'),
+    _CountryOption('俄罗斯', '+7'),
+    _CountryOption('印度', '+91'),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (context.read<AuthProvider>().isAuthenticated) {
+        context.go('/');
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -209,6 +244,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final config = systemProvider.config;
+    _applyStoredRefCodeIfNeeded(config);
     final showCaptcha = config.captchaConfig?.regStatus == 1 &&
         config.captchaConfig?.codeType == 1;
     if (showCaptcha && context.read<AuthProvider>().captcha == null) {
@@ -225,6 +261,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _buildInputField(
             controller: _accountController,
             placeholder: context.tr('auth.enterAccount'),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),
+              LengthLimitingTextInputFormatter(12),
+            ],
           ),
           SizedBox(height: 20.h),
           _buildFieldLabel(context.tr('auth.password')),
@@ -232,6 +272,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: _passwordController,
             placeholder: context.tr('auth.enterPassword'),
             obscureText: !_showPassword,
+            inputFormatters: [LengthLimitingTextInputFormatter(18)],
             suffixIcon: _buildPasswordToggle(
               visible: _showPassword,
               onTap: () => setState(() => _showPassword = !_showPassword),
@@ -243,6 +284,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: _confirmPasswordController,
             placeholder: context.tr('auth.enterConfirmPassword'),
             obscureText: !_showConfirmPassword,
+            inputFormatters: [LengthLimitingTextInputFormatter(18)],
             suffixIcon: _buildPasswordToggle(
               visible: _showConfirmPassword,
               onTap: () => setState(
@@ -422,7 +464,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildFieldLabel(_fieldTitle(field)),
-        _buildInputField(controller: controller, placeholder: placeholder),
+        _buildInputField(
+          controller: controller,
+          placeholder: placeholder,
+          keyboardType: _keyboardTypeForField(field.code),
+          inputFormatters: _inputFormattersForField(field.code),
+        ),
       ],
     );
   }
@@ -438,6 +485,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           placeholder: context.tr('auth.enterPhone'),
           keyboardType: TextInputType.phone,
           prefixWidget: _buildAreaCodePrefix(),
+          inputFormatters: [LengthLimitingTextInputFormatter(18)],
         ),
         if (needsCode) ...[
           SizedBox(height: 20.h),
@@ -446,6 +494,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: _phoneCodeController,
             placeholder: context.tr('auth.enterCode'),
             keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(6),
+            ],
             suffixIcon: _buildCodeButton(
               sending: context.watch<AuthProvider>().isSendingSmsCode,
               countdown: _smsCountdown,
@@ -467,6 +519,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           controller: _emailController,
           placeholder: context.tr('auth.enterEmail'),
           keyboardType: TextInputType.emailAddress,
+          inputFormatters: [LengthLimitingTextInputFormatter(26)],
         ),
         if (needsCode) ...[
           SizedBox(height: 20.h),
@@ -475,6 +528,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: _emailCodeController,
             placeholder: context.tr('auth.enterCode'),
             keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(6),
+            ],
             suffixIcon: _buildCodeButton(
               sending: context.watch<AuthProvider>().isSendingEmailCode,
               countdown: _emailCountdown,
@@ -495,6 +552,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           controller: _payPasswordController,
           placeholder: context.tr('auth.enterSecurityCode'),
           obscureText: !_showPayPassword,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(6),
+          ],
           suffixIcon: _buildPasswordToggle(
             visible: _showPayPassword,
             onTap: () => setState(() => _showPayPassword = !_showPayPassword),
@@ -546,27 +608,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildAreaCodePrefix() {
-    return Container(
-      margin: EdgeInsets.only(right: 16.w),
-      padding: EdgeInsets.only(right: 16.w),
-      decoration: const BoxDecoration(
-        border: Border(right: BorderSide(color: Color(0xFFDCDFE6))),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _selectedCountryCode,
-            style: TextStyle(
-              fontSize: 15.sp,
-              color: const Color(0xFF333333),
-              fontWeight: FontWeight.w500,
+    return GestureDetector(
+      onTap: _showCountryPicker,
+      child: Container(
+        margin: EdgeInsets.only(right: 16.w),
+        padding: EdgeInsets.only(right: 16.w),
+        decoration: const BoxDecoration(
+          border: Border(right: BorderSide(color: Color(0xFFDCDFE6))),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _selectedCountryCode,
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: const Color(0xFF333333),
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          SizedBox(width: 4.w),
-          Icon(Icons.keyboard_arrow_down,
-              size: 16.sp, color: const Color(0xFF333333)),
-        ],
+            SizedBox(width: 4.w),
+            Icon(Icons.keyboard_arrow_down,
+                size: 16.sp, color: const Color(0xFF333333)),
+          ],
+        ),
       ),
     );
   }
@@ -622,6 +687,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _buildInputField(
           controller: _captchaController,
           placeholder: context.tr('auth.enterCaptcha'),
+          inputFormatters: [LengthLimitingTextInputFormatter(6)],
           suffixIcon: GestureDetector(
             onTap: () => context.read<AuthProvider>().loadCaptcha(),
             child: Container(
@@ -750,13 +816,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _showMessage(context.tr('auth.inviteCodeTooLong'));
       return false;
     }
-    if (_isVisible(config, 'phone') &&
+    if (_isRequired(config, 'phone') &&
         config.smsConfig?.regStatus == 1 &&
         _phoneCodeController.text.trim().isEmpty) {
       _showMessage(context.tr('auth.enterSmsCode'));
       return false;
     }
-    if (_isVisible(config, 'email') &&
+    if (_isRequired(config, 'email') &&
         config.mailConfig?.regStatus == 1 &&
         _emailCodeController.text.trim().isEmpty) {
       _showMessage(context.tr('auth.enterEmailVerifyCode'));
@@ -792,10 +858,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _sendEmailCode() async {
     final username = _accountController.text.trim();
     final email = _emailController.text.trim();
-    if (username.isEmpty) {
-      _showMessage(context.tr('auth.enterAccount'));
-      return;
-    }
     if (email.isEmpty) {
       _showMessage(context.tr('auth.enterEmail'));
       return;
@@ -975,6 +1037,157 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  bool _isRequired(HomeConfig config, String code) {
+    return config.registerConfig.any(
+      (field) => field.code == code && field.isVisible && field.isRequired,
+    );
+  }
+
+  TextInputType _keyboardTypeForField(String? code) {
+    switch (code) {
+      case 'qq':
+        return TextInputType.number;
+      case 'email':
+        return TextInputType.emailAddress;
+      case 'phone':
+        return TextInputType.phone;
+      default:
+        return TextInputType.text;
+    }
+  }
+
+  List<TextInputFormatter>? _inputFormattersForField(String? code) {
+    switch (code) {
+      case 'name':
+        return [LengthLimitingTextInputFormatter(10)];
+      case 'qq':
+        return [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(12),
+        ];
+      case 'telegram':
+        return [LengthLimitingTextInputFormatter(18)];
+      case 'invicode':
+        return [LengthLimitingTextInputFormatter(10)];
+      default:
+        return null;
+    }
+  }
+
+  Future<void> _showCountryPicker() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+      ),
+      builder: (sheetContext) {
+        var keyword = '';
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final normalized = keyword.trim().toLowerCase();
+            final countries = normalized.isEmpty
+                ? _countryOptions
+                : _countryOptions
+                    .where((item) =>
+                        item.name.toLowerCase().contains(normalized) ||
+                        item.code.contains(normalized))
+                    .toList(growable: false);
+            return SafeArea(
+              child: SizedBox(
+                height: 0.78.sh,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.w, vertical: 12.h),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.of(sheetContext).pop(),
+                            child: Text(
+                              context.tr('common.cancel'),
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 15.sp,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              '选择国家/地区',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 32.w),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                      child: TextField(
+                        onChanged: (value) =>
+                            setSheetState(() => keyword = value),
+                        decoration: InputDecoration(
+                          hintText: context.tr('common.search'),
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: const Color(0xFFF5F6F8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(22.r),
+                            borderSide: BorderSide.none,
+                          ),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: countries.isEmpty
+                          ? Center(child: Text(context.tr('common.emptyData')))
+                          : ListView.builder(
+                              itemCount: countries.length,
+                              itemBuilder: (context, index) {
+                                final item = countries[index];
+                                return ListTile(
+                                  title: Text(item.name),
+                                  trailing: Text(item.code),
+                                  onTap: () =>
+                                      Navigator.of(sheetContext).pop(item.code),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (selected == null || !mounted) return;
+    setState(() => _selectedCountryCode = selected);
+  }
+
+  void _applyStoredRefCodeIfNeeded(HomeConfig config) {
+    if (_didApplyStoredRefCode || !_isVisible(config, 'invicode')) return;
+    _didApplyStoredRefCode = true;
+    RefCodeStorage.read().then((code) {
+      if (!mounted ||
+          code.isEmpty ||
+          _inviteController.text.trim().isNotEmpty) {
+        return;
+      }
+      _inviteController.text = code;
+    });
+  }
+
   String _fieldTitle(RegisterFieldConfig field) {
     final title = field.title?.trim();
     return field.isRequired
@@ -1023,6 +1236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     TextInputType keyboardType = TextInputType.text,
     Widget? prefixWidget,
     Widget? suffixIcon,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Container(
       height: 44.h,
@@ -1039,6 +1253,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: controller,
               obscureText: obscureText,
               keyboardType: keyboardType,
+              inputFormatters: inputFormatters,
               style: TextStyle(
                 fontSize: 14.sp,
                 color: const Color(0xFF333333),
@@ -1060,4 +1275,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
+}
+
+class _CountryOption {
+  const _CountryOption(this.name, this.code);
+
+  final String name;
+  final String code;
 }

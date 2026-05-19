@@ -228,6 +228,9 @@ class AuthProvider extends BaseProvider<void> {
 
     try {
       final token = await _authService.telegramLogin(request);
+      if (token.accessToken.trim().isEmpty) {
+        throw Exception('auth.telegramLogin.missingToken');
+      }
       await saveTokens(
         accessToken: token.accessToken,
         refreshToken: token.refreshToken,

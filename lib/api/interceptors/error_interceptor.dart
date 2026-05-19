@@ -7,7 +7,7 @@ class ErrorInterceptor extends Interceptor {
   void onResponse(
       Response<dynamic> response, ResponseInterceptorHandler handler) {
     final data = response.data;
-    if (data is Map<String, dynamic>) {
+    if (data is Map) {
       final code = data['code'];
       final normalizedCode =
           code is int ? code : int.tryParse(code?.toString() ?? '');

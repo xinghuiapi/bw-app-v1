@@ -94,6 +94,61 @@ flutter analyze lib test
 flutter test
 ```
 
+App 打包发布流程见：`docs/PACKAGING_GUIDE.md`。
+
+### 当前打包命令速查
+
+Android 测试分发优先使用旧 Flutter 项目同款分架构 release APK 命令：
+
+```bash
+flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols
+```
+
+如果需要在命令中显式注入生产域名和外链 allowlist，可使用扩展形式：
+
+```bash
+flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/app/outputs/symbols \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://api.example.com/api \
+  --dart-define=ASSET_BASE_URL=https://api.example.com \
+  --dart-define=ALLOWED_EXTERNAL_HOSTS=example.com,cdn.example.com \
+  --dart-define=PAYMENT_ALLOWED_HOSTS=pay.example.com \
+  --dart-define=GAME_ALLOWED_HOSTS=game-vendor.com \
+  --dart-define=SERVICE_ALLOWED_HOSTS=t.me,telegram.me \
+  --dart-define=DOWNLOAD_ALLOWED_HOSTS=download.example.com
+```
+
+应用市场需要 AAB 时使用：
+
+```bash
+flutter build appbundle \
+  --release \
+  --obfuscate \
+  --split-debug-info=build/app/outputs/symbols \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://api.example.com/api \
+  --dart-define=ASSET_BASE_URL=https://api.example.com \
+  --dart-define=ALLOWED_EXTERNAL_HOSTS=example.com,cdn.example.com \
+  --dart-define=PAYMENT_ALLOWED_HOSTS=pay.example.com \
+  --dart-define=GAME_ALLOWED_HOSTS=game-vendor.com \
+  --dart-define=SERVICE_ALLOWED_HOSTS=t.me,telegram.me \
+  --dart-define=DOWNLOAD_ALLOWED_HOSTS=download.example.com
+```
+
+临时 Web 构建使用：
+
+```bash
+dart run tool/prepare_web_fallback_fonts.dart
+flutter build web \
+  --release \
+  --no-web-resources-cdn \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://api.example.com/api \
+  --dart-define=ASSET_BASE_URL=https://api.example.com
+```
+
+正式打包前必须先确认 Android release 签名配置。使用扩展形式时，还要把示例域名替换成真实生产域名。
+
 ### 启动项目
 
 当用户说“启动项目”时，默认使用以下命令启动 Chrome 调试：
@@ -102,4 +157,22 @@ flutter test
 ./run_web.sh
 ```
 
-`run_web.sh` 内部使用 `flutter run -d chrome --no-web-resources-cdn`，用于避免 Flutter Web 默认访问 Google CDN 资源导致 CanvasKit/字体资源加载失败。启动后仍支持 `r` 热重载、`R` 热重启和 `q` 退出。
+`run_web.sh` 会先运行 `tool/prepare_web_fallback_fonts.dart`，为 Flutter Web CanvasKit 准备本地 fallback 字体映射，然后执行 `flutter run -d chrome --no-web-resources-cdn`，用于避免 Flutter Web 默认访问 Google CDN 资源导致 CanvasKit 资源或字体 fallback 加载失败。`web/flutter_bootstrap.js` 通过 `engineInitializer.initializeEngine` 配置了 `fontFallbackBaseUrl: 'assets/fallback_fonts/'`，用于阻止 CanvasKit 字体 fallback 默认请求 `https://fonts.gstatic.com/s/`。启动后仍支持 `r` 热重载、`R` 热重启和 `q` 退出。
+
+### 外链安全配置
+
+项目通过 `lib/security/url_policy.dart` 统一校验外链、支付链接、客服链接、游戏下载/承载链接和 Banner/公告跳转。默认会允许当前 `API_BASE_URL` 与 `ASSET_BASE_URL` 的域名，并阻止 `javascript:`、`data:`、`file:`、带 userInfo 的 URL、生产环境 `http:` 等危险链接。
+
+上线时建议按业务域名补充 allowlist：
+
+```bash
+flutter build web \
+  --dart-define=APP_ENV=production \
+  --dart-define=ALLOWED_EXTERNAL_HOSTS=example.com,example-cdn.com \
+  --dart-define=PAYMENT_ALLOWED_HOSTS=pay.example.com \
+  --dart-define=GAME_ALLOWED_HOSTS=game-vendor.com \
+  --dart-define=SERVICE_ALLOWED_HOSTS=t.me,telegram.me \
+  --dart-define=DOWNLOAD_ALLOWED_HOSTS=download.example.com
+```
+
+未配置业务 allowlist 时，策略仍会做 scheme 和 URL 结构校验，但不会阻断现有第三方游戏/支付域名，避免开发联调被直接打断。

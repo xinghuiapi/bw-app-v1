@@ -6,11 +6,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/game/game_models.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/game/game_provider.dart';
+import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/app_network_image.dart';
 import '../../widgets/search_input.dart';
@@ -451,10 +451,14 @@ class _SearchPanelState extends State<SearchPanel>
             .showSnackBar(SnackBar(content: Text('game.enterFailed'.tr())));
         return;
       }
+      if (UrlPolicy.gameUri(urlText) == null) {
+        messenger.showSnackBar(SnackBar(content: Text('game.invalidUrl'.tr())));
+        return;
+      }
       if (result.nesting == false) {
-        final opened = await launchUrl(
-          Uri.parse(urlText),
-          mode: LaunchMode.externalApplication,
+        final opened = await UrlPolicy.launchExternal(
+          urlText,
+          type: ExternalUrlType.game,
         );
         if (!opened && mounted) {
           messenger

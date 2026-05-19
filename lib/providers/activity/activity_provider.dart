@@ -9,6 +9,7 @@ class ActivityProvider extends BaseProvider<List<ActivityItem>> {
       : _service = service ?? ActivityService(DioClient());
 
   ActivityService _service;
+  String Function()? _languageGetter;
   List<ActivityCategory> categories = const [
     ActivityCategory(id: 0, title: 'activity.categoryAll')
   ];
@@ -31,7 +32,11 @@ class ActivityProvider extends BaseProvider<List<ActivityItem>> {
   bool get hasMoreRecords => recordCurrentPage < recordLastPage;
 
   void bindClient(DioClient client) {
-    _service = ActivityService(client);
+    _service = ActivityService(client, currentLanguage: _languageGetter);
+  }
+
+  void bindLanguageGetter(String Function() languageGetter) {
+    _languageGetter = languageGetter;
   }
 
   void resetForLanguageChange() {

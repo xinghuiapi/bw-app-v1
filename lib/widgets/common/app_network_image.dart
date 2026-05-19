@@ -32,7 +32,10 @@ class AppNetworkImage extends StatelessWidget {
     final imageUrl = _normalizeUrl(url);
     final optimizedUrl = imageUrl == null
         ? null
-        : _optimizeUrl(imageUrl, MediaQuery.devicePixelRatioOf(context));
+        : _optimizeUrl(
+            imageUrl,
+            MediaQuery.devicePixelRatioOf(context),
+          );
     final child = optimizedUrl == null
         ? _error()
         : _buildNetworkImage(
@@ -78,7 +81,7 @@ class AppNetworkImage extends StatelessWidget {
   }
 
   String _optimizeUrl(String value, double devicePixelRatio) {
-    if (!optimize || !value.startsWith('http')) return value;
+    if (kIsWeb || !optimize || !value.startsWith('http')) return value;
     if (value.toLowerCase().endsWith('.svg')) return value;
 
     try {

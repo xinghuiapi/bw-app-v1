@@ -82,6 +82,7 @@ class _AppProvidersState extends State<AppProviders> {
     _userProvider.bindClient(_dioClient);
     _gameProvider.bindClient(_dioClient);
     _gameManagementProvider.bindClient(_dioClient);
+    _activityProvider.bindLanguageGetter(() => _languageProvider.currentCode);
     _activityProvider.bindClient(_dioClient);
     _feedbackProvider.bindClient(_dioClient);
     _messageProvider.bindClient(_dioClient);

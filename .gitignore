@@ -33,6 +33,7 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+/web/assets/fallback_fonts/
 
 # Symbolication related
 app.*.symbols
@@ -44,3 +45,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/key.properties
+*.jks
+*.keystore

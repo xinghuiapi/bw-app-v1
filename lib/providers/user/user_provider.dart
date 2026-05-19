@@ -30,6 +30,10 @@ class UserProvider extends BaseProvider<UserProfile> {
   String? rebateInfoError;
   String? rebateClaimError;
   bool isUploadingAvatar = false;
+  RedemptionRecordPage? redemptionRecords;
+  bool isRedemptionLoading = false;
+  bool isRedemptionSubmitting = false;
+  String? redemptionError;
 
   UserProfile? get profile => data;
 
@@ -55,6 +59,10 @@ class UserProvider extends BaseProvider<UserProfile> {
     rebateInfoError = null;
     rebateClaimError = null;
     isUploadingAvatar = false;
+    redemptionRecords = null;
+    isRedemptionLoading = false;
+    isRedemptionSubmitting = false;
+    redemptionError = null;
     notifyListeners();
   }
 
@@ -321,6 +329,49 @@ class UserProvider extends BaseProvider<UserProfile> {
       rethrow;
     } finally {
       isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadRedemptionRecords({bool refresh = false}) async {
+    if (isRedemptionLoading) return;
+    if (!refresh && redemptionRecords != null) return;
+
+    isRedemptionLoading = true;
+    redemptionError = null;
+    notifyListeners();
+
+    try {
+      redemptionRecords = await _service.fetchRedemptionRecords();
+    } on ApiException catch (exception) {
+      redemptionError = exception.message;
+      rethrow;
+    } catch (exception) {
+      redemptionError = exception.toString();
+      rethrow;
+    } finally {
+      isRedemptionLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> redeemCode(String code) async {
+    if (isRedemptionSubmitting) return;
+    isRedemptionSubmitting = true;
+    redemptionError = null;
+    notifyListeners();
+
+    try {
+      await _service.submitRedemptionCode(code);
+      await loadRedemptionRecords(refresh: true);
+    } on ApiException catch (exception) {
+      redemptionError = exception.message;
+      rethrow;
+    } catch (exception) {
+      redemptionError = exception.toString();
+      rethrow;
+    } finally {
+      isRedemptionSubmitting = false;
       notifyListeners();
     }
   }

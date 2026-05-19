@@ -21,6 +21,7 @@ import '../screens/finance/fund_management_screen.dart';
 import '../screens/finance/my_wallet_screen.dart';
 import '../screens/user/user_screens.dart';
 import '../screens/search/search_screen.dart';
+import '../utils/ref_code_storage.dart';
 import 'route_paths.dart';
 
 GoRouter createAppRouter(AuthProvider authProvider,
@@ -34,6 +35,7 @@ GoRouter createAppRouter(AuthProvider authProvider,
     redirect: (context, state) {
       final location = state.uri.toString();
       final path = state.uri.path;
+      RefCodeStorage.persistFromUri(state.uri);
       final telegramQuery = _telegramQueryFromUri(state.uri);
       if (path != RoutePaths.telegramLogin &&
           _hasTelegramQuery(telegramQuery)) {
@@ -172,6 +174,13 @@ final _routes = <RouteBase>[
     ),
   ),
   GoRoute(
+    path: '/redemption-code',
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const RedemptionCodeScreen(),
+    ),
+  ),
+  GoRoute(
     path: '/telegram-login',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
@@ -222,7 +231,10 @@ final _routes = <RouteBase>[
             path: '/game',
             pageBuilder: (context, state) => _noTransitionPage(
               state,
-              GameScreen(key: state.pageKey),
+              GameScreen(
+                key: state.pageKey,
+                initialCode: state.uri.queryParameters['code'],
+              ),
             ),
           ),
         ],

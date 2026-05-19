@@ -627,6 +627,48 @@ class ChangePasswordRequest {
       };
 }
 
+class RedemptionRecord {
+  final String? code;
+  final String? balance;
+  final String? desc;
+  final String? time;
+
+  const RedemptionRecord({this.code, this.balance, this.desc, this.time});
+
+  factory RedemptionRecord.fromJson(Map<String, dynamic> json) =>
+      RedemptionRecord(
+        code: jsonString(json['code']),
+        balance: jsonString(json['balance']),
+        desc: jsonString(json['desc'] ?? json['description']),
+        time: jsonString(json['time'] ?? json['created_at']),
+      );
+}
+
+class RedemptionRecordPage extends PaginatedData<RedemptionRecord> {
+  const RedemptionRecordPage({
+    super.data,
+    super.total,
+    super.currentPage,
+    super.lastPage,
+    super.perPage,
+  });
+
+  factory RedemptionRecordPage.fromResponse(Object? json) {
+    if (json is Map) {
+      final map = Map<String, dynamic>.from(json);
+      final page = PaginatedData.fromJson(map, RedemptionRecord.fromJson);
+      return RedemptionRecordPage(
+        data: page.data,
+        total: page.total,
+        currentPage: page.currentPage,
+        lastPage: page.lastPage,
+        perPage: page.perPage,
+      );
+    }
+    return const RedemptionRecordPage();
+  }
+}
+
 class UserMessage {
   final int id;
   final String? title;

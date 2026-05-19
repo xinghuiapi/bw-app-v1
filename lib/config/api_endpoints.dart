@@ -60,6 +60,8 @@ class ApiEndpoints {
   static const memberFsLogClaim = '/member_fs_log/claim';
   static const retabeList = '/retabe/list';
   static const retabeAmount = '/retabe/amount';
+  static const redemptionCode = '/redemption/code';
+  static const redemptionList = '/redemption/getlist';
   static const dayRevenueList = '/day_revenue/getlist';
 }
 

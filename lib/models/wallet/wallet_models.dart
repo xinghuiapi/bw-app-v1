@@ -572,7 +572,11 @@ class WithdrawOrderResult {
     this.id,
     this.orderNo,
     this.money = 0,
+    this.actualMoney = 0,
+    this.fee = 0,
     this.status,
+    this.statusText,
+    this.message,
     this.createdAt,
     this.raw = const <String, dynamic>{},
   });
@@ -580,26 +584,58 @@ class WithdrawOrderResult {
   final int? id;
   final String? orderNo;
   final double money;
+  final double actualMoney;
+  final double fee;
   final int? status;
+  final String? statusText;
+  final String? message;
   final String? createdAt;
   final Map<String, dynamic> raw;
 
   factory WithdrawOrderResult.fromJson(Map<String, dynamic> json) {
     return WithdrawOrderResult(
-      id: jsonInt(json['id'] ?? json['order_id']),
-      orderNo: jsonString(json['order_no'] ?? json['orderNo']),
-      money: jsonDouble(json['money']) ?? 0,
-      status: jsonInt(json['status']),
-      createdAt: jsonString(json['created_at'] ?? json['createdAt']),
+      id: jsonInt(json['id'] ?? json['order_id'] ?? json['orderId']),
+      orderNo: jsonString(
+        json['order_no'] ?? json['orderNo'] ?? json['order_sn'] ?? json['sn'],
+      ),
+      money: jsonDouble(json['money'] ?? json['amount']) ?? 0,
+      actualMoney: jsonDouble(
+            json['actual_money'] ?? json['actualMoney'] ?? json['real_money'],
+          ) ??
+          0,
+      fee: jsonDouble(
+              json['fee'] ?? json['service_fee'] ?? json['commission']) ??
+          0,
+      status: jsonInt(json['status'] ?? json['state']),
+      statusText: jsonString(
+        json['status_text'] ?? json['statusText'] ?? json['state_text'],
+      ),
+      message: jsonString(json['msg'] ?? json['message']),
+      createdAt: jsonString(
+        json['created_at'] ?? json['createdAt'] ?? json['create_time'],
+      ),
       raw: json,
     );
+  }
+
+  factory WithdrawOrderResult.fromResponse(Object? json) {
+    if (json is Map) {
+      final map = Map<String, dynamic>.from(json);
+      final nested = jsonMap(map['data']);
+      return WithdrawOrderResult.fromJson(nested ?? map);
+    }
+    return const WithdrawOrderResult();
   }
 
   Map<String, dynamic> toJson() => {
         if (id != null) 'id': id,
         if (orderNo != null) 'order_no': orderNo,
         'money': money,
+        'actual_money': actualMoney,
+        'fee': fee,
         if (status != null) 'status': status,
+        if (statusText != null) 'status_text': statusText,
+        if (message != null) 'message': message,
         if (createdAt != null) 'created_at': createdAt,
         ...raw,
       };

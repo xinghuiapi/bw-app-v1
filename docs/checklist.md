@@ -37,16 +37,26 @@
 
 - [x] Telegram query 拦截逻辑对齐 m1 router。
 - [x] Telegram 登录真实接口已接入；query 拦截与首次登录默认设置密码闭环已补齐。
-- [ ] 邀请/refcode query 持久化逻辑对齐 m1。
-- [ ] `/system/getlist` 终端参数与 m1 一致并通过联调确认。
-- [ ] `/activity/details` 语言参数与 m1/后端规则一致。
-- [ ] `DayRevenueSummary`、`WithdrawOrderResult`、Telegram 相关模型字段按真实响应校准。
+- [x] 邀请/refcode query 持久化逻辑对齐 m1。
+- [x] `/system/getlist` 终端参数与 m1 一致并通过联调确认。
+- [x] `/activity/details` 语言参数与 m1/后端规则一致。
+- [x] `DayRevenueSummary`、`WithdrawOrderResult`、Telegram 相关模型字段已按 m1 响应包装和页面使用字段完成兼容校准；真实账号冒烟时继续记录后端环境差异。
+
+## 表单完整性检查
+
+- [x] 已完成 m1 输入型页面和 Flutter 表单页面差异核查。
+- [x] 提现页已补齐取款密码输入框、校验和 `pay_password` 提交，且避免首帧显示 locale key。
+- [x] 找回密码页补齐邮箱找回、真实姓名 + 取款密码找回、确认新密码输入和手机区号选择器。
+- [x] 修改资金密码页在已设置状态下补齐旧取款密码输入框。
+- [x] 兑换码页面如确认属于目标范围，则补齐页面、接口、路由和入口。
 
 ## 质量检查
 
 - [x] 每个落地阶段执行 `dart format`。
 - [x] 每个落地阶段执行 `flutter analyze` 且无新增问题。
 - [x] 写操作均具备 loading、success、error 和防重复提交。
+- [x] 外链、支付、客服、游戏承载 URL 已统一接入 `UrlPolicy`，并加固 WebView/iframe 初始 URL 与游戏导航校验。
+- [x] 已移除网络层全局自动 retry，避免资金和账号写操作被重复提交。
 - [ ] 接口失败或空数据不展示静态假数据。
 - [ ] 新增 UI 在小屏、长文本、多语言场景下无明显溢出。
 - [ ] 完成业务/API/UI 改动后同步更新任务、进度和接口文档。

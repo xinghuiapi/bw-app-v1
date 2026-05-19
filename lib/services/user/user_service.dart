@@ -151,6 +151,26 @@ class UserService extends BaseService {
     );
   }
 
+  Future<RedemptionRecordPage> fetchRedemptionRecords({
+    int page = 1,
+    int size = 10,
+    String code = '',
+  }) {
+    return client.post<RedemptionRecordPage>(
+      ApiEndpoints.redemptionList,
+      data: {'page': page, 'size': size, 'code': code},
+      decoder: RedemptionRecordPage.fromResponse,
+    );
+  }
+
+  Future<void> submitRedemptionCode(String code) {
+    return client.post<void>(
+      ApiEndpoints.redemptionCode,
+      data: {'code': code},
+      decoder: (_) {},
+    );
+  }
+
   Future<UserProfile?> setPayPassword(SetPayPasswordRequest request) {
     return client.post<UserProfile?>(
       ApiEndpoints.userPayPassword,

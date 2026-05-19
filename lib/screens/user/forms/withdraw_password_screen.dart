@@ -19,11 +19,13 @@ class WithdrawPasswordScreen extends StatefulWidget {
 }
 
 class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
+  final _oldPasswordController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
   @override
   void dispose() {
+    _oldPasswordController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
     super.dispose();
@@ -55,6 +57,24 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
                 ),
               ),
               SizedBox(height: 32.h),
+              if (isSet) ...[
+                Text(
+                  _securityText('oldFundPassword', '旧取款密码'),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                CustomTextField(
+                  hintText: _securityText('enterOldFundPassword', '请输入旧取款密码'),
+                  controller: _oldPasswordController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                ),
+                SizedBox(height: 24.h),
+              ],
               Text(
                 'security.fundPassword'.tr(),
                 style: TextStyle(
@@ -101,8 +121,15 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
   }
 
   Future<void> _submit() async {
+    final provider = context.read<UserProvider>();
+    final isSet = provider.profile?.hasPayPassword ?? false;
+    final oldPassword = _oldPasswordController.text.trim();
     final password = _passwordController.text.trim();
     final confirm = _confirmController.text.trim();
+    if (isSet && !RegExp(r'^\d{6}$').hasMatch(oldPassword)) {
+      _showMessage(_securityText('enterOldFundPassword', '请输入旧取款密码'));
+      return;
+    }
     if (!RegExp(r'^\d{6}$').hasMatch(password)) {
       _showMessage('security.enterFundPassword'.tr());
       return;
@@ -112,7 +139,6 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
       return;
     }
 
-    final provider = context.read<UserProvider>();
     if (provider.isSubmitting) return;
     try {
       await provider
@@ -129,5 +155,11 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  String _securityText(String key, String fallback) {
+    final localeKey = 'security.$key';
+    final value = localeKey.tr();
+    return value == localeKey ? fallback : value;
   }
 }

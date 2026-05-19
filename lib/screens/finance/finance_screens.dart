@@ -5,13 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../api/api_exception.dart';
 import '../../models/user/user_models.dart';
 import '../../models/wallet/wallet_models.dart';
 import '../../providers/localization/language_provider.dart';
 import '../../providers/user/user_provider.dart';
 import '../../providers/wallet/wallet_provider.dart';
+import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
@@ -708,11 +708,15 @@ class _DepositScreenState extends State<DepositScreen> {
 
     if (result.type == 1 && url.isNotEmpty) {
       if (result.opensExternal) {
-        final opened = await launchUrl(
-          Uri.parse(url),
-          mode: LaunchMode.externalApplication,
+        final opened = await UrlPolicy.launchExternal(
+          url,
+          type: ExternalUrlType.payment,
         );
         if (!opened) _showMessage('deposit.openGatewayFailed'.tr());
+        return;
+      }
+      if (UrlPolicy.externalUri(url, type: ExternalUrlType.payment) == null) {
+        _showMessage('deposit.pay.invalidLink'.tr());
         return;
       }
       context.push(
@@ -2108,6 +2112,7 @@ class WithdrawScreen extends StatefulWidget {
 
 class _WithdrawScreenState extends State<WithdrawScreen> {
   final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _payPasswordController = TextEditingController();
   int _activeCardIndex = 0;
 
   @override
@@ -2125,6 +2130,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   @override
   void dispose() {
     _amountController.dispose();
+    _payPasswordController.dispose();
     super.dispose();
   }
 
@@ -2174,6 +2180,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   onActionTap: () => context.push('/cards'),
                 ),
                 _buildCardList(walletProvider, cards),
+                _buildPayPasswordCard(profile?.hasPayPassword ?? false),
                 _buildWithdrawRuleCard(
                   symbol: symbol,
                   minWithdraw: minWithdraw,
@@ -2660,6 +2667,72 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     );
   }
 
+  Widget _buildPayPasswordCard(bool hasPayPassword) {
+    return CustomCard(
+      margin: EdgeInsets.only(bottom: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'finance.withdraw.payPassword'.tr(),
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              if (!hasPayPassword)
+                GestureDetector(
+                  onTap: () => context.push('/withdraw-password'),
+                  child: Text(
+                    _withdrawText('goSetPayPassword', '去设置'),
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          if (hasPayPassword)
+            TextField(
+              controller: _payPasswordController,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 6,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                counterText: '',
+                hintText: _withdrawText('enterPayPassword', '请输入6位取款密码'),
+                filled: true,
+                fillColor: AppColors.background,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
+              ),
+            )
+          else
+            Text(
+              _withdrawText(
+                'payPasswordTip',
+                '为了您的资金安全，提现前请先设置取款密码',
+              ),
+              style: TextStyle(fontSize: 13.sp, color: AppColors.textSecondary),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildWithdrawRuleCard({
     required String symbol,
     required double minWithdraw,
@@ -2760,6 +2833,11 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       _showSnack('finance.withdraw.unsetPayPassword'.tr());
       return;
     }
+    final payPassword = _payPasswordController.text.trim();
+    if (!RegExp(r'^\d{6}$').hasMatch(payPassword)) {
+      _showSnack(_withdrawText('passwordInvalid', '请输入6位取款密码'));
+      return;
+    }
     final selectedCard = cards[_activeCardIndex.clamp(0, cards.length - 1)];
     final money = double.tryParse(_amountController.text.trim());
     if (money == null || money <= 0) {
@@ -2779,10 +2857,15 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
 
     try {
       await context.read<WalletProvider>().createWithdrawOrder(
-            WithdrawRequest(id: selectedCard.id, money: money),
+            WithdrawRequest(
+              id: selectedCard.id,
+              money: money,
+              payPassword: payPassword,
+            ),
           );
       if (!mounted) return;
       _amountController.clear();
+      _payPasswordController.clear();
       context.go('/withdraw/success');
     } catch (_) {
       if (!mounted) return;
@@ -2827,6 +2910,12 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   String _textOr(String? value, String fallback) {
     final text = value?.trim();
     return text == null || text.isEmpty ? fallback : text;
+  }
+
+  String _withdrawText(String key, String fallback) {
+    final localeKey = 'finance.withdraw.$key';
+    final value = localeKey.tr();
+    return value == localeKey ? fallback : value;
   }
 }
 
@@ -2957,14 +3046,16 @@ class OnlinePayDetailScreen extends StatelessWidget {
   }
 
   Future<void> _openPayUrl(BuildContext context, String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri == null) {
+    if (UrlPolicy.externalUri(url, type: ExternalUrlType.payment) == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('deposit.pay.invalidLink'.tr())),
       );
       return;
     }
-    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final opened = await UrlPolicy.launchExternal(
+      url,
+      type: ExternalUrlType.payment,
+    );
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('deposit.pay.openGatewayFailed'.tr())),

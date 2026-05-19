@@ -32,6 +32,7 @@ export 'forms/withdraw_password_screen.dart';
 export 'forms/real_name_screen.dart';
 export 'forms/add_bank_card_screen.dart';
 export 'share_screen.dart';
+export 'redemption_code_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -530,8 +531,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _profileText('profile.feedback'),
                             context,
                             '/feedback'),
-                        _buildServiceItem(Icons.lightbulb_outline,
-                            _profileText('profile.comingSoon'), context, null),
+                        _buildServiceItem(Icons.card_giftcard_outlined, '兑换码',
+                            context, '/redemption-code'),
                       ],
                     ),
                   ],

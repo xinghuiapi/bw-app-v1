@@ -15,6 +15,7 @@ import '../../providers/system/system_provider.dart';
 import '../../providers/user/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/ref_code_storage.dart';
+import '../../widgets/common/back_hit_target.dart';
 import '../../widgets/common/captcha_image.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -153,14 +154,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
+                  BackHitTarget(
+                    icon: Icons.arrow_back_ios_new,
+                    iconSize: 20.sp,
+                    color: const Color.fromRGBO(51, 51, 51, 0.85),
                     onTap: () =>
                         context.canPop() ? context.pop() : context.go('/login'),
-                    child: Icon(
-                      Icons.arrow_back_ios_new,
-                      size: 20.sp,
-                      color: const Color.fromRGBO(51, 51, 51, 0.85),
-                    ),
                   ),
                   const SizedBox(),
                 ],

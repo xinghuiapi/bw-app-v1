@@ -82,12 +82,16 @@ flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build
 
 ### 2. 换 Logo
 
-准备一张 PNG logo，建议尺寸至少 `1024x1024`。
+准备一张 PNG logo，建议尺寸至少 `1024x1024`，放到：
+
+```text
+assets/logo/logo.png
+```
 
 执行：
 
 ```bash
-dart run scripts/update_app_logo.dart /你的/logo.png
+dart run scripts/update_app_logo.dart assets/logo/logo.png
 ```
 
 脚本会更新 `assets/images/logo.png` 并重新生成 Android 图标。

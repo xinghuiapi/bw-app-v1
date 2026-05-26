@@ -360,12 +360,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 : 3,
         mainAxisSpacing: 12.w,
         crossAxisSpacing: 12.w,
-        childAspectRatio: 0.72,
+        childAspectRatio: 0.62,
       ),
       itemCount: games.length,
       itemBuilder: (context, index) {
         final game = games[index];
-        return GestureDetector(
+        return GameProviderGridCard(
+          game: game,
+          isLaunching: provider.launchingGameId == game.id,
           onTap: () {
             if (game.isMaintaining) return;
             if (game.opensSubList) {
@@ -376,90 +378,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             }
             _launchGame(game.launchTarget);
           },
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12.r),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(12.r),
-                    ),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        _buildProviderCover(game.logo, games.length),
-                        if (provider.launchingGameId == game.id)
-                          Container(
-                            color: Colors.black.withValues(alpha: 0.45),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 24.w,
-                                  height: 24.w,
-                                  child: const CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                SizedBox(height: 8.h),
-                                Text(
-                                  'game.launching'.tr(),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        if (game.isMaintaining)
-                          Container(
-                            color: Colors.black.withValues(alpha: 0.45),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'game.maintaining'.tr(),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 10.h),
-                  alignment: Alignment.center,
-                  child: Text(
-                    game.title,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: const Color(0xFF1F1F1F),
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
         );
       },
     );
@@ -515,27 +433,87 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       );
     }
   }
+}
 
-  Widget _buildProviderCover(String? logoUrl, int itemCount) {
-    final fallback = _buildProviderCoverFallback();
-    if (logoUrl == null || logoUrl.trim().isEmpty) return fallback;
-    final crossAxisCount = itemCount <= 1
-        ? 1
-        : itemCount == 2
-            ? 2
-            : 3;
-    final cardWidth =
-        (1.sw - 24.w - (crossAxisCount - 1) * 12.w) / crossAxisCount;
-    return AppNetworkImage(
-      url: logoUrl,
-      width: cardWidth,
-      height: cardWidth / 0.72,
-      optimize: false,
-      errorWidget: fallback,
+class GameProviderGridCard extends StatelessWidget {
+  const GameProviderGridCard({
+    super.key,
+    required this.game,
+    required this.isLaunching,
+    required this.onTap,
+  });
+
+  final GameProviderItem game;
+  final bool isLaunching;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14.r),
+              child: ColoredBox(
+                color: const Color(0xFFE6EFFA),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _GameProviderCover(logoUrl: game.logo),
+                    if (isLaunching) const _GameProviderLaunchingOverlay(),
+                    if (game.isMaintaining)
+                      const _GameProviderMaintainingOverlay(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            game.title,
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: const Color(0xFF1F1F1F),
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GameProviderCover extends StatelessWidget {
+  const _GameProviderCover({this.logoUrl});
+
+  final String? logoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = _buildFallback(context);
+    if (logoUrl == null || logoUrl!.trim().isEmpty) return fallback;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return AppNetworkImage(
+          key: ValueKey(logoUrl!.trim()),
+          url: logoUrl!,
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          fit: BoxFit.contain,
+          optimize: false,
+          errorWidget: fallback,
+        );
+      },
     );
   }
 
-  Widget _buildProviderCoverFallback() {
+  Widget _buildFallback(BuildContext context) {
     return Container(
       color: const Color(0xFFEFF3F8),
       alignment: Alignment.center,
@@ -543,6 +521,59 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         Icons.image_not_supported_outlined,
         size: 30.sp,
         color: AppColors.textSecondary,
+      ),
+    );
+  }
+}
+
+class _GameProviderLaunchingOverlay extends StatelessWidget {
+  const _GameProviderLaunchingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.45),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 24.w,
+            height: 24.w,
+            child: const CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 2,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'game.launching'.tr(),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GameProviderMaintainingOverlay extends StatelessWidget {
+  const _GameProviderMaintainingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.45),
+      alignment: Alignment.center,
+      child: Text(
+        'game.maintaining'.tr(),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

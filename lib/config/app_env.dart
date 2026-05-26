@@ -14,12 +14,14 @@ class AppEnv {
 
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://apis.xh-demo.com/api',
+    defaultValue: 'https://api.0591.ceo/api',
+    // defaultValue: 'https://229382.xh-bw.com/api',
   );
 
   static const String assetBaseUrl = String.fromEnvironment(
     'ASSET_BASE_URL',
-    defaultValue: 'https://apis.xh-demo.com',
+    defaultValue: 'https://api.0591.ceo',
+    // defaultValue: 'https://229382.xh-bw.com',
   );
 
   static const Duration connectTimeout = Duration(seconds: 10);

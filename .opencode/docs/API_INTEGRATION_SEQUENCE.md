@@ -6,9 +6,9 @@
 
 架构规范：`.opencode/docs/NEW_FRONTEND_ARCHITECTURE_GUIDE.md`
 
-UI 和页面对接逻辑来源：`/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`
+UI 和页面对接逻辑来源：`/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1`
 
-m1 术语约定：本文档及本项目所有任务中，“m1”或“m1 项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`，不得使用同级其他历史目录或相似项目替代。
+m1 术语约定：本文档及本项目所有任务中，“m1”“m1 项目”或“517 参考项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1`，不得使用 517 的 m2/m3/m4、旧 `bw-v3-504`、旧 Flutter 项目或其他相似目录替代。
 
 Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，仅参考网络、状态、模型、缓存、错误处理和平台能力等实现经验，不参考页面对接逻辑。
 
@@ -50,6 +50,7 @@ Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，
 - 每处理一个页面或接口对接，都必须先参考接口文档和 m1 项目的 `views/**`、`api/**`、`router/index.js`，确认页面行为、请求参数和跳转规则。
 - 旧 Flutter 项目只用于参考 Service/Provider/Model/缓存/错误处理、平台能力等 Flutter 工程实现方式，不用于决定页面对接逻辑。
 - 每个阶段完成后必须格式化、静态分析，并尽量验证页面不破坏高保真 UI。
+- 游戏一级分类列表图片布局以 517 m1 `views/main/Game.vue` 的 `.provider-grid` / `.provider-cover` 为准：一级分类图片容器不设置固定高度或正方形比例；子游戏列表的正方形规则不得套用于一级分类列表。
 
 ## 3. 阶段顺序
 
@@ -1516,7 +1517,7 @@ flutter test test/widget_test.dart
 每开始一个接口对接任务，按以下顺序执行：
 
 1. 查 `.opencode/docs/bw-pc-api-v2（适配h5）接口文档.md`，确认接口路径、请求方法、Header、Query、Body、认证、响应结构、错误码。
-2. 查 m1 项目 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1` 中对应 `views/**`、`api/**`、`router/index.js`，确认页面对接逻辑、入参来源、调用时机和跳转规则。
+2. 查 517 m1 项目 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` 中对应 `views/**`、`api/**`、`router/index.js`，确认页面对接逻辑、入参来源、调用时机和跳转规则。
 3. 如需参考 Flutter 工程实现，再查旧 Flutter 项目 `/Users/john/Documents/trae_projects/flutter-v1` 中对应 Service、Provider、Model、缓存或错误处理方式；不得按旧 Flutter 页面逻辑迁移。
 4. 在新项目按模块补齐最小 Service 方法、Provider 状态和必要模型字段。
 5. 若接 UI，只替换一小块低风险数据，并保留当前 m1 高仿 UI fallback。

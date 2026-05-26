@@ -1,13 +1,15 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart' show LaunchMode;
+import 'package:url_launcher/url_launcher.dart' show LaunchMode, launchUrl;
 import '../models/game/game_models.dart';
 import '../models/home/home_models.dart';
 import '../localization/app_language.dart';
@@ -30,6 +32,22 @@ import '../widgets/common/retry_empty_state.dart';
 import '../widgets/home_user_action_card.dart';
 import '../widgets/notice_bar.dart';
 import '../widgets/search_panel_overlay.dart';
+import '../utils/version_utils.dart';
+
+GameLobbyCategory? homeCategoryOrNull(
+  List<GameLobbyCategory> categories,
+  String code,
+) {
+  final normalizedCode = code.trim();
+  for (final category in categories) {
+    if (category.code == normalizedCode) return category;
+  }
+  return null;
+}
+
+void navigateToServiceTab(BuildContext context) {
+  context.go('/service');
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,11 +56,47 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+class HomeLargeCategoryArtwork extends StatelessWidget {
+  const HomeLargeCategoryArtwork({
+    super.key,
+    required this.image,
+    required this.height,
+    required this.borderRadius,
+  });
+
+  final String image;
+  final double height;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(borderRadius)),
+      child: SizedBox(
+        width: double.infinity,
+        height: height,
+        child: Image.asset(
+          image,
+          fit: BoxFit.contain,
+          alignment: Alignment.bottomCenter,
+        ),
+      ),
+    );
+  }
+}
+
 class _HomeScreenState extends State<HomeScreen> {
   static const _noticeSuppressDateKey = 'm1_notice_suppress_date';
+  static const _updateSuppressVersionKey = 'm1_update_suppress_version';
+  static const _fallbackLocalAppVersion = '1.0.0';
 
   bool _showBalance = true;
   bool _didTryOpenNotice = false;
+  bool _didCompleteUpdateCheck = false;
+  bool _isCheckingUpdate = false;
+  bool _isUpdateDialogOpen = false;
+  String _currentAppVersion = '';
+  String _lastShownUpdateVersion = '';
   final PageController _bannerController = PageController();
   int _bannerIndex = 0;
   Timer? _bannerTimer;
@@ -71,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadHomeCategories();
       gameProvider.loadRecommendedGames();
       gameProvider.loadHotGames();
+      _loadCurrentAppVersion();
       _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
         if (!mounted || !_bannerController.hasClients) return;
         final banners = _visibleBanners(
@@ -97,16 +152,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _scheduleNoticeModal();
+    final systemProvider = context.watch<SystemProvider>();
+    _scheduleUpdateModal(systemProvider);
+    _scheduleNoticeModal(systemProvider);
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       body: _buildHomeBody(),
     );
   }
 
-  void _scheduleNoticeModal() {
+  void _scheduleNoticeModal(SystemProvider systemProvider) {
     if (_didTryOpenNotice) return;
-    final systemProvider = context.watch<SystemProvider>();
+    if (!_didCompleteUpdateCheck || _isCheckingUpdate || _isUpdateDialogOpen)
+      return;
     if (!systemProvider.hasLoadedConfig) return;
     final notices = _popupNotices(systemProvider.config.notices);
     if (notices.isEmpty) return;
@@ -115,6 +173,47 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       _showNoticeModalIfAllowed(notices);
     });
+  }
+
+  void _scheduleUpdateModal(SystemProvider systemProvider) {
+    if (_didCompleteUpdateCheck || _isCheckingUpdate || _isUpdateDialogOpen)
+      return;
+    if (!systemProvider.hasLoadedConfig) return;
+    final site = systemProvider.config.siteConfig;
+    final remoteVersion = site?.appVersion?.trim() ?? '';
+    if (remoteVersion.isEmpty) return;
+    if (_currentAppVersion.trim().isEmpty) {
+      _currentAppVersion = _fallbackLocalAppVersion;
+    }
+    if (_lastShownUpdateVersion == remoteVersion) return;
+    _isCheckingUpdate = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showUpdateDialogIfNeeded(site);
+    });
+  }
+
+  Future<void> _loadCurrentAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() {
+        _currentAppVersion = _normalizeLocalAppVersion(info.version);
+      });
+      _scheduleUpdateModal(context.read<SystemProvider>());
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _currentAppVersion = _fallbackLocalAppVersion;
+      });
+      _scheduleUpdateModal(context.read<SystemProvider>());
+    }
+  }
+
+  String _normalizeLocalAppVersion(String version) {
+    final value = version.trim();
+    if (value.isEmpty || value == '0.0.0') return _fallbackLocalAppVersion;
+    return value;
   }
 
   Widget _buildHomeBody() {
@@ -128,7 +227,9 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: EdgeInsets.only(bottom: 12.h),
               child: Column(
                 children: [
-                  _buildTopBannerSection(),
+                  _buildTopBannerSection(
+                    topInset: MediaQuery.of(context).padding.top + 12.h,
+                  ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12.w),
                     child: Column(
@@ -178,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _homeCategories = categories);
   }
 
-  Widget _buildTopBannerSection() {
+  Widget _buildTopBannerSection({required double topInset}) {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -188,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 12.h,
+        top: topInset,
         left: 12.w,
         right: 12.w,
       ),
@@ -760,6 +861,112 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _showUpdateDialogIfNeeded(SiteConfig? siteConfig) async {
+    final remoteVersion = VersionUtils.normalize(siteConfig?.appVersion);
+    final localVersion = VersionUtils.normalize(_currentAppVersion);
+    if (remoteVersion.isEmpty || localVersion.isEmpty) {
+      _isCheckingUpdate = false;
+      _didCompleteUpdateCheck = true;
+      if (mounted) setState(() {});
+      return;
+    }
+    final hasUpdate = VersionUtils.isRemoteNewer(remoteVersion, localVersion);
+    if (!hasUpdate) {
+      _isCheckingUpdate = false;
+      _didCompleteUpdateCheck = true;
+      if (mounted) setState(() {});
+      return;
+    }
+
+    try {
+      final store = await SharedPreferences.getInstance();
+      final suppressedVersion =
+          store.getString(_updateSuppressVersionKey)?.trim() ?? '';
+      if (suppressedVersion == remoteVersion ||
+          _lastShownUpdateVersion == remoteVersion) {
+        _isCheckingUpdate = false;
+        _didCompleteUpdateCheck = true;
+        if (mounted) setState(() {});
+        return;
+      } else {
+        if (!mounted) return;
+        _isUpdateDialogOpen = true;
+        _isCheckingUpdate = false;
+        final shouldDownload = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => _UpdateDialog(
+            currentVersion: localVersion,
+            latestVersion: remoteVersion,
+            description: _updateDescriptionText(siteConfig),
+            onLater: () => Navigator.of(dialogContext).pop(false),
+            onDownload: () => Navigator.of(dialogContext).pop(true),
+          ),
+        );
+
+        if (shouldDownload == true) {
+          await _openAppDownload(siteConfig);
+        } else {
+          await store.setString(_updateSuppressVersionKey, remoteVersion);
+        }
+        _lastShownUpdateVersion = remoteVersion;
+      }
+    } catch (_) {
+      _isCheckingUpdate = false;
+    } finally {
+      _isUpdateDialogOpen = false;
+      _didCompleteUpdateCheck = true;
+      if (mounted) setState(() {});
+    }
+  }
+
+  String _updateDescriptionText(SiteConfig? siteConfig) {
+    final text =
+        siteConfig?.appDesc?.trim() ?? siteConfig?.description?.trim() ?? '';
+    if (text.isNotEmpty) return text;
+    return 'home.updateTip'.tr();
+  }
+
+  Future<void> _openAppDownload(SiteConfig? siteConfig) async {
+    final url = _preferredDownloadUrl(siteConfig);
+    if (url == null || url.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('home.updateDownloadMissing'.tr())),
+      );
+      return;
+    }
+    final uri = UrlPolicy.externalUri(url, type: ExternalUrlType.appDownload) ??
+        Uri.tryParse(UrlPolicy.normalize(url));
+    final opened = uri != null &&
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('common.openLinkFailed'.tr())),
+      );
+    }
+  }
+
+  String? _preferredDownloadUrl(SiteConfig? siteConfig) {
+    if (siteConfig == null) return null;
+    final platform = Theme.of(context).platform;
+    if (platform == TargetPlatform.iOS) {
+      final ios = siteConfig.iosDownload?.trim() ?? '';
+      if (ios.isNotEmpty) return ios;
+    }
+    if (platform == TargetPlatform.android) {
+      final apk = siteConfig.apkDownload?.trim() ?? '';
+      if (apk.isNotEmpty) return apk;
+    }
+    final app = siteConfig.appDownload?.trim() ?? '';
+    if (app.isNotEmpty) return app;
+    final apk = siteConfig.apkDownload?.trim() ?? '';
+    if (apk.isNotEmpty) return apk;
+    final ios = siteConfig.iosDownload?.trim() ?? '';
+    if (ios.isNotEmpty) return ios;
+    return null;
+  }
+
   List<NoticeModel> _visiblePopupNoticesForToday(
     SharedPreferences prefs,
     List<NoticeModel> notices,
@@ -838,7 +1045,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onRegister: () => context.push('/register'),
       onDeposit: () => context.push('/deposit'),
       onWithdraw: () => context.push('/withdraw'),
-      onService: () => context.push('/service'),
+      onService: () => navigateToServiceTab(context),
     );
   }
 
@@ -868,18 +1075,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildGameLobby() {
     final categories = _homeCategories;
-    final live = _homeCategory(categories, 'live', 'home.category.live'.tr());
-    final lottery =
-        _homeCategory(categories, 'lottery', 'home.category.lottery'.tr());
-    final game = _homeCategory(categories, 'game', 'home.category.slot'.tr());
-    final sport =
-        _homeCategory(categories, 'sport', 'home.category.sport'.tr());
-    final fishing =
-        _homeCategory(categories, 'fishing', 'home.category.fishing'.tr());
-    final poker =
-        _homeCategory(categories, 'poker', 'home.category.poker'.tr());
-    final esports =
-        _homeCategory(categories, 'esports', 'home.category.esports'.tr());
+    final live = homeCategoryOrNull(categories, 'live');
+    final lottery = homeCategoryOrNull(categories, 'lottery');
+    final game = homeCategoryOrNull(categories, 'game');
+    final sport = homeCategoryOrNull(categories, 'sport');
+    final fishing = homeCategoryOrNull(categories, 'fishing');
+    final poker = homeCategoryOrNull(categories, 'poker');
+    final esports = homeCategoryOrNull(categories, 'esports');
     final largeImageHeight = 148.h;
     final largeTextHeight = 92.h;
     final largeCardHeight = largeImageHeight + largeTextHeight;
@@ -898,6 +1100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   imageHeight: largeImageHeight,
                   image: AppImages.zr,
                   englishTitle: 'Live',
+                  fallbackTitle: 'home.category.liveShort'.tr(),
                   description: 'home.category.liveDesc'.tr(),
                 ),
               ),
@@ -912,6 +1115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: mediumCardHeight,
                         image: AppImages.cp,
                         englishTitle: 'Lottery',
+                        fallbackTitle: 'home.category.lotteryShort'.tr(),
                         description: 'home.category.lotteryDesc'.tr(),
                       ),
                       SizedBox(height: 10.h),
@@ -920,6 +1124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: mediumCardHeight,
                         image: AppImages.dz,
                         englishTitle: 'Slot',
+                        fallbackTitle: 'home.category.slotShort'.tr(),
                         description: 'home.category.slotDesc'.tr(),
                       ),
                     ],
@@ -931,13 +1136,33 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 10.h),
           Row(
             children: [
-              _buildSmallGameCard(sport, AppImages.ty, smallCardHeight),
+              _buildSmallGameCard(
+                sport,
+                AppImages.ty,
+                smallCardHeight,
+                fallbackTitle: 'home.category.sportShort'.tr(),
+              ),
               SizedBox(width: 10.w),
-              _buildSmallGameCard(fishing, AppImages.by, smallCardHeight),
+              _buildSmallGameCard(
+                fishing,
+                AppImages.by,
+                smallCardHeight,
+                fallbackTitle: 'home.category.fishingShort'.tr(),
+              ),
               SizedBox(width: 10.w),
-              _buildSmallGameCard(poker, AppImages.qp, smallCardHeight),
+              _buildSmallGameCard(
+                poker,
+                AppImages.qp,
+                smallCardHeight,
+                fallbackTitle: 'home.category.pokerShort'.tr(),
+              ),
               SizedBox(width: 10.w),
-              _buildSmallGameCard(esports, AppImages.dj, smallCardHeight),
+              _buildSmallGameCard(
+                esports,
+                AppImages.dj,
+                smallCardHeight,
+                fallbackTitle: 'home.category.esportsShort'.tr(),
+              ),
             ],
           ),
         ],
@@ -945,29 +1170,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  GameLobbyCategory _homeCategory(
-    List<GameLobbyCategory> categories,
-    String code,
-    String fallbackTitle,
-  ) {
-    return categories.firstWhere(
-      (item) => item.code == code,
-      orElse: () => GameLobbyCategory(id: 0, title: fallbackTitle, code: code),
-    );
-  }
-
-  void _openGameCategory(GameLobbyCategory category) {
-    final code = category.code.trim();
+  void _openGameCategory(GameLobbyCategory? category) {
+    final code = category?.code.trim() ?? '';
     if (code.isEmpty) return;
     context.go('/game?code=${Uri.encodeQueryComponent(code)}');
   }
 
   Widget _buildLargeCategoryCard(
-    GameLobbyCategory category, {
+    GameLobbyCategory? category, {
     required double height,
     required double imageHeight,
     required String image,
     required String englishTitle,
+    required String fallbackTitle,
     required String description,
   }) {
     return GestureDetector(
@@ -987,16 +1202,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Container(
+            HomeLargeCategoryArtwork(
+              image: image,
               height: imageHeight,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-                image: DecorationImage(
-                  image: AssetImage(image),
-                  fit: BoxFit.cover,
-                  alignment: Alignment.bottomCenter,
-                ),
-              ),
+              borderRadius: 16.r,
             ),
             SizedBox(
               height: height - imageHeight,
@@ -1023,7 +1232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildCategoryTitle(
-                          _shortCategoryTitleByCode(category),
+                          _homeCategoryTitle(category, fallbackTitle),
                           fontSize: 16.sp,
                           centered: true,
                         ),
@@ -1054,10 +1263,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMediumCategoryCard(
-    GameLobbyCategory category, {
+    GameLobbyCategory? category, {
     required double height,
     required String image,
     required String englishTitle,
+    required String fallbackTitle,
     required String description,
   }) {
     return GestureDetector(
@@ -1101,7 +1311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildCategoryTitle(
-                          _shortCategoryTitleByCode(category),
+                          _homeCategoryTitle(category, fallbackTitle),
                           fontSize: 17.sp,
                           lineWidth: 4.w,
                           lineHeight: 16.h,
@@ -1181,27 +1391,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return title;
   }
 
-  String _shortCategoryTitleByCode(GameLobbyCategory category) {
-    final title = category.title.trim();
+  String _homeCategoryTitle(GameLobbyCategory? category, String fallbackTitle) {
+    final title = category?.title.trim() ?? '';
     if (title.isNotEmpty) return _shortCategoryTitle(title);
-    final localized = switch (category.code) {
-      'live' => 'home.category.liveShort'.tr(),
-      'lottery' => 'home.category.lotteryShort'.tr(),
-      'game' => 'home.category.slotShort'.tr(),
-      'sport' => 'home.category.sportShort'.tr(),
-      'fishing' => 'home.category.fishingShort'.tr(),
-      'poker' => 'home.category.pokerShort'.tr(),
-      'esports' => 'home.category.esportsShort'.tr(),
-      _ => '',
-    };
-    if (localized.isNotEmpty && !localized.startsWith('home.')) {
-      return localized;
-    }
-    return _shortCategoryTitle(category.title);
+    return fallbackTitle;
   }
 
   Widget _buildSmallGameCard(
-      GameLobbyCategory category, String image, double height) {
+    GameLobbyCategory? category,
+    String image,
+    double height, {
+    required String fallbackTitle,
+  }) {
     return Expanded(
       child: GestureDetector(
         onTap: () => _openGameCategory(category),
@@ -1228,7 +1429,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4.w),
                   child: Text(
-                    _shortCategoryTitleByCode(category),
+                    _homeCategoryTitle(category, fallbackTitle),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -1720,6 +1921,205 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+class _UpdateDialog extends StatelessWidget {
+  const _UpdateDialog({
+    required this.currentVersion,
+    required this.latestVersion,
+    required this.description,
+    required this.onLater,
+    required this.onDownload,
+  });
+
+  final String currentVersion;
+  final String latestVersion;
+  final String description;
+  final VoidCallback onLater;
+  final VoidCallback onDownload;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: EdgeInsets.symmetric(horizontal: 22.w),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24.r),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.86),
+              borderRadius: BorderRadius.circular(24.r),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.78), width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1D4ED8).withValues(alpha: 0.14),
+                  blurRadius: 34,
+                  offset: const Offset(0, 18),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.fromLTRB(20.w, 18.h, 20.w, 18.h),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFE8F1FF), Color(0xFFFFFFFF)],
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44.w,
+                        height: 44.w,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
+                          ),
+                          borderRadius: BorderRadius.circular(16.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF2563EB)
+                                  .withValues(alpha: 0.24),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Icon(Icons.system_update_alt_rounded,
+                            color: Colors.white, size: 24.sp),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'home.updateTitle'.tr(),
+                              style: TextStyle(
+                                fontSize: 19.sp,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                            SizedBox(height: 3.h),
+                            Text(
+                              'home.updateLatestVersion'
+                                  .tr(namedArgs: {'version': latestVersion}),
+                              style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: const Color(0xFF64748B)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 18.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFFF8FAFC).withValues(alpha: 0.92),
+                          borderRadius: BorderRadius.circular(14.r),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'home.updateCurrentVersion'
+                                    .tr(namedArgs: {'version': currentVersion}),
+                                style: TextStyle(
+                                    fontSize: 13.sp,
+                                    color: const Color(0xFF475569)),
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 18.h,
+                              color: const Color(0xFFE2E8F0),
+                            ),
+                            SizedBox(width: 10.w),
+                            Text(
+                              'v$latestVersion',
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF2563EB),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 14.h),
+                      Text(
+                        description,
+                        style: TextStyle(
+                            fontSize: 14.sp,
+                            height: 1.55,
+                            color: const Color(0xFF334155)),
+                      ),
+                      SizedBox(height: 20.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: onLater,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF475569),
+                                side:
+                                    const BorderSide(color: Color(0xFFCBD5E1)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14.r)),
+                                padding: EdgeInsets.symmetric(vertical: 12.h),
+                              ),
+                              child: Text('home.updateLater'.tr()),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: onDownload,
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                backgroundColor: const Color(0xFF2563EB),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14.r)),
+                                padding: EdgeInsets.symmetric(vertical: 12.h),
+                              ),
+                              child: Text('home.downloadNow'.tr()),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _NoticeDialog extends StatefulWidget {
   const _NoticeDialog({required this.notices});
 
@@ -1779,100 +2179,166 @@ class _NoticeDialogState extends State<_NoticeDialog> {
         ? _current.title!.trim()
         : 'home.notice.titleFallback'.tr();
     return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       insetPadding: EdgeInsets.symmetric(horizontal: 28.w),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 360.w),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 12.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF111111),
-                      ),
-                    ),
-                  ),
-                  if (widget.notices.length > 1) ...[
-                    SizedBox(width: 8.w),
-                    Text(
-                      '${_index + 1} / ${widget.notices.length}',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: const Color(0xFF666666),
-                      ),
-                    ),
-                  ],
-                  SizedBox(width: 6.w),
-                  GestureDetector(
-                    onTap: _close,
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: EdgeInsets.all(4.w),
-                      child: Icon(
-                        Icons.close,
-                        size: 18.sp,
-                        color: const Color(0xFF666666),
-                      ),
-                    ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24.r),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 360.w),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.88),
+                borderRadius: BorderRadius.circular(24.r),
+                border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.78), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.16),
+                    blurRadius: 34,
+                    offset: const Offset(0, 18),
                   ),
                 ],
               ),
-              SizedBox(height: 10.h),
-              ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: 360.h),
-                child: SingleChildScrollView(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _handleNoticeTap,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: _NoticeContent(content: _current.content),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 12.h),
-              InkWell(
-                onTap: () => setState(() => _todayNoMore = !_todayNoMore),
-                child: Row(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 14.h),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(
-                      width: 18.w,
-                      height: 18.w,
-                      child: Checkbox(
-                        value: _todayNoMore,
-                        onChanged: (value) =>
-                            setState(() => _todayNoMore = value ?? false),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        side: const BorderSide(color: Color(0xFF999999)),
-                        activeColor: AppColors.primary,
+                    Row(
+                      children: [
+                        Container(
+                          width: 36.w,
+                          height: 36.w,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF2563EB), Color(0xFF93C5FD)],
+                            ),
+                            borderRadius: BorderRadius.circular(13.r),
+                          ),
+                          child: Icon(Icons.campaign_rounded,
+                              size: 20.sp, color: Colors.white),
+                        ),
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 17.sp,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                        if (widget.notices.length > 1) ...[
+                          SizedBox(width: 8.w),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8.w, vertical: 4.h),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              '${_index + 1}/${widget.notices.length}',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF2563EB),
+                              ),
+                            ),
+                          ),
+                        ],
+                        SizedBox(width: 8.w),
+                        GestureDetector(
+                          onTap: _close,
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            width: 30.w,
+                            height: 30.w,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 18.sp,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 14.h),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(14.w),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC).withValues(alpha: 0.88),
+                        borderRadius: BorderRadius.circular(18.r),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: 330.h),
+                        child: SingleChildScrollView(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _handleNoticeTap,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: _NoticeContent(content: _current.content),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: Text(
-                        'home.notice.todayNoMore'.tr(),
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: const Color(0xFF444444),
+                    SizedBox(height: 12.h),
+                    InkWell(
+                      onTap: () => setState(() => _todayNoMore = !_todayNoMore),
+                      borderRadius: BorderRadius.circular(12.r),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4.h),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 20.w,
+                              height: 20.w,
+                              child: Checkbox(
+                                value: _todayNoMore,
+                                onChanged: (value) => setState(
+                                    () => _todayNoMore = value ?? false),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                                side:
+                                    const BorderSide(color: Color(0xFFCBD5E1)),
+                                activeColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5.r)),
+                              ),
+                            ),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: Text(
+                                'home.notice.todayNoMore'.tr(),
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  color: const Color(0xFF475569),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

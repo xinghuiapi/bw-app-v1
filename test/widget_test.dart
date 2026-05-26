@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:flutter_ui_project/api/api_exception.dart';
 import 'package:flutter_ui_project/api/interceptors/auth_interceptor.dart';
@@ -10,8 +12,13 @@ import 'package:flutter_ui_project/localization/app_language.dart';
 import 'package:flutter_ui_project/models/auth/auth_models.dart';
 import 'package:flutter_ui_project/models/home/home_models.dart';
 import 'package:flutter_ui_project/models/game/game_models.dart';
+import 'package:flutter_ui_project/screens/home_screen.dart';
 import 'package:flutter_ui_project/models/wallet/wallet_models.dart';
 import 'package:flutter_ui_project/router/route_paths.dart';
+import 'package:flutter_ui_project/theme/app_images.dart';
+import 'package:flutter_ui_project/utils/version_utils.dart';
+import 'package:flutter_ui_project/widgets/common/back_hit_target.dart';
+import 'package:flutter_ui_project/widgets/common/wallet_action_hit_target.dart';
 
 void main() {
   test('engineering foundation exposes protected routes', () {
@@ -193,7 +200,8 @@ void main() {
     );
   });
 
-  test('remote display titles are preserved for localization-sensitive data', () {
+  test('remote display titles are preserved for localization-sensitive data',
+      () {
     final depositCategory = DepositCategory.fromJson(
       const {'id': 1, 'title': '支付宝充值', 'code': 'alipay'},
     );
@@ -207,6 +215,128 @@ void main() {
     expect(depositCategory.displayTitle, '支付宝充值');
     expect(depositChannel.displayTitle, '微信扫码');
     expect(gameCategory.title, '真人视讯');
+  });
+
+  test('home category lookup returns null when remote category is absent', () {
+    const categories = [
+      GameLobbyCategory(id: 1, title: '真人视讯', code: 'live'),
+    ];
+
+    expect(homeCategoryOrNull(categories, 'live')?.title, '真人视讯');
+    expect(homeCategoryOrNull(categories, 'lottery'), isNull);
+  });
+
+  testWidgets('home large category artwork shows the full asset',
+      (tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: HomeLargeCategoryArtwork(
+          image: AppImages.zr,
+          height: 148,
+          borderRadius: 16,
+        ),
+      ),
+    );
+
+    final image = tester.widget<Image>(find.byType(Image));
+
+    expect(image.fit, BoxFit.contain);
+  });
+
+  testWidgets('back hit target keeps icon visual size but expands tap area',
+      (tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: BackHitTarget(
+            icon: Icons.arrow_back_ios_new,
+            iconSize: 20,
+            onTap: _noop,
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(BackHitTarget)), const Size(56, 56));
+    expect(tester.widget<Icon>(find.byIcon(Icons.arrow_back_ios_new)).size, 20);
+  });
+
+  testWidgets('wallet action hit target fills wallet action row height',
+      (tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 120,
+            height: 48,
+            child: WalletActionHitTarget(
+              onTap: _noop,
+              child: Text('充值'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(WalletActionHitTarget)),
+        const Size(120, 48));
+  });
+
+  testWidgets('home service shortcut switches to service tab', (tester) async {
+    var currentIndex = 0;
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            currentIndex = navigationShell.currentIndex;
+            return Scaffold(
+              body: navigationShell,
+              bottomNavigationBar: Text('tab:$currentIndex'),
+            );
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/',
+                  builder: (context, state) => TextButton(
+                    onPressed: () => navigateToServiceTab(context),
+                    child: const Text('service shortcut'),
+                  ),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/service',
+                  builder: (context, state) => const Text('service page'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.tap(find.text('service shortcut'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('service page'), findsOneWidget);
+    expect(find.text('tab:1'), findsOneWidget);
+  });
+
+  test('version utils compare semver strings correctly', () {
+    expect(VersionUtils.compare('1.0.1', '1.0.0'), greaterThan(0));
+    expect(VersionUtils.compare('1.2.0', '1.10.0'), lessThan(0));
+    expect(VersionUtils.compare('v1.2.3', '1.2.3'), 0);
+    expect(VersionUtils.isRemoteNewer('1.2.4', '1.2.3'), isTrue);
+    expect(VersionUtils.isRemoteNewer('1.2.3', '1.2.3'), isFalse);
   });
 
   test('login request serializes dynamic login types', () {
@@ -253,6 +383,8 @@ void main() {
     expect(config.captchaConfig?.loginStatus, 1);
   });
 }
+
+void _noop() {}
 
 class _StaticAdapter implements HttpClientAdapter {
   _StaticAdapter(this.responseBody);

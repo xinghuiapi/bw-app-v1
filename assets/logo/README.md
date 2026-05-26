@@ -37,10 +37,10 @@ android/app/src/main/res/drawable/launch_background.xml
 android/app/src/main/res/drawable-v21/launch_background.xml
 ```
 
-如果不想放到 `assets/logo/logo.png`，也可以手动传入 PNG 路径：
+如果当前文件夹里已经换好了 `logo.png`，也可以在这个目录执行：
 
 ```bash
-dart run scripts/update_app_logo.dart path/to/logo.png
+dart run ../../scripts/update_app_logo.dart logo.png
 ```
 
 注意：图片必须是 PNG。建议使用正方形高清图片，例如 `1024x1024`。

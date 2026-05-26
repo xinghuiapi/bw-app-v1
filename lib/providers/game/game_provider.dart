@@ -199,7 +199,17 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
     notifyListeners();
 
     try {
-      data = await _service.fetchInterfaceClasses(refresh: refresh);
+      final previousByCode = <String, GameLobbyCategory>{
+        for (final category in categories) category.code.trim(): category,
+      };
+      final nextCategories = await _service.fetchInterfaceClasses(
+        refresh: refresh,
+      );
+      data = nextCategories.map((category) {
+        final previous = previousByCode[category.code.trim()];
+        if (previous == null || previous.games.isEmpty) return category;
+        return category.copyWith(games: previous.games);
+      }).toList();
       error = null;
       debugPrint('[game] interface/class parsed=${categories.length}');
     } on ApiException catch (exception) {

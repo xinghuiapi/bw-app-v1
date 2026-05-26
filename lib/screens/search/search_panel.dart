@@ -13,6 +13,7 @@ import '../../providers/game/game_provider.dart';
 import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/app_network_image.dart';
+import '../../widgets/common/back_hit_target.dart';
 import '../../widgets/search_input.dart';
 
 class SearchPanel extends StatefulWidget {
@@ -188,16 +189,11 @@ class _SearchPanelState extends State<SearchPanel>
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
       child: Row(
         children: [
-          GestureDetector(
+          BackHitTarget(
+            icon: Icons.arrow_back_ios,
+            iconSize: 20.sp,
+            color: AppColors.textPrimary,
             onTap: widget.onClose,
-            child: Padding(
-              padding: EdgeInsets.only(right: 12.w),
-              child: Icon(
-                Icons.arrow_back_ios,
-                size: 20.sp,
-                color: AppColors.textPrimary,
-              ),
-            ),
           ),
           Expanded(
             child: SearchInput(

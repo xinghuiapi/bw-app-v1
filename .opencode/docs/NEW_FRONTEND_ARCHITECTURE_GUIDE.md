@@ -4,7 +4,7 @@
 
 核心定位：当前 Flutter UI 已按 m1 项目完成高仿，后续要在这套高仿 UI 上接入 m1 的页面业务逻辑和真实接口，同时参考旧 Flutter 项目补齐合格 Flutter 工程应具备的路由、网络、认证、状态、模型、缓存、错误处理和平台能力。
 
-**m1 术语约定**：本文档及本项目所有任务中，“m1”或“m1 项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`，不得使用同级其他历史目录或相似项目替代。
+**m1 术语约定**：本文档及本项目所有任务中，“m1”“m1 项目”或“517 参考项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1`，不得使用 517 的 m2/m3/m4、旧 `bw-v3-504`、旧 Flutter 项目或其他相似目录替代。
 
 ## 1. 项目定位
 
@@ -26,7 +26,7 @@
 | 参考源 | 用途 | 禁止事项 |
 | --- | --- | --- |
 | 当前 `flutter_ui_project` | 最终 Flutter 主工程 | 承载 m1 高仿 UI、业务对接代码和上线工程能力 | 不因业务对接推倒重做已完成 UI |
-| `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1` | UI 和页面逻辑来源 | 页面视觉意图、页面生命周期、接口入参、路由参数、跳转规则、状态处理、多语言 key | 不直接复制 Vue template/CSS 重写 Flutter |
+| `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` | UI 和页面逻辑来源 | 页面视觉意图、页面生命周期、接口入参、路由参数、跳转规则、状态处理、多语言 key；游戏一级分类图片布局以 `views/main/Game.vue` 的 `.provider-grid` / `.provider-cover` 为准 | 不直接复制 Vue template/CSS 重写 Flutter；不得用 517 的 m2/m3/m4 或旧 `bw-v3-504` 替代 |
 | `/Users/john/Documents/trae_projects/flutter-v1` | Flutter 工程能力参考 | 网络封装、Provider/Service/Model 组织、缓存、错误处理、平台适配和踩坑经验 | 不作为页面对接逻辑来源，不整包复制，不继承旧问题 |
 
 ## 2. 技术栈规范

@@ -42,12 +42,12 @@
 
 ## 参考源边界
 
-**m1 术语约定**：在本项目所有对话、任务、文档和代码评审中，只要提到“m1”或“m1 项目”，均固定指向 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`。不得用同级其他历史目录或相似项目替代。
+**m1 术语约定**：在本项目所有对话、任务、文档和代码评审中，只要提到“m1”“m1 项目”或“517 参考项目”，均固定指向 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1`。不得用 517 的 m2/m3/m4、旧 `bw-v3-504`、旧 Flutter 项目或其他相似目录替代。
 
 | 参考源 | 角色 | 用途 | 禁止事项 |
 | --- | --- | --- | --- |
 | 当前 `flutter_ui_project` | 最终实现主工程 | 承载 Flutter UI、工程架构、业务对接和上线能力 | 不推倒重做已完成 UI |
-| `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1` | UI 和页面逻辑来源 | 高仿 UI 对齐、页面生命周期、接口调用、表单入参、跳转规则、状态处理、多语言 key | 不直接复制 Vue template/CSS 到 Flutter |
+| `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` | UI 和页面逻辑来源 | 高仿 UI 对齐、页面生命周期、接口调用、表单入参、跳转规则、状态处理、多语言 key；游戏一级分类图片布局以 `views/main/Game.vue` 的 `.provider-grid` / `.provider-cover` 为准 | 不直接复制 Vue template/CSS 到 Flutter；不得用 517 的 m2/m3/m4 或旧 `bw-v3-504` 替代 |
 | `/Users/john/Documents/trae_projects/flutter-v1` | Flutter 工程能力参考 | 网络封装、Provider/Service/Model 组织、缓存、错误处理、平台适配、踩坑经验 | 不作为页面对接逻辑来源，不整包复制 |
 
 ### m1 项目参考重点
@@ -55,7 +55,7 @@
 页面初始化、接口调用顺序、表单入参、跳转规则、登录态处理、loading/error/empty 状态等业务逻辑，以 m1 项目为准：
 
 ```text
-/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1
+/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1
 ```
 
 重点参考：
@@ -64,6 +64,7 @@
 - `api/**`: 接口路径、请求方法、入参字段和响应字段处理。
 - `router/index.js`: 路由路径、页面参数、登录拦截和重定向规则。
 - `i18n/messages/**`: 页面文案和多语言 key。
+- 游戏一级分类图片布局参考 `views/main/Game.vue` 的 `.provider-grid` / `.provider-cover`：一级分类图片容器不设置固定高度或正方形比例；不要套用 `GameSubList.vue` 的子游戏正方形规则。
 
 ### 旧 Flutter 项目参考重点
 

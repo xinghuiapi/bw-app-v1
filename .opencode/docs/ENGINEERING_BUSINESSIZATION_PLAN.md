@@ -7,10 +7,10 @@
 - 架构规范：`.opencode/docs/NEW_FRONTEND_ARCHITECTURE_GUIDE.md`
 - 接口对接顺序：`.opencode/docs/API_INTEGRATION_SEQUENCE.md`
 - 接口文档：`.opencode/docs/bw-pc-api-v2（适配h5）接口文档.md`
-- 页面逻辑参考：`/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`
+- 页面逻辑参考：`/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1`
 - 工程实现参考：`/Users/john/Documents/trae_projects/flutter-v1`
 
-**m1 术语约定**：本文档及本项目所有任务中，“m1”或“m1 项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1`，不得使用同级其他历史目录或相似项目替代。
+**m1 术语约定**：本文档及本项目所有任务中，“m1”“m1 项目”或“517 参考项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1`，不得使用 517 的 m2/m3/m4、旧 `bw-v3-504`、旧 Flutter 项目或其他相似目录替代。
 
 ## 1. 当前状态
 
@@ -56,6 +56,7 @@
 - 保留当前 m1 高仿 UI，不因业务接入破坏视觉结构。
 - 当前项目按自身架构落地工程能力，不整包复制任何旧项目。
 - 页面业务对接逻辑以 m1 项目为准，包括页面初始化、接口调用、表单入参、路由参数、登录拦截、弹窗和状态处理。
+- 游戏一级分类列表图片布局以 517 m1 `views/main/Game.vue` 的 `.provider-grid` / `.provider-cover` 为准；一级分类图片容器不设置固定高度或正方形比例，不能套用 `GameSubList.vue` 的正方形图片规则。
 - 旧 Flutter 项目只复用工程实现经验，不复用页面对接逻辑，也不复用旧问题。
 - 每个阶段必须能独立验证，不做不可回退的大批量改造。
 - 不主动执行 Git 更新类操作，必须等待明确指令。
@@ -788,7 +789,7 @@ flutter run -d chrome --web-browser-flag --disable-web-security --web-port 8080
 
 - `.opencode/docs/API_INTEGRATION_SEQUENCE.md` 的“当前进度记录”和“下一次任务执行方式”。
 - `.opencode/docs/bw-pc-api-v2（适配h5）接口文档.md` 中 `/system/getlist` 的字段结构。
-- m1 项目 `/Users/john/Documents/trae_projects/bw-v3-504/src/projects/m1` 中首页公告或 Banner 的页面逻辑、API 调用和字段使用。
+- 517 m1 项目 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` 中首页公告或 Banner 的页面逻辑、API 调用和字段使用。
 - 如需 Flutter 工程实现参考，再查旧 Flutter 项目 `/Users/john/Documents/trae_projects/flutter-v1` 中对应 Service/Provider/Model 写法，不参考旧 Flutter 页面逻辑。
 
 下一轮完成标准：

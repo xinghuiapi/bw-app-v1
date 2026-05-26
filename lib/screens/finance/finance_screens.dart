@@ -85,6 +85,7 @@ class _DepositScreenState extends State<DepositScreen> {
       backgroundColor: const Color(0xFFF7F8FC), // 浅灰蓝背景
       appBar: CustomNavBar(
         title: 'deposit.title'.tr(),
+        leftHitTargetWidth: 64.w,
         rightText: 'deposit.records'.tr(),
         onClickRight: () => context.push('/fund-management'),
       ),
@@ -2157,6 +2158,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       backgroundColor: AppColors.background,
       appBar: CustomNavBar(
         title: 'finance.withdraw.title'.tr(),
+        leftHitTargetWidth: 64.w,
         rightText: 'finance.withdraw.records'.tr(),
         onClickRight: () => context.push('/fund-management?tab=withdraw'),
       ),

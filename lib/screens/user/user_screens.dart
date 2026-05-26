@@ -42,6 +42,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  bool _showWalletBalance = true;
+
   @override
   void initState() {
     super.initState();
@@ -58,12 +60,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
+    final walletProvider = context.watch<WalletProvider>();
     final profile = userProvider.profile;
     final username = _textFallback(profile?.nickname ?? profile?.username, '—');
     final vipLevel = profile?.displayVipLevel ?? 'VIP0';
     final accountId = profile == null ? '88—' : profile.id.toString();
     final symbol = _textFallback(profile?.symbol, '¥');
-    final balance = _amountText(profile?.balance, fallback: '0.00');
+    final balanceValue =
+        walletProvider.realtimeBalance?.balance ?? profile?.balance;
+    final balance = _amountText(balanceValue, fallback: '0.00');
     final dayRevenue = userProvider.dayRevenue;
 
     return Scaffold(
@@ -158,33 +163,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
 
               // --- 2. Wallet Card ---
-              GestureDetector(
-                onTap: () => context.push('/my-wallet'),
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16.w),
-                  padding: EdgeInsets.all(20.w),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF5A9AF5), Color(0xFF3A7AF0)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF4A8AF4).withValues(alpha: 0.3),
-                        blurRadius: 10.r,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+              // Temporarily keep only the deposit/withdraw buttons interactive.
+              // The previous whole-card tap navigated to /my-wallet.
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 16.w),
+                padding: EdgeInsets.all(20.w),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF5A9AF5), Color(0xFF3A7AF0)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
+                  borderRadius: BorderRadius.circular(16.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4A8AF4).withValues(alpha: 0.3),
+                      blurRadius: 10.r,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => setState(
+                                () => _showWalletBalance = !_showWalletBalance),
                             child: Row(
                               children: [
                                 Flexible(
@@ -199,13 +208,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ),
                                 SizedBox(width: 4.w),
-                                Icon(Icons.visibility_outlined,
+                                Icon(
+                                    _showWalletBalance
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
                                     color: Colors.white.withValues(alpha: 0.9),
                                     size: 16.sp),
                               ],
                             ),
                           ),
-                          Flexible(
+                        ),
+                        Flexible(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: walletProvider.isBalanceLoading
+                                ? null
+                                : _refreshWalletBalance,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
@@ -215,7 +233,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 SizedBox(width: 4.w),
                                 Flexible(
                                   child: Text(
-                                    _profileText('user.refresh'),
+                                    walletProvider.isBalanceLoading
+                                        ? _profileText('common.loading')
+                                        : _profileText('user.refresh'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -227,50 +247,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 16.h),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 6.h, right: 4.w),
-                            child: Text(
-                              symbol,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              balance,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 40.sp,
-                                fontWeight: FontWeight.bold,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 24.h),
-                      Container(
-                        height: 48.h,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(24.r),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => context.push('/deposit'),
+                      ],
+                    ),
+                    SizedBox(height: 16.h),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 6.h, right: 4.w),
+                          child: Text(
+                            symbol,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            _showWalletBalance ? balance : '***',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 40.sp,
+                              fontWeight: FontWeight.bold,
+                              height: 1.0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24.h),
+                    Container(
+                      height: 48.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(24.r),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => context.push('/deposit'),
+                              child: SizedBox.expand(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -303,13 +326,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                             ),
-                            Container(
-                                width: 1,
-                                height: 16.h,
-                                color: Colors.white.withValues(alpha: 0.3)),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => context.push('/withdraw'),
+                          ),
+                          Container(
+                              width: 1,
+                              height: 16.h,
+                              color: Colors.white.withValues(alpha: 0.3)),
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => context.push('/withdraw'),
+                              child: SizedBox.expand(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -342,11 +368,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -696,6 +722,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final amount = num.tryParse(value.toString());
     if (amount == null) return value.toString();
     return amount.toStringAsFixed(2);
+  }
+
+  Future<void> _refreshWalletBalance() async {
+    if (!context.read<AuthProvider>().isAuthenticated) return;
+    await Future.wait([
+      context
+          .read<UserProvider>()
+          .loadProfile(refresh: true)
+          .catchError((_) {}),
+      context
+          .read<WalletProvider>()
+          .loadRealtimeBalance(refresh: true)
+          .catchError((_) {}),
+    ]);
   }
 
   String _profileText(

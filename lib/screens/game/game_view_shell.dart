@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../providers/system/system_provider.dart';
+import '../../widgets/common/back_hit_target.dart';
 import '../../widgets/common/app_network_image.dart';
 
 class GameViewShell extends StatelessWidget {
@@ -80,7 +81,7 @@ class _GameHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 34.h,
+      height: backHitTargetSize.h,
       color: Colors.black.withValues(alpha: 0.9),
       padding: EdgeInsets.symmetric(horizontal: 10.w),
       child: Stack(
@@ -146,22 +147,13 @@ class _GameHeaderAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return BackHitTarget(
+      icon: icon,
       onTap: onTap,
-      child: Container(
-        width: 28.w,
-        height: 28.h,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.18),
-            width: 0.5,
-          ),
-        ),
-        child: Icon(icon, color: Colors.white, size: 18.sp),
-      ),
+      color: Colors.white,
+      iconSize: 18.sp,
+      backgroundColor: Colors.white.withValues(alpha: 0.12),
+      borderColor: Colors.white.withValues(alpha: 0.18),
     );
   }
 }

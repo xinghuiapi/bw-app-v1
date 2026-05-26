@@ -12,6 +12,7 @@ import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/common/app_empty.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/common/wallet_action_hit_target.dart';
 
 class MyWalletScreen extends StatefulWidget {
   const MyWalletScreen({super.key});
@@ -223,7 +224,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: GestureDetector(
+                  child: WalletActionHitTarget(
                     onTap: () => context.push('/deposit'),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -256,7 +257,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                   color: Colors.white.withValues(alpha: 0.3),
                 ),
                 Expanded(
-                  child: GestureDetector(
+                  child: WalletActionHitTarget(
                     onTap: () => context.push('/withdraw'),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -512,8 +513,8 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
       );
     } catch (_) {
       if (!mounted) return;
-      final message =
-          walletProvider.venueActionError ?? 'finance.wallet.recycleFailed'.tr();
+      final message = walletProvider.venueActionError ??
+          'finance.wallet.recycleFailed'.tr();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
@@ -548,7 +549,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                          _venueTitle(active),
+                        _venueTitle(active),
                         style: TextStyle(
                           fontSize: 16.sp,
                           color: AppColors.textPrimary,

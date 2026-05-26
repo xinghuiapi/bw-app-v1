@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import 'common/back_hit_target.dart';
 
 class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -18,6 +19,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
   final bool border;
   final bool fixed;
   final bool placeholder;
+  final double leftHitTargetWidth;
 
   const CustomNavBar({
     super.key,
@@ -33,6 +35,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
     this.border = true,
     this.fixed = true,
     this.placeholder = true,
+    this.leftHitTargetWidth = backHitTargetSize,
   });
 
   @override
@@ -89,6 +92,9 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
                       }
                     },
                 child: Container(
+                  constraints: const BoxConstraints(
+                    minHeight: backHitTargetSize,
+                  ).copyWith(minWidth: leftHitTargetWidth),
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   alignment: Alignment.center,
                   child: Row(

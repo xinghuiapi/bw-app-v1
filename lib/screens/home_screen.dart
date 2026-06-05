@@ -10,6 +10,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart' show LaunchMode, launchUrl;
+import '../api/dio_client.dart';
 import '../models/game/game_models.dart';
 import '../models/home/home_models.dart';
 import '../localization/app_language.dart';
@@ -27,12 +28,14 @@ import '../providers/wallet/wallet_provider.dart';
 import '../security/url_policy.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_images.dart';
+import '../utils/game_launch_error.dart';
+import '../utils/site_display.dart';
+import '../utils/version_utils.dart';
 import '../widgets/common/app_network_image.dart';
-import '../widgets/common/retry_empty_state.dart';
+import '../widgets/common/app_loading.dart';
 import '../widgets/home_user_action_card.dart';
 import '../widgets/notice_bar.dart';
 import '../widgets/search_panel_overlay.dart';
-import '../utils/version_utils.dart';
 
 GameLobbyCategory? homeCategoryOrNull(
   List<GameLobbyCategory> categories,
@@ -97,10 +100,14 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isUpdateDialogOpen = false;
   String _currentAppVersion = '';
   String _lastShownUpdateVersion = '';
+  String _noticeLanguageCode = '';
   final PageController _bannerController = PageController();
   int _bannerIndex = 0;
   Timer? _bannerTimer;
   List<GameLobbyCategory> _homeCategories = const [];
+  int _homeCategoryRequestSerial = 0;
+  int _languageSwitchSerial = 0;
+  bool _isSwitchingLanguage = false;
 
   double get _recoGameCardSize {
     final scaled = 100.w;
@@ -163,21 +170,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _scheduleNoticeModal(SystemProvider systemProvider) {
     if (_didTryOpenNotice) return;
-    if (!_didCompleteUpdateCheck || _isCheckingUpdate || _isUpdateDialogOpen)
+    if (!_didCompleteUpdateCheck || _isCheckingUpdate || _isUpdateDialogOpen) {
       return;
+    }
     if (!systemProvider.hasLoadedConfig) return;
     final notices = _popupNotices(systemProvider.config.notices);
     if (notices.isEmpty) return;
+    final languageCode = context.read<LanguageProvider>().currentCode;
+    _noticeLanguageCode = languageCode;
     _didTryOpenNotice = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _showNoticeModalIfAllowed(notices);
+      if (context.read<LanguageProvider>().currentCode != languageCode) {
+        _didTryOpenNotice = false;
+        return;
+      }
+      _showNoticeModalIfAllowed(notices, languageCode);
     });
   }
 
   void _scheduleUpdateModal(SystemProvider systemProvider) {
-    if (_didCompleteUpdateCheck || _isCheckingUpdate || _isUpdateDialogOpen)
+    if (_didCompleteUpdateCheck || _isCheckingUpdate || _isUpdateDialogOpen) {
       return;
+    }
     if (!systemProvider.hasLoadedConfig) return;
     final site = systemProvider.config.siteConfig;
     final remoteVersion = site?.appVersion?.trim() ?? '';
@@ -217,47 +232,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeBody() {
-    return Column(
+    return Stack(
       children: [
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _refreshHomeData,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.only(bottom: 12.h),
-              child: Column(
-                children: [
-                  _buildTopBannerSection(
-                    topInset: MediaQuery.of(context).padding.top + 12.h,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 12),
-                        Selector<SystemProvider, List<NoticeModel>>(
-                          selector: (_, provider) => provider.config.notices,
-                          builder: (context, notices, child) {
-                            return NoticeBar(
-                              text: _noticeText(notices),
-                              leftIcon: const Icon(Icons.volume_up_outlined),
-                              backgroundColor: Colors.white,
-                              color: AppColors.primary,
-                            );
-                          },
+        Column(
+          children: [
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh:
+                    _isSwitchingLanguage ? () async {} : _refreshHomeData,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: Column(
+                    children: [
+                      _buildTopBannerSection(
+                        topInset: MediaQuery.of(context).padding.top + 12.h,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 12),
+                            Selector<SystemProvider, List<NoticeModel>>(
+                              selector: (_, provider) =>
+                                  provider.config.notices,
+                              builder: (context, notices, child) {
+                                return NoticeBar(
+                                  text: _noticeText(_visibleNotices(notices)),
+                                  leftIcon:
+                                      const Icon(Icons.volume_up_outlined),
+                                  backgroundColor: Colors.white,
+                                  color: AppColors.primary,
+                                );
+                              },
+                            ),
+                            _buildUserActionCard(),
+                            _buildGameLobby(),
+                            _buildRecoGamesSection(),
+                            _buildHotGamesSection(),
+                          ],
                         ),
-                        _buildUserActionCard(),
-                        _buildGameLobby(),
-                        _buildRecoGamesSection(),
-                        _buildHotGamesSection(),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (_isSwitchingLanguage)
+          Positioned.fill(
+            child: Container(
+              color: const Color(0xFFF4F6F9).withValues(alpha: 0.92),
+              child: Center(
+                child: AppLoading(message: 'common.loading'.tr()),
               ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -272,11 +303,55 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadHomeCategories({bool refresh = false}) async {
+    final requestSerial = ++_homeCategoryRequestSerial;
     final categories = await context.read<GameProvider>().fetchCategories(
           refresh: refresh,
         );
     if (!mounted) return;
+    if (requestSerial != _homeCategoryRequestSerial) return;
     setState(() => _homeCategories = categories);
+  }
+
+  Future<void> _switchLanguage(
+    BuildContext rootContext,
+    String code, {
+    required GameProvider gameProvider,
+    required SystemProvider systemProvider,
+    required LanguageProvider languageProvider,
+  }) async {
+    final switchSerial = ++_languageSwitchSerial;
+    final authProvider = rootContext.read<AuthProvider>();
+    final userProvider = rootContext.read<UserProvider>();
+    final walletProvider = rootContext.read<WalletProvider>();
+    setState(() => _isSwitchingLanguage = true);
+    try {
+      await languageProvider.changeLanguage(rootContext, code);
+      if (!rootContext.mounted || !mounted) return;
+      if (switchSerial != _languageSwitchSerial) return;
+
+      _resetLanguageSensitiveProviders(rootContext);
+      await systemProvider.loadConfig(refresh: true);
+      if (!mounted || switchSerial != _languageSwitchSerial) return;
+
+      _didTryOpenNotice = false;
+      _noticeLanguageCode = code;
+      final refreshTasks = <Future<void>>[
+        _loadHomeCategories(refresh: true),
+        gameProvider.loadRecommendedGames(refresh: true),
+        gameProvider.loadHotGames(refresh: true),
+      ];
+      if (authProvider.isAuthenticated) {
+        refreshTasks.addAll([
+          userProvider.loadProfile(refresh: true).catchError((_) {}),
+          walletProvider.loadRealtimeBalance(refresh: true).catchError((_) {}),
+        ]);
+      }
+      await Future.wait(refreshTasks);
+    } finally {
+      if (mounted && switchSerial == _languageSwitchSerial) {
+        setState(() => _isSwitchingLanguage = false);
+      }
+    }
   }
 
   Widget _buildTopBannerSection({required double topInset}) {
@@ -345,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
               final languageCode =
                   context.watch<LanguageProvider>().currentCode;
               final visibleBanners = _visibleBanners(banners, languageCode);
-              if (visibleBanners.isEmpty) return _buildFallbackBanner();
+              if (visibleBanners.isEmpty) return const SizedBox.shrink();
               return _buildBannerCarousel(visibleBanners);
             },
           ),
@@ -481,7 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       visualDensity: VisualDensity.standard,
                       leading: _buildLanguageIcon(language.img),
                       title: Text(
-                        language.title ?? code,
+                        _languageOptionTitle(code, language.title),
                         style: TextStyle(
                           fontSize: 20.sp,
                           color: const Color(0xFF333333),
@@ -502,20 +577,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             rootContext.read<LanguageProvider>();
                         Navigator.of(sheetContext).pop();
                         if (selected) return;
-                        await currentLanguageProvider.changeLanguage(
+                        await _switchLanguage(
                           rootContext,
                           code,
+                          gameProvider: gameProvider,
+                          systemProvider: currentSystemProvider,
+                          languageProvider: currentLanguageProvider,
                         );
-                        if (!rootContext.mounted) return;
-                        _resetLanguageSensitiveProviders(rootContext);
-                        await currentSystemProvider.loadConfig(refresh: true);
-                        if (!mounted) return;
-                        _didTryOpenNotice = false;
-                        await Future.wait([
-                          _loadHomeCategories(refresh: true),
-                          gameProvider.loadRecommendedGames(refresh: true),
-                          gameProvider.loadHotGames(refresh: true),
-                        ]);
                       },
                     );
                   },
@@ -529,6 +597,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _resetLanguageSensitiveProviders(BuildContext context) {
+    context.read<DioClient>().clearMemoryCache();
+    context.read<SystemProvider>().resetForLanguageChange();
     context.read<GameProvider>().resetForLanguageChange();
     context.read<GameManagementProvider>().resetForLanguageChange();
     context.read<WalletProvider>().resetForLanguageChange();
@@ -581,6 +651,39 @@ class _HomeScreenState extends State<HomeScreen> {
     if (value == 'TH' || value == 'TH-TH') return 'TH';
     if (value == 'VN' || value == 'VI' || value == 'VI-VN') return 'VN';
     return value;
+  }
+
+  String _languageOptionTitle(String code, String? fallback) {
+    final localized = _localizedLanguageTitles(context.locale.languageCode);
+    return localized[code] ?? fallback?.trim() ?? code;
+  }
+
+  Map<String, String> _localizedLanguageTitles(String languageCode) {
+    if (languageCode == 'my') {
+      return const {
+        'CN': 'တရုတ်စာ ရိုးရှင်း',
+        'TW': 'တရုတ်စာ ရိုးရာ',
+        'EN': 'အင်္ဂလိပ်',
+        'JP': 'ဂျပန်',
+        'KR': 'ကိုရီးယား',
+        'TH': 'ထိုင်း',
+        'VN': 'ဗီယက်နမ်',
+        'MY': 'မြန်မာ',
+      };
+    }
+    if (languageCode == 'en') {
+      return const {
+        'CN': 'Simplified Chinese',
+        'TW': 'Traditional Chinese',
+        'EN': 'English',
+        'JP': 'Japanese',
+        'KR': 'Korean',
+        'TH': 'Thai',
+        'VN': 'Vietnamese',
+        'MY': 'Burmese',
+      };
+    }
+    return const {};
   }
 
   Widget _buildLanguageIcon(String? image) {
@@ -699,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 scale: 0.9,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  _siteText(siteConfig?.domain, fallback: 'xh-bet.com'),
+                  siteDomainDisplayText(siteConfig?.domain),
                   style: TextStyle(
                     fontSize: 11.sp,
                     color: const Color(0xFF333333),
@@ -730,7 +833,7 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(width: 4.w),
           Flexible(
             child: Text(
-              _siteText(siteConfig?.domain, fallback: 'flutter.dev'),
+              siteDomainDisplayText(siteConfig?.domain),
               style: TextStyle(
                 fontSize: 12.sp,
                 color: const Color(0xFFF80000),
@@ -817,13 +920,37 @@ class _HomeScreenState extends State<HomeScreen> {
     return text.isEmpty ? 'home.fallbackNotice'.tr() : text;
   }
 
+  List<NoticeModel> _visibleNotices(List<NoticeModel> notices) {
+    final currentLanguage = context.read<LanguageProvider>().currentCode;
+    return notices.where((notice) {
+      final title = notice.title?.trim() ?? '';
+      final content = notice.content?.trim() ?? '';
+      if (!_noticeMatchesCurrentLanguage(
+        title: title,
+        content: content,
+        languageCode: currentLanguage,
+      )) {
+        return false;
+      }
+      return title.isNotEmpty || content.isNotEmpty;
+    }).toList();
+  }
+
   List<NoticeModel> _popupNotices(List<NoticeModel> notices) {
+    final currentLanguage = context.read<LanguageProvider>().currentCode;
     final list = notices.where((notice) {
       if (notice.popUp != 1) return false;
       final terminal = notice.terminal ?? 1;
       if (terminal != 1 && terminal != 3) return false;
       final title = notice.title?.trim() ?? '';
       final content = notice.content?.trim() ?? '';
+      if (!_noticeMatchesCurrentLanguage(
+        title: title,
+        content: content,
+        languageCode: currentLanguage,
+      )) {
+        return false;
+      }
       return title.isNotEmpty || content.isNotEmpty;
     }).toList();
     list.sort((a, b) {
@@ -834,15 +961,39 @@ class _HomeScreenState extends State<HomeScreen> {
     return list;
   }
 
+  bool _noticeMatchesCurrentLanguage({
+    required String title,
+    required String content,
+    required String languageCode,
+  }) {
+    final text = _stripHtml('$title $content');
+    if (text.trim().isEmpty) return false;
+    if (languageCode == 'CN' || languageCode == 'TW') return true;
+    return !RegExp(r'[\u4e00-\u9fff]').hasMatch(text);
+  }
+
   String _localYmd(DateTime date) {
     String two(int value) => value.toString().padLeft(2, '0');
     return '${date.year}-${two(date.month)}-${two(date.day)}';
   }
 
-  Future<void> _showNoticeModalIfAllowed(List<NoticeModel> notices) async {
+  Future<void> _showNoticeModalIfAllowed(
+    List<NoticeModel> notices,
+    String languageCode,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final today = _localYmd(DateTime.now());
-    final visibleNotices = _visiblePopupNoticesForToday(prefs, notices, today);
+    if (!mounted) return;
+    if (_noticeLanguageCode != languageCode ||
+        context.read<LanguageProvider>().currentCode != languageCode) {
+      _didTryOpenNotice = false;
+      return;
+    }
+    final visibleNotices = _visiblePopupNoticesForToday(
+      prefs,
+      _popupNotices(notices),
+      today,
+    );
     if (visibleNotices.isEmpty) return;
     if (!mounted) return;
     final result = await showDialog<_NoticeDialogResult>(
@@ -1016,6 +1167,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildUserActionCard() {
     final authProvider = context.watch<AuthProvider>();
     final userProvider = context.watch<UserProvider>();
+    final walletProvider = context.watch<WalletProvider>();
     final profile = userProvider.profile;
     final isLoggedIn = authProvider.isAuthenticated;
     final username = _siteText(
@@ -1023,8 +1175,11 @@ class _HomeScreenState extends State<HomeScreen> {
       fallback: 'home.memberUser'.tr(),
     );
     final vipText = profile?.displayVipLevel ?? 'VIP0';
-    final symbol = _siteText(profile?.symbol, fallback: '¥');
-    final balance = _amountText(profile?.balance, fallback: '0.00');
+    const symbol = '¥';
+    final balance = _amountText(
+      walletProvider.realtimeBalance?.balance ?? profile?.balance,
+      fallback: '0.00',
+    );
 
     return HomeUserActionCard(
       isLoggedIn: isLoggedIn,
@@ -1387,13 +1542,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _shortCategoryTitle(String title) {
-    return title;
-  }
-
   String _homeCategoryTitle(GameLobbyCategory? category, String fallbackTitle) {
-    final title = category?.title.trim() ?? '';
-    if (title.isNotEmpty) return _shortCategoryTitle(title);
+    // Top-level home categories are fixed product navigation slots. Their
+    // labels must follow the active locale instead of backend/cache payloads.
     return fallbackTitle;
   }
 
@@ -1453,6 +1604,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final remoteGames = gameProvider.recommendedGames;
     final hasRemoteData = remoteGames.isNotEmpty;
     final launchingGameId = gameProvider.launchingGameId;
+    if (!hasRemoteData) return const SizedBox.shrink();
 
     return Container(
       margin: EdgeInsets.only(top: 20.h),
@@ -1461,23 +1613,10 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildSectionHeader('home.recommendedGames'.tr(),
               onMoreTap: () => context.go('/game')),
           SizedBox(height: 12.h),
-          if (gameProvider.isRecommendedLoading && !hasRemoteData)
-            SizedBox(
-              height: 128.h,
-              child: const Center(child: CircularProgressIndicator()),
-            )
-          else if (hasRemoteData)
-            _buildRecoGameList(
-              remoteGames,
-              launchingGameId: launchingGameId,
-            )
-          else if ((gameProvider.recommendedError ?? '').trim().isNotEmpty)
-            _buildErrorGameSection(
-              gameProvider.recommendedError!,
-              () => gameProvider.loadRecommendedGames(refresh: true),
-            )
-          else
-            _buildEmptyGameSection('game.noGame'.tr()),
+          _buildRecoGameList(
+            remoteGames,
+            launchingGameId: launchingGameId,
+          ),
         ],
       ),
     );
@@ -1554,7 +1693,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           'common.maintaining'.tr(),
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12.sp,
+                            fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1564,7 +1703,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Positioned.fill(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.48),
+                          color: Colors.black.withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(16.r),
                         ),
                         alignment: Alignment.center,
@@ -1572,19 +1711,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             SizedBox(
-                              width: 22.w,
-                              height: 22.w,
+                              width: 24.w,
+                              height: 24.w,
                               child: const CircularProgressIndicator(
                                 strokeWidth: 2,
                                 color: Colors.white,
                               ),
                             ),
-                            SizedBox(height: 6.h),
+                            SizedBox(height: 8.h),
                             Text(
                               'common.launching'.tr(),
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 11.sp,
+                                fontSize: 13.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -1636,7 +1775,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final urlText = result.url?.trim();
       if (urlText == null || urlText.isEmpty) {
         messenger.showSnackBar(
-          SnackBar(content: Text('common.enterGameFailed'.tr())),
+          SnackBar(
+            content: Text(
+              result.message?.trim().isNotEmpty == true
+                  ? result.message!.trim()
+                  : 'common.enterGameFailed'.tr(),
+            ),
+          ),
         );
         return;
       }
@@ -1664,13 +1809,10 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (error) {
       if (!mounted) return;
-      final message = context.read<GameProvider>().launchError;
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            message?.trim().isNotEmpty == true
-                ? message!
-                : 'common.enterGameFailed'.tr(),
+            gameLaunchErrorText(error, 'common.enterGameFailed'),
           ),
         ),
       );
@@ -1682,6 +1824,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final hotGames = gameProvider.hotGames;
     final hasRemoteData = hotGames.isNotEmpty;
     final launchingGameId = gameProvider.launchingGameId;
+    if (!hasRemoteData) return const SizedBox.shrink();
 
     return Container(
       margin: EdgeInsets.only(top: 20.h),
@@ -1690,23 +1833,10 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildSectionHeader('home.hotGames'.tr(),
               onMoreTap: () => context.go('/game')),
           SizedBox(height: 12.h),
-          if (gameProvider.isHotGamesLoading && !hasRemoteData)
-            SizedBox(
-              height: 180.h,
-              child: const Center(child: CircularProgressIndicator()),
-            )
-          else if (hasRemoteData)
-            _buildHotGameGrid(
-              hotGames,
-              launchingGameId: launchingGameId,
-            )
-          else if ((gameProvider.hotGamesError ?? '').trim().isNotEmpty)
-            _buildErrorGameSection(
-              gameProvider.hotGamesError!,
-              () => gameProvider.loadHotGames(refresh: true),
-            )
-          else
-            _buildEmptyGameSection('game.noGame'.tr()),
+          _buildHotGameGrid(
+            hotGames,
+            launchingGameId: launchingGameId,
+          ),
         ],
       ),
     );
@@ -1716,23 +1846,33 @@ class _HomeScreenState extends State<HomeScreen> {
     List<GameItem> games, {
     required int? launchingGameId,
   }) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 12.w,
-        mainAxisSpacing: 16.h,
-        childAspectRatio: 0.8,
+    final cardWidth = (1.sw - 24.w - 24.w) / 3;
+    final rowCount = (games.length / 3).ceil();
+    final rowHeight = cardWidth / 0.8;
+    final gridHeight = rowCount * rowHeight + (rowCount - 1) * 16.h;
+    return SizedBox(
+      height: gridHeight,
+      child: GridView.builder(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        cacheExtent: 0,
+        primary: false,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 12.w,
+          mainAxisSpacing: 16.h,
+          childAspectRatio: 0.8,
+        ),
+        itemCount: games.length,
+        itemBuilder: (context, index) {
+          final game = games[index];
+          return _buildRemoteHotGameCard(
+            game,
+            isLaunching: launchingGameId == game.id,
+          );
+        },
       ),
-      itemCount: games.length,
-      itemBuilder: (context, index) {
-        final game = games[index];
-        return _buildRemoteHotGameCard(
-          game,
-          isLaunching: launchingGameId == game.id,
-        );
-      },
     );
   }
 
@@ -1778,27 +1918,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEmptyGameSection(String message) {
-    return SizedBox(
-      height: 96.h,
-      child: Center(
-        child: Text(
-          message,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorGameSection(String message, VoidCallback onRetry) {
-    return RetryEmptyState(
-      message: message,
-      onRetry: onRetry,
-      height: 136.h,
-      compact: true,
-    );
-  }
-
   Widget _buildHotFallbackImage() {
     return _buildGameImageFallback(
       width: double.infinity,
@@ -1839,7 +1958,7 @@ class _HomeScreenState extends State<HomeScreen> {
           text,
           style: TextStyle(
             color: Colors.white,
-            fontSize: 12.sp,
+            fontSize: 13.sp,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -1851,7 +1970,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.48),
+          color: Colors.black.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(16.r),
         ),
         alignment: Alignment.center,
@@ -1859,19 +1978,19 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 22.w,
-              height: 22.w,
+              width: 24.w,
+              height: 24.w,
               child: const CircularProgressIndicator(
                 strokeWidth: 2,
                 color: Colors.white,
               ),
             ),
-            SizedBox(height: 6.h),
+            SizedBox(height: 8.h),
             Text(
               'common.launching'.tr(),
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 11.sp,
+                fontSize: 13.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1885,37 +2004,47 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 4.w,
-              height: 16.h,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(2.r),
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: 4.w,
+                height: 16.h,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
               ),
-            ),
-            SizedBox(width: 8.w),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF333333),
+              SizedBox(width: 8.w),
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF333333),
+                    height: 1.1,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: onMoreTap,
-          child: Text(
-            'common.more'.tr(),
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: const Color(0xFF999999),
-            ),
+            ],
           ),
         ),
+        if (onMoreTap != null) ...[
+          SizedBox(width: 8.w),
+          GestureDetector(
+            onTap: onMoreTap,
+            child: Text(
+              'common.more'.tr(),
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: const Color(0xFF999999),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

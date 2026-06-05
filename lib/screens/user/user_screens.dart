@@ -14,7 +14,10 @@ import '../../providers/message/message_provider.dart';
 import '../../providers/system/system_provider.dart';
 import '../../providers/user/user_provider.dart';
 import '../../providers/wallet/wallet_provider.dart';
+import '../../router/route_paths.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/site_display.dart';
+import '../../widgets/common/localized_text.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_cell.dart';
@@ -33,6 +36,9 @@ export 'forms/real_name_screen.dart';
 export 'forms/add_bank_card_screen.dart';
 export 'share_screen.dart';
 export 'redemption_code_screen.dart';
+export 'income_screen.dart';
+export 'team_screen.dart';
+export 'fy_level_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -43,6 +49,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _showWalletBalance = true;
+  bool _isProfitNavigationLocked = false;
 
   @override
   void initState() {
@@ -65,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final username = _textFallback(profile?.nickname ?? profile?.username, '—');
     final vipLevel = profile?.displayVipLevel ?? 'VIP0';
     final accountId = profile == null ? '88—' : profile.id.toString();
-    final symbol = _textFallback(profile?.symbol, '¥');
+    const symbol = '¥';
     final balanceValue =
         walletProvider.realtimeBalance?.balance ?? profile?.balance;
     final balance = _amountText(balanceValue, fallback: '0.00');
@@ -112,30 +119,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  username,
-                                  style: TextStyle(
-                                    fontSize: 24.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
+                                Flexible(
+                                  child: Text(
+                                    username,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 24.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
                                   ),
                                 ),
-                                SizedBox(width: 8.w),
-                                GestureDetector(
-                                  onTap: () => context.push('/vip'),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 10.w, vertical: 2.h),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE8F1FF),
-                                      borderRadius: BorderRadius.circular(16.r),
-                                    ),
-                                    child: Text(
-                                      vipLevel,
-                                      style: TextStyle(
-                                        fontSize: 12.sp,
-                                        color: const Color(0xFF4A8AF4),
-                                        fontWeight: FontWeight.bold,
+                                SizedBox(width: 6.w),
+                                Flexible(
+                                  child: GestureDetector(
+                                    onTap: () => context.push('/vip'),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 8.w, vertical: 2.h),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE8F1FF),
+                                        borderRadius:
+                                            BorderRadius.circular(16.r),
+                                      ),
+                                      child: Text(
+                                        vipLevel,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          color: const Color(0xFF4A8AF4),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -388,99 +404,135 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
                                 width: 10.w,
                                 height: 10.w,
+                                margin: EdgeInsets.only(top: 5.h),
                                 decoration: const BoxDecoration(
                                   color: Color(0xFF8AB4F8),
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               SizedBox(width: 8.w),
-                              Flexible(
-                                child: Text(_profileText('profile.todayProfit'),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _profileText('profile.todayProfit'),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
                                         fontSize: 16.sp,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimary)),
+                                        color: AppColors.textPrimary,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2.h),
+                                    Text(
+                                      _todayDateText(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              SizedBox(width: 8.w),
-                              Text(_profileText('profile.todayDate'),
-                                  style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12.sp)),
                             ],
                           ),
                         ),
                         SizedBox(width: 8.w),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: userProvider.isDayRevenueLoading
-                              ? null
-                              : () => context
-                                  .read<UserProvider>()
-                                  .loadDayRevenue(refresh: true)
-                                  .catchError((_) {}),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.refresh,
-                                  color: const Color(0xFF4A8AF4), size: 16.sp),
-                              SizedBox(width: 4.w),
-                              Text(
-                                  userProvider.isDayRevenueLoading
-                                      ? _profileText('common.loading')
-                                      : _profileText('user.refresh'),
-                                  style: TextStyle(
-                                      color: const Color(0xFF4A8AF4),
-                                      fontSize: 14.sp)),
-                            ],
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 96.w),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: userProvider.isDayRevenueLoading
+                                ? null
+                                : () => context
+                                    .read<UserProvider>()
+                                    .loadDayRevenue(refresh: true)
+                                    .catchError((_) {}),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(Icons.refresh,
+                                    color: const Color(0xFF4A8AF4),
+                                    size: 16.sp),
+                                SizedBox(width: 4.w),
+                                Flexible(
+                                  child: Text(
+                                      userProvider.isDayRevenueLoading
+                                          ? _profileText('common.loading')
+                                          : _profileText('user.refresh'),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          color: const Color(0xFF4A8AF4),
+                                          fontSize: 14.sp)),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                     SizedBox(height: 24.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildProfitItem(
-                            context,
-                            value: (dayRevenue?.betCount ?? 0).toString(),
-                            label: _profileText('profile.betCount'),
+                    SizedBox(
+                      height: 72.h,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildProfitItem(
+                              context,
+                              value: (dayRevenue?.betCount ?? 0).toString(),
+                              label: _profileText('profile.betCount'),
+                              route: '/game-manage?tab=rebate',
+                              onTap: () =>
+                                  context.push('/game-manage?tab=rebate'),
+                            ),
                           ),
-                        ),
-                        Container(
-                            width: 1,
-                            height: 20.h,
-                            color: Colors.grey.withValues(alpha: 0.2)),
-                        Expanded(
-                          child: _buildProfitItem(
-                            context,
-                            value: _amountText(dayRevenue?.profitLoss,
-                                fallback: '0.00'),
-                            label: _profileText('profile.totalProfitLoss'),
+                          Container(
+                              width: 1,
+                              height: 24.h,
+                              color: Colors.grey.withValues(alpha: 0.2)),
+                          Expanded(
+                            child: _buildProfitItem(
+                              context,
+                              value: _amountText(dayRevenue?.totalNoRebate,
+                                  fallback: '0.00'),
+                              label: _profileText('profile.netProfit'),
+                              route: RoutePaths.income,
+                              onTap: () => _pushFromProfit(RoutePaths.income),
+                            ),
                           ),
-                        ),
-                        Container(
-                            width: 1,
-                            height: 20.h,
-                            color: Colors.grey.withValues(alpha: 0.2)),
-                        Expanded(
-                          child: _buildProfitItem(
-                            context,
-                            value: _amountText(dayRevenue?.unclaimedRebate,
-                                fallback: '0.00'),
-                            label: _profileText('profile.unclaimedRebate'),
-                            showDot: (dayRevenue?.unclaimedRebate ?? 0) > 0,
+                          Container(
+                              width: 1,
+                              height: 24.h,
+                              color: Colors.grey.withValues(alpha: 0.2)),
+                          Expanded(
+                            child: _buildProfitItem(
+                              context,
+                              value: _amountText(dayRevenue?.totalNoCommission,
+                                  fallback: '0.00'),
+                              label: _profileText('profile.unclaimedRebate'),
+                              route: RoutePaths.income,
+                              onTap: () => _pushFromProfit(RoutePaths.income),
+                              showDot: (dayRevenue?.totalNoCommission ?? 0) > 0,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -526,7 +578,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       mainAxisSpacing: 24.h,
                       crossAxisSpacing: 8.w,
-                      childAspectRatio: 0.8,
+                      childAspectRatio: 0.64,
                       children: [
                         _buildServiceItem(
                             Icons.grid_view_rounded,
@@ -557,8 +609,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _profileText('profile.feedback'),
                             context,
                             '/feedback'),
-                        _buildServiceItem(Icons.card_giftcard_outlined, '兑换码',
-                            context, '/redemption-code'),
+                        _buildServiceItem(
+                            Icons.card_giftcard_outlined,
+                            _profileText(
+                              'user.redemption.title',
+                              fallback: 'Redemption Code',
+                            ),
+                            context,
+                            '/redemption-code'),
                       ],
                     ),
                   ],
@@ -582,13 +640,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 28.sp, color: const Color(0xFF9AA4B1)),
-          SizedBox(height: 8.h),
-          Text(
-            title,
-            style: TextStyle(fontSize: 12.sp, color: AppColors.textPrimary),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          Flexible(
+            child: Icon(icon, size: 26.sp, color: const Color(0xFF9AA4B1)),
+          ),
+          SizedBox(height: 6.h),
+          Flexible(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: localizedFontSize(
+                  context,
+                  12,
+                  myScale: 0.86,
+                  minSp: 9.5,
+                ),
+                color: AppColors.textPrimary,
+                height: 1.15,
+              ),
+              maxLines: isBurmeseLocale(context) ? 2 : 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),
@@ -599,54 +671,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
     BuildContext context, {
     required String value,
     required String label,
+    required String route,
+    required VoidCallback onTap,
     bool showDot = false,
   }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => context.push('/game-manage?tab=rebate'),
-      child: Column(
-        children: [
-          Text(value,
-              style: TextStyle(
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary)),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Stack(
-                  clipBehavior: Clip.none,
+      onTap: onTap,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: SizedBox.expand(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary)),
+                SizedBox(height: 8.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            color: const Color(0xFF4A8AF4), fontSize: 12.sp)),
-                    if (showDot)
-                      Positioned(
-                        right: -5.w,
-                        top: -3.h,
-                        child: Container(
-                          width: 6.w,
-                          height: 6.w,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFF4D4F),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
+                    Flexible(
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Text(label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  color: const Color(0xFF4A8AF4),
+                                  fontSize: localizedFontSize(
+                                    context,
+                                    12,
+                                    myScale: 0.86,
+                                    minSp: 9.5,
+                                  ))),
+                          if (showDot)
+                            Positioned(
+                              right: -5.w,
+                              top: -3.h,
+                              child: Container(
+                                width: 6.w,
+                                height: 6.w,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFFF4D4F),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
+                    ),
+                    Icon(Icons.chevron_right,
+                        color: const Color(0xFF4A8AF4), size: 12.sp),
                   ],
                 ),
-              ),
-              Icon(Icons.chevron_right,
-                  color: const Color(0xFF4A8AF4), size: 12.sp),
-            ],
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  Future<void> _pushFromProfit(String route) async {
+    if (_isProfitNavigationLocked) return;
+    _isProfitNavigationLocked = true;
+    try {
+      await context.push(route);
+    } finally {
+      if (mounted) {
+        _isProfitNavigationLocked = false;
+      }
+    }
   }
 
   Widget _buildHeaderActions(BuildContext context) {
@@ -724,6 +828,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return amount.toStringAsFixed(2);
   }
 
+  String _todayDateText() {
+    final now = DateTime.now();
+    final language = context.locale.languageCode.toLowerCase();
+    final country = context.locale.countryCode?.toUpperCase();
+    if (language == 'zh' && country != 'TW') {
+      return '${now.month}月${now.day}日';
+    }
+    return '${now.month}/${now.day}';
+  }
+
   Future<void> _refreshWalletBalance() async {
     if (!context.read<AuthProvider>().isAuthenticated) return;
     await Future.wait([
@@ -741,8 +855,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _profileText(
     String key, {
     Map<String, String>? namedArgs,
+    String? fallback,
   }) {
-    return key.tr(namedArgs: namedArgs);
+    final value = key.tr(namedArgs: namedArgs);
+    if (value == key && fallback != null) return fallback;
+    return value;
   }
 }
 
@@ -832,6 +949,7 @@ class SettingScreen extends StatelessWidget {
                 text: context.watch<AuthProvider>().isSubmitting
                     ? 'settings.loggingOut'.tr()
                     : 'settings.logout'.tr(),
+                isLoading: context.watch<AuthProvider>().isSubmitting,
                 onPressed: context.watch<AuthProvider>().isSubmitting
                     ? null
                     : () => _logout(context),
@@ -992,8 +1110,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
 
   Widget _buildInfoCard(SiteConfig? site) {
     final rows = <_AboutInfoRow>[
-      _AboutInfoRow(
-          'about.domain'.tr(), _siteText(site?.domain, fallback: 'xh-bet.com')),
+      _AboutInfoRow('about.domain'.tr(), siteDomainDisplayText(site?.domain)),
       _AboutInfoRow(
           'about.version'.tr(), _siteText(site?.appVersion, fallback: '1.0.0')),
       _AboutInfoRow('about.appDownload'.tr(),
@@ -1293,6 +1410,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 text: context.watch<UserProvider>().isSubmitting
                     ? 'common.saving'.tr()
                     : 'common.save'.tr(),
+                isLoading: context.watch<UserProvider>().isSubmitting,
                 onPressed: context.watch<UserProvider>().isSubmitting
                     ? null
                     : () => _saveProfileField(
@@ -2589,10 +2707,26 @@ class _VipScreenState extends State<VipScreen> {
 
   String _currencySymbol() {
     final profile = context.read<UserProvider>().profile;
-    final symbol = profile?.symbol?.trim();
-    if (symbol != null && symbol.isNotEmpty) return symbol;
-    final currency = profile?.currency?.trim();
-    return currency == null || currency.isEmpty ? '¥' : currency;
+    return _normalizedCurrencySymbol(profile?.symbol) ??
+        _normalizedCurrencySymbol(profile?.currency) ??
+        '¥';
+  }
+
+  String? _normalizedCurrencySymbol(String? value) {
+    final text = value?.trim();
+    if (text == null || text.isEmpty) return null;
+    if (RegExp(r'^[¥￥$₩฿₫€£]$').hasMatch(text)) return text;
+    return switch (text.toUpperCase()) {
+      'CNY' || 'CNH' || 'RMB' => '¥',
+      'USD' => r'$',
+      'HKD' => 'HK\$',
+      'TWD' => 'NT\$',
+      'JPY' => '¥',
+      'KRW' => '₩',
+      'THB' => '฿',
+      'VND' => '₫',
+      _ => '¥',
+    };
   }
 
   int? _vipLevelNumber(String? level) {
@@ -2685,9 +2819,13 @@ class _VipScreenState extends State<VipScreen> {
   }
 
   String _rebateValue(dynamic value, String? fallback) {
-    if (value == null) return fallback ?? '0.00%';
-    final text = value.toString();
-    return text.endsWith('%') ? text : '$text%';
+    if (value == null) return fallback ?? '0.0%';
+    final raw = value.toString().replaceAll('%', '').trim();
+    final amount = num.tryParse(raw);
+    if (amount == null) return raw.isEmpty ? fallback ?? '0.0%' : '$raw%';
+    final fixed = amount.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
+    final text = fixed.contains('.') ? fixed : '$fixed.0';
+    return '$text%';
   }
 }
 
@@ -3202,6 +3340,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               text: feedbackProvider.isSubmitting
                   ? 'common.submitting'.tr()
                   : 'feedback.submit'.tr(),
+              isLoading: feedbackProvider.isSubmitting,
               onPressed: feedbackProvider.isSubmitting ? null : _handleSubmit,
             ),
           ],

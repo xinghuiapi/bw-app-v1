@@ -399,9 +399,14 @@ class DayRevenueSummary {
     this.betAmount = 0,
     this.validBetAmount = 0,
     this.profitLoss = 0,
+    this.totalNoRebate = 0,
+    this.totalNoCommission = 0,
     this.unclaimedRebate = 0,
     this.totalRebate = 0,
     this.claimedRebate = 0,
+    this.totalCommission = 0,
+    this.claimedCommission = 0,
+    this.unclaimedCommission = 0,
     this.revenue = 0,
     this.raw = const <String, dynamic>{},
   });
@@ -410,9 +415,14 @@ class DayRevenueSummary {
   final double betAmount;
   final double validBetAmount;
   final double profitLoss;
+  final double totalNoRebate;
+  final double totalNoCommission;
   final double unclaimedRebate;
   final double totalRebate;
   final double claimedRebate;
+  final double totalCommission;
+  final double claimedCommission;
+  final double unclaimedCommission;
   final double revenue;
   final Map<String, dynamic> raw;
 
@@ -441,6 +451,8 @@ class DayRevenueSummary {
                 json['total_netAmount'],
           ) ??
           0,
+      totalNoRebate: jsonDouble(json['total_no_fs']) ?? 0,
+      totalNoCommission: jsonDouble(json['total_no_fy']) ?? 0,
       unclaimedRebate: jsonDouble(
             json['day_weiling'] ??
                 json['not_fs_money'] ??
@@ -451,6 +463,16 @@ class DayRevenueSummary {
       totalRebate: jsonDouble(json['day_zongfs'] ?? json['total_rebate']) ?? 0,
       claimedRebate:
           jsonDouble(json['day_lingqu'] ?? json['claimed_rebate']) ?? 0,
+      totalCommission:
+          jsonDouble(json['day_zongfy'] ?? json['total_commission']) ?? 0,
+      claimedCommission: jsonDouble(
+            json['day_lingqu_fy'] ?? json['claimed_commission'],
+          ) ??
+          0,
+      unclaimedCommission: jsonDouble(
+            json['day_weiling_fy'] ?? json['unclaimed_commission'],
+          ) ??
+          0,
       revenue: jsonDouble(
               json['revenue'] ?? json['day_revenue'] ?? json['income']) ??
           0,
@@ -476,15 +498,140 @@ class DayRevenueSummary {
         'bet_amount': betAmount,
         'valid_bet_amount': validBetAmount,
         'profit_loss': profitLoss,
+        'total_no_fs': totalNoRebate,
+        'total_no_fy': totalNoCommission,
         'not_fs_money': unclaimedRebate,
         'day_netAmount': profitLoss,
         'day_bet_count': betCount,
         'day_zongfs': totalRebate,
         'day_lingqu': claimedRebate,
         'day_weiling': unclaimedRebate,
+        'day_zongfy': totalCommission,
+        'day_lingqu_fy': claimedCommission,
+        'day_weiling_fy': unclaimedCommission,
         'revenue': revenue,
         ...raw,
       };
+}
+
+class FyLevelItem {
+  const FyLevelItem({
+    this.vipName = '',
+    this.lotteryBl,
+    this.gamesBl,
+    this.pokerBl,
+    this.liveBl,
+    this.sportBl,
+    this.fishingBl,
+  });
+
+  final String vipName;
+  final dynamic lotteryBl;
+  final dynamic gamesBl;
+  final dynamic pokerBl;
+  final dynamic liveBl;
+  final dynamic sportBl;
+  final dynamic fishingBl;
+
+  factory FyLevelItem.fromJson(Map<String, dynamic> json) => FyLevelItem(
+        vipName: jsonString(json['vip_name']) ?? '',
+        lotteryBl: json['lottery_bl'],
+        gamesBl: json['games_bl'],
+        pokerBl: json['poker_bl'],
+        liveBl: json['live_bl'],
+        sportBl: json['sport_bl'],
+        fishingBl: json['fishing_bl'],
+      );
+
+  dynamic valueFor(String field) {
+    return switch (field) {
+      'lottery_bl' => lotteryBl,
+      'games_bl' => gamesBl,
+      'poker_bl' => pokerBl,
+      'live_bl' => liveBl,
+      'sport_bl' => sportBl,
+      'fishing_bl' => fishingBl,
+      _ => null,
+    };
+  }
+}
+
+class FyLevelPage {
+  const FyLevelPage({this.levels = const []});
+
+  final List<FyLevelItem> levels;
+
+  factory FyLevelPage.fromResponse(Object? json) {
+    final source = json is List
+        ? json
+        : json is Map && json['data'] is List
+            ? json['data'] as List
+            : const [];
+    return FyLevelPage(
+      levels: source
+          .whereType<Map>()
+          .map((item) => FyLevelItem.fromJson(Map<String, dynamic>.from(item)))
+          .toList(),
+    );
+  }
+}
+
+class TeamMember {
+  const TeamMember({
+    required this.id,
+    this.username = '',
+    this.betAmount = 0,
+  });
+
+  final int id;
+  final String username;
+  final double betAmount;
+
+  factory TeamMember.fromJson(Map<String, dynamic> json) => TeamMember(
+        id: jsonInt(json['id']) ?? 0,
+        username: jsonString(json['username']) ?? '',
+        betAmount: jsonDouble(json['betamount']) ?? 0,
+      );
+}
+
+class TeamMemberPage {
+  const TeamMemberPage({
+    this.records = const [],
+    this.currentPage = 1,
+    this.total = 0,
+    this.lastPage = 1,
+  });
+
+  final List<TeamMember> records;
+  final int currentPage;
+  final int total;
+  final int lastPage;
+
+  bool get hasMore => currentPage < lastPage;
+
+  factory TeamMemberPage.fromResponse(Object? json) {
+    final map = jsonMap(json) ?? const <String, dynamic>{};
+    final payload = jsonMap(map['data']) ?? map;
+    final rows = payload['data'] is List ? payload['data'] as List : const [];
+    return TeamMemberPage(
+      records: rows
+          .whereType<Map>()
+          .map((item) => TeamMember.fromJson(Map<String, dynamic>.from(item)))
+          .toList(),
+      currentPage: jsonInt(payload['current_page']) ?? 1,
+      total: jsonInt(payload['total']) ?? 0,
+      lastPage: jsonInt(payload['lastPage']) ?? 1,
+    );
+  }
+
+  TeamMemberPage append(TeamMemberPage next) {
+    return TeamMemberPage(
+      records: [...records, ...next.records],
+      currentPage: next.currentPage,
+      total: next.total,
+      lastPage: next.lastPage,
+    );
+  }
 }
 
 class RebateInfo {

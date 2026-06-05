@@ -10,6 +10,11 @@ class LanguageStorage {
     return prefs.getString(AppLanguage.storageKey);
   }
 
+  Future<void> clearLegacyEasyLocalizationLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('locale');
+  }
+
   Future<void> write(String code) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(AppLanguage.storageKey, AppLanguage.normalize(code));

@@ -212,6 +212,18 @@
       "male": "男",
       "female": "女",
       "secret": "保密"
+    },
+    "redemption": {
+      "title": "兌換碼",
+      "placeholder": "請輸入兌換碼，支援貼上。",
+      "code": "請輸入兌換碼",
+      "paste": "貼上",
+      "submit": "立即兌換",
+      "records": "兌換記錄",
+      "empty": "暫無兌換記錄",
+      "needCode": "請輸入兌換碼",
+      "redeemSuccess": "兌換成功",
+      "redeemFailed": "兌換失敗"
     }
   },
   "activity": {
@@ -249,6 +261,7 @@
     "onlineNumbered": "線上客服{index}",
     "onlineSubtitle": "線上客服",
     "telegramSubtitle": "Telegram 客服",
+    "consult": "立即諮詢",
     "invalidLink": "客服連結無效",
     "externalPluginMissing": "外鏈元件未載入，請完整重啟應用後重試",
     "openFailed": "無法開啟客服連結",
@@ -261,7 +274,8 @@
     "todayDate": "今日",
     "betCount": "注單筆數",
     "totalProfitLoss": "總盈虧",
-    "unclaimedRebate": "未領返水",
+    "netProfit": "可領返水",
+    "unclaimedRebate": "可領佣金",
     "moreServices": "更多服務",
     "gameManagement": "遊戲管理",
     "fundManagement": "資金管理",
@@ -269,7 +283,32 @@
     "bankCard": "銀行卡",
     "share": "分享",
     "feedback": "意見反饋",
-    "comingSoon": "即將上線"
+    "comingSoon": "即將上線",
+    "dateMD": "{m}月{d}日"
+  },
+  "income": {
+    "title": "我的收入",
+    "rebateTitle": "可領返水",
+    "rebateHint": "查看投注返水比例",
+    "commissionTitle": "可領返傭",
+    "commissionHint": "投注返傭獎勵比例",
+    "claim": "領取",
+    "claimSuccess": "領取成功",
+    "claimFailed": "領取失敗",
+    "noClaimable": "暫無可領取",
+    "rebateRecord": "返水記錄",
+    "commissionRecord": "返傭記錄",
+    "myTeam": "我的團隊",
+    "view": "查看",
+    "rebateSettlement": "返水結算",
+    "commissionSettlement": "佣金結算",
+    "todayData": "今日資料",
+    "dayTotalRebate": "今日總反水",
+    "dayClaimedRebate": "今日已領取",
+    "dayUnclaimedRebate": "今日未領取",
+    "dayTotalCommission": "今日總返傭",
+    "dayClaimedCommission": "今日領取佣金",
+    "dayUnclaimedCommission": "今日未領取佣金"
   },
   "home": {
     "appTitle": "Flutter UI 應用",
@@ -675,6 +714,9 @@
       "finance": "存提款問題",
       "activity": "優惠活動問題",
       "accountSecurity": "帳號安全",
+      "punishment": "處罰問題",
+      "penalty": "處罰問題",
+      "violation": "違規申訴",
       "suggestion": "其他建議"
     },
     "status": {
@@ -908,12 +950,44 @@
       "unsettled": "未結算",
       "invalid": "無效注單",
       "refunded": "已退款"
-    }
+    },
+    "fyRecords": "返佣記錄",
+    "emptyFy": "暫無返佣記錄",
+    "totalFy": "總返佣",
+    "flowAmount": "流水金額",
+    "fyRate": "返佣比例",
+    "fyAmount": "返佣金額",
+    "claimFy": "領取返佣",
+    "noClaimable": "暫無可領取返水",
+    "noClaimableFy": "暫無可領取返佣",
+    "claimSuccess": "領取成功",
+    "claimFailed": "領取失敗"
   },
   "maintenance": {
     "title": "系統維護",
     "description": "平台正在維護中，請稍後再試。",
     "retry": "重新檢查",
     "backHome": "返回首頁"
+  },
+  "team": {
+    "title": "我的團隊",
+    "search": "查詢",
+    "searchPlaceholder": "請輸入會員帳號",
+    "empty": "暫無團隊成員",
+    "colName": "名稱",
+    "colBet": "個人流水"
+  },
+  "fyLevel": {
+    "title": "返佣等級",
+    "tabLottery": "彩票",
+    "tabGames": "電子",
+    "tabPoker": "棋牌",
+    "tabLive": "真人",
+    "tabSport": "體育",
+    "tabFishing": "捕魚",
+    "currentVip": "當前等級",
+    "colVip": "下級 VIP 等級",
+    "colRate": "您的返佣比例",
+    "empty": "暫無數據"
   }
 }

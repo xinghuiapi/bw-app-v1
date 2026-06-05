@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/app_colors.dart';
+import 'common/localized_text.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isPrimary;
   final double? width;
+  final bool isLoading;
 
   const CustomButton({
     super.key,
@@ -14,11 +16,12 @@ class CustomButton extends StatelessWidget {
     required this.onPressed,
     this.isPrimary = true,
     this.width,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final enabled = onPressed != null;
+    final enabled = onPressed != null && !isLoading;
     return Container(
       width: width ?? double.infinity,
       height: 48.h,
@@ -42,18 +45,29 @@ class CustomButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(24.r),
-          onTap: onPressed,
+          onTap: enabled ? onPressed : null,
           child: Center(
-            child: Text(
-              text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isPrimary ? Colors.white : AppColors.textPrimary,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-              ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 160),
+              child: isLoading
+                  ? SizedBox(
+                      key: const ValueKey('loading'),
+                      width: 20.w,
+                      height: 20.w,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: isPrimary ? Colors.white : AppColors.textPrimary,
+                      ),
+                    )
+                  : LocalizedOneLineText(
+                      key: const ValueKey('text'),
+                      text: text,
+                      style: TextStyle(
+                        color: isPrimary ? Colors.white : AppColors.textPrimary,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
             ),
           ),
         ),

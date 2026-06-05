@@ -26,8 +26,8 @@ class AppError extends StatelessWidget {
             SizedBox(height: 12.h),
             Text(
               message ?? 'common.loadFailedRetry'.tr(),
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
+              maxLines: 7,
+              overflow: TextOverflow.fade,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

@@ -47,7 +47,7 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F7FF),
-      appBar: CustomNavBar(title: _redemptionText('title', '兑换码')),
+      appBar: CustomNavBar(title: _redemptionText('title', 'Redemption Code')),
       body: RefreshIndicator(
         onRefresh: () =>
             context.read<UserProvider>().loadRedemptionRecords(refresh: true),
@@ -136,7 +136,7 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _redemptionText('title', '兑换码'),
+                      _redemptionText('title', 'Redemption Code'),
                       style: TextStyle(
                         fontSize: 22.sp,
                         color: Colors.white,
@@ -145,7 +145,10 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
                     ),
                     SizedBox(height: 6.h),
                     Text(
-                      _redemptionText('placeholder', '请输入兑换码，支持粘贴'),
+                      _redemptionText(
+                        'placeholder',
+                        'Enter redemption code. Paste is supported.',
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -188,7 +191,7 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
                   size: 18.sp, color: const Color(0xFF2563EB)),
               SizedBox(width: 8.w),
               Text(
-                _redemptionText('code', '请输入兑换码'),
+                _redemptionText('code', 'Enter redemption code'),
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w700,
@@ -218,7 +221,7 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
                           child: Padding(
                             padding: EdgeInsets.only(left: 14.w),
                             child: Text(
-                              _redemptionText('code', '请输入兑换码'),
+                              _redemptionText('code', 'Enter redemption code'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -274,7 +277,7 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
                                 size: 15.sp, color: const Color(0xFF2563EB)),
                             SizedBox(width: 4.w),
                             Text(
-                              _redemptionText('paste', '粘贴'),
+                              _redemptionText('paste', 'Paste'),
                               style: TextStyle(
                                 fontSize: 13.sp,
                                 color: const Color(0xFF2563EB),
@@ -319,11 +322,20 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
               ),
               child: ElevatedButton.icon(
                 onPressed: submitting ? null : _submit,
-                icon: Icon(Icons.redeem_outlined, size: 19.sp),
+                icon: submitting
+                    ? SizedBox(
+                        width: 18.w,
+                        height: 18.w,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Icon(Icons.redeem_outlined, size: 19.sp),
                 label: Text(
                   submitting
                       ? 'common.submitting'.tr()
-                      : _redemptionText('submit', '确认兑换'),
+                      : _redemptionText('submit', 'Redeem'),
                   style:
                       TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800),
                 ),
@@ -361,7 +373,7 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
-              _redemptionText('records', '兑换记录'),
+              _redemptionText('records', 'Redemption Records'),
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w800,
@@ -414,7 +426,7 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
           ),
           SizedBox(height: 12.h),
           Text(
-            _redemptionText('empty', '暂无兑换记录'),
+            _redemptionText('empty', 'No redemption records'),
             style: TextStyle(
               fontSize: 14.sp,
               color: const Color(0xFF64748B),
@@ -546,7 +558,7 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
   Future<void> _submit() async {
     final code = _controller.text.trim();
     if (code.isEmpty) {
-      _showSnack(_redemptionText('needCode', '请输入兑换码'));
+      _showSnack(_redemptionText('needCode', 'Enter redemption code'));
       return;
     }
     final provider = context.read<UserProvider>();
@@ -554,11 +566,13 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
       await provider.redeemCode(code);
       if (!mounted) return;
       _controller.clear();
-      _showSnack(_redemptionText('redeemSuccess', '兑换成功'));
+      _showSnack(_redemptionText('redeemSuccess', 'Redeemed successfully'));
     } catch (_) {
       if (!mounted) return;
       _showSnack(
-          provider.redemptionError ?? _redemptionText('redeemFailed', '兑换失败'));
+        provider.redemptionError ??
+            _redemptionText('redeemFailed', 'Redemption failed'),
+      );
     }
   }
 
@@ -569,7 +583,6 @@ class _RedemptionCodeScreenState extends State<RedemptionCodeScreen> {
 
   String _redemptionText(String key, String fallback) {
     final candidates = <String>[
-      if (key == 'title') 'page.redemptionCode',
       'user.redemption.$key',
       'user.redemption.toast.$key',
     ];

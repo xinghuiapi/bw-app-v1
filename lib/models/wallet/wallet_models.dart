@@ -442,6 +442,24 @@ class RechargeDetail {
     return value == null || value.isEmpty ? 'CNY' : value;
   }
 
+  String get payAddress {
+    for (final value in [params?.address, params?.account, params?.card]) {
+      final text = value?.trim();
+      if (text != null && text.isNotEmpty) return text;
+    }
+    return '';
+  }
+
+  bool get isCryptoRecharge {
+    return type == 3 || type == 5;
+  }
+
+  bool get isAlipayRecharge {
+    return type == 2;
+  }
+
+  bool get isBankRecharge => type == 4;
+
   RechargeDetail copyWith({int? status}) {
     return RechargeDetail(
       id: id,
@@ -531,7 +549,7 @@ class RechargeParams {
         code: jsonString(json['code']),
         name: jsonString(json['name']),
         account: jsonString(json['account']),
-        address: jsonString(json['address'] ?? json['addres']),
+        address: _firstText(json['address'], json['addres']),
         bankName: jsonString(json['bank_name']),
         bank: jsonString(json['bank']),
         card: jsonString(json['card']),
@@ -550,6 +568,14 @@ class RechargeParams {
         if (bank != null) 'bank': bank,
         if (card != null) 'card': card,
       };
+}
+
+String? _firstText(Object? first, Object? second) {
+  final firstText = jsonString(first)?.trim();
+  if (firstText != null && firstText.isNotEmpty) return firstText;
+  final secondText = jsonString(second)?.trim();
+  if (secondText != null && secondText.isNotEmpty) return secondText;
+  return firstText ?? secondText;
 }
 
 class WithdrawRequest {

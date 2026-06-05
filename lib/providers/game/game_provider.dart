@@ -18,11 +18,13 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
   bool isRecommendedLoading = false;
   bool hasRecommendedLoaded = false;
   String? recommendedError;
+  int _recommendedRequestSerial = 0;
 
   List<GameItem> hotGames = const [];
   bool isHotGamesLoading = false;
   bool hasHotGamesLoaded = false;
   String? hotGamesError;
+  int _hotGamesRequestSerial = 0;
 
   GameListPage subListPage = const GameListPage();
   bool isSubListLoading = false;
@@ -56,6 +58,11 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
   List<GameLobbyCategory> get categories => data ?? const [];
 
   void resetForLanguageChange() {
+    GameService.clearLanguageSensitiveMemoryCache();
+    _recommendedRequestSerial++;
+    _hotGamesRequestSerial++;
+    _subListRequestSerial++;
+    _searchRequestSerial++;
     data = const [];
     error = null;
     _loadingCodes.clear();
@@ -136,23 +143,30 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
 
     isRecommendedLoading = true;
     recommendedError = null;
+    final requestSerial = ++_recommendedRequestSerial;
     notifyListeners();
 
     try {
-      recommendedGames = await _service.fetchRecommendedGamesFromInterfaceList(
+      final games = await _service.fetchRecommendedGamesFromInterfaceList(
         refresh: refresh,
       );
+      if (requestSerial != _recommendedRequestSerial) return;
+      recommendedGames = games;
       hasRecommendedLoaded = true;
       recommendedError = null;
     } on ApiException catch (exception) {
+      if (requestSerial != _recommendedRequestSerial) return;
       recommendedError = exception.message;
       if (recommendedGames.isNotEmpty) hasRecommendedLoaded = true;
     } catch (exception) {
+      if (requestSerial != _recommendedRequestSerial) return;
       recommendedError = exception.toString();
       if (recommendedGames.isNotEmpty) hasRecommendedLoaded = true;
     } finally {
-      isRecommendedLoading = false;
-      notifyListeners();
+      if (requestSerial == _recommendedRequestSerial) {
+        isRecommendedLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -164,6 +178,7 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
 
     isHotGamesLoading = true;
     hotGamesError = null;
+    final requestSerial = ++_hotGamesRequestSerial;
     notifyListeners();
 
     try {
@@ -175,19 +190,24 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
         label: 'hot',
         refresh: refresh,
       );
+      if (requestSerial != _hotGamesRequestSerial) return;
       hotGames =
           page.data.where((item) => item.title?.isNotEmpty == true).toList();
       hasHotGamesLoaded = true;
       hotGamesError = null;
     } on ApiException catch (exception) {
+      if (requestSerial != _hotGamesRequestSerial) return;
       hotGamesError = exception.message;
       if (hotGames.isNotEmpty) hasHotGamesLoaded = true;
     } catch (exception) {
+      if (requestSerial != _hotGamesRequestSerial) return;
       hotGamesError = exception.toString();
       if (hotGames.isNotEmpty) hasHotGamesLoaded = true;
     } finally {
-      isHotGamesLoading = false;
-      notifyListeners();
+      if (requestSerial == _hotGamesRequestSerial) {
+        isHotGamesLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -257,13 +277,6 @@ class GameProvider extends BaseProvider<List<GameLobbyCategory>> {
       _loadingCodes.remove(normalizedCode);
       notifyListeners();
     }
-  }
-
-  void _setCategoryGames(String code, List<GameProviderItem> games) {
-    data = categories
-        .map((category) =>
-            category.code == code ? category.copyWith(games: games) : category)
-        .toList();
   }
 
   Future<void> loadGameSubList({

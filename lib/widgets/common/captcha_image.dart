@@ -16,7 +16,7 @@ class CaptchaImage extends StatelessWidget {
     final content = captcha?.imageContent;
     if (content == null || content.isEmpty) return _fallback();
 
-    if (content.startsWith('data:image/')) {
+    if (content.startsWith('http://') || content.startsWith('https://')) {
       return Image.network(
         content,
         fit: BoxFit.cover,

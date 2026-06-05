@@ -12,6 +12,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/game/game_provider.dart';
 import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/game_launch_error.dart';
 import '../../widgets/common/app_network_image.dart';
 import '../../widgets/common/back_hit_target.dart';
 import '../../widgets/search_input.dart';
@@ -236,7 +237,8 @@ class _SearchPanelState extends State<SearchPanel>
         indicatorSize: TabBarIndicatorSize.label,
         indicatorWeight: 3.h,
         dividerColor: Colors.transparent,
-        tabAlignment: TabAlignment.fill,
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
         onTap: (_) => _runActiveTabQuery(),
         tabs: [
           Tab(text: 'game.all'.tr()),
@@ -443,8 +445,15 @@ class _SearchPanelState extends State<SearchPanel>
       if (!mounted) return;
       final urlText = result.url?.trim();
       if (urlText == null || urlText.isEmpty) {
-        messenger
-            .showSnackBar(SnackBar(content: Text('game.enterFailed'.tr())));
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              result.message?.trim().isNotEmpty == true
+                  ? result.message!.trim()
+                  : 'game.enterFailed'.tr(),
+            ),
+          ),
+        );
         return;
       }
       if (UrlPolicy.gameUri(urlText) == null) {
@@ -467,14 +476,11 @@ class _SearchPanelState extends State<SearchPanel>
         'url': urlText,
         'title': game.title ?? '',
       });
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
-      final message = context.read<GameProvider>().launchError;
       messenger.showSnackBar(
         SnackBar(
-          content: Text(message?.trim().isNotEmpty == true
-              ? message!
-              : 'game.enterFailed'.tr()),
+          content: Text(gameLaunchErrorText(error, 'game.enterFailed')),
         ),
       );
     }
@@ -572,8 +578,8 @@ class _GameCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          width: 22.w,
-                          height: 22.w,
+                          width: 24.w,
+                          height: 24.w,
                           child: const CircularProgressIndicator(
                             color: Colors.white,
                             strokeWidth: 2,
@@ -584,11 +590,27 @@ class _GameCard extends StatelessWidget {
                           'game.launching'.tr(),
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 11.sp,
+                            fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                if (game.isMaintaining)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'game.maintaining'.tr(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
               ],

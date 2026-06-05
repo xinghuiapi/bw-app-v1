@@ -212,6 +212,18 @@
       "male": "Nam",
       "female": "Nữ",
       "secret": "Riêng tư"
+    },
+    "redemption": {
+      "title": "Mã đổi thưởng",
+      "placeholder": "Nhập mã đổi thưởng. Có thể dán mã.",
+      "code": "Nhập mã đổi thưởng",
+      "paste": "Dán",
+      "submit": "Đổi thưởng",
+      "records": "Lịch sử đổi thưởng",
+      "empty": "Chưa có lịch sử đổi thưởng",
+      "needCode": "Nhập mã đổi thưởng",
+      "redeemSuccess": "Đổi thưởng thành công",
+      "redeemFailed": "Đổi thưởng thất bại"
     }
   },
   "activity": {
@@ -249,6 +261,7 @@
     "onlineNumbered": "Hỗ trợ trực tuyến {index}",
     "onlineSubtitle": "HỖ TRỢ TRỰC TUYẾN",
     "telegramSubtitle": "HỖ TRỢ TELEGRAM",
+    "consult": "Tư vấn ngay",
     "invalidLink": "Liên kết hỗ trợ không hợp lệ",
     "externalPluginMissing": "Plugin liên kết ngoài chưa được tải. Vui lòng khởi động lại ứng dụng rồi thử lại.",
     "openFailed": "Không thể mở liên kết hỗ trợ",
@@ -261,7 +274,8 @@
     "todayDate": "Hôm nay",
     "betCount": "Số cược",
     "totalProfitLoss": "Tổng lãi/lỗ",
-    "unclaimedRebate": "Hoàn trả chưa nhận",
+    "netProfit": "Hoàn trả có thể nhận",
+    "unclaimedRebate": "Hoa hồng có thể nhận",
     "moreServices": "Dịch vụ khác",
     "gameManagement": "Quản lý game",
     "fundManagement": "Quản lý quỹ",
@@ -269,7 +283,32 @@
     "bankCard": "Thẻ ngân hàng",
     "share": "Chia sẻ",
     "feedback": "Góp ý",
-    "comingSoon": "Sắp ra mắt"
+    "comingSoon": "Sắp ra mắt",
+    "dateMD": "{m}/{d}"
+  },
+  "income": {
+    "title": "Thu nhập của tôi",
+    "rebateTitle": "Hoàn trả có thể nhận",
+    "rebateHint": "Xem tỷ lệ hoàn trả cược",
+    "commissionTitle": "Hoa hồng có thể nhận",
+    "commissionHint": "Tỷ lệ thưởng hoa hồng cược",
+    "claim": "Nhận",
+    "claimSuccess": "Nhận thành công",
+    "claimFailed": "Nhận thất bại",
+    "noClaimable": "Không có số tiền có thể nhận",
+    "rebateRecord": "Lịch sử hoàn trả",
+    "commissionRecord": "Lịch sử hoa hồng",
+    "myTeam": "Đội của tôi",
+    "view": "Xem",
+    "rebateSettlement": "Quyết toán hoàn trả",
+    "commissionSettlement": "Quyết toán hoa hồng",
+    "todayData": "Dữ liệu hôm nay",
+    "dayTotalRebate": "Tổng hoàn trả hôm nay",
+    "dayClaimedRebate": "Hoàn trả đã nhận hôm nay",
+    "dayUnclaimedRebate": "Hoàn trả chưa nhận hôm nay",
+    "dayTotalCommission": "Tổng hoa hồng hôm nay",
+    "dayClaimedCommission": "Hoa hồng đã nhận hôm nay",
+    "dayUnclaimedCommission": "Hoa hồng chưa nhận hôm nay"
   },
   "home": {
     "appTitle": "Ứng dụng Flutter UI",
@@ -675,6 +714,9 @@
       "finance": "Vấn đề nạp/rút",
       "activity": "Vấn đề khuyến mãi",
       "accountSecurity": "Bảo mật tài khoản",
+      "punishment": "Vấn đề xử phạt",
+      "penalty": "Vấn đề xử phạt",
+      "violation": "Khiếu nại vi phạm",
       "suggestion": "Góp ý khác"
     },
     "status": {
@@ -908,12 +950,44 @@
       "unsettled": "Chưa kết toán",
       "invalid": "Cược không hợp lệ",
       "refunded": "Đã hoàn tiền"
-    }
+    },
+    "fyRecords": "Lịch sử hoa hồng",
+    "emptyFy": "Không có lịch sử hoa hồng",
+    "totalFy": "Tổng hoa hồng",
+    "flowAmount": "Doanh thu cược",
+    "fyRate": "Tỷ lệ hoa hồng",
+    "fyAmount": "Hoa hồng",
+    "claimFy": "Nhận hoa hồng",
+    "noClaimable": "Không có hoàn trả để nhận",
+    "noClaimableFy": "Không có hoa hồng để nhận",
+    "claimSuccess": "Nhận thành công",
+    "claimFailed": "Nhận thất bại"
   },
   "maintenance": {
     "title": "Bảo trì hệ thống",
     "description": "Nền tảng đang bảo trì. Vui lòng thử lại sau.",
     "retry": "Kiểm tra lại",
     "backHome": "Về trang chủ"
+  },
+  "team": {
+    "title": "Đội của tôi",
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Nhập tài khoản thành viên",
+    "empty": "Không có thành viên đội",
+    "colName": "Tên",
+    "colBet": "Doanh số cá nhân"
+  },
+  "fyLevel": {
+    "title": "Cấp hoa hồng",
+    "tabLottery": "Xổ số",
+    "tabGames": "Slot",
+    "tabPoker": "Cờ bài",
+    "tabLive": "Live",
+    "tabSport": "Thể thao",
+    "tabFishing": "Bắn cá",
+    "currentVip": "Cấp hiện tại",
+    "colVip": "Cấp VIP cấp dưới",
+    "colRate": "Tỷ lệ hoa hồng của bạn",
+    "empty": "Không có dữ liệu"
   }
 }

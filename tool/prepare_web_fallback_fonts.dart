@@ -8,6 +8,7 @@ void main() {
   );
   final sourceFont =
       File('${project.path}/assets/fonts/NotoSansSC-Variable.ttf');
+  final myanmarFont = File('/System/Library/Fonts/NotoSansMyanmar.ttc');
   final targetRoot = Directory('${project.path}/web/assets/fallback_fonts');
 
   if (!dataFile.existsSync()) {
@@ -26,17 +27,33 @@ void main() {
       .allMatches(data)
       .map((match) => match.group(1)!)
       .where((path) =>
-          path.startsWith('notosanssc/') || path.startsWith('notocoloremoji/'))
+          path.startsWith('notosanssc/') ||
+          path.startsWith('notosansmyanmar/') ||
+          path.startsWith('notocoloremoji/'))
       .toSet();
 
   for (final path in paths) {
+    final source =
+        path.startsWith('notosansmyanmar/') && myanmarFont.existsSync()
+            ? myanmarFont
+            : sourceFont;
     final target = File('${targetRoot.path}/$path');
     target.parent.createSync(recursive: true);
-    if (target.existsSync()) continue;
+    final targetType = FileSystemEntity.typeSync(
+      target.path,
+      followLinks: false,
+    );
+    if (targetType == FileSystemEntityType.link) {
+      final targetLink = Link(target.path);
+      if (targetLink.targetSync() == source.path) continue;
+      targetLink.deleteSync();
+    } else if (target.existsSync()) {
+      continue;
+    }
     try {
-      Link(target.path).createSync(sourceFont.path, recursive: true);
+      Link(target.path).createSync(source.path, recursive: true);
     } on FileSystemException {
-      sourceFont.copySync(target.path);
+      source.copySync(target.path);
     }
   }
 

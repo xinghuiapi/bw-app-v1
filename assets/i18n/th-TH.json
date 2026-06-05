@@ -212,6 +212,18 @@
       "male": "ชาย",
       "female": "หญิง",
       "secret": "ไม่เปิดเผย"
+    },
+    "redemption": {
+      "title": "รหัสแลกรางวัล",
+      "placeholder": "กรอกรหัสแลกรางวัล รองรับการวาง",
+      "code": "กรอกรหัสแลกรางวัล",
+      "paste": "วาง",
+      "submit": "แลกรางวัล",
+      "records": "ประวัติการแลก",
+      "empty": "ไม่มีประวัติการแลก",
+      "needCode": "กรอกรหัสแลกรางวัล",
+      "redeemSuccess": "แลกสำเร็จ",
+      "redeemFailed": "แลกไม่สำเร็จ"
     }
   },
   "activity": {
@@ -249,6 +261,7 @@
     "onlineNumbered": "บริการออนไลน์ {index}",
     "onlineSubtitle": "บริการลูกค้าออนไลน์",
     "telegramSubtitle": "บริการลูกค้า Telegram",
+    "consult": "ปรึกษาตอนนี้",
     "invalidLink": "ลิงก์บริการไม่ถูกต้อง",
     "externalPluginMissing": "ปลั๊กอินลิงก์ภายนอกยังไม่โหลด โปรดรีสตาร์ทแอปแล้วลองอีกครั้ง",
     "openFailed": "ไม่สามารถเปิดลิงก์บริการได้",
@@ -261,7 +274,8 @@
     "todayDate": "วันนี้",
     "betCount": "จำนวนเดิมพัน",
     "totalProfitLoss": "กำไร/ขาดทุนรวม",
-    "unclaimedRebate": "รีเบตที่ยังไม่รับ",
+    "netProfit": "รีเบตที่รับได้",
+    "unclaimedRebate": "ค่าคอมมิชชั่นที่รับได้",
     "moreServices": "บริการเพิ่มเติม",
     "gameManagement": "จัดการเกม",
     "fundManagement": "จัดการเงิน",
@@ -269,7 +283,32 @@
     "bankCard": "บัตรธนาคาร",
     "share": "แชร์",
     "feedback": "ข้อเสนอแนะ",
-    "comingSoon": "เร็วๆ นี้"
+    "comingSoon": "เร็วๆ นี้",
+    "dateMD": "{m}/{d}"
+  },
+  "income": {
+    "title": "รายได้ของฉัน",
+    "rebateTitle": "รีเบตที่รับได้",
+    "rebateHint": "ดูอัตรารีเบตเดิมพัน",
+    "commissionTitle": "ค่าคอมมิชชั่นที่รับได้",
+    "commissionHint": "อัตรารางวัลค่าคอมมิชชั่นเดิมพัน",
+    "claim": "รับ",
+    "claimSuccess": "รับสำเร็จ",
+    "claimFailed": "รับไม่สำเร็จ",
+    "noClaimable": "ไม่มีจำนวนเงินที่รับได้",
+    "rebateRecord": "ประวัติรีเบต",
+    "commissionRecord": "ประวัติค่าคอมมิชชั่น",
+    "myTeam": "ทีมของฉัน",
+    "view": "ดู",
+    "rebateSettlement": "สรุปรีเบต",
+    "commissionSettlement": "สรุปค่าคอมมิชชั่น",
+    "todayData": "ข้อมูลวันนี้",
+    "dayTotalRebate": "รีเบตรวมวันนี้",
+    "dayClaimedRebate": "รีเบตที่รับแล้ววันนี้",
+    "dayUnclaimedRebate": "รีเบตที่ยังไม่ได้รับวันนี้",
+    "dayTotalCommission": "ค่าคอมมิชชั่นรวมวันนี้",
+    "dayClaimedCommission": "ค่าคอมมิชชั่นที่รับแล้ววันนี้",
+    "dayUnclaimedCommission": "ค่าคอมมิชชั่นที่ยังไม่ได้รับวันนี้"
   },
   "home": {
     "appTitle": "แอป Flutter UI",
@@ -675,6 +714,9 @@
       "finance": "ปัญหาฝาก/ถอน",
       "activity": "ปัญหาโปรโมชัน",
       "accountSecurity": "ความปลอดภัยบัญชี",
+      "punishment": "ปัญหาการลงโทษ",
+      "penalty": "ปัญหาการลงโทษ",
+      "violation": "อุทธรณ์การละเมิด",
       "suggestion": "ข้อเสนอแนะอื่น ๆ"
     },
     "status": {
@@ -908,12 +950,44 @@
       "unsettled": "ยังไม่ชำระ",
       "invalid": "บิลเดิมพันไม่ถูกต้อง",
       "refunded": "คืนเงินแล้ว"
-    }
+    },
+    "fyRecords": "บันทึกคอมมิชชั่น",
+    "emptyFy": "ไม่มีบันทึกคอมมิชชั่น",
+    "totalFy": "คอมมิชชั่นรวม",
+    "flowAmount": "ยอดหมุนเวียน",
+    "fyRate": "อัตราคอมมิชชั่น",
+    "fyAmount": "คอมมิชชั่น",
+    "claimFy": "รับคอมมิชชั่น",
+    "noClaimable": "ไม่มีรีเบตรับได้",
+    "noClaimableFy": "ไม่มีคอมมิชชั่นรับได้",
+    "claimSuccess": "รับสำเร็จ",
+    "claimFailed": "รับไม่สำเร็จ"
   },
   "maintenance": {
     "title": "ปิดปรับปรุงระบบ",
     "description": "แพลตฟอร์มกำลังปิดปรับปรุง โปรดลองอีกครั้งภายหลัง",
     "retry": "ตรวจสอบอีกครั้ง",
     "backHome": "กลับหน้าแรก"
+  },
+  "team": {
+    "title": "ทีมของฉัน",
+    "search": "ค้นหา",
+    "searchPlaceholder": "ป้อนบัญชีสมาชิก",
+    "empty": "ไม่มีสมาชิกทีม",
+    "colName": "ชื่อ",
+    "colBet": "ยอดหมุนเวียนส่วนตัว"
+  },
+  "fyLevel": {
+    "title": "ระดับคอมมิชชั่น",
+    "tabLottery": "หวย",
+    "tabGames": "สล็อต",
+    "tabPoker": "หมากรุก",
+    "tabLive": "สด",
+    "tabSport": "กีฬา",
+    "tabFishing": "ตกปลา",
+    "currentVip": "ระดับปัจจุบัน",
+    "colVip": "ระดับ VIP ลูกทีม",
+    "colRate": "อัตราคอมมิชชั่นของคุณ",
+    "empty": "ไม่มีข้อมูล"
   }
 }

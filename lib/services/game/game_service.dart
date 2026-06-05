@@ -26,6 +26,10 @@ class GameService extends BaseService {
   final LanguageStorage _languageStorage = const LanguageStorage();
   final TokenStorage _tokenStorage = TokenStorage();
 
+  static void clearLanguageSensitiveMemoryCache() {
+    _memoryCache.clear();
+  }
+
   Future<List<GameLobbyCategory>> fetchInterfaceClasses({
     bool refresh = false,
   }) async {
@@ -189,13 +193,72 @@ class GameService extends BaseService {
     return client.post<GameLaunchResult>(
       ApiEndpoints.gameLogin,
       data: <String, dynamic>{'id': id, 'mobile': 1},
+      decodeFullResponse: true,
       decoder: (json) {
-        if (json is Map) {
-          return GameLaunchResult.fromJson(Map<String, dynamic>.from(json));
+        final map = _responseMap(json);
+        if (map != null) {
+          final code = int.tryParse(map['code']?.toString() ?? '');
+          final message = _responseMessage(map);
+          if (code != null && code != 200) {
+            throw ApiException(
+              type: ApiExceptionType.business,
+              message: message.isNotEmpty ? message : 'Business error',
+              businessCode: code,
+            );
+          }
+          final payload = map['data'];
+          final result = payload is Map
+              ? GameLaunchResult.fromJson({
+                  ...Map<String, dynamic>.from(payload),
+                  'msg': message,
+                })
+              : GameLaunchResult.fromJson({
+                  ...map,
+                  'msg': message,
+                });
+          return result;
         }
         return const GameLaunchResult();
       },
     );
+  }
+
+  Map<String, dynamic>? _responseMap(Object? value) {
+    if (value is Map) {
+      final map = Map<String, dynamic>.from(value);
+      if (_hasResponseStatus(map)) return map;
+      final data = map['data'];
+      final nested = _responseMap(data);
+      return nested ?? map;
+    }
+    if (value is String) {
+      final text = value.trim();
+      if (text.isEmpty) return null;
+      try {
+        return _responseMap(jsonDecode(text));
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  bool _hasResponseStatus(Map<String, dynamic> map) {
+    return map.containsKey('code') ||
+        map.containsKey('msg') ||
+        map.containsKey('message') ||
+        map.containsKey('url') ||
+        map.containsKey('game_url');
+  }
+
+  String _responseMessage(Map<String, dynamic> map) {
+    final direct = (map['msg'] ?? map['message'])?.toString().trim() ?? '';
+    if (direct.isNotEmpty) return direct;
+    final data = map['data'];
+    if (data is Map) {
+      return (data['msg'] ?? data['message'])?.toString().trim() ?? '';
+    }
+    return '';
   }
 
   Future<void> _refreshInterfaceClasses(String cacheKey) async {

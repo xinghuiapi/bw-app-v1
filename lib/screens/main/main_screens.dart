@@ -4,17 +4,28 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/activity/activity_models.dart';
 import '../../models/home/home_models.dart';
 import '../../models/user/user_models.dart';
 import '../../providers/providers.dart';
-import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/app_network_image.dart';
 import '../../widgets/custom_nav_bar.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/search_panel_overlay.dart';
+import '../../utils/site_display.dart';
+
+typedef ServiceExternalOpener = Future<bool> Function(String url);
+
+Future<bool> defaultServiceExternalOpener(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null || !uri.hasScheme) return Future.value(false);
+  return launchUrl(uri, mode: LaunchMode.externalApplication);
+}
+
+ServiceExternalOpener serviceExternalOpener = defaultServiceExternalOpener;
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
@@ -146,7 +157,7 @@ class _ActivityHeader extends StatelessWidget {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  _siteText(site?.domain, fallback: 'xh-bet.com'),
+                  siteDomainDisplayText(site?.domain),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -617,6 +628,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                             text: activityProvider.isApplying
                                 ? 'activity.applying'.tr()
                                 : 'activity.apply'.tr(),
+                            isLoading: activityProvider.isApplying,
                             onPressed: activityProvider.isApplying
                                 ? null
                                 : () => _applyActivity(context, activity),
@@ -844,9 +856,8 @@ class ServiceScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final systemProvider = context.watch<SystemProvider>();
     final userProvider = context.watch<UserProvider>();
-    final site = systemProvider.config.siteConfig;
     final profile = userProvider.profile;
-    final cards = _supportCards(site);
+    final cards = _supportCards(systemProvider.config.customerServiceItems);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -877,23 +888,14 @@ class ServiceScreen extends StatelessWidget {
                 ),
               )
             else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: cards.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12.h,
-                  crossAxisSpacing: 12.w,
-                  childAspectRatio: 1.72,
-                ),
-                itemBuilder: (context, index) {
-                  final card = cards[index];
-                  return _ServiceSupportCard(
-                    card: card,
-                    onTap: () => _openService(context, card.url),
-                  );
-                },
+              Column(
+                children: [
+                  for (final card in cards)
+                    _ServiceSupportCard(
+                      card: card,
+                      onTap: () => _openService(context, card.url),
+                    ),
+                ],
               ),
           ],
         ),
@@ -901,47 +903,18 @@ class ServiceScreen extends StatelessWidget {
     );
   }
 
-  List<_ServiceCardData> _supportCards(SiteConfig? site) {
-    final serviceLinks = _parseServiceLinks(site?.serviceLink);
-    final tgLinks = _parseServiceLinks(site?.tgLink);
+  List<_ServiceCardData> _supportCards(List<CustomerServiceItem> items) {
     return [
-      for (var i = 0; i < serviceLinks.length; i++)
+      for (var i = 0; i < items.length; i++)
         _ServiceCardData(
-          kind: _ServiceCardKind.service,
-          titleCn: serviceLinks.length > 1
+          titlePrimary: items.length > 1
               ? 'service.onlineNumbered'.tr(namedArgs: {'index': '${i + 1}'})
               : 'service.online'.tr(),
-          titleEn: 'service.onlineSubtitle'.tr(),
-          url: serviceLinks[i],
-        ),
-      for (var i = 0; i < tgLinks.length; i++)
-        _ServiceCardData(
-          kind: _ServiceCardKind.telegram,
-          titleCn: tgLinks.length > 1 ? 'Telegram${i + 1}' : 'Telegram',
-          titleEn: 'service.telegramSubtitle'.tr(),
-          url: tgLinks[i],
+          actionText: 'service.consult'.tr(),
+          url: items[i].link,
+          icon: items[i].icon,
         ),
     ];
-  }
-
-  List<String> _parseServiceLinks(dynamic raw) {
-    if (raw == null) return const [];
-    if (raw is List) {
-      return raw.map(_normalizeUrl).where((url) => url.isNotEmpty).toList();
-    }
-    final value = raw.toString().replaceAll('`', '').trim();
-    if (value.isEmpty) return const [];
-
-    var normalized = value;
-    if (normalized.startsWith('[') && normalized.endsWith(']')) {
-      normalized = normalized.substring(1, normalized.length - 1);
-    }
-
-    return normalized
-        .split(RegExp(r'[\n,，\s]+'))
-        .map(_normalizeUrl)
-        .where((url) => url.isNotEmpty)
-        .toList();
   }
 
   String _normalizeUrl(dynamic raw) {
@@ -960,19 +933,9 @@ class ServiceScreen extends StatelessWidget {
       return;
     }
 
-    if (UrlPolicy.externalUri(value, type: ExternalUrlType.service) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('service.invalidLink'.tr())),
-      );
-      return;
-    }
-
     bool opened = false;
     try {
-      opened = await UrlPolicy.launchExternal(
-        value,
-        type: ExternalUrlType.service,
-      );
+      opened = await serviceExternalOpener(value);
     } on MissingPluginException {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1087,20 +1050,18 @@ class _ServiceAvatar extends StatelessWidget {
   }
 }
 
-enum _ServiceCardKind { service, telegram }
-
 class _ServiceCardData {
   const _ServiceCardData({
-    required this.kind,
-    required this.titleCn,
-    required this.titleEn,
+    required this.titlePrimary,
+    required this.actionText,
     required this.url,
+    required this.icon,
   });
 
-  final _ServiceCardKind kind;
-  final String titleCn;
-  final String titleEn;
+  final String titlePrimary;
+  final String actionText;
   final String url;
+  final String icon;
 }
 
 class _ServiceSupportCard extends StatelessWidget {
@@ -1111,45 +1072,54 @@ class _ServiceSupportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isTelegram = card.kind == _ServiceCardKind.telegram;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(16.w),
+        margin: EdgeInsets.only(bottom: 12.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16.r),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isTelegram
-                ? const [Color(0xFF4FD1C5), Color(0xFF2F90FF)]
-                : const [Color(0xFF7AA2FF), Color(0xFF5B7BFF)],
-          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
-            Text(
-              card.titleCn,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: 0.5,
+            if (card.icon.isNotEmpty)
+              AppNetworkImage(
+                url: card.icon,
+                width: 32.w,
+                height: 32.w,
+                borderRadius: BorderRadius.circular(16.r),
+              )
+            else
+              Container(
+                width: 32.w,
+                height: 32.w,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF1FF),
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+              ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                card.titlePrimary,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
-            SizedBox(height: 6.h),
+            SizedBox(width: 12.w),
             Text(
-              card.titleEn,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              card.actionText,
               style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
               ),
             ),
           ],

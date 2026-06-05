@@ -3,17 +3,22 @@ import 'package:flutter/widgets.dart';
 
 import '../../localization/app_language.dart';
 import '../../localization/language_storage.dart';
-import '../../models/home/home_models.dart';
 
 class LanguageProvider extends ChangeNotifier {
-  LanguageProvider({LanguageStorage storage = const LanguageStorage()})
-      : _storage = storage;
+  LanguageProvider({
+    LanguageStorage storage = const LanguageStorage(),
+    String? initialCode,
+  })  : _storage = storage,
+        _currentCode = AppLanguage.normalize(initialCode),
+        _initialized = initialCode != null && initialCode.trim().isNotEmpty,
+        _hasStoredLanguage =
+            initialCode != null && initialCode.trim().isNotEmpty;
 
   final LanguageStorage _storage;
 
-  String _currentCode = AppLanguage.fallbackCode;
-  bool _initialized = false;
-  bool _hasStoredLanguage = false;
+  String _currentCode;
+  bool _initialized;
+  bool _hasStoredLanguage;
 
   String get currentCode => _currentCode;
   bool get initialized => _initialized;
@@ -27,30 +32,12 @@ class LanguageProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> applyBackendDefault(List<LanguageConfig> languages) async {
-    if (_hasStoredLanguage || languages.isEmpty) return false;
-    final defaultLanguage = languages.firstWhere(
-      (item) => item.requiredStatus == 1 && (item.code ?? '').trim().isNotEmpty,
-      orElse: () => languages.first,
-    );
-    final code = AppLanguage.normalize(defaultLanguage.code);
-    if (code == _currentCode) {
-      await _storage.write(code);
-      _hasStoredLanguage = true;
-      return false;
-    }
-    await setCode(code);
-    return true;
-  }
-
   Future<void> changeLanguage(BuildContext context, String code) async {
     final next = AppLanguage.normalize(code);
-    if (next != _currentCode) {
-      await setCode(next);
-    }
     if (context.mounted) {
       await context.setLocale(AppLanguage.toLocale(next));
     }
+    await setCode(next);
   }
 
   Future<void> setCode(String code) async {

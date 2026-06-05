@@ -59,7 +59,7 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
               SizedBox(height: 32.h),
               if (isSet) ...[
                 Text(
-                  _securityText('oldFundPassword', '旧取款密码'),
+                  _securityText('oldFundPassword', 'Old withdrawal password'),
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: AppColors.textPrimary,
@@ -68,7 +68,10 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
                 ),
                 SizedBox(height: 8.h),
                 CustomTextField(
-                  hintText: _securityText('enterOldFundPassword', '请输入旧取款密码'),
+                  hintText: _securityText(
+                    'enterOldFundPassword',
+                    'Enter old withdrawal password',
+                  ),
                   controller: _oldPasswordController,
                   keyboardType: TextInputType.number,
                   obscureText: true,
@@ -111,7 +114,8 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
                 text: isSubmitting
                     ? 'common.submitting'.tr()
                     : 'common.confirmSubmit'.tr(),
-                onPressed: _submit,
+                isLoading: isSubmitting,
+                onPressed: isSubmitting ? null : _submit,
               ),
             ],
           ),
@@ -127,7 +131,12 @@ class _WithdrawPasswordScreenState extends State<WithdrawPasswordScreen> {
     final password = _passwordController.text.trim();
     final confirm = _confirmController.text.trim();
     if (isSet && !RegExp(r'^\d{6}$').hasMatch(oldPassword)) {
-      _showMessage(_securityText('enterOldFundPassword', '请输入旧取款密码'));
+      _showMessage(
+        _securityText(
+          'enterOldFundPassword',
+          'Enter old withdrawal password',
+        ),
+      );
       return;
     }
     if (!RegExp(r'^\d{6}$').hasMatch(password)) {

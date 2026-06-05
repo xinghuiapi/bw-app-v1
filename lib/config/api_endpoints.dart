@@ -58,6 +58,10 @@ class ApiEndpoints {
   static const gameRecordList = '/gamerecord/getlist';
   static const memberFsLogList = '/member_fs_log/getlist';
   static const memberFsLogClaim = '/member_fs_log/claim';
+  static const fyList = '/fy/getlist';
+  static const fyLevel = '/fy/level';
+  static const fyClaim = '/fy/claim';
+  static const teamList = '/team/getlist';
   static const retabeList = '/retabe/list';
   static const retabeAmount = '/retabe/amount';
   static const redemptionCode = '/redemption/code';

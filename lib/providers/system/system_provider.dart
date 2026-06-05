@@ -15,10 +15,13 @@ class SystemProvider extends BaseProvider<HomeConfig> {
   final SystemConfigCache _cache;
 
   bool _initialized = false;
+  bool _hasRemoteConfig = false;
+  int _configRequestSerial = 0;
   String Function() _languageGetter = () => AppLanguage.fallbackCode;
 
   HomeConfig get config => data ?? const HomeConfig();
   bool get hasLoadedConfig => data != null;
+  bool get hasRemoteConfig => _hasRemoteConfig;
 
   void bindClient(DioClient client) {
     _service = SystemService(client);
@@ -28,8 +31,20 @@ class SystemProvider extends BaseProvider<HomeConfig> {
     _languageGetter = languageGetter;
   }
 
+  void resetForLanguageChange() {
+    _configRequestSerial++;
+    data = null;
+    error = null;
+    isLoading = false;
+    isRefreshing = false;
+    _initialized = false;
+    _hasRemoteConfig = false;
+    notifyListeners();
+  }
+
   Future<void> loadConfig({bool refresh = false}) async {
     if (isLoading || (!refresh && _initialized)) return;
+    final requestSerial = ++_configRequestSerial;
 
     if (!refresh && data == null) {
       await _loadCachedConfig();
@@ -41,7 +56,9 @@ class SystemProvider extends BaseProvider<HomeConfig> {
 
     try {
       final config = await _service.fetchConfig();
+      if (requestSerial != _configRequestSerial) return;
       _initialized = true;
+      _hasRemoteConfig = true;
       data = config;
       await _cache.write(
         config,
@@ -50,15 +67,19 @@ class SystemProvider extends BaseProvider<HomeConfig> {
       );
       error = null;
     } on ApiException catch (exception) {
+      if (requestSerial != _configRequestSerial) return;
       _initialized = true;
       error = exception.message;
     } catch (exception) {
+      if (requestSerial != _configRequestSerial) return;
       _initialized = true;
       error = exception.toString();
     } finally {
-      isLoading = false;
-      isRefreshing = false;
-      notifyListeners();
+      if (requestSerial == _configRequestSerial) {
+        isLoading = false;
+        isRefreshing = false;
+        notifyListeners();
+      }
     }
   }
 

@@ -11,6 +11,8 @@ import '../../providers/system/system_provider.dart';
 import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_images.dart';
+import '../../utils/game_launch_error.dart';
+import '../../utils/site_display.dart';
 import '../../widgets/common/app_network_image.dart';
 import '../../widgets/common/retry_empty_state.dart';
 import '../../widgets/search_panel_overlay.dart';
@@ -206,7 +208,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               scale: 0.9,
               alignment: Alignment.centerLeft,
               child: Text(
-                _siteText(siteConfig?.domain, fallback: 'xh-bet.com'),
+                siteDomainDisplayText(siteConfig?.domain),
                 style: TextStyle(
                   fontSize: 11.sp,
                   color: const Color(0xFF333333),
@@ -396,7 +398,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       final urlText = result.url?.trim();
       if (urlText == null || urlText.isEmpty) {
         messenger.showSnackBar(
-          SnackBar(content: Text('game.enterFailed'.tr())),
+          SnackBar(
+            content: Text(
+              result.message?.trim().isNotEmpty == true
+                  ? result.message!.trim()
+                  : 'game.enterFailed'.tr(),
+            ),
+          ),
         );
         return;
       }
@@ -424,12 +432,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       });
     } catch (error) {
       if (!mounted) return;
-      final message = context.read<GameProvider>().launchError;
       messenger.showSnackBar(
         SnackBar(
-            content: Text(message?.trim().isNotEmpty == true
-                ? message!
-                : 'game.enterFailed'.tr())),
+          content: Text(gameLaunchErrorText(error, 'game.enterFailed')),
+        ),
       );
     }
   }

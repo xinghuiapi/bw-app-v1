@@ -23,8 +23,8 @@ class AppLoading extends StatelessWidget {
             SizedBox(height: 12.h),
             Text(
               message!,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
+              maxLines: 4,
+              overflow: TextOverflow.fade,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,

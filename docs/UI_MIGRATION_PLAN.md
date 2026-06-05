@@ -1,8 +1,8 @@
 # UI 转化进度与详细计划 (UI Migration Plan)
 
 > **目标项目**: `flutter_ui_project`
-> **UI 与页面对接逻辑参考**: `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` (Vue3 + Vant 移动端架构)
-> **m1 术语约定**: 本项目所有“m1”“m1 项目”或“517 参考项目”均固定指向 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1`，不得使用 517 的 m2/m3/m4、旧 `bw-v3-504`、旧 Flutter 项目或其他相似目录替代。
+> **UI 与页面对接逻辑参考**: `/Users/john/Documents/trae_projects/bw-6-2/src/projects/m1` (Vue3 + Vant 移动端架构)
+> **m1 术语约定**: 本项目所有“m1”“m1 项目”或“bw-6-2 参考项目”均固定指向 `/Users/john/Documents/trae_projects/bw-6-2/src/projects/m1`，不得使用 bw-6-2 的其他子项目、旧 Flutter 项目或其他相似目录替代。
 > **Flutter 工程能力参考**: `/Users/john/Documents/trae_projects/flutter-v1` (旧 Flutter 项目，仅参考工程经验，不参考页面对接逻辑)
 > **当前总体进度**: ~98% (核心业务页面已完成，仅剩极少数边缘占位页待完善)
 
@@ -68,8 +68,8 @@
 - [ ] `MaintenanceScreen` (对应 `Maintenance.vue`): 系统维护拦截页。
 
 #### 3.2.1 游戏一级分类图片布局标准
-- 参考文件仅限 517 m1：`/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1/views/main/Game.vue`。
-- 一级分类游戏列表对应 517 m1 的 `.provider-grid`、`.provider-card`、`.provider-cover`、`.provider-title`。
+- 参考文件仅限 bw-6-2 m1：`/Users/john/Documents/trae_projects/bw-6-2/src/projects/m1/views/main/Game.vue`。
+- 一级分类游戏列表对应 bw-6-2 m1 的 `.provider-grid`、`.provider-card`、`.provider-cover`、`.provider-title`。
 - `.provider-grid` 为 3 列网格，间距 12px；`.provider-title` 位于图片下方，顶部间距 6px。
 - `.provider-cover` 只设置 `width: 100%`、圆角、裁剪和定位，不设置固定 `height` 或 `aspect-ratio`。
 - Flutter 中实现一级分类游戏列表时，不得把一级分类图片强制做成正方形；不要用子游戏列表的正方形规则覆盖一级分类规则。

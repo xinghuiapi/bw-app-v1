@@ -10,6 +10,7 @@ class HomeConfig {
   final VerifyConfig? smsConfig;
   final List<LanguageConfig> languages;
   final List<CurrencyConfig> currencies;
+  final List<CustomerServiceItem> customerServiceItems;
 
   const HomeConfig({
     this.banners = const [],
@@ -21,6 +22,7 @@ class HomeConfig {
     this.smsConfig,
     this.languages = const [],
     this.currencies = const [],
+    this.customerServiceItems = const [],
   });
 
   factory HomeConfig.fromJson(Map<String, dynamic> json) => HomeConfig(
@@ -42,6 +44,10 @@ class HomeConfig {
             : VerifyConfig.fromJson(jsonMap(json['config_send'])!),
         languages: jsonList(json['config_lang'], LanguageConfig.fromJson),
         currencies: jsonList(json['config_curr'], CurrencyConfig.fromJson),
+        customerServiceItems:
+            jsonList(json['config_kefu'], CustomerServiceItem.fromJson)
+                .where((item) => item.link.isNotEmpty)
+                .toList(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -54,7 +60,45 @@ class HomeConfig {
         if (smsConfig != null) 'config_send': smsConfig!.toJson(),
         'config_lang': languages.map((item) => item.toJson()).toList(),
         'config_curr': currencies.map((item) => item.toJson()).toList(),
+        'config_kefu':
+            customerServiceItems.map((item) => item.toJson()).toList(),
       };
+}
+
+class CustomerServiceItem {
+  final String title;
+  final String link;
+  final String icon;
+
+  const CustomerServiceItem({
+    required this.title,
+    required this.link,
+    required this.icon,
+  });
+
+  factory CustomerServiceItem.fromJson(Map<String, dynamic> json) {
+    return CustomerServiceItem(
+      title: _normalizeCustomerServiceText(json['title']),
+      link: _normalizeCustomerServiceText(json['link']),
+      icon: _normalizeCustomerServiceText(json['icon']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'link': link,
+        'icon': icon,
+      };
+}
+
+String _normalizeCustomerServiceText(dynamic raw) {
+  var value = raw?.toString() ?? '';
+  value = value.replaceAll(RegExp(r'[\uFE00-\uFE0F\u200D]'), '');
+  value = value.replaceAll(RegExp(r'[✕✖❌]'), '×');
+  value = value.replaceAll('`', '').trim();
+  value = value.replaceAll(RegExp(r'''^['"]|['"]$'''), '').trim();
+  value = value.replaceAll(RegExp(r'\s+'), '');
+  return value;
 }
 
 class BannerModel {

@@ -92,6 +92,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 text: isSubmitting
                     ? 'common.submitting'.tr()
                     : 'common.confirmEdit'.tr(),
+                isLoading: isSubmitting,
                 onPressed: isSubmitting ? null : _submit,
               ),
             ],

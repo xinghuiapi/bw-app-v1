@@ -212,6 +212,18 @@
       "male": "남성",
       "female": "여성",
       "secret": "비공개"
+    },
+    "redemption": {
+      "title": "교환 코드",
+      "placeholder": "교환 코드를 입력하세요. 붙여넣기를 지원합니다.",
+      "code": "교환 코드 입력",
+      "paste": "붙여넣기",
+      "submit": "교환하기",
+      "records": "교환 기록",
+      "empty": "교환 기록이 없습니다",
+      "needCode": "교환 코드를 입력하세요",
+      "redeemSuccess": "교환 성공",
+      "redeemFailed": "교환 실패"
     }
   },
   "activity": {
@@ -249,6 +261,7 @@
     "onlineNumbered": "온라인 상담 {index}",
     "onlineSubtitle": "온라인 고객센터",
     "telegramSubtitle": "Telegram 고객센터",
+    "consult": "상담하기",
     "invalidLink": "고객센터 링크가 올바르지 않습니다",
     "externalPluginMissing": "외부 링크 플러그인이 로드되지 않았습니다. 앱을 완전히 재시작한 후 다시 시도하세요.",
     "openFailed": "고객센터 링크를 열 수 없습니다",
@@ -261,7 +274,8 @@
     "todayDate": "오늘",
     "betCount": "베팅 수",
     "totalProfitLoss": "총 손익",
-    "unclaimedRebate": "미수령 리베이트",
+    "netProfit": "수령 가능 리베이트",
+    "unclaimedRebate": "수령 가능 커미션",
     "moreServices": "더 많은 서비스",
     "gameManagement": "게임 관리",
     "fundManagement": "자금 관리",
@@ -269,7 +283,32 @@
     "bankCard": "은행 카드",
     "share": "공유",
     "feedback": "피드백",
-    "comingSoon": "출시 예정"
+    "comingSoon": "출시 예정",
+    "dateMD": "{m}/{d}"
+  },
+  "income": {
+    "title": "내 수입",
+    "rebateTitle": "수령 가능 리베이트",
+    "rebateHint": "베팅 리베이트 비율 보기",
+    "commissionTitle": "수령 가능 커미션",
+    "commissionHint": "베팅 커미션 보상 비율",
+    "claim": "수령",
+    "claimSuccess": "수령 성공",
+    "claimFailed": "수령 실패",
+    "noClaimable": "수령 가능한 금액이 없습니다",
+    "rebateRecord": "리베이트 기록",
+    "commissionRecord": "커미션 기록",
+    "myTeam": "내 팀",
+    "view": "보기",
+    "rebateSettlement": "리베이트 정산",
+    "commissionSettlement": "커미션 정산",
+    "todayData": "오늘 데이터",
+    "dayTotalRebate": "오늘 총 리베이트",
+    "dayClaimedRebate": "오늘 수령 리베이트",
+    "dayUnclaimedRebate": "오늘 미수령 리베이트",
+    "dayTotalCommission": "오늘 총 커미션",
+    "dayClaimedCommission": "오늘 수령 커미션",
+    "dayUnclaimedCommission": "오늘 미수령 커미션"
   },
   "home": {
     "appTitle": "Flutter UI 앱",
@@ -675,6 +714,9 @@
       "finance": "입출금 문제",
       "activity": "프로모션 문제",
       "accountSecurity": "계정 보안",
+      "punishment": "제재 문제",
+      "penalty": "제재 문제",
+      "violation": "위반 이의제기",
       "suggestion": "기타 제안"
     },
     "status": {
@@ -908,12 +950,44 @@
       "unsettled": "미정산",
       "invalid": "무효 베팅",
       "refunded": "환불됨"
-    }
+    },
+    "fyRecords": "커미션 기록",
+    "emptyFy": "커미션 기록 없음",
+    "totalFy": "총 커미션",
+    "flowAmount": "유효 베팅액",
+    "fyRate": "커미션 비율",
+    "fyAmount": "커미션 금액",
+    "claimFy": "커미션 받기",
+    "noClaimable": "받을 리베이트가 없습니다",
+    "noClaimableFy": "받을 커미션이 없습니다",
+    "claimSuccess": "수령 성공",
+    "claimFailed": "수령 실패"
   },
   "maintenance": {
     "title": "시스템 점검",
     "description": "플랫폼 점검 중입니다. 나중에 다시 시도해 주세요.",
     "retry": "다시 확인",
     "backHome": "홈으로 돌아가기"
+  },
+  "team": {
+    "title": "내 팀",
+    "search": "조회",
+    "searchPlaceholder": "회원 계정을 입력하세요",
+    "empty": "팀원이 없습니다",
+    "colName": "이름",
+    "colBet": "개인 베팅액"
+  },
+  "fyLevel": {
+    "title": "커미션 등급",
+    "tabLottery": "복권",
+    "tabGames": "슬롯",
+    "tabPoker": "체스",
+    "tabLive": "라이브",
+    "tabSport": "스포츠",
+    "tabFishing": "낚시",
+    "currentVip": "현재 등급",
+    "colVip": "하위 VIP 등급",
+    "colRate": "내 커미션 비율",
+    "empty": "데이터 없음"
   }
 }

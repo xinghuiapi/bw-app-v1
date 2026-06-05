@@ -38,5 +38,11 @@ String requestCacheKey(RequestOptions options) {
   final query = Map<String, dynamic>.from(options.queryParameters);
   final queryEntries = query.entries.toList()
     ..sort((a, b) => a.key.compareTo(b.key));
-  return '${options.method}:${options.uri.path}?$queryEntries';
+  final lang = (options.headers['lang'] ?? query['lang'] ?? 'CN')
+      .toString()
+      .trim()
+      .toUpperCase();
+  final authHeader = options.headers['Authorization']?.toString().trim() ?? '';
+  final auth = authHeader.isEmpty ? 'anon' : 'auth';
+  return '${options.method}:lang=$lang:auth=$auth:${options.uri.path}?$queryEntries';
 }

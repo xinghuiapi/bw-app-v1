@@ -24,11 +24,21 @@ class UserProvider extends BaseProvider<UserProfile> {
   bool isDayRevenueLoading = false;
   bool isRebateInfoLoading = false;
   bool isRebateClaiming = false;
+  bool isIncomeRebateClaiming = false;
+  bool isIncomeCommissionClaiming = false;
+  FyLevelPage fyLevelPage = const FyLevelPage();
+  bool isFyLevelLoading = false;
+  String? fyLevelError;
+  TeamMemberPage teamMembers = const TeamMemberPage();
+  bool isTeamLoading = false;
+  bool isTeamLoadingMore = false;
+  String? teamError;
   bool isRebateDisabled = false;
   String? vipLevelsError;
   String? dayRevenueError;
   String? rebateInfoError;
   String? rebateClaimError;
+  String? incomeClaimError;
   bool isUploadingAvatar = false;
   RedemptionRecordPage? redemptionRecords;
   bool isRedemptionLoading = false;
@@ -53,11 +63,21 @@ class UserProvider extends BaseProvider<UserProfile> {
     isDayRevenueLoading = false;
     isRebateInfoLoading = false;
     isRebateClaiming = false;
+    isIncomeRebateClaiming = false;
+    isIncomeCommissionClaiming = false;
+    fyLevelPage = const FyLevelPage();
+    isFyLevelLoading = false;
+    fyLevelError = null;
+    teamMembers = const TeamMemberPage();
+    isTeamLoading = false;
+    isTeamLoadingMore = false;
+    teamError = null;
     isRebateDisabled = false;
     vipLevelsError = null;
     dayRevenueError = null;
     rebateInfoError = null;
     rebateClaimError = null;
+    incomeClaimError = null;
     isUploadingAvatar = false;
     redemptionRecords = null;
     isRedemptionLoading = false;
@@ -199,6 +219,119 @@ class UserProvider extends BaseProvider<UserProfile> {
       rethrow;
     } finally {
       isRebateClaiming = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> claimIncomeRebate() async {
+    if (isIncomeRebateClaiming || isIncomeCommissionClaiming) return;
+
+    isIncomeRebateClaiming = true;
+    incomeClaimError = null;
+    notifyListeners();
+
+    try {
+      await _service.claimMemberFsLog();
+      await loadDayRevenue(refresh: true);
+    } on ApiException catch (exception) {
+      incomeClaimError = exception.message;
+      rethrow;
+    } catch (exception) {
+      incomeClaimError = exception.toString();
+      rethrow;
+    } finally {
+      isIncomeRebateClaiming = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> claimIncomeCommission() async {
+    if (isIncomeRebateClaiming || isIncomeCommissionClaiming) return;
+
+    isIncomeCommissionClaiming = true;
+    incomeClaimError = null;
+    notifyListeners();
+
+    try {
+      await _service.claimFy();
+      await loadDayRevenue(refresh: true);
+    } on ApiException catch (exception) {
+      incomeClaimError = exception.message;
+      rethrow;
+    } catch (exception) {
+      incomeClaimError = exception.toString();
+      rethrow;
+    } finally {
+      isIncomeCommissionClaiming = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadFyLevels({bool refresh = false}) async {
+    if (isFyLevelLoading) return;
+    if (!refresh && fyLevelPage.levels.isNotEmpty) return;
+
+    isFyLevelLoading = true;
+    fyLevelError = null;
+    notifyListeners();
+
+    try {
+      fyLevelPage = await _service.fetchFyLevels();
+    } on ApiException catch (exception) {
+      fyLevelError = exception.message;
+      rethrow;
+    } catch (exception) {
+      fyLevelError = exception.toString();
+      rethrow;
+    } finally {
+      isFyLevelLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadTeamMembers({bool refresh = false}) async {
+    if (isTeamLoading || isTeamLoadingMore) return;
+    if (!refresh && teamMembers.records.isNotEmpty) return;
+
+    isTeamLoading = true;
+    teamError = null;
+    notifyListeners();
+
+    try {
+      teamMembers = await _service.fetchTeamMembers(page: 1, size: 10);
+    } on ApiException catch (exception) {
+      teamError = exception.message;
+      rethrow;
+    } catch (exception) {
+      teamError = exception.toString();
+      rethrow;
+    } finally {
+      isTeamLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMoreTeamMembers() async {
+    if (isTeamLoading || isTeamLoadingMore || !teamMembers.hasMore) return;
+
+    isTeamLoadingMore = true;
+    teamError = null;
+    notifyListeners();
+
+    try {
+      final next = await _service.fetchTeamMembers(
+        page: teamMembers.currentPage + 1,
+        size: 10,
+      );
+      teamMembers = teamMembers.append(next);
+    } on ApiException catch (exception) {
+      teamError = exception.message;
+      rethrow;
+    } catch (exception) {
+      teamError = exception.toString();
+      rethrow;
+    } finally {
+      isTeamLoadingMore = false;
       notifyListeners();
     }
   }

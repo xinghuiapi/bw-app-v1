@@ -315,6 +315,7 @@ class _AddBankCardScreenState extends State<AddBankCardScreen> {
                 text: walletProvider.isBindingCard
                     ? 'common.submitting'.tr()
                     : 'finance.confirmAdd'.tr(),
+                isLoading: walletProvider.isBindingCard,
                 onPressed: walletProvider.isBindingCard
                     ? null
                     : () => _submit(walletProvider, hasRealName, realName),

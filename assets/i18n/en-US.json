@@ -212,6 +212,18 @@
       "male": "Male",
       "female": "Female",
       "secret": "Private"
+    },
+    "redemption": {
+      "title": "Redemption Code",
+      "placeholder": "Enter redemption code. Paste is supported.",
+      "code": "Enter redemption code",
+      "paste": "Paste",
+      "submit": "Redeem",
+      "records": "Redemption Records",
+      "empty": "No redemption records",
+      "needCode": "Enter redemption code",
+      "redeemSuccess": "Redeemed successfully",
+      "redeemFailed": "Redemption failed"
     }
   },
   "activity": {
@@ -249,6 +261,7 @@
     "onlineNumbered": "Online Support {index}",
     "onlineSubtitle": "ONLINE SERVICE",
     "telegramSubtitle": "TELEGRAM SERVICE",
+    "consult": "Consult Now",
     "invalidLink": "Invalid support link",
     "externalPluginMissing": "External link plugin is not loaded. Please fully restart the app and try again.",
     "openFailed": "Unable to open support link",
@@ -261,7 +274,9 @@
     "todayDate": "Today",
     "betCount": "Bets",
     "totalProfitLoss": "Total P/L",
-    "unclaimedRebate": "Unclaimed Rebate",
+    "netProfit": "Claimable Rebate",
+    "unclaimedRebate": "Claimable Commission",
+    "dateMD": "{m}/{d}",
     "moreServices": "More Services",
     "gameManagement": "Game Mgmt",
     "fundManagement": "Funds",
@@ -270,6 +285,30 @@
     "share": "Share",
     "feedback": "Feedback",
     "comingSoon": "Coming Soon"
+  },
+  "income": {
+    "title": "My Income",
+    "rebateTitle": "Claimable Rebate",
+    "rebateHint": "View betting rebate rate",
+    "commissionTitle": "Claimable Commission",
+    "commissionHint": "Betting commission reward rate",
+    "claim": "Claim",
+    "claimSuccess": "Claimed successfully",
+    "claimFailed": "Claim failed",
+    "noClaimable": "No claimable amount",
+    "rebateRecord": "Rebate Records",
+    "commissionRecord": "Commission Records",
+    "myTeam": "My Team",
+    "view": "View",
+    "rebateSettlement": "Rebate Settlement",
+    "commissionSettlement": "Commission Settlement",
+    "todayData": "Today's Data",
+    "dayTotalRebate": "Today's Total Rebate",
+    "dayClaimedRebate": "Today's Claimed Rebate",
+    "dayUnclaimedRebate": "Today's Unclaimed Rebate",
+    "dayTotalCommission": "Today's Total Commission",
+    "dayClaimedCommission": "Today's Claimed Commission",
+    "dayUnclaimedCommission": "Today's Unclaimed Commission"
   },
   "home": {
     "appTitle": "Flutter UI App",
@@ -675,6 +714,9 @@
       "finance": "Deposit/Withdrawal Issue",
       "activity": "Promotion Issue",
       "accountSecurity": "Account Security",
+      "punishment": "Penalty Issue",
+      "penalty": "Penalty Issue",
+      "violation": "Violation Appeal",
       "suggestion": "Other Suggestion"
     },
     "status": {
@@ -908,12 +950,44 @@
       "unsettled": "Unsettled",
       "invalid": "Invalid Bet",
       "refunded": "Refunded"
-    }
+    },
+    "fyRecords": "Commission Records",
+    "emptyFy": "No commission records",
+    "totalFy": "Total Commission",
+    "flowAmount": "Flow Amount",
+    "fyRate": "Commission Rate",
+    "fyAmount": "Commission",
+    "claimFy": "Claim Commission",
+    "noClaimable": "No claimable rebate",
+    "noClaimableFy": "No claimable commission",
+    "claimSuccess": "Claim successful",
+    "claimFailed": "Claim failed"
   },
   "maintenance": {
     "title": "System Maintenance",
     "description": "The platform is under maintenance. Please try again later.",
     "retry": "Check Again",
     "backHome": "Back Home"
+  },
+  "team": {
+    "title": "My Team",
+    "search": "Search",
+    "searchPlaceholder": "Enter member account",
+    "empty": "No team members",
+    "colName": "Name",
+    "colBet": "Personal Turnover"
+  },
+  "fyLevel": {
+    "title": "Commission Level",
+    "tabLottery": "Lottery",
+    "tabGames": "Slots",
+    "tabPoker": "Chess",
+    "tabLive": "Live",
+    "tabSport": "Sports",
+    "tabFishing": "Fishing",
+    "currentVip": "Current Level",
+    "colVip": "Subordinate VIP Level",
+    "colRate": "Your Commission Rate",
+    "empty": "No data"
   }
 }

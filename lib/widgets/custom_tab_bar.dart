@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/app_colors.dart';
+import 'common/localized_text.dart';
 
 class CustomTabBarItem {
   final String label;
@@ -74,9 +75,11 @@ class CustomTabBar extends StatelessWidget {
                           color: isActive ? activeColor : inactiveColor,
                           fontWeight:
                               isActive ? FontWeight.w500 : FontWeight.normal,
+                          height: 1.05,
                         ),
-                        maxLines: 1,
+                        maxLines: isBurmeseLocale(context) ? 2 : 1,
                         overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),

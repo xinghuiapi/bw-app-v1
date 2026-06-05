@@ -36,7 +36,7 @@ class RetryEmptyState extends StatelessWidget {
                   _NetworkIllustration(compact: compact),
                   SizedBox(height: compact ? 8.h : 14.h),
                   Text(
-                    _title,
+                    _title(context),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -49,7 +49,7 @@ class RetryEmptyState extends StatelessWidget {
                   ),
                   SizedBox(height: compact ? 3.h : 6.h),
                   Text(
-                    _displayMessage,
+                    _displayMessage(context),
                     maxLines: compact ? 1 : 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -76,19 +76,19 @@ class RetryEmptyState extends StatelessWidget {
     );
   }
 
-  String get _title {
+  String _title(BuildContext context) {
     final text = message.trim().toLowerCase();
     if (text.contains('network') || text.contains('timeout')) {
-      return '网络连接异常';
+      return 'common.loadFailed'.tr();
     }
-    return '加载失败';
+    return 'common.loadFailed'.tr();
   }
 
-  String get _displayMessage {
+  String _displayMessage(BuildContext context) {
     final text = message.trim();
-    if (text.isEmpty) return '请检查网络后重试';
-    if (text == 'Network unavailable') return '请检查网络连接后重试';
-    if (text == 'Request timeout') return '请求超时，请稍后重试';
+    if (text.isEmpty) return 'common.loadFailedRetry'.tr();
+    if (text == 'Network unavailable') return 'common.loadFailedRetry'.tr();
+    if (text == 'Request timeout') return 'common.loadFailedRetry'.tr();
     return text;
   }
 }

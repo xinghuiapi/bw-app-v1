@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:async';
 import '../theme/app_colors.dart';
+import 'common/localized_text.dart';
 
 class CountdownButton extends StatefulWidget {
   final Future<bool> Function() onPressed;
@@ -80,7 +80,7 @@ class _CountdownButtonState extends State<CountdownButton> {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 14.sp,
+          fontSize: localizedFontSize(context, 14, myScale: 0.88, minSp: 11),
           color: isActive ? AppColors.primary : AppColors.textSecondary,
           fontWeight: FontWeight.w500,
         ),

@@ -37,6 +37,39 @@ class UserService extends BaseService {
     );
   }
 
+  Future<void> claimMemberFsLog() {
+    return client.post<void>(
+      ApiEndpoints.memberFsLogClaim,
+      decoder: (_) {},
+    );
+  }
+
+  Future<void> claimFy() {
+    return client.post<void>(
+      ApiEndpoints.fyClaim,
+      decoder: (_) {},
+    );
+  }
+
+  Future<FyLevelPage> fetchFyLevels() {
+    return client.post<FyLevelPage>(
+      ApiEndpoints.fyLevel,
+      decoder: FyLevelPage.fromResponse,
+    );
+  }
+
+  Future<TeamMemberPage> fetchTeamMembers({
+    int page = 1,
+    int size = 10,
+    String username = '',
+  }) {
+    return client.post<TeamMemberPage>(
+      ApiEndpoints.teamList,
+      data: {'page': page, 'size': size, 'username': username},
+      decoder: TeamMemberPage.fromResponse,
+    );
+  }
+
   Future<RebateInfo> fetchRebateInfo() {
     return client.post<RebateInfo>(
       ApiEndpoints.retabeList,

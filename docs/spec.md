@@ -3,7 +3,7 @@
 ## Why
 当前项目是最终落地的 Flutter 业务前端主工程。UI 已经按照 m1 项目完成高仿，后续重点是在这套 Flutter 高仿 UI 上接入 m1 页面业务逻辑和真实接口，并补齐合格 Flutter 项目的工程能力。
 
-UI 和页面对接逻辑以 517 的 m1 项目为准：`/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1`。本项目中所有“m1”“m1 项目”或“517 参考项目”提法均固定指向该路径，不得使用 517 的 m2/m3/m4、旧 `bw-v3-504`、旧 Flutter 项目或其他相似目录替代。旧 Flutter 项目 `/Users/john/Documents/trae_projects/flutter-v1` 只作为 Flutter 工程能力参考，不作为页面对接逻辑来源。
+UI 和页面对接逻辑以 `/Users/john/Documents/trae_projects/bw-6-2/src/projects/m1` 为准。本项目中所有“m1”“m1 项目”或“bw-6-2 参考项目”提法均固定指向该路径，不得使用 bw-6-2 的其他子项目、旧 Flutter 项目或其他相似目录替代。旧 Flutter 项目 `/Users/john/Documents/trae_projects/flutter-v1` 只作为 Flutter 工程能力参考，不作为页面对接逻辑来源。
 
 ## What Changes
 - 保留当前 Flutter 工程结构、页面和通用组件，维护 m1 高仿 UI 成果。
@@ -16,7 +16,7 @@ UI 和页面对接逻辑以 517 的 m1 项目为准：`/Users/john/Documents/tra
 ## Impact
 - Affected specs: 当前 Flutter UI 页面业务化、接口对接、状态流和路由行为。
 - Affected code: 当前 Flutter 工程内的 `api/`、`config/`、`models/`、`services/`、`providers/`、`router/` 和必要的页面状态绑定。数据模型必须随页面对接同步校准，避免 Screen 中散落临时 Map 解析。
-- Source of Truth: UI 和页面业务对接逻辑以 517 的 m1 项目 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` 为准；旧 Flutter 项目只参考工程能力，不参考页面对接逻辑。
+- Source of Truth: UI 和页面业务对接逻辑以 `/Users/john/Documents/trae_projects/bw-6-2/src/projects/m1` 为准；旧 Flutter 项目只参考工程能力，不参考页面对接逻辑。
 
 ## 技术栈规范 (Tech Stack Specification)
 - **Framework**: Flutter (用于构建跨平台原生 UI)
@@ -54,7 +54,7 @@ UI 和页面对接逻辑以 517 的 m1 项目为准：`/Users/john/Documents/tra
 - **弹性与网格**:
   - Flexbox (`justify-content`, `align-items`) 转化为 `Row`/`Column` 的 `mainAxisAlignment` 和 `crossAxisAlignment`。
   - 对于 Web 的 `display: grid` 复杂布局，使用 `SliverGrid` 或 `GridView.builder` 配合 `crossAxisCount` 和 `childAspectRatio` 精确还原。
-  - 游戏一级分类列表图片必须参考 517 m1 `views/main/Game.vue` 的 `.provider-grid` / `.provider-cover`：3 列网格、12px 间距、标题在图片下方；`.provider-cover` 不设置固定高度或 `aspect-ratio`。Flutter 迁移时不得为一级分类图片强行套正方形高度，除非 517 m1 对应页面明确如此。
+  - 游戏一级分类列表图片必须参考 bw-6-2 m1 `views/main/Game.vue` 的 `.provider-grid` / `.provider-cover`：3 列网格、12px 间距、标题在图片下方；`.provider-cover` 不设置固定高度或 `aspect-ratio`。Flutter 迁移时不得为一级分类图片强行套正方形高度，除非 bw-6-2 m1 对应页面明确如此。
 - **安全区域 (Safe Area)**: 针对刘海屏和底部手势区，全局合理使用 `SafeArea` 或利用 `MediaQuery.padding` 调整 `Padding`。
 
 ### 3. 微交互与动画还原 (Micro-Interactions & Animations)

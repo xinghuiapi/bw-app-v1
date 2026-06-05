@@ -28,8 +28,8 @@ class AppEmpty extends StatelessWidget {
             SizedBox(height: 12.h),
             Text(
               title ?? 'common.emptyData'.tr(),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              maxLines: 3,
+              overflow: TextOverflow.fade,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium,
             ),
@@ -37,8 +37,8 @@ class AppEmpty extends StatelessWidget {
               SizedBox(height: 8.h),
               Text(
                 description!,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
+                maxLines: 6,
+                overflow: TextOverflow.fade,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,

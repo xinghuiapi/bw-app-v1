@@ -29,6 +29,17 @@ class GameManageQuery {
         'end_date': endDate,
       };
 
+  Map<String, dynamic> toFyJson() => {
+        'page': page,
+        'size': size,
+        'username': '',
+        'code': code,
+        'api_code': apiCode,
+        'status': status,
+        'start_date': startDate,
+        'end_date': endDate,
+      };
+
   Map<String, dynamic> toGameJson() => {
         'page': page,
         'size': size,
@@ -160,6 +171,122 @@ class RebateRecord {
         json.containsKey('created_at') ||
         json.containsKey('api_code_title') && json.containsKey('money');
   }
+
+  bool get claimed => status == 1;
+}
+
+class FyRecordPage {
+  const FyRecordPage({
+    this.records = const [],
+    this.currentPage = 1,
+    this.total = 0,
+    this.lastPage = 1,
+    this.unreceivedMoney = 0,
+    this.receivedMoney = 0,
+    this.totalMoney = 0,
+  });
+
+  final List<FyRecord> records;
+  final int currentPage;
+  final int total;
+  final int lastPage;
+  final double unreceivedMoney;
+  final double receivedMoney;
+  final double totalMoney;
+
+  factory FyRecordPage.fromJson(Map<String, dynamic> json) {
+    final rows = json['data'] is List ? json['data'] as List : const [];
+    return FyRecordPage(
+      records: rows
+          .whereType<Map>()
+          .map((item) => FyRecord.fromJson(Map<String, dynamic>.from(item)))
+          .toList(),
+      currentPage: jsonInt(json['current_page']) ?? 1,
+      total: jsonInt(json['total']) ?? 0,
+      lastPage: jsonInt(json['lastPage']) ?? 1,
+      unreceivedMoney: jsonDouble(
+              json['unreceivedFsMoney'] ?? json['unreceived_fs_money']) ??
+          0,
+      receivedMoney:
+          jsonDouble(json['receivedFsMoney'] ?? json['received_fs_money']) ?? 0,
+      totalMoney:
+          jsonDouble(json['totalFsMoney'] ?? json['total_fs_money']) ?? 0,
+    );
+  }
+
+  FyRecordPage copyWith({List<FyRecord>? records}) {
+    return FyRecordPage(
+      records: records ?? this.records,
+      currentPage: currentPage,
+      total: total,
+      lastPage: lastPage,
+      unreceivedMoney: unreceivedMoney,
+      receivedMoney: receivedMoney,
+      totalMoney: totalMoney,
+    );
+  }
+}
+
+class FyClaimAllResult {
+  const FyClaimAllResult({
+    this.amount = 0,
+    this.balance,
+    this.raw = const <String, dynamic>{},
+  });
+
+  final double amount;
+  final double? balance;
+  final Map<String, dynamic> raw;
+
+  factory FyClaimAllResult.fromJson(Map<String, dynamic> json) {
+    return FyClaimAllResult(
+      amount: jsonDouble(json['amount'] ?? json['money']) ?? 0,
+      balance: jsonDouble(json['balance']),
+      raw: json,
+    );
+  }
+}
+
+class FyRecord {
+  const FyRecord({
+    required this.id,
+    this.username = '',
+    this.code = '',
+    this.apiCode = '',
+    this.apiCodeTitle = '',
+    this.gameType = '',
+    this.createdAt = '',
+    this.ratio = '',
+    this.money = 0,
+    this.betAmount = 0,
+    this.status = 0,
+  });
+
+  final int id;
+  final String username;
+  final String code;
+  final String apiCode;
+  final String apiCodeTitle;
+  final String gameType;
+  final String createdAt;
+  final String ratio;
+  final double money;
+  final double betAmount;
+  final int status;
+
+  factory FyRecord.fromJson(Map<String, dynamic> json) => FyRecord(
+        id: jsonInt(json['id']) ?? 0,
+        username: jsonString(json['username']) ?? '',
+        code: jsonString(json['code']) ?? '',
+        apiCode: jsonString(json['api_code']) ?? '',
+        apiCodeTitle: jsonString(json['api_code_title']) ?? '',
+        gameType: jsonString(json['game_type']) ?? '',
+        createdAt: jsonString(json['created_at']) ?? '',
+        ratio: jsonString(json['bl']) ?? '',
+        money: jsonDouble(json['fs_money']) ?? 0,
+        betAmount: jsonDouble(json['money']) ?? 0,
+        status: jsonInt(json['status']) ?? 0,
+      );
 
   bool get claimed => status == 1;
 }

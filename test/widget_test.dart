@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:flutter_ui_project/api/api_exception.dart';
+import 'package:flutter_ui_project/api/dio_client.dart';
 import 'package:flutter_ui_project/api/interceptors/auth_interceptor.dart';
 import 'package:flutter_ui_project/api/interceptors/error_interceptor.dart';
 import 'package:flutter_ui_project/api/token_storage.dart';
@@ -12,10 +13,14 @@ import 'package:flutter_ui_project/localization/app_language.dart';
 import 'package:flutter_ui_project/models/auth/auth_models.dart';
 import 'package:flutter_ui_project/models/home/home_models.dart';
 import 'package:flutter_ui_project/models/game/game_models.dart';
+import 'package:flutter_ui_project/providers/wallet/wallet_provider.dart';
 import 'package:flutter_ui_project/screens/home_screen.dart';
 import 'package:flutter_ui_project/models/wallet/wallet_models.dart';
 import 'package:flutter_ui_project/router/route_paths.dart';
+import 'package:flutter_ui_project/security/url_policy.dart';
+import 'package:flutter_ui_project/services/wallet/wallet_service.dart';
 import 'package:flutter_ui_project/theme/app_images.dart';
+import 'package:flutter_ui_project/utils/site_display.dart';
 import 'package:flutter_ui_project/utils/version_utils.dart';
 import 'package:flutter_ui_project/widgets/common/back_hit_target.dart';
 import 'package:flutter_ui_project/widgets/common/wallet_action_hit_target.dart';
@@ -200,6 +205,42 @@ void main() {
     );
   });
 
+  test('system config parses config_kefu customer service items', () {
+    final config = HomeConfig.fromJson({
+      'config_kefu': [
+        {
+          'title': '太阳城7✖️24小时客服',
+          'link': ' https://support.example.com ',
+          'icon': 'https://cdn.example.com/icon.png',
+        },
+        {
+          'title': '',
+          'link': '   ',
+          'icon': '',
+        },
+      ],
+    });
+
+    expect(config.customerServiceItems.length, 1);
+    expect(config.customerServiceItems.single.title, '太阳城7×24小时客服');
+    expect(
+      config.customerServiceItems.single.link,
+      'https://support.example.com',
+    );
+    expect(
+      config.customerServiceItems.single.icon,
+      'https://cdn.example.com/icon.png',
+    );
+  });
+
+  test('site domain display does not show fake fallback before config loads',
+      () {
+    expect(siteDomainDisplayText(null), '');
+    expect(siteDomainDisplayText(''), '');
+    expect(siteDomainDisplayText('   '), '');
+    expect(siteDomainDisplayText('0591.in'), '0591.in');
+  });
+
   test('remote display titles are preserved for localization-sensitive data',
       () {
     final depositCategory = DepositCategory.fromJson(
@@ -215,6 +256,77 @@ void main() {
     expect(depositCategory.displayTitle, '支付宝充值');
     expect(depositChannel.displayTitle, '微信扫码');
     expect(gameCategory.title, '真人视讯');
+  });
+
+  test('recharge detail type mappings match 517 m1 order detail', () {
+    final detail = RechargeDetail.fromJson(
+      const {
+        'params': {
+          'account': 'TKGbf8ABwgUj1sgoUecAoMffSGfEyXGT9d',
+          'addres': 'TKGbf8ABwgUj1sgoUecAoMffSGfEyXGT9d',
+        },
+        'money': '100.0000',
+        'hl': '6.811',
+        'usdt_money': '14.6821',
+        'img': '789.png',
+        'currency': 'CNY',
+        'type': 2,
+        'status': 5,
+      },
+    );
+
+    expect(detail.isAlipayRecharge, isTrue);
+    expect(detail.isCryptoRecharge, isFalse);
+    expect(RechargeDetail.fromJson(const {'type': 3}).isCryptoRecharge, isTrue);
+    expect(RechargeDetail.fromJson(const {'type': 5}).isCryptoRecharge, isTrue);
+    expect(RechargeDetail.fromJson(const {'type': 4}).isBankRecharge, isTrue);
+  });
+
+  test('receiving account type mappings match 517 m1 card list', () {
+    expect(const WalletCard(id: 1, type: 1).isBankCard, isTrue);
+    expect(const WalletCard(id: 2, type: 2).isCrypto, isTrue);
+    expect(const WalletCard(id: 3, type: 3).isAlipay, isTrue);
+  });
+
+  test('payment urls allow third-party gateway hosts like m1', () {
+    final uri = UrlPolicy.externalUri(
+      'https://opkj2.m79j3ra1k64b.xyz/#/order?id=FO2605271939593311250',
+      type: ExternalUrlType.payment,
+    );
+
+    expect(uri, isNotNull);
+    expect(uri!.host, 'opkj2.m79j3ra1k64b.xyz');
+  });
+
+  test('payment urls do not restrict returned gateway schemes', () {
+    final uri = UrlPolicy.externalUri(
+      'alipay://platformapi/startapp?appId=20000067',
+      type: ExternalUrlType.payment,
+    );
+
+    expect(uri, isNotNull);
+    expect(uri!.scheme, 'alipay');
+  });
+
+  test('payment urls do not require gateway hosts', () {
+    final uri = UrlPolicy.externalUri(
+      'intent:#Intent;scheme=https;package=com.android.chrome;end',
+      type: ExternalUrlType.payment,
+    );
+
+    expect(uri, isNotNull);
+    expect(uri!.scheme, 'intent');
+  });
+
+  test('recharge proof success refreshes realtime wallet balance', () async {
+    final service = _FakeWalletService(balanceAfterProof: 88.8);
+    final provider = WalletProvider(service: service);
+
+    await provider.submitRechargeProof(const RechargeProofRequest(id: 123));
+
+    expect(service.submitRechargeProofCalls, 1);
+    expect(service.fetchRealtimeBalanceCalls, 1);
+    expect(provider.realtimeBalance?.balance, 88.8);
   });
 
   test('home category lookup returns null when remote category is absent', () {
@@ -402,6 +514,26 @@ class _StaticAdapter implements HttpClientAdapter {
 
   @override
   void close({bool force = false}) {}
+}
+
+class _FakeWalletService extends WalletService {
+  _FakeWalletService({required this.balanceAfterProof})
+      : super(DioClient(dio: Dio()));
+
+  final double balanceAfterProof;
+  int submitRechargeProofCalls = 0;
+  int fetchRealtimeBalanceCalls = 0;
+
+  @override
+  Future<void> submitRechargeProof(RechargeProofRequest request) async {
+    submitRechargeProofCalls++;
+  }
+
+  @override
+  Future<UserRealtimeBalance> fetchRealtimeBalance() async {
+    fetchRealtimeBalanceCalls++;
+    return UserRealtimeBalance(balance: balanceAfterProof);
+  }
 }
 
 class _FakeTokenStorage implements TokenStorageContract {

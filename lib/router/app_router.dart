@@ -608,6 +608,27 @@ final _routes = <RouteBase>[
     ),
   ),
   GoRoute(
+    path: RoutePaths.income,
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const IncomeScreen(),
+    ),
+  ),
+  GoRoute(
+    path: RoutePaths.team,
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const TeamScreen(),
+    ),
+  ),
+  GoRoute(
+    path: RoutePaths.fyLevel,
+    pageBuilder: (context, state) => _noTransitionPage(
+      state,
+      const FyLevelScreen(),
+    ),
+  ),
+  GoRoute(
     path: '/message',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
@@ -646,14 +667,14 @@ final _routes = <RouteBase>[
     path: '/game-management',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const GameManagementScreen(),
+      GameManagementScreen(initialTab: _gameManagementTab(state)),
     ),
   ),
   GoRoute(
     path: '/game-manage',
     pageBuilder: (context, state) => _noTransitionPage(
       state,
-      const GameManagementScreen(),
+      GameManagementScreen(initialTab: _gameManagementTab(state)),
     ),
   ),
 ];
@@ -675,6 +696,15 @@ FundRecordTab _fundRecordTab(GoRouterState state) {
     'transfer' || 'transfers' || '2' => FundRecordTab.transfer,
     'account' || 'bill' || 'money' || '3' => FundRecordTab.account,
     _ => FundRecordTab.deposit,
+  };
+}
+
+int _gameManagementTab(GoRouterState state) {
+  final tab = state.uri.queryParameters['tab']?.toLowerCase();
+  return switch (tab) {
+    'fy' || 'commission' || '1' => 1,
+    'game' || '2' => 2,
+    _ => 0,
   };
 }
 

@@ -212,6 +212,18 @@
       "male": "男",
       "female": "女",
       "secret": "保密"
+    },
+    "redemption": {
+      "title": "兑换码",
+      "placeholder": "请输入兑换码，支持粘贴。",
+      "code": "请输入兑换码",
+      "paste": "粘贴",
+      "submit": "立即兑换",
+      "records": "兑换记录",
+      "empty": "暂无兑换记录",
+      "needCode": "请输入兑换码",
+      "redeemSuccess": "兑换成功",
+      "redeemFailed": "兑换失败"
     }
   },
   "activity": {
@@ -249,6 +261,7 @@
     "onlineNumbered": "在线客服{index}",
     "onlineSubtitle": "ONLINE SERVICE",
     "telegramSubtitle": "TELEGRAM SERVICE",
+    "consult": "立即咨询",
     "invalidLink": "客服链接无效",
     "externalPluginMissing": "外链组件未加载，请完整重启应用后重试",
     "openFailed": "无法打开客服链接",
@@ -261,7 +274,9 @@
     "todayDate": "今日",
     "betCount": "注单笔数",
     "totalProfitLoss": "总盈亏",
-    "unclaimedRebate": "未领返水",
+    "netProfit": "可领返水",
+    "unclaimedRebate": "可领佣金",
+    "dateMD": "{m}月{d}日",
     "moreServices": "更多服务",
     "gameManagement": "游戏管理",
     "fundManagement": "资金管理",
@@ -270,6 +285,30 @@
     "share": "分享",
     "feedback": "意见反馈",
     "comingSoon": "即将上线"
+  },
+  "income": {
+    "title": "我的收入",
+    "rebateTitle": "可领返水",
+    "rebateHint": "查看投注返水比例",
+    "commissionTitle": "可领返佣",
+    "commissionHint": "投注返佣奖励比例",
+    "claim": "领取",
+    "claimSuccess": "领取成功",
+    "claimFailed": "领取失败",
+    "noClaimable": "暂无可领取",
+    "rebateRecord": "返水记录",
+    "commissionRecord": "返佣记录",
+    "myTeam": "我的团队",
+    "view": "查看",
+    "rebateSettlement": "返水结算",
+    "commissionSettlement": "佣金结算",
+    "todayData": "今日数据",
+    "dayTotalRebate": "今日总反水",
+    "dayClaimedRebate": "今日已领取",
+    "dayUnclaimedRebate": "今日未领取",
+    "dayTotalCommission": "今日总返佣",
+    "dayClaimedCommission": "今日领取佣金",
+    "dayUnclaimedCommission": "今日未领取佣金"
   },
   "home": {
     "appTitle": "Flutter UI 应用",
@@ -675,6 +714,9 @@
       "finance": "充提问题",
       "activity": "活动问题",
       "accountSecurity": "账户安全",
+      "punishment": "处罚问题",
+      "penalty": "处罚问题",
+      "violation": "违规申诉",
       "suggestion": "其他建议"
     },
     "status": {
@@ -908,12 +950,44 @@
       "unsettled": "未结算",
       "invalid": "无效注单",
       "refunded": "已退款"
-    }
+    },
+    "fyRecords": "返佣记录",
+    "emptyFy": "暂无返佣记录",
+    "totalFy": "总返佣",
+    "flowAmount": "流水金额",
+    "fyRate": "返佣比例",
+    "fyAmount": "返佣金额",
+    "claimFy": "领取返佣",
+    "noClaimable": "暂无可领取返水",
+    "noClaimableFy": "暂无可领取返佣",
+    "claimSuccess": "领取成功",
+    "claimFailed": "领取失败"
   },
   "maintenance": {
     "title": "系统维护中",
     "description": "平台正在进行系统维护，请稍后再试。",
     "retry": "重新检测",
     "backHome": "返回首页"
+  },
+  "team": {
+    "title": "我的团队",
+    "search": "查询",
+    "searchPlaceholder": "请输入会员账号",
+    "empty": "暂无团队成员",
+    "colName": "名称",
+    "colBet": "个人流水"
+  },
+  "fyLevel": {
+    "title": "返佣等级",
+    "tabLottery": "彩票",
+    "tabGames": "电子",
+    "tabPoker": "棋牌",
+    "tabLive": "真人",
+    "tabSport": "体育",
+    "tabFishing": "捕鱼",
+    "currentVip": "当前等级",
+    "colVip": "下级vip等级",
+    "colRate": "您的返佣比例",
+    "empty": "暂无数据"
   }
 }

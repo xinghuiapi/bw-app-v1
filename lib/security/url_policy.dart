@@ -41,7 +41,9 @@ class UrlPolicy {
     if (normalized.isEmpty) return null;
 
     final uri = Uri.tryParse(normalized);
-    if (uri == null || !uri.hasScheme || uri.host.trim().isEmpty) return null;
+    if (uri == null || !uri.hasScheme) return null;
+    if (type == ExternalUrlType.payment) return uri;
+    if (uri.host.trim().isEmpty) return null;
     if (uri.userInfo.isNotEmpty) return null;
     if (!_isAllowedScheme(uri)) return null;
     if (!_isAllowedHost(uri, type)) return null;
@@ -81,6 +83,9 @@ class UrlPolicy {
   }
 
   static bool _isAllowedHost(Uri uri, ExternalUrlType type) {
+    if (type == ExternalUrlType.payment) {
+      return true;
+    }
     final typedHosts = _parseHosts(_hostsForType(type));
     if (type == ExternalUrlType.game && typedHosts.isEmpty) {
       return true;

@@ -8,13 +8,23 @@ import 'api/dio_client.dart';
 import 'api/token_storage.dart';
 import 'localization/app_language.dart';
 import 'localization/fallback_asset_loader.dart';
+import 'localization/language_storage.dart';
+import 'localization/startup_cache_sanitizer.dart';
 import 'providers/providers.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
+import 'widgets/common/app_loading.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  const languageStorage = LanguageStorage();
+  await languageStorage.clearLegacyEasyLocalizationLocale();
+  await const StartupCacheSanitizer().clearLanguageSensitiveCaches();
   await EasyLocalization.ensureInitialized();
+  final initialLanguageCode = AppLanguage.normalize(
+    await languageStorage.read(),
+  );
+  final initialLocale = AppLanguage.toLocale(initialLanguageCode);
 
   runApp(
     EasyLocalization(
@@ -22,15 +32,25 @@ void main() async {
       path: 'assets/i18n',
       assetLoader: const FallbackAssetLoader(),
       fallbackLocale: const Locale('zh', 'CN'),
-      child: const AppProviders(child: MyApp()),
+      startLocale: initialLocale,
+      saveLocale: false,
+      child: AppProviders(
+        initialLanguageCode: initialLanguageCode,
+        child: const MyApp(),
+      ),
     ),
   );
 }
 
 class AppProviders extends StatefulWidget {
-  const AppProviders({super.key, required this.child});
+  const AppProviders({
+    super.key,
+    required this.child,
+    required this.initialLanguageCode,
+  });
 
   final Widget child;
+  final String initialLanguageCode;
 
   @override
   State<AppProviders> createState() => _AppProvidersState();
@@ -56,7 +76,9 @@ class _AppProvidersState extends State<AppProviders> {
   void initState() {
     super.initState();
     _tokenStorage = TokenStorage();
-    _languageProvider = LanguageProvider();
+    _languageProvider = LanguageProvider(
+      initialCode: widget.initialLanguageCode,
+    );
     _authProvider = AuthProvider(tokenStorage: _tokenStorage);
     _systemProvider = SystemProvider();
     _userProvider = UserProvider();
@@ -114,6 +136,7 @@ class _AppProvidersState extends State<AppProviders> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<DioClient>.value(value: _dioClient),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider.value(value: _languageProvider),
         ChangeNotifierProvider.value(value: _authProvider),
@@ -142,42 +165,53 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  static const _startupRetryDelay = Duration(seconds: 2);
+
   GoRouter? _router;
+  bool _isBootstrapping = false;
+  bool _isStartupReady = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _syncStoredLocale();
+      _bootstrapStartupConfig();
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+  }
+
+  Future<void> _bootstrapStartupConfig() async {
+    if (_isBootstrapping) return;
+    _isBootstrapping = true;
+
+    try {
+      await _syncStoredLocale();
+      if (!mounted) return;
+
       final systemProvider = context.read<SystemProvider>();
-      final languageProvider = context.read<LanguageProvider>();
-      systemProvider.loadConfig().then((_) {
-        if (!mounted) return;
+      _resetLanguageSensitiveProviders();
 
-        languageProvider
-            .applyBackendDefault(systemProvider.config.languages)
-            .then((changed) async {
-          if (!mounted) return;
-          await context.setLocale(
-            AppLanguage.toLocale(languageProvider.currentCode),
-          );
-          if (changed) systemProvider.loadConfig(refresh: true);
-        }).catchError((_) {});
+      while (mounted && !systemProvider.hasRemoteConfig) {
+        await systemProvider.loadConfig(refresh: true);
+        if (!mounted || systemProvider.hasRemoteConfig) break;
+        await Future<void>.delayed(_startupRetryDelay);
+      }
 
-        if (!kDebugMode) return;
+      if (!mounted) return;
+      setState(() => _isStartupReady = systemProvider.hasRemoteConfig);
 
-        final title = systemProvider.config.siteConfig?.title ?? 'unknown';
-        final languages = systemProvider.config.languages.length;
-        final banners = systemProvider.config.banners.length;
-        debugPrint(
-          '[startup-probe] system config loaded: '
-          'title=$title, languages=$languages, banners=$banners',
-        );
-      });
-    });
+      if (!kDebugMode) return;
+
+      final title = systemProvider.config.siteConfig?.title ?? 'unknown';
+      final languages = systemProvider.config.languages.length;
+      final banners = systemProvider.config.banners.length;
+      debugPrint(
+        '[startup-probe] system config loaded: '
+        'title=$title, languages=$languages, banners=$banners',
+      );
+    } finally {
+      _isBootstrapping = false;
+    }
   }
 
   Future<void> _syncStoredLocale() async {
@@ -189,20 +223,49 @@ class _MyAppState extends State<MyApp> {
     await context.setLocale(AppLanguage.toLocale(languageProvider.currentCode));
   }
 
+  void _resetLanguageSensitiveProviders() {
+    context.read<DioClient>().clearMemoryCache();
+    context.read<SystemProvider>().resetForLanguageChange();
+    context.read<GameProvider>().resetForLanguageChange();
+    context.read<GameManagementProvider>().resetForLanguageChange();
+    context.read<WalletProvider>().resetForLanguageChange();
+    context.read<RecordProvider>().resetForLanguageChange();
+    context.read<ActivityProvider>().resetForLanguageChange();
+    context.read<FeedbackProvider>().resetForLanguageChange();
+    context.read<MessageProvider>().resetForLanguageChange();
+    context.read<UserProvider>().resetForLanguageChange();
+  }
+
   @override
   Widget build(BuildContext context) {
-    _router ??= createAppRouter(
-      context.read<AuthProvider>(),
-      systemProvider: context.read<SystemProvider>(),
-    );
+    final systemProvider = context.watch<SystemProvider>();
+    final isStartupReady = _isStartupReady && systemProvider.hasRemoteConfig;
+    if (isStartupReady) {
+      _router ??= createAppRouter(
+        context.read<AuthProvider>(),
+        systemProvider: context.read<SystemProvider>(),
+      );
+    }
 
     return ScreenUtilInit(
       designSize: const Size(375, 812), // Standard iPhone X/11/12/13 size
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
+        if (!isStartupReady) {
+          return MaterialApp(
+            title: 'MYANMAR',
+            theme: AppTheme.lightTheme,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            home: const _StartupLoadingScreen(),
+          );
+        }
+
         return MaterialApp.router(
-          title: 'Flutter UI Conversion',
+          title: 'MYANMAR',
           theme: AppTheme.lightTheme,
           routerConfig: _router!,
           debugShowCheckedModeBanner: false,
@@ -211,6 +274,18 @@ class _MyAppState extends State<MyApp> {
           locale: context.locale,
         );
       },
+    );
+  }
+}
+
+class _StartupLoadingScreen extends StatelessWidget {
+  const _StartupLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F9),
+      body: AppLoading(message: 'common.loading'.tr()),
     );
   }
 }

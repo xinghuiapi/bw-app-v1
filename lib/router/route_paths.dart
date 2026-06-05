@@ -43,6 +43,9 @@ class RoutePaths {
   static const withdrawPassword = '/withdraw-password';
   static const realName = '/real-name';
   static const redemptionCode = '/redemption-code';
+  static const income = '/income';
+  static const team = '/team';
+  static const fyLevel = '/fy-level';
   static const myWallet = '/my-wallet';
   static const wallet = '/wallet';
   static const cards = '/cards';
@@ -94,6 +97,9 @@ const protectedRoutePaths = <String>{
   RoutePaths.withdrawPassword,
   RoutePaths.realName,
   RoutePaths.redemptionCode,
+  RoutePaths.income,
+  RoutePaths.team,
+  RoutePaths.fyLevel,
   RoutePaths.myWallet,
   RoutePaths.wallet,
   RoutePaths.cards,

@@ -33,6 +33,8 @@ class DioClient {
   TokenStorage get tokenStorage => _tokenStorage;
   RequestCacheManager get cacheManager => _cacheManager;
 
+  void clearMemoryCache() => _cacheManager.clear();
+
   Future<T> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -58,6 +60,7 @@ class DioClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     T Function(Object? json)? decoder,
+    bool decodeFullResponse = false,
   }) {
     return request<T>(
       path,
@@ -66,6 +69,7 @@ class DioClient {
       queryParameters: queryParameters,
       options: options,
       decoder: decoder,
+      decodeFullResponse: decodeFullResponse,
     );
   }
 
@@ -78,6 +82,7 @@ class DioClient {
     T Function(Object? json)? decoder,
     bool cache = false,
     Duration? cacheTtl,
+    bool decodeFullResponse = false,
   }) async {
     try {
       final mergedOptions = (options ?? Options()).copyWith(
@@ -94,7 +99,8 @@ class DioClient {
         queryParameters: queryParameters,
         options: mergedOptions,
       );
-      final payload = _extractPayload(response.data);
+      final payload =
+          decodeFullResponse ? response.data : _extractPayload(response.data);
       if (decoder != null) {
         return decoder(payload);
       }

@@ -13,6 +13,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/system/system_provider.dart';
 import '../../providers/user/user_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/country_dial_options.dart';
 import '../../widgets/common/captcha_image.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,26 +36,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   static const _loginFailKey = 'm1_login_fail_count';
   static const _captchaFailThreshold = 3;
-  static const _countryOptions = <_CountryOption>[
-    _CountryOption('中国', '+86'),
-    _CountryOption('中国香港', '+852'),
-    _CountryOption('中国澳门', '+853'),
-    _CountryOption('中国台湾', '+886'),
-    _CountryOption('美国/加拿大', '+1'),
-    _CountryOption('日本', '+81'),
-    _CountryOption('韩国', '+82'),
-    _CountryOption('英国', '+44'),
-    _CountryOption('澳大利亚', '+61'),
-    _CountryOption('新加坡', '+65'),
-    _CountryOption('马来西亚', '+60'),
-    _CountryOption('泰国', '+66'),
-    _CountryOption('法国', '+33'),
-    _CountryOption('德国', '+49'),
-    _CountryOption('意大利', '+39'),
-    _CountryOption('西班牙', '+34'),
-    _CountryOption('俄罗斯', '+7'),
-    _CountryOption('印度', '+91'),
-  ];
 
   bool _showPassword = false;
   String _activeTab = 'username'; // 'username' or 'phone'
@@ -318,13 +299,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   ? null
                   : () => _submitLogin(showCaptcha: showCaptcha),
               child: context.watch<AuthProvider>().isSubmitting
-                  ? SizedBox(
-                      width: 20.w,
-                      height: 20.w,
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 18.w,
+                          height: 18.w,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          context.tr('common.login'),
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     )
                   : Text(
                       context.tr('common.login'),
@@ -868,11 +864,9 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context, setSheetState) {
             final normalized = keyword.trim().toLowerCase();
             final countries = normalized.isEmpty
-                ? _countryOptions
-                : _countryOptions
-                    .where((item) =>
-                        item.name.toLowerCase().contains(normalized) ||
-                        item.code.contains(normalized))
+                ? countryDialOptions
+                : countryDialOptions
+                    .where((item) => item.matches(normalized, context))
                     .toList(growable: false);
             return SafeArea(
               child: SizedBox(
@@ -892,7 +886,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           Expanded(
                             child: Text(
-                              _authText('countryCode', '选择国家/地区'),
+                              _authText('countryCode', 'Select country/region'),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 16.sp,
@@ -910,7 +904,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onChanged: (value) =>
                             setSheetState(() => keyword = value),
                         decoration: InputDecoration(
-                          hintText: _authText('searchCountry', '搜索国家或区号'),
+                          hintText: _authText(
+                              'searchCountry', 'Search country or code'),
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
                           fillColor: const Color(0xFFF5F6F8),
@@ -929,7 +924,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         itemBuilder: (context, index) {
                           final item = countries[index];
                           return ListTile(
-                            title: Text(item.name),
+                            title: Text(item.displayName(context)),
                             trailing: Text(item.code),
                             selected: item.code == _selectedCountryCode,
                             onTap: () =>
@@ -1024,11 +1019,4 @@ class _LoginScreenState extends State<LoginScreen> {
     final value = fullKey.tr();
     return value == fullKey ? fallback : value;
   }
-}
-
-class _CountryOption {
-  const _CountryOption(this.name, this.code);
-
-  final String name;
-  final String code;
 }

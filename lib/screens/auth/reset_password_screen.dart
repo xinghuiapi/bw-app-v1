@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/auth/auth_models.dart';
 import '../../providers/auth/auth_provider.dart';
+import '../../utils/country_dial_options.dart';
 import '../../widgets/custom_text_field.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -31,27 +32,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   int _phoneCountdown = 0;
   int _emailCountdown = 0;
   Timer? _timer;
-
-  static const _countryCodes = <Map<String, String>>[
-    {'name': '中国', 'code': '+86'},
-    {'name': '中国香港', 'code': '+852'},
-    {'name': '中国澳门', 'code': '+853'},
-    {'name': '中国台湾', 'code': '+886'},
-    {'name': '美国/加拿大', 'code': '+1'},
-    {'name': '日本', 'code': '+81'},
-    {'name': '韩国', 'code': '+82'},
-    {'name': '英国', 'code': '+44'},
-    {'name': '澳大利亚', 'code': '+61'},
-    {'name': '新加坡', 'code': '+65'},
-    {'name': '马来西亚', 'code': '+60'},
-    {'name': '泰国', 'code': '+66'},
-    {'name': '法国', 'code': '+33'},
-    {'name': '德国', 'code': '+49'},
-    {'name': '意大利', 'code': '+39'},
-    {'name': '西班牙', 'code': '+34'},
-    {'name': '俄罗斯', 'code': '+7'},
-    {'name': '印度', 'code': '+91'},
-  ];
 
   @override
   void initState() {
@@ -167,7 +147,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
               ),
               SizedBox(height: 18.h),
               Text(
-                _authText('resetPasswordHeader', '找回密码'),
+                _authText('resetPasswordHeader', 'Reset Password'),
                 style: TextStyle(
                   fontSize: 28.sp,
                   fontWeight: FontWeight.w900,
@@ -177,7 +157,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
               ),
               SizedBox(height: 8.h),
               Text(
-                _authText('resetPasswordDesc', '请选择验证方式并设置新密码'),
+                _authText(
+                  'resetPasswordDesc',
+                  'Enter your registered phone number to reset',
+                ),
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: Colors.white.withValues(alpha: 0.86),
@@ -189,9 +172,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                 spacing: 10.w,
                 runSpacing: 8.h,
                 children: [
-                  _buildTag(_authText('resetPasswordSafeVerify', '安全验证'),
+                  _buildTag(
+                      _authText('resetPasswordSafeVerify', 'Safe Verification'),
                       light: true),
-                  _buildTag(_authText('resetPasswordChangePass', '修改密码'),
+                  _buildTag(
+                      _authText('resetPasswordChangePass', 'Change Password'),
                       light: true),
                 ],
               ),
@@ -244,7 +229,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 6.h),
                 child: Text(
-                  _authText('resetPasswordActionBackLogin', '返回登录'),
+                  _authText('resetPasswordActionBackLogin', 'Back to Login'),
                   style: TextStyle(
                     fontSize: 13.sp,
                     color: const Color(0xFF0369A1),
@@ -261,9 +246,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
   Widget _buildModeTabs() {
     final labels = [
-      _authText('resetPasswordTabPhone', '手机号'),
-      _authText('resetPasswordTabEmail', '邮箱'),
-      _authText('resetPasswordTabReal', '实名验证'),
+      _authText('resetPasswordTabPhone', 'Phone'),
+      _authText('resetPasswordTabEmail', 'Email'),
+      _authText('resetPasswordTabReal', 'Real Name'),
     ];
     return Container(
       padding: EdgeInsets.all(4.w),
@@ -348,11 +333,20 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
         ),
         child: ElevatedButton.icon(
           onPressed: submitting ? null : () => _submit(authProvider),
-          icon: Icon(Icons.lock_reset_rounded, size: 20.sp),
+          icon: submitting
+              ? SizedBox(
+                  width: 18.w,
+                  height: 18.w,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Icon(Icons.lock_reset_rounded, size: 20.sp),
           label: Text(
             submitting
                 ? 'common.submitting'.tr()
-                : _authText('resetPasswordActionSubmit', '确认修改'),
+                : _authText('resetPasswordActionSubmit', 'Confirm Change'),
             style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800),
           ),
           style: ElevatedButton.styleFrom(
@@ -374,7 +368,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel(_authText('resetPasswordFieldPhone', '手机号')),
+        _buildFieldLabel(_authText('resetPasswordFieldPhone', 'Phone Number')),
         SizedBox(height: 8.h),
         Row(
           children: [
@@ -417,7 +411,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           ],
         ),
         SizedBox(height: 16.h),
-        _buildFieldLabel(_authText('resetPasswordFieldCode', '验证码')),
+        _buildFieldLabel(
+            _authText('resetPasswordFieldCode', 'Verification Code')),
         SizedBox(height: 8.h),
         Row(
           children: [
@@ -462,7 +457,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel(_authText('resetPasswordFieldEmail', '邮箱地址')),
+        _buildFieldLabel(_authText('resetPasswordFieldEmail', 'Email Address')),
         SizedBox(height: 8.h),
         CustomTextField(
           controller: _emailController,
@@ -470,7 +465,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           keyboardType: TextInputType.emailAddress,
         ),
         SizedBox(height: 16.h),
-        _buildFieldLabel(_authText('resetPasswordFieldCode', '验证码')),
+        _buildFieldLabel(
+            _authText('resetPasswordFieldCode', 'Verification Code')),
         SizedBox(height: 8.h),
         Row(
           children: [
@@ -515,7 +511,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel(_authText('resetPasswordFieldRealName', '真实姓名')),
+        _buildFieldLabel(_authText('resetPasswordFieldRealName', 'Real Name')),
         SizedBox(height: 8.h),
         CustomTextField(
           controller: _realNameController,
@@ -523,12 +519,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           keyboardType: TextInputType.name,
         ),
         SizedBox(height: 16.h),
-        _buildFieldLabel(_authText('resetPasswordFieldSafePassword', '取款密码')),
+        _buildFieldLabel(
+            _authText('resetPasswordFieldSafePassword', 'Withdrawal Password')),
         SizedBox(height: 8.h),
         CustomTextField(
           controller: _payPasswordController,
-          hintText:
-              _authText('resetPasswordPlaceholderSafePassword', '请输入6位取款密码'),
+          hintText: _authText('resetPasswordPlaceholderSafePassword',
+              'Please enter a 6-digit withdrawal password'),
           keyboardType: TextInputType.number,
           obscureText: true,
         ),
@@ -540,7 +537,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel(_authText('resetPasswordFieldNewPassword', '新密码')),
+        _buildFieldLabel(
+            _authText('resetPasswordFieldNewPassword', 'New Password')),
         SizedBox(height: 8.h),
         CustomTextField(
           controller: _newPasswordController,
@@ -548,8 +546,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           obscureText: true,
         ),
         SizedBox(height: 16.h),
-        _buildFieldLabel(
-            _authText('resetPasswordFieldConfirmPassword', '确认新密码')),
+        _buildFieldLabel(_authText(
+            'resetPasswordFieldConfirmPassword', 'Confirm New Password')),
         SizedBox(height: 8.h),
         CustomTextField(
           controller: _confirmPasswordController,
@@ -607,12 +605,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
       builder: (context) => SafeArea(
         child: ListView.builder(
           shrinkWrap: true,
-          itemCount: _countryCodes.length,
+          itemCount: countryDialOptions.length,
           itemBuilder: (context, index) {
-            final item = _countryCodes[index];
-            final code = item['code'] ?? '+86';
+            final item = countryDialOptions[index];
+            final code = item.code;
             return ListTile(
-              title: Text(item['name'] ?? ''),
+              title: Text(item.displayName(context)),
               trailing: Text(code),
               onTap: () => Navigator.of(context).pop(code),
             );
@@ -694,11 +692,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     final password = _newPasswordController.text.trim();
     final confirm = _confirmPasswordController.text.trim();
     if (!RegExp(r'^\d{6}$').hasMatch(password)) {
-      _showSnack(_authText('enterNewPassword', '请输入新密码'));
+      _showSnack(_authText('enterNewPassword', 'Enter new password'));
       return;
     }
     if (password != confirm) {
-      _showSnack(_authText('passwordMismatch', '两次输入的密码不一致'));
+      _showSnack(_authText('passwordMismatch', 'Passwords do not match'));
       return;
     }
 
@@ -750,7 +748,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
         }
         if (!RegExp(r'^\d{6}$').hasMatch(payPassword)) {
           _showSnack(
-            _authText('resetPasswordRuleSafePassword', '取款密码必须为6位数字'),
+            _authText('resetPasswordRuleSafePassword',
+                'Withdrawal password must be 6 digits'),
           );
           return;
         }

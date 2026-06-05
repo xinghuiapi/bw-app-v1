@@ -31,6 +31,19 @@ class GameManagementService extends BaseService {
     );
   }
 
+  Future<FyRecordPage> fetchFyRecords(GameManageQuery query) {
+    return client.post<FyRecordPage>(
+      ApiEndpoints.fyList,
+      data: query.toFyJson(),
+      decoder: (json) {
+        if (json is Map) {
+          return FyRecordPage.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const FyRecordPage();
+      },
+    );
+  }
+
   Future<RebateClaimAllResult> claimAllRebates() {
     return client.post<RebateClaimAllResult>(
       ApiEndpoints.memberFsLogClaim,
@@ -39,6 +52,18 @@ class GameManagementService extends BaseService {
           return RebateClaimAllResult.fromJson(Map<String, dynamic>.from(json));
         }
         return const RebateClaimAllResult();
+      },
+    );
+  }
+
+  Future<FyClaimAllResult> claimAllFy() {
+    return client.post<FyClaimAllResult>(
+      ApiEndpoints.fyClaim,
+      decoder: (json) {
+        if (json is Map) {
+          return FyClaimAllResult.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const FyClaimAllResult();
       },
     );
   }

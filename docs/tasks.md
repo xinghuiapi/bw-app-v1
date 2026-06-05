@@ -2,7 +2,7 @@
 
 ## 当前任务目标
 
-把当前 Flutter 主工程从“m1 高仿 UI 基本完成”推进到“m1 核心业务闭环可验收”。后续任务不再以大规模补页面为主，而是按 m1 项目 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` 对齐以下内容：
+把当前 Flutter 主工程从“m1 高仿 UI 基本完成”推进到“m1 核心业务闭环可验收”。后续任务不再以大规模补页面为主，而是按 m1 项目 `/Users/john/Documents/trae_projects/bw-6-2/src/projects/m1` 对齐以下内容：
 
 - 页面入口和路由行为。
 - m1 `views/**` 的页面生命周期、按钮事件、弹窗、分页、刷新和跳转规则。
@@ -22,7 +22,7 @@
 - [x] 已按 m1 504 项目复核分享页和今日收益字段：分享页邀请码/链接由账号 ID 前端生成，二维码按链接实时生成并支持预览，禁用空态、刷新逻辑、动态规则文案和领取提示已对齐 m1；已修复首帧 `{amount}` 占位符闪现；今日收益模型完整覆盖五字段且卡片按 m1 展示三项。
 - [x] P1 m1 体验补齐已完成：右侧搜索弹窗、游戏最小化浮窗、公告富文本/图片/跳转、充值失败页均已接入并完成基础验证。
 - [ ] 当前剩余重点已进入 P2 收尾：Telegram 深链、邀请/refcode 持久化、系统配置 terminal、活动详情语言参数和关键模型字段兼容校准已完成；安全硬化已启动并完成统一 URL policy、外链校验、游戏承载拦截和禁用全局写操作自动重试，剩余真实账号冒烟、Web token 风险治理与部署安全策略。
-- [x] 表单输入缺失修复目标：已按 `/Users/john/Documents/trae_projects/bw-v3-517/src/projects/m1` 核查 m1 输入型页面，提现取款密码、找回密码多方式、修改取款密码旧密码输入、兑换码页面已补齐。
+- [x] 表单输入缺失修复目标：已按 `/Users/john/Documents/trae_projects/bw-6-2/src/projects/m1` 核查 m1 输入型页面，提现取款密码、找回密码多方式、修改取款密码旧密码输入、兑换码页面已补齐。
 - [ ] 新增 m1 517 剩余差异修复目标：登录验证码策略、登录手机号区号选择、验证码返回图形验证码处理、绑手机国际区号、添加收款方式图片上传分类和绑定姓名已补齐；剩余活动详情语言参数真实冒烟、系统配置 URL 归一化、路由白名单和 Web 标题等确认项。
 
 ## 当前任务方向
@@ -87,7 +87,7 @@
 - [ ] P0 全部完成后做资金/账号主流程冒烟：提现、删卡、找回密码、分享领取、返水领取、我的页收益刷新。
 - [x] P1 完成后做 m1 交互对齐检查：搜索弹窗、公告弹窗、游戏最小化浮窗、充值失败页已完成基础验证。
 - [ ] P2 每项完成后做深链/注册/配置/字段联调验证，并记录实际后端响应差异；字段解析已做 m1 兼容，仍需真实账号冒烟确认后端环境实际差异。
-- [ ] 更新 `.opencode/docs/API_INTEGRATION_SEQUENCE.md`、`.opencode/docs/ENGINEERING_BUSINESSIZATION_PLAN.md`、`docs/UI_REPLICA_PROGRESS.md` 的完成状态。
+- [ ] 更新 `docs/API_INTEGRATION_SEQUENCE.md`、`docs/ENGINEERING_BUSINESSIZATION_PLAN.md`、`docs/UI_REPLICA_PROGRESS.md` 的完成状态。
 
 ### Task 6: 表单输入缺失核查与修复
 
@@ -111,6 +111,7 @@
 - [ ] `ActivityService.fetchActivityDetails` 用真实账号/环境确认 `/activity/details` 的 `lang` 是否必须固定 `CN`，还是可使用当前语言；必要时按 m1 固定 `lang=CN` 或做后端兼容分支。
 - [x] `AddBankCardScreen`/`WalletService.uploadCardImage` 已按 m1 调整添加银行卡、支付宝、虚拟币二维码上传时 `/img/save` 的 `name` 参数为 `recharge`；仍建议真实接口冒烟确认。
 - [x] `AddBankCardScreen` 绑定 payload 已补已实名姓名 `name` 字段，覆盖银行卡/支付宝后端可能要求姓名的场景。
+- [x] `ServiceScreen` 已切换到 `config_kefu` 新模式：客服页仅消费结构化客服配置，不再回退 `service_link/tg_link` 旧字段。
 - [ ] `AddBankCardScreen` 评估是否补齐 m1 收款类型 tab 图标机制，从 `/bank/getlist` 或系统配置读取并展示银行/虚拟币/支付宝类型图标。
 - [ ] 用户资料缓存机制差异确认：m1 会缓存 `m1_account_info` 并写入 `currency` symbol，Flutter 是否需要弱网缓存兜底需按真实业务决定。
 - [ ] 系统配置字段归一化补强：对 logo、app_icon、app_download、service_link、banner、notice open_url 等配置 URL 做 m1 同等级清洗，避免反引号、引号、空格和重复斜杠导致资源异常。

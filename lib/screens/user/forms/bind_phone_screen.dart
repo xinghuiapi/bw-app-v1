@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../models/user/user_models.dart';
 import '../../../providers/user/user_provider.dart';
 import '../../../theme/app_colors.dart';
+import '../../../utils/country_dial_options.dart';
 import '../../../widgets/custom_nav_bar.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/custom_button.dart';
@@ -23,27 +24,6 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
   final _phoneController = TextEditingController();
   final _codeController = TextEditingController();
   String _selectedCountryCode = '+86';
-
-  static const _countryOptions = <_CountryOption>[
-    _CountryOption('中国', '+86'),
-    _CountryOption('中国香港', '+852'),
-    _CountryOption('中国澳门', '+853'),
-    _CountryOption('中国台湾', '+886'),
-    _CountryOption('美国/加拿大', '+1'),
-    _CountryOption('日本', '+81'),
-    _CountryOption('韩国', '+82'),
-    _CountryOption('英国', '+44'),
-    _CountryOption('澳大利亚', '+61'),
-    _CountryOption('新加坡', '+65'),
-    _CountryOption('马来西亚', '+60'),
-    _CountryOption('泰国', '+66'),
-    _CountryOption('法国', '+33'),
-    _CountryOption('德国', '+49'),
-    _CountryOption('意大利', '+39'),
-    _CountryOption('西班牙', '+34'),
-    _CountryOption('俄罗斯', '+7'),
-    _CountryOption('印度', '+91'),
-  ];
 
   @override
   void dispose() {
@@ -132,7 +112,8 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                   text: isSubmitting
                       ? 'common.binding'.tr()
                       : 'common.confirmBind'.tr(),
-                  onPressed: _submit,
+                  isLoading: isSubmitting,
+                  onPressed: isSubmitting ? null : _submit,
                 ),
               ],
             ],
@@ -235,11 +216,9 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
           builder: (context, setSheetState) {
             final normalized = keyword.trim().toLowerCase();
             final countries = normalized.isEmpty
-                ? _countryOptions
-                : _countryOptions
-                    .where((item) =>
-                        item.name.toLowerCase().contains(normalized) ||
-                        item.code.contains(normalized))
+                ? countryDialOptions
+                : countryDialOptions
+                    .where((item) => item.matches(normalized, context))
                     .toList(growable: false);
             return SafeArea(
               child: SizedBox(
@@ -259,7 +238,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                           ),
                           Expanded(
                             child: Text(
-                              _authText('countryCode', '选择国家/地区'),
+                              _authText('countryCode', 'Select country/region'),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 16.sp,
@@ -277,7 +256,8 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                         onChanged: (value) =>
                             setSheetState(() => keyword = value),
                         decoration: InputDecoration(
-                          hintText: _authText('searchCountry', '搜索国家或区号'),
+                          hintText: _authText(
+                              'searchCountry', 'Search country or code'),
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
                           fillColor: const Color(0xFFF5F6F8),
@@ -296,7 +276,7 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
                         itemBuilder: (context, index) {
                           final item = countries[index];
                           return ListTile(
-                            title: Text(item.name),
+                            title: Text(item.displayName(context)),
                             trailing: Text(item.code),
                             selected: item.code == _selectedCountryCode,
                             onTap: () =>
@@ -322,13 +302,6 @@ class _BindPhoneScreenState extends State<BindPhoneScreen> {
     final value = fullKey.tr();
     return value == fullKey ? fallback : value;
   }
-}
-
-class _CountryOption {
-  const _CountryOption(this.name, this.code);
-
-  final String name;
-  final String code;
 }
 
 class _BoundStatusCard extends StatelessWidget {

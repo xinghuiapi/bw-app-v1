@@ -129,6 +129,7 @@ class _RealNameScreenState extends State<RealNameScreen> {
                     : provider.isSubmitting
                         ? 'common.submitting'.tr()
                         : 'account.submitVerification'.tr(),
+                isLoading: !isVerified && provider.isSubmitting,
                 onPressed: isVerified || provider.isSubmitting ? null : _submit,
               ),
             ],

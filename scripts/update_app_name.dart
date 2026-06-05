@@ -25,6 +25,8 @@ void main(List<String> args) async {
   }
 
   await _replaceInFile(manifest.path, currentName, newName);
+  await _updateIosDisplayName(newName);
+  await _updateFlutterAppTitle(newName);
   await _replaceInFile('web/index.html', currentName, newName);
   await _updateWebManifest(newName);
 
@@ -39,6 +41,45 @@ Future<void> _replaceInFile(String path, String from, String to) async {
   if (!text.contains(from)) return;
   await file.writeAsString(text.replaceAll(from, to));
   stdout.writeln('Updated $path');
+}
+
+Future<void> _updateFlutterAppTitle(String name) async {
+  final file = File('lib/main.dart');
+  if (!await file.exists()) return;
+
+  final text = await file.readAsString();
+  final quotedName = _dartSingleQuotedString(name);
+  final updated = text.replaceAllMapped(
+    RegExp(r"(title:\s*)'[^']*'"),
+    (match) => '${match.group(1)}$quotedName',
+  );
+
+  if (updated == text) return;
+  await file.writeAsString(updated);
+  stdout.writeln('Updated ${file.path}');
+}
+
+String _dartSingleQuotedString(String value) {
+  final escaped = value.replaceAll(r'\', r'\\').replaceAll("'", r"\'");
+  return "'$escaped'";
+}
+
+Future<void> _updateIosDisplayName(String name) async {
+  final file = File('ios/Runner/Info.plist');
+  if (!await file.exists()) return;
+
+  final text = await file.readAsString();
+  final updated = text.replaceFirstMapped(
+    RegExp(
+      r'(<key>CFBundleDisplayName</key>\s*<string>)([^<]*)(</string>)',
+      multiLine: true,
+    ),
+    (match) => '${match.group(1)}$name${match.group(3)}',
+  );
+
+  if (updated == text) return;
+  await file.writeAsString(updated);
+  stdout.writeln('Updated ${file.path}');
 }
 
 Future<void> _updateWebManifest(String name) async {

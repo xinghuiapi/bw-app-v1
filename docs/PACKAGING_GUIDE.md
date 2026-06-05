@@ -6,6 +6,30 @@
 /Users/john/Documents/trae_projects/flutter_ui_project
 ```
 
+## 推荐统一打包命令
+
+发版前只需要先完成三件事：
+
+- 把新 PNG logo 放到 `assets/logo/logo.png`。
+- 确认客户生产域名，例如 `https://example.com`，不要带 `/api`。
+- 执行统一打包脚本并传入应用名称和域名。
+
+```bash
+dart run scripts/package_release.dart --name "你的App名字" --domain https://你的域名
+```
+
+脚本会自动把 `--domain https://你的域名` 生成 `API_BASE_URL=https://你的域名/api` 和 `ASSET_BASE_URL=https://你的域名`，然后执行换 Logo、换名字、`flutter clean`、`flutter pub get`、Android 分架构混淆 APK 构建、iOS 未签名 IPA 构建，并在完成后打印实际产物路径。
+
+Android 默认产物：
+
+```text
+build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+build/app/outputs/flutter-apk/app-x86_64-release.apk
+```
+
+下面的手工命令主要用于排错或只需要单独构建 Android 时参考。
+
 ## APK 三种产物
 
 ### 1. 通用 APK
@@ -103,6 +127,8 @@ dart run scripts/update_app_logo.dart assets/logo/logo.png
 ```bash
 dart run scripts/update_app_name.dart "你的App名字"
 ```
+
+脚本会同步更新 Android 应用名、Web 标题和 iOS 后台卡片/桌面显示名。
 
 ### 4. 执行打包命令
 

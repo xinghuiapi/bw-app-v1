@@ -614,6 +614,7 @@ class WalletProvider extends ChangeNotifier {
 
     try {
       await _service.submitRechargeProof(request);
+      await loadRealtimeBalance(refresh: true);
     } on ApiException catch (exception) {
       rechargeProofSubmitError = exception.message;
       rethrow;

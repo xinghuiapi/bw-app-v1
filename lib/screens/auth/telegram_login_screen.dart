@@ -67,7 +67,9 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
               Text(
                 _tgText(
                   _isFirstLogin ? 'firstLoading' : 'secureLoading',
-                  _isFirstLogin ? '首次登录处理中...' : '安全登录中...',
+                  _isFirstLogin
+                      ? 'First login, setting up your account...'
+                      : 'Securely logging in...',
                 ),
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -90,7 +92,9 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
     final redirect = _redirectTarget(uri.queryParameters['redirect']);
 
     if (userId.isEmpty || username.isEmpty) {
-      _showMessage(_tgText('missingParams', 'Telegram 登录参数缺失'));
+      _showMessage(
+        _tgText('missingParams', 'Telegram login parameters are missing'),
+      );
       await _delayedGo(redirect, milliseconds: 1500);
       return;
     }
@@ -106,7 +110,7 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
         await _setDefaultPassword(redirect);
         return;
       }
-      _showMessage(_tgText('success', 'Telegram 登录成功'));
+      _showMessage(_tgText('success', 'Telegram login successful'));
       unawaited(_loadProfile());
       _goAfterLogin(redirect);
     } catch (_) {
@@ -114,7 +118,7 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
       final message = context.read<AuthProvider>().error;
       _showMessage(message?.trim().isNotEmpty == true
           ? message!.trim()
-          : _tgText('retryLater', '登录失败，请稍后重试'));
+          : _tgText('retryLater', 'Login failed, please try again later'));
       await _delayedGo(redirect, milliseconds: 1500);
     }
   }
@@ -128,7 +132,12 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
             ),
           );
       if (!mounted) return;
-      _showMessage(_tgText('setDefaultPassSuccess', '默认密码设置成功'));
+      _showMessage(
+        _tgText(
+          'setDefaultPassSuccess',
+          'Default password set successfully',
+        ),
+      );
       unawaited(_loadProfile());
       _goAfterLogin(redirect);
     } catch (_) {
@@ -136,7 +145,7 @@ class _TelegramLoginScreenState extends State<TelegramLoginScreen> {
       final message = context.read<AuthProvider>().error;
       _showMessage(message?.trim().isNotEmpty == true
           ? message!.trim()
-          : _tgText('setPassFailed', '密码设置失败'));
+          : _tgText('setPassFailed', 'Failed to set password'));
       _goAfterLogin(redirect);
     }
   }

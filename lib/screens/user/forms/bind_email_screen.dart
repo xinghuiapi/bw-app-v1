@@ -92,7 +92,8 @@ class _BindEmailScreenState extends State<BindEmailScreen> {
                   text: isSubmitting
                       ? 'common.binding'.tr()
                       : 'common.confirmBind'.tr(),
-                  onPressed: _submit,
+                  isLoading: isSubmitting,
+                  onPressed: isSubmitting ? null : _submit,
                 ),
               ],
             ],

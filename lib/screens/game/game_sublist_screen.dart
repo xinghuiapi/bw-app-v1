@@ -11,6 +11,7 @@ import '../../providers/game/game_provider.dart';
 import '../../security/url_policy.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_images.dart';
+import '../../utils/game_launch_error.dart';
 import '../../widgets/common/app_network_image.dart';
 
 class GameSubListScreen extends StatefulWidget {
@@ -259,19 +260,19 @@ class _GameSubListScreenState extends State<GameSubListScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SizedBox(
-                            width: 22.w,
-                            height: 22.w,
+                            width: 24.w,
+                            height: 24.w,
                             child: const CircularProgressIndicator(
                               color: Colors.white,
                               strokeWidth: 2,
                             ),
                           ),
-                          SizedBox(height: 6.h),
+                          SizedBox(height: 8.h),
                           Text(
                             'game.launching'.tr(),
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 11.sp,
+                              fontSize: 13.sp,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -326,7 +327,7 @@ class _GameSubListScreenState extends State<GameSubListScreen>
                         'game.maintaining'.tr(),
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12.sp,
+                          fontSize: 13.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -361,7 +362,13 @@ class _GameSubListScreenState extends State<GameSubListScreen>
       final urlText = result.url?.trim();
       if (urlText == null || urlText.isEmpty) {
         messenger.showSnackBar(
-          SnackBar(content: Text('game.enterFailed'.tr())),
+          SnackBar(
+            content: Text(
+              result.message?.trim().isNotEmpty == true
+                  ? result.message!.trim()
+                  : 'game.enterFailed'.tr(),
+            ),
+          ),
         );
         return;
       }
@@ -389,12 +396,10 @@ class _GameSubListScreenState extends State<GameSubListScreen>
       });
     } catch (error) {
       if (!mounted) return;
-      final message = context.read<GameProvider>().launchError;
       messenger.showSnackBar(
         SnackBar(
-            content: Text(message?.trim().isNotEmpty == true
-                ? message!
-                : 'game.enterFailed'.tr())),
+          content: Text(gameLaunchErrorText(error, 'game.enterFailed')),
+        ),
       );
     }
   }
@@ -515,6 +520,8 @@ class _GameSubListScreenState extends State<GameSubListScreen>
         unselectedLabelStyle:
             TextStyle(fontSize: 15.sp, fontWeight: FontWeight.normal),
         dividerColor: Colors.transparent, // 去除 M3 默认底部分割线
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
         tabs: [
           Tab(text: 'game.all'.tr()),
           Tab(text: 'game.favorites'.tr()),

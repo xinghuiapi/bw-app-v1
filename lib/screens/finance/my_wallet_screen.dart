@@ -97,9 +97,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
     UserProvider userProvider,
   ) {
     final profile = userProvider.profile;
-    final symbol = profile?.symbol?.trim().isNotEmpty == true
-        ? profile!.symbol!.trim()
-        : '¥';
+    const symbol = '¥';
     final fallbackBalance = _toDouble(profile?.balance);
     final balance = walletProvider.realtimeBalance?.balance ?? fallbackBalance;
     return Container(
@@ -663,10 +661,11 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                       onPressed: walletProvider.isVenueTransferSubmitting
                           ? null
                           : () => _submitVenueTransfer(active, true),
-                      child: Text(
-                        walletProvider.isVenueTransferSubmitting
-                            ? 'finance.wallet.processing'.tr()
-                            : 'finance.wallet.transferIn'.tr(),
+                      child: _buildVenueTransferButtonLabel(
+                        isLoading: walletProvider.isVenueTransferSubmitting,
+                        text: 'finance.wallet.transferIn'.tr(),
+                        spinnerColor: Colors.white,
+                        textColor: Colors.white,
                       ),
                     ),
                   ),
@@ -678,7 +677,12 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                       onPressed: walletProvider.isVenueTransferSubmitting
                           ? null
                           : () => _submitVenueTransfer(active, false),
-                      child: Text('finance.wallet.transferOut'.tr()),
+                      child: _buildVenueTransferButtonLabel(
+                        isLoading: walletProvider.isVenueTransferSubmitting,
+                        text: 'finance.wallet.transferOut'.tr(),
+                        spinnerColor: AppColors.primary,
+                        textColor: AppColors.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -687,6 +691,39 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildVenueTransferButtonLabel({
+    required bool isLoading,
+    required String text,
+    required Color spinnerColor,
+    required Color textColor,
+  }) {
+    final label = isLoading ? 'finance.wallet.processing'.tr() : text;
+    final style = TextStyle(
+      fontSize: 14.sp,
+      fontWeight: FontWeight.w600,
+      color: textColor,
+    );
+    if (!isLoading) {
+      return Text(label, style: style);
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 18.w,
+          height: 18.w,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: spinnerColor,
+          ),
+        ),
+        SizedBox(width: 8.w),
+        Text(label, style: style),
+      ],
     );
   }
 

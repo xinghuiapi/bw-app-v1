@@ -212,6 +212,18 @@
       "male": "男性",
       "female": "女性",
       "secret": "非公開"
+    },
+    "redemption": {
+      "title": "交換コード",
+      "placeholder": "交換コードを入力してください。貼り付けも可能です。",
+      "code": "交換コードを入力",
+      "paste": "貼り付け",
+      "submit": "交換する",
+      "records": "交換履歴",
+      "empty": "交換履歴はありません",
+      "needCode": "交換コードを入力してください",
+      "redeemSuccess": "交換しました",
+      "redeemFailed": "交換に失敗しました"
     }
   },
   "activity": {
@@ -249,6 +261,7 @@
     "onlineNumbered": "オンラインサポート{index}",
     "onlineSubtitle": "オンラインサポート",
     "telegramSubtitle": "Telegramサポート",
+    "consult": "今すぐ相談",
     "invalidLink": "サポートリンクが無効です",
     "externalPluginMissing": "外部リンク機能が読み込まれていません。アプリを完全に再起動して再試行してください。",
     "openFailed": "サポートリンクを開けません",
@@ -261,7 +274,8 @@
     "todayDate": "今日",
     "betCount": "ベット数",
     "totalProfitLoss": "総損益",
-    "unclaimedRebate": "未受取リベート",
+    "netProfit": "受取可能リベート",
+    "unclaimedRebate": "受取可能コミッション",
     "moreServices": "その他サービス",
     "gameManagement": "ゲーム管理",
     "fundManagement": "資金管理",
@@ -269,7 +283,32 @@
     "bankCard": "銀行カード",
     "share": "共有",
     "feedback": "フィードバック",
-    "comingSoon": "近日公開"
+    "comingSoon": "近日公開",
+    "dateMD": "{m}/{d}"
+  },
+  "income": {
+    "title": "マイ収入",
+    "rebateTitle": "受取可能リベート",
+    "rebateHint": "ベットリベート率を見る",
+    "commissionTitle": "受取可能コミッション",
+    "commissionHint": "ベットコミッション報酬率",
+    "claim": "受取",
+    "claimSuccess": "受取成功",
+    "claimFailed": "受取失敗",
+    "noClaimable": "受取可能金額はありません",
+    "rebateRecord": "リベート記録",
+    "commissionRecord": "コミッション記録",
+    "myTeam": "マイチーム",
+    "view": "表示",
+    "rebateSettlement": "リベート精算",
+    "commissionSettlement": "コミッション精算",
+    "todayData": "本日のデータ",
+    "dayTotalRebate": "本日の総リベート",
+    "dayClaimedRebate": "本日の受取済リベート",
+    "dayUnclaimedRebate": "本日の未受取リベート",
+    "dayTotalCommission": "本日の総コミッション",
+    "dayClaimedCommission": "本日の受取済コミッション",
+    "dayUnclaimedCommission": "本日の未受取コミッション"
   },
   "home": {
     "appTitle": "Flutter UI アプリ",
@@ -675,6 +714,9 @@
       "finance": "入出金の問題",
       "activity": "キャンペーンの問題",
       "accountSecurity": "アカウント安全",
+      "punishment": "ペナルティの問題",
+      "penalty": "ペナルティの問題",
+      "violation": "違反申し立て",
       "suggestion": "その他の提案"
     },
     "status": {
@@ -908,12 +950,44 @@
       "unsettled": "未決済",
       "invalid": "無効ベット",
       "refunded": "返金済み"
-    }
+    },
+    "fyRecords": "コミッション記録",
+    "emptyFy": "コミッション記録はありません",
+    "totalFy": "総コミッション",
+    "flowAmount": "流水金額",
+    "fyRate": "コミッション率",
+    "fyAmount": "コミッション額",
+    "claimFy": "コミッション受取",
+    "noClaimable": "受取可能な返水はありません",
+    "noClaimableFy": "受取可能なコミッションはありません",
+    "claimSuccess": "受取成功",
+    "claimFailed": "受取失敗"
   },
   "maintenance": {
     "title": "システムメンテナンス",
     "description": "プラットフォームはメンテナンス中です。しばらくしてから再試行してください。",
     "retry": "再確認",
     "backHome": "ホームへ戻る"
+  },
+  "team": {
+    "title": "マイチーム",
+    "search": "検索",
+    "searchPlaceholder": "会員アカウントを入力",
+    "empty": "チームメンバーはいません",
+    "colName": "名称",
+    "colBet": "個人流水"
+  },
+  "fyLevel": {
+    "title": "コミッション等級",
+    "tabLottery": "宝くじ",
+    "tabGames": "スロット",
+    "tabPoker": "チェス",
+    "tabLive": "ライブ",
+    "tabSport": "スポーツ",
+    "tabFishing": "フィッシング",
+    "currentVip": "現在の等級",
+    "colVip": "下位VIP等級",
+    "colRate": "あなたのコミッション率",
+    "empty": "データなし"
   }
 }

@@ -131,6 +131,10 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: onClickRight,
                 child: Container(
+                  constraints: const BoxConstraints(
+                    minHeight: backHitTargetSize,
+                    minWidth: backHitTargetSize,
+                  ),
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   alignment: Alignment.center,
                   child: Row(

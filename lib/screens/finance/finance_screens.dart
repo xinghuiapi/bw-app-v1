@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -5,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../api/api_exception.dart';
 import '../../models/user/user_models.dart';
 import '../../models/wallet/wallet_models.dart';
@@ -119,6 +122,7 @@ class _DepositScreenState extends State<DepositScreen> {
                 text: walletProvider.isRechargeOrderSubmitting
                     ? 'deposit.submitting'.tr()
                     : 'deposit.confirm'.tr(),
+                isLoading: walletProvider.isRechargeOrderSubmitting,
                 onPressed: walletProvider.isRechargeOrderSubmitting
                     ? null
                     : _submitRechargeOrder,
@@ -729,7 +733,9 @@ class _DepositScreenState extends State<DepositScreen> {
 
     _showMessage('deposit.submitSuccess'.tr());
     if (orderId != null) {
-      context.push('/deposit/order/${Uri.encodeComponent(orderId.toString())}');
+      context.push(
+        '/deposit/order/${Uri.encodeComponent(orderId.toString())}',
+      );
     }
   }
 
@@ -825,6 +831,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
   final _cancelNoteController = TextEditingController();
   int _proofMode = 0;
   _ProofUploadImage? _proofImage;
+  Timer? _pollTimer;
 
   @override
   void initState() {
@@ -833,15 +840,44 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
       if (!mounted) return;
       final id = widget.orderId?.trim();
       if (id == null || id.isEmpty) return;
-      context.read<WalletProvider>().loadRechargeDetail(id);
+      _loadAndHandleRechargeDetail(id);
+      _startRechargePolling(id);
     });
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _txHashController.dispose();
     _cancelNoteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadAndHandleRechargeDetail(String id) async {
+    final provider = context.read<WalletProvider>();
+    await provider.loadRechargeDetail(id);
+    if (!mounted) return;
+    final detail = provider.rechargeDetail;
+    final status = detail?.status;
+    if (status == 1 || status == 2) {
+      _pollTimer?.cancel();
+      await provider.loadRealtimeBalance(refresh: true);
+      if (!mounted) return;
+      context.go('/deposit/success/${Uri.encodeComponent(id)}');
+    } else if (status == 0 || status == 3 || status == 4) {
+      _pollTimer?.cancel();
+      context.go('/deposit/failed/${Uri.encodeComponent(id)}');
+    }
+  }
+
+  void _startRechargePolling(String id) {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) return;
+      final detail = context.read<WalletProvider>().rechargeDetail;
+      if (detail != null && !_isPending(detail)) return;
+      _loadAndHandleRechargeDetail(id);
+    });
   }
 
   @override
@@ -872,7 +908,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
           child: RefreshIndicator(
             onRefresh: () async {
               if (id == null || id.isEmpty) return;
-              await context.read<WalletProvider>().loadRechargeDetail(id);
+              await _loadAndHandleRechargeDetail(id);
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -938,7 +974,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
       children: [
         _buildHeaderCard(context, detail, id),
         SizedBox(height: 12.h),
-        if (_normalizeImageUrl(detail.img).isNotEmpty) ...[
+        if (_shouldShowQrCard(detail)) ...[
           _buildQrCard(detail),
           SizedBox(height: 12.h),
         ],
@@ -1068,6 +1104,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
 
   Widget _buildQrCard(RechargeDetail detail) {
     final url = _normalizeImageUrl(detail.img);
+    final address = detail.payAddress;
     final qrSize = 220.w.clamp(170.0, 220.0);
     return _buildM1Card(
       child: Column(
@@ -1082,17 +1119,27 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10.r),
-              child: AppNetworkImage(
-                url: url,
-                width: qrSize,
-                height: qrSize,
-                fit: BoxFit.cover,
-                errorWidget: Icon(
-                  Icons.qr_code_2,
-                  size: 80.sp,
-                  color: const Color(0xFF9CA3AF),
-                ),
-              ),
+              child: detail.isCryptoRecharge && address.isNotEmpty
+                  ? Container(
+                      color: Colors.white,
+                      alignment: Alignment.center,
+                      child: QrImageView(
+                        data: address,
+                        size: qrSize,
+                        backgroundColor: Colors.white,
+                      ),
+                    )
+                  : AppNetworkImage(
+                      url: url,
+                      width: qrSize,
+                      height: qrSize,
+                      fit: BoxFit.cover,
+                      errorWidget: Icon(
+                        Icons.qr_code_2,
+                        size: 80.sp,
+                        color: const Color(0xFF9CA3AF),
+                      ),
+                    ),
             ),
           ),
           SizedBox(height: 10.h),
@@ -1360,6 +1407,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
             text: provider.isRechargeProofSubmitting
                 ? 'deposit.submitting'.tr()
                 : 'deposit.detail.submitProof'.tr(),
+            isLoading: provider.isRechargeProofSubmitting,
             onPressed: provider.isRechargeProofSubmitting
                 ? null
                 : () => _submitProof(detail),
@@ -1569,6 +1617,7 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
                           text: provider.isRechargeCancelSubmitting
                               ? 'deposit.detail.canceling'.tr()
                               : 'deposit.detail.confirmCancel'.tr(),
+                          isLoading: provider.isRechargeCancelSubmitting,
                           onPressed: provider.isRechargeCancelSubmitting
                               ? null
                               : () => _confirmCancel(sheetContext, detail),
@@ -1738,15 +1787,9 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
     final rows = <Widget>[];
     final type = detail.type;
 
-    if (type == 4) {
-      _addRow(rows, 'deposit.detail.bank'.tr(), params?.bank);
-      _addRow(rows, 'deposit.detail.bankName'.tr(), params?.bankName);
-      _addRow(rows, 'deposit.detail.cardNo'.tr(), params?.card,
-          copy: params?.card);
-      _addRow(rows, 'deposit.detail.address'.tr(), params?.address);
-    } else if (type == 3 || type == 5) {
-      _addRow(rows, 'deposit.detail.receiveAddress'.tr(), params?.address,
-          copy: params?.address);
+    if (detail.isCryptoRecharge) {
+      _addRow(rows, 'deposit.detail.receiveAddress'.tr(), detail.payAddress,
+          copy: detail.payAddress);
       if (detail.displayCurrency.toUpperCase() == 'CNY') {
         _addRow(
             rows,
@@ -1757,6 +1800,12 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
         _addRow(rows, 'deposit.detail.cryptoAmount'.tr(),
             _cryptoAmountText(detail));
       }
+    } else if (type == 4) {
+      _addRow(rows, 'deposit.detail.bank'.tr(), params?.bank);
+      _addRow(rows, 'deposit.detail.bankName'.tr(), params?.bankName);
+      _addRow(rows, 'deposit.detail.cardNo'.tr(), params?.card,
+          copy: params?.card);
+      _addRow(rows, 'deposit.detail.address'.tr(), params?.address);
     } else if (type == 2) {
       _addRow(rows, 'deposit.detail.name'.tr(), params?.name);
       _addRow(rows, 'deposit.detail.account'.tr(), params?.account,
@@ -1847,26 +1896,28 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
 
   String _headerTitle(RechargeDetail detail) {
     if (detail.type == 4) return 'deposit.detail.bankTransfer'.tr();
-    if (detail.type == 2) return 'deposit.detail.alipayRecharge'.tr();
-    if (detail.type == 3 || detail.type == 5) {
+    if (detail.isCryptoRecharge) {
       return 'deposit.detail.cryptoRecharge'.tr();
     }
+    if (detail.isAlipayRecharge) return 'deposit.detail.alipayRecharge'.tr();
     return _payTypeText(detail);
   }
 
   IconData _headerIcon(RechargeDetail detail) {
     if (detail.type == 4) return Icons.account_balance_outlined;
-    if (detail.type == 2) return Icons.payments_outlined;
-    if (detail.type == 3 || detail.type == 5) return Icons.diamond_outlined;
+    if (detail.isCryptoRecharge) {
+      return Icons.diamond_outlined;
+    }
+    if (detail.isAlipayRecharge) return Icons.payments_outlined;
     return Icons.info_outline;
   }
 
   String _payTypeText(RechargeDetail detail) {
     if (detail.type == 4) return 'deposit.detail.bankCard'.tr();
-    if (detail.type == 3 || detail.type == 5) {
+    if (detail.isCryptoRecharge) {
       return 'deposit.detail.crypto'.tr();
     }
-    if (detail.type == 2) return 'deposit.detail.alipay'.tr();
+    if (detail.isAlipayRecharge) return 'deposit.detail.alipay'.tr();
     return detail.type == null
         ? '-'
         : 'deposit.detail.typeNumber'.tr(namedArgs: {'type': '${detail.type}'});
@@ -1874,16 +1925,21 @@ class _DepositOrderDetailScreenState extends State<DepositOrderDetailScreen> {
 
   bool _isPending(RechargeDetail detail) => (detail.status ?? 5) == 5;
 
+  bool _shouldShowQrCard(RechargeDetail detail) {
+    if (detail.isCryptoRecharge && detail.payAddress.isNotEmpty) return true;
+    return _normalizeImageUrl(detail.img).isNotEmpty;
+  }
+
   String _amountDisplayText(RechargeDetail detail) {
     final money = _moneyOnlyText(detail);
-    if (detail.type == 3 || detail.type == 5) return money;
+    if (detail.type == 5) return money;
     final prefix = _currencyPrefix(detail.displayCurrency);
     return money == '-' ? prefix : '$prefix $money';
   }
 
   String _moneyOnlyText(RechargeDetail detail) {
     if (detail.type == 5 && detail.usdtMoney != null) {
-      return _formatAmount(detail.usdtMoney!, fractionDigits: 4);
+      return 'USDT ${_formatAmount(detail.usdtMoney!, fractionDigits: 4)}';
     }
     return _formatAmount(detail.money);
   }
@@ -2010,7 +2066,7 @@ class DepositPayFailedScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomNavBar(
-        title: _failedText('title', '充值失败'),
+        title: _failedText('title', 'Deposit Failed'),
         showLeftArrow: false,
       ),
       body: SafeArea(
@@ -2049,7 +2105,7 @@ class DepositPayFailedScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 12.h),
                     Text(
-                      _failedText('heading', '充值失败'),
+                      _failedText('heading', 'Deposit Failed'),
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w800,
@@ -2058,7 +2114,10 @@ class DepositPayFailedScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 6.h),
                     Text(
-                      _failedText('desc', '本次支付未完成，请重新发起充值。'),
+                      _failedText(
+                        'desc',
+                        'The payment was not completed. Please try depositing again.',
+                      ),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13.sp,
@@ -2068,7 +2127,7 @@ class DepositPayFailedScreen extends StatelessWidget {
                     if (orderId?.trim().isNotEmpty == true) ...[
                       SizedBox(height: 8.h),
                       Text(
-                        _failedText('orderId', '订单号：{id}')
+                        _failedText('orderId', 'Order ID: {id}')
                             .replaceAll('{id}', orderId!.trim()),
                         style: TextStyle(
                           fontSize: 12.sp,
@@ -2086,7 +2145,7 @@ class DepositPayFailedScreen extends StatelessWidget {
               ),
               SizedBox(height: 10.h),
               CustomButton(
-                text: _failedText('backHome', '返回首页'),
+                text: _failedText('backHome', 'Back to Home'),
                 isPrimary: false,
                 onPressed: () => context.go('/'),
               ),
@@ -2196,6 +2255,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 text: walletProvider.isWithdrawSubmitting
                     ? 'deposit.submitting'.tr()
                     : 'finance.withdraw.confirm'.tr(),
+                isLoading: walletProvider.isWithdrawSubmitting,
                 onPressed: walletProvider.isWithdrawSubmitting
                     ? null
                     : () => _submitWithdraw(
@@ -2691,7 +2751,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 GestureDetector(
                   onTap: () => context.push('/withdraw-password'),
                   child: Text(
-                    _withdrawText('goSetPayPassword', '去设置'),
+                    _withdrawText('goSetPayPassword', 'Set now'),
                     style: TextStyle(
                       fontSize: 13.sp,
                       color: AppColors.primary,
@@ -2711,7 +2771,10 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
                 counterText: '',
-                hintText: _withdrawText('enterPayPassword', '请输入6位取款密码'),
+                hintText: _withdrawText(
+                  'enterPayPassword',
+                  'Enter 6-digit withdrawal password',
+                ),
                 filled: true,
                 fillColor: AppColors.background,
                 border: OutlineInputBorder(
@@ -2726,7 +2789,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
             Text(
               _withdrawText(
                 'payPasswordTip',
-                '为了您的资金安全，提现前请先设置取款密码',
+                'For fund security, please set a withdrawal password first',
               ),
               style: TextStyle(fontSize: 13.sp, color: AppColors.textSecondary),
             ),
@@ -2837,7 +2900,12 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     }
     final payPassword = _payPasswordController.text.trim();
     if (!RegExp(r'^\d{6}$').hasMatch(payPassword)) {
-      _showSnack(_withdrawText('passwordInvalid', '请输入6位取款密码'));
+      _showSnack(
+        _withdrawText(
+          'passwordInvalid',
+          'Enter a 6-digit withdrawal password',
+        ),
+      );
       return;
     }
     final selectedCard = cards[_activeCardIndex.clamp(0, cards.length - 1)];

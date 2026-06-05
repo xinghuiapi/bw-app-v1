@@ -376,19 +376,22 @@ class GameListPage {
 
 class GameLaunchResult {
   final String? url;
+  final String? message;
   final bool nesting;
 
-  const GameLaunchResult({this.url, this.nesting = true});
+  const GameLaunchResult({this.url, this.message, this.nesting = true});
 
   factory GameLaunchResult.fromJson(Map<String, dynamic> json) {
     return GameLaunchResult(
       url: jsonString(json['url'] ?? json['game_url']),
+      message: jsonString(json['msg'] ?? json['message']),
       nesting: jsonBool(json['nesting']) ?? true,
     );
   }
 
   Map<String, dynamic> toJson() => {
         if (url != null) 'url': url,
+        if (message != null) 'message': message,
         'nesting': nesting,
       };
 }

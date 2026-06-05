@@ -22,7 +22,7 @@
 - **我的页面精修** (`ProfileScreen`)：完成带编辑图标的栈叠头像、Pill-shape VIP标签、蓝色渐变钱包面板（¥ 符号与金额排版对齐）、白色圆角“今日收益”面板（垂直灰线分割与蓝色箭头贴字）、8宫格“更多服务”。底导钱包/资金管理入口统一指向 `FundManagementScreen`；头像数据随 `/token/user.img` 刷新回显。
 - **首页推荐游戏与分类区** (`HomeScreen`)：推荐游戏横向区已接入 `POST /interface/reco` 只读数据，优先展示接口图片与标题；`/interface/reco` 为空或失败时回退到 m1 当前使用的 `/interface/list` 并筛选 `label=reco`；热门游戏已按 m1 接入 `POST /gamelist/getlist(label=hot)`，接口失败保留静态高仿 fallback。Banner 已从单图改为按 `terminal/lang` 过滤的轮播并支持真实跳转；APP 下载、复制安全域名、余额刷新交互已补齐。首页分类区使用 m1 本地静态资源并按截图高保真复刻：真人大卡、彩票/电子中卡、四个小卡比例、`Live/Lottery/Slot` 浅蓝英文底字、图片尺寸和文字密度已精修，并接入 `/interface/class` 真实标题和 `/game?code=...` 点击入口；多处 RenderFlex 溢出已处理。后续首页剩余 m1 对齐重点为：重做 Flutter 专属静态语言包并替换硬编码文案、补齐 `NoticeModal` 公告弹窗/今日不再提示、评估搜索右侧弹窗和游戏内嵌弹窗/最小化浮窗。
 - **活动页面** (`ActivityScreen`)：已对齐 m1 `views/main/activity.vue`，顶部品牌区域读取系统配置，活动分类接入 `/activity/class`，活动列表接入 `/activity/list`，分类横向 Tab 与活动卡片展示真实图片、标签、标题和时间；接口失败时保留 fallback 活动。
-- **客服页面** (`ServiceScreen`)：已对齐 m1 `views/main/Service.vue`，复用 `/system/getlist.config_site` 的 `service_link` 与 `tg_link` 展示问候卡片和两列渐变客服卡片；点击卡片通过外部浏览器/App 打开客服链接，支持下拉刷新和无配置空态。
+- **客服页面** (`ServiceScreen`)：已切换到新项目客服模式，复用 `/system/getlist.config_kefu` 展示问候卡片和纵向客服列表；客服页不再依赖 `config_site.service_link` 与 `tg_link` 旧模式字段，`config_kefu` 为空或无效时直接展示空态；点击客服项继续通过安全外链能力打开。
 
 ### 核心二级内页 (Secondary Screens)
 - **游戏大厅** (`GameScreen` & `GameSubListScreen`)：**【基于截图深度复刻】** 重构了带 Logo 和域名的专属头部（星汇演示），解决了 `TabBar` M3 默认偏移（`tabAlignment: TabAlignment.start`），实现了 3 列游戏卡片网格布局。在二级页中，完美还原了带有 PG 角标与心形收藏按钮叠加 (`Stack`) 的 4 列网格布局；已接入 `/gamelist/getlist` 搜索与分页加载、`/user_favorites/game` 收藏/取消收藏，以及 `/game/login` 游戏启动链路。游戏启动成功后按 m1 规则处理 `nesting=false` 外部打开，否则进入独立 `/game-view` 承载页；承载页已对齐 m1 黑色顶部栏、标题、站点 Logo 和关闭入口，移动端使用 WebView，Web 端使用 iframe 且补齐 fullscreen/sandbox 参数，不保留主 Tab 底栏。
@@ -108,7 +108,12 @@
 - [x] **资金密码修改补齐**：`WithdrawPasswordScreen` 在已设置资金密码时展示旧取款密码输入框，并做 6 位数字校验。
 - [x] **Telegram 登录接口接入**：`TelegramLoginScreen` 已按 m1 改为自动 loading 登录页，接入任意路由 `user_id/username` query 拦截、redirect 保留、登录态保存，以及首次登录默认设置密码 `123456` 闭环。
 - [x] **游戏返水一键领取**：底部领取按钮已接入 `/member_fs_log/claim`，支持领取中状态、错误提示和记录刷新。
-- [x] **我的页今日收益/未领取返水数据**：个人中心已接入今日投注数、今日盈亏、未领取返水等真实数据。
+- [x] **我的页今日收益数据**：个人中心已接入 m1 `/day_revenue/getlist` 真实数据，今日收益三列严格按 m1 显示 `day_bet_count` 注单笔数、`total_no_fs` 可领返水和 `total_no_fy` 可领佣金；`total_fs/total_fy` 不参与可领金额展示，避免与 m1 字段语义偏离；日期按 m1 `profile.dateMD` 显示为当天月日。
+- [x] **我的收入页 m1 对齐**：个人中心“可领返水/可领佣金”进入 `/income`，新增 m1 两块收入面板（可领返水、可领返佣）、领取按钮、记录入口、今日结算三格数据；收入页进入时强制刷新 `/day_revenue/getlist`，避免只展示个人中心旧缓存。收入页三格结算布局已修正为有界高度，避免滚动列表中触发无界高度白屏和 Web `mouse_tracker` 连锁断言；收入页文案命名空间已修正为 Flutter 专属 `income.*`，不再显示 `user.income.*` 裸 key；收入页标题、查看返水比例、返佣比例、记录入口和领取提示已补页面级 locale 兜底，避免移动端旧资源缓存或热重载状态下露出残缺 key；今日收益三列已改为整块 72h 热区并去掉延后一帧导航，同时增加防重复入栈锁，避免连续点击造成进入/返回都需要多次点击。
+- [x] **返佣等级页 m1 对齐**：新增 `/fy-level` 和 `FyLevelScreen`，按 m1 `FyLevel.vue` 接入 `/fy/level`，展示彩票、电子、棋牌、真人、体育、捕鱼 Tab，以及当前等级、下级 VIP 等级和您的返佣比例表格；页面空数据时展示空态，不使用假数据。
+- [x] **VIP 返水比例格式对齐**：VIP 页返水比例继续严格读取 `/vip/getlist` 的 `sport_bl/live_bl/games_bl/poker_bl/fishing_bl/gaming_bl/lottery_bl`，百分比格式改为 m1 的 `toFixed(2)` 去零并保留整数 `.0` 规则。
+- [x] **游戏管理页入口与返回**：`/game-manage?tab=rebate/fy/game` 已支持 m1 三 Tab 初始定位，个人中心注单笔数进入返水记录，收入页返佣记录进入返佣 Tab；返佣 Tab 按 m1 接入 `/fy/getlist` 与 `/fy/claim`，展示总返佣、已领取、未领取、流水金额、返佣比例和返佣金额；返回按钮在无路由栈时兜底回 `/profile`，避免从我的页入口进入后返回失效；收入页和游戏管理页返回按钮左侧热区扩至 72w，公共导航栏右侧操作也补最小 56px 热区。
+- [x] **我的团队页**：新增 `/team` 和 `TeamScreen`，按 m1 `Team.vue` 接入 `/team/getlist`，展示“名称 / 个人流水”表格卡片、空态、下拉刷新和滚动加载更多；收入页“我的团队”入口已改为真实跳转。
 - [x] **充值失败页 `/deposit/failed/:id`**：已按 m1 `DepositPayFailed.vue` 新增 `DepositPayFailedScreen` 和 `/deposit/failed/:id` 路由，提供失败卡片、重新充值和返回首页入口。
 
 ### 待对接接口清单
@@ -121,7 +126,10 @@
 | `/retabe/list` | 分享返利信息、会员统计、邀请码/分享链接 | 已接入 Provider 和分享页 | 高 |
 | `/retabe/amount` | 领取分享返利 | 已接入领取按钮 | 高 |
 | `/member_fs_log/claim` | 游戏返水领取 | 已接入 Provider 和底部按钮 | 高 |
-| `/day_revenue/getlist` | 我的页今日收益、投注数、未领取返水 | 已接入 Provider 和我的页 | 高 |
+| `/day_revenue/getlist` | 我的页今日收益、投注数、未领取返水、收入页返水/返佣结算 | 已接入 Provider、我的页和收入页 | 高 |
+| `/fy/getlist` | 游戏管理返佣记录、返佣统计和分页 | 已接入游戏管理返佣 Tab | 高 |
+| `/fy/claim` | 返佣一键领取 | 已接入收入页 Provider 和领取按钮 | 高 |
+| `/team/getlist` | 我的团队成员与个人流水 | 已接入团队页 | 中 |
 | `/redemption/code` | 兑换码提交 | 已接入 UserProvider 和兑换码页 | 中 |
 | `/redemption/getlist` | 兑换码记录列表 | 已接入 UserProvider 和兑换码页 | 中 |
 | `/telegram/login` | Telegram 登录 | 页面已调用并保存登录态；路由 query 拦截未实现 | 中 |
@@ -175,6 +183,24 @@
 
 ### 后续事项：多语言视觉验收与接口协同
 - 静态 UI 文案多语言已完成收尾，后续重点转为真实浏览器逐页视觉验收。
+- 缅甸语适配已按英文 key 对齐复查：`my-MM.json` 无中文残留，登录/注册/找回密码/绑定手机号/兑换码/提现/充值失败/Telegram 登录/通用空态等 Flutter fallback 已去除硬编码中文。
+- 语言选择面板在缅甸语环境下改为按语言 code 展示缅甸语语言名称，避免本地兜底语言列表露出中文或其他非缅甸语名称。
+- 语言切换流程已加固：先完成 `easy_localization` locale 切换再更新业务语言码，首页切换期间展示 loading 遮罩，并对系统配置、首页分类、推荐游戏、热门游戏请求加入过期结果丢弃，避免旧语言异步响应覆盖新语言页面。
+- 首次启动语言初始化已前置到 `runApp` 前：从本地存储读取语言后传入 `EasyLocalization.startLocale` 与 `LanguageProvider` 初始值，避免首帧先按中文 fallback 渲染首页、底栏、活动、客服和我的页。
+- 首次安装/信任后打开已加启动门闩：保持项目默认语言与翻译 fallback 为中文，启动时只应用本地已保存语言，不再根据后端默认语言自动切换；无本地语言时首次展示保持全中文，用户主动切换缅文后再按切换流程全量刷新，避免中文/缅文混杂。
+- 语言持久化已收敛为单一来源：关闭 `easy_localization.saveLocale` 并在启动时清理其旧 `locale` 缓存，只使用项目自己的 `lang` 存储，避免 iOS 旧 locale 缓存与业务语言码不一致导致首次打开混杂。
+- 首页顶级游戏分类导航已改为固定 code 对应本地 i18n 文案，接口/缓存分类标题只用于路由数据，不再参与首屏标题展示，避免接口缓存语言与当前底栏 locale 不一致时出现中缅混合。
+- 客服页在线客服标题改为本地 i18n 固定文案，不再优先展示后端 `config_kefu.title`；公告弹窗按当前语言过滤明显中文公告内容，避免缅文界面首次弹出中文公告；我的页兑换码入口改用允许根下的 `user.redemption.title` key。
+- 启动阶段新增语言敏感缓存清理：进入 App 前清除系统配置缓存和游戏分类/列表/热门游戏本地缓存，避免历史混杂期间写入的脏缓存再次在首屏渲染旧语言内容。
+- 启动初始化顺序已修正：先清理 `easy_localization` 旧 `locale` 和语言敏感业务缓存，再执行 `EasyLocalization.ensureInitialized()`；随后在 loading 阶段同步项目语言、重置语言敏感 Provider，并按确定语言加载首屏配置，避免库静态缓存旧 locale 后再清理导致无效。
+- 已按 m1 参考项目复核语言链路：m1 以 `localStorage.lang` 作为 i18n 与 `headers.lang` 的单一来源，并将接口缓存按 `lang/auth` 隔离；Flutter 已同步补强通用 Dio 内存缓存 key 和游戏接口内存缓存清理，避免同一进程内跨语言复用旧响应。由于项目维护需求不同，Flutter 不跟随 m1 的 `config_lang.status_s` 首启默认语言覆盖逻辑，无本地语言时仍保持中文首屏。
+- 兑换码页面和我的页兑换码入口已补 `user.redemption.*` 全语言 key，中文/英文/缅文不再显示英文 fallback 或裸 key；反馈类型新增处罚/违规申诉相关 key，避免意见反馈分类列表出现 `feedback.types.*` 原始 key。
+- 公告首屏闪烁继续加固：公告栏只拼当前语言匹配的公告；弹窗调度时记录当前语言，并在真正显示前再次复核语言和过滤后的公告列表，防止首启同步或切换过程中的旧语言公告闪一帧。
+- 首页无数据模块已对齐 m1：Banner 仅在当前语言/terminal 有可见数据时显示；推荐游戏和热门游戏只有接口返回非空列表才渲染整块模块，不再显示模块标题、空态或错误占位。
+- 按钮 loading 态已按 m1 `van-button :loading` 审计并补齐公共能力：`CustomButton` 支持内部 spinner 并自动禁用；充值提交、提现提交、充值凭证提交、取消订单、活动申请、反馈提交、资料保存、退出登录、实名/绑定/密码/加卡等提交按钮已接入；兑换码和找回密码自定义按钮已改为提交中显示 spinner；登录/注册提交、场馆钱包转入/转出已补齐“spinner + 文案”的稳定 loading 态，游戏启动遮罩在首页、游戏列表和搜索结果中统一为 m1 的半透明遮罩、24px spinner 和 13px 文案。
+- 游戏启动失败提示按用户反馈调整为直接展示接口响应解析出的错误信息：`/game/login` 现在保留完整响应给 decoder，并兼容顶层、`data` 嵌套和字符串 JSON 响应；当接口返回 `code != 200`（例如 `{ code: 0, msg: "商户未开通该接口" }`）时强制抛业务异常展示接口 `msg`，当接口成功但 `data` 无有效 URL 时也优先展示接口 `msg`，避免只显示本地“进入游戏失败”；我的页今日收益标题区改为标题/日期纵向弹性布局，避免小屏或长语言下“今日收益”显示不全；首页、我的页和场馆钱包余额卡片货币符号统一固定为 `¥`，不再随语言或账户 `symbol` 变化；首页热门游戏 Grid 高度按内容行数收紧，一级标题和展示行间距对齐推荐游戏模块。
+- 缅文长文案已按 m1 分场景处理：游戏标题、卡片标题等固定窄标题保留单行省略；底部导航、公共按钮、验证码按钮和我的页服务宫格按缅文环境缩小字号或允许两行；搜索、游戏子列表和游戏/资金管理类 Tab 改为横向滚动；空态、错误态、加载说明等正文反馈增加多行容量并用 fade 截断，避免关键说明过早显示省略号。
+- 游戏维护中遮罩已对齐 m1 `maintain-mask`：推荐/热门游戏、游戏子列表、游戏大厅和搜索结果统一使用半透明黑色遮罩、居中 13sp/600 白色维护文案，不显示 loading spinner；搜索结果补齐维护中遮罩，维护状态覆盖启动态。
 - 需要重点检查：登录/注册、首页、游戏大厅、充值、充值详情、在线支付、提现、资金管理、场馆钱包、个人中心、反馈、VIP、分享、维护页。
 - 视觉验收维度：文本溢出、按钮截断、Tab 横向滚动、小屏换行、泰语/缅甸语行高、越南语长句、韩语紧凑排版。
 - 接口动态数据不纳入前端翻译；如页面仍出现中文动态内容，需要后端按语言返回或提供稳定 code/type/status 映射。

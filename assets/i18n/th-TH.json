@@ -311,12 +311,12 @@
     "dayUnclaimedCommission": "ค่าคอมมิชชั่นที่ยังไม่ได้รับวันนี้"
   },
   "home": {
-    "appTitle": "แอป Flutter UI",
+    "appTitle": "หน้าหลัก",
     "siteFallbackName": "Xinghui Demo",
-    "appDescription": "ประสบการณ์ลื่นไหลด้วยประสิทธิภาพแบบเนทีฟ",
+    "appDescription": "สนุกกับเกมและโปรโมชัน",
     "downloadNow": "ดาวน์โหลด",
     "selectLanguage": "เลือกภาษา",
-    "fallbackNotice": "ยินดีต้อนรับสู่ UI ใหม่ที่สร้างด้วย Flutter ประสิทธิภาพสูง รองรับหลายแพลตฟอร์ม!",
+    "fallbackNotice": "",
     "updateTitle": "พบเวอร์ชันใหม่",
     "updateCurrentVersion": "เวอร์ชันปัจจุบัน: {version}",
     "updateLatestVersion": "เวอร์ชันล่าสุด: {version}",

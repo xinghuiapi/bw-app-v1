@@ -254,7 +254,7 @@ class _MyAppState extends State<MyApp> {
       builder: (context, child) {
         if (!isStartupReady) {
           return MaterialApp(
-            title: 'MYANMAR',
+            title: '新U娱乐',
             theme: AppTheme.lightTheme,
             debugShowCheckedModeBanner: false,
             localizationsDelegates: context.localizationDelegates,
@@ -265,7 +265,7 @@ class _MyAppState extends State<MyApp> {
         }
 
         return MaterialApp.router(
-          title: 'MYANMAR',
+          title: '新U娱乐',
           theme: AppTheme.lightTheme,
           routerConfig: _router!,
           debugShowCheckedModeBanner: false,

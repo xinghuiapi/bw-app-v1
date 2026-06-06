@@ -311,12 +311,12 @@
     "dayUnclaimedCommission": "오늘 미수령 커미션"
   },
   "home": {
-    "appTitle": "Flutter UI 앱",
+    "appTitle": "홈",
     "siteFallbackName": "싱후이 데모",
-    "appDescription": "네이티브 성능의 부드러운 경험",
+    "appDescription": "게임과 이벤트를 즐겨보세요",
     "downloadNow": "다운로드",
     "selectLanguage": "언어 선택",
-    "fallbackNotice": "Flutter로 만든 새로운 UI를 경험해 보세요. 고성능과 멀티 플랫폼을 지원합니다!",
+    "fallbackNotice": "",
     "updateTitle": "새 버전이 있습니다",
     "updateCurrentVersion": "현재 버전: {version}",
     "updateLatestVersion": "최신 버전: {version}",

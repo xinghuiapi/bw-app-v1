@@ -20,7 +20,7 @@
 
 ### 一级主页面 (Primary Screens)
 - **我的页面精修** (`ProfileScreen`)：完成带编辑图标的栈叠头像、Pill-shape VIP标签、蓝色渐变钱包面板（¥ 符号与金额排版对齐）、白色圆角“今日收益”面板（垂直灰线分割与蓝色箭头贴字）、8宫格“更多服务”。底导钱包/资金管理入口统一指向 `FundManagementScreen`；头像数据随 `/token/user.img` 刷新回显。
-- **首页推荐游戏与分类区** (`HomeScreen`)：推荐游戏横向区已接入 `POST /interface/reco` 只读数据，优先展示接口图片与标题；`/interface/reco` 为空或失败时回退到 m1 当前使用的 `/interface/list` 并筛选 `label=reco`；热门游戏已按 m1 接入 `POST /gamelist/getlist(label=hot)`，接口失败保留静态高仿 fallback。Banner 已从单图改为按 `terminal/lang` 过滤的轮播并支持真实跳转；APP 下载、复制安全域名、余额刷新交互已补齐。首页分类区使用 m1 本地静态资源并按截图高保真复刻：真人大卡、彩票/电子中卡、四个小卡比例、`Live/Lottery/Slot` 浅蓝英文底字、图片尺寸和文字密度已精修，并接入 `/interface/class` 真实标题和 `/game?code=...` 点击入口；多处 RenderFlex 溢出已处理。后续首页剩余 m1 对齐重点为：重做 Flutter 专属静态语言包并替换硬编码文案、补齐 `NoticeModal` 公告弹窗/今日不再提示、评估搜索右侧弹窗和游戏内嵌弹窗/最小化浮窗。
+- **首页推荐游戏与分类区** (`HomeScreen`)：推荐游戏横向区已接入真实只读数据，优先展示接口图片与标题；热门游戏已按 m1 接入 `POST /gamelist/getlist(label=hot)`。Banner、公告、推荐游戏、热门游戏均对齐 m1 首页规则：有可见数据才展示模块，空数据不展示模块，也不使用“暂无公告”或静态 mock 兜底 UI。首页分类区使用 m1 本地静态资源并按截图高保真复刻：真人大卡、彩票/电子中卡、四个小卡比例、`Live/Lottery/Slot` 浅蓝英文底字、图片尺寸和文字密度已精修，并接入 `/interface/class` 与 `/game?code=...` 点击入口；多处 RenderFlex 溢出已处理。运行时语言包里的首页 demo 标题/描述文案已收口为业务文案，`home.fallbackNotice` 保持空字符串，避免空公告撑出模块。后续首页剩余 m1 对齐重点为：补齐 `NoticeModal` 公告弹窗/今日不再提示、评估搜索右侧弹窗和游戏内嵌弹窗/最小化浮窗。
 - **活动页面** (`ActivityScreen`)：已对齐 m1 `views/main/activity.vue`，顶部品牌区域读取系统配置，活动分类接入 `/activity/class`，活动列表接入 `/activity/list`，分类横向 Tab 与活动卡片展示真实图片、标签、标题和时间；接口失败时保留 fallback 活动。
 - **客服页面** (`ServiceScreen`)：已切换到新项目客服模式，复用 `/system/getlist.config_kefu` 展示问候卡片和纵向客服列表；客服页不再依赖 `config_site.service_link` 与 `tg_link` 旧模式字段，`config_kefu` 为空或无效时直接展示空态；点击客服项继续通过安全外链能力打开。
 

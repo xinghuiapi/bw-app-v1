@@ -1200,7 +1200,7 @@ flutter test test/widget_test.dart
 - `GameService.fetchRecommendedGames()` 接入 `POST /interface/reco`。
 - `GameProvider` 新增推荐游戏列表、加载状态、错误状态和 `loadRecommendedGames()`。
 - `HomeScreen` 进入后加载推荐游戏，推荐游戏区优先展示接口图片和标题。
-- 接口为空、失败或未加载成功时继续展示原静态推荐游戏 fallback。
+- 接口为空、失败或未加载成功且无可见数据时不展示推荐游戏模块，不使用原静态推荐游戏 fallback UI。
 - 推荐游戏图片继续使用 `AppNetworkImage`，支持资源域名补全和失败兜底。
 - 推荐游戏“更多”入口跳转游戏大厅。
 - 点击推荐游戏已接入 `/game/login`，复用统一启动规则：未登录跳登录、维护中不请求、提交中防重复、`nesting=false` 外部打开、其他情况进入 `/game-view`。
@@ -1449,8 +1449,8 @@ flutter test test/widget_test.dart
 
 - 对照 m1 `views/main/Home.vue`、`api/system.js`、`api/interface.js`、`api/gamelist.js` 和 `api/game.js`。
 - 首页启动时加载 `/interface/class`、推荐游戏和热门游戏，分类数据、推荐游戏、热门游戏均通过 `GameProvider` 消费。
-- 推荐游戏保持已有兼容逻辑：优先 `POST /interface/reco`，为空或失败时 fallback 到 m1 当前使用的 `POST /interface/list` 并筛选 `label=reco`。
-- 热门游戏按 m1 接入 `POST /gamelist/getlist`，参数 `page=1`、`size=30`、`label=hot`，接口为空或失败时保留静态高仿 fallback。
+- 推荐游戏保持已有兼容数据源逻辑；最终 UI 对齐 m1 首页 `v-if="recoGameList.length > 0"`，无可见数据时不展示推荐模块，不使用静态 mock/fallback UI。
+- 热门游戏按 m1 接入 `POST /gamelist/getlist`，参数 `page=1`、`size=30`、`label=hot`；最终 UI 对齐 m1 首页 `v-if="hotGameList.length > 0"`，无可见数据时不展示热门模块，不使用静态 mock/fallback UI。
 - 首页 Banner 从单图改为轮播，解析 `config_banner.terminal` 和 `lang`，只展示 `terminal == 2` 且语言匹配 `CN` 的 Banner；支持 3 秒自动切换和指示点。
 - Banner 点击补齐真实跳转：外链使用 `url_launcher` 打开，内链使用 `GoRouter` 跳转。
 - APP 下载按钮从 debug log 改为真实打开 `config_site.app_download/apk_download`。

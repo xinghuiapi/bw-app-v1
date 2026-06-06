@@ -311,12 +311,12 @@
     "dayUnclaimedCommission": "ယနေ့ မယူရသေးသော ကော်မရှင်"
   },
   "home": {
-    "appTitle": "Flutter UI အက်ပ်",
+    "appTitle": "ပင်မစာမျက်နှာ",
     "siteFallbackName": "Xinghui နမူနာ",
-    "appDescription": "Native စွမ်းဆောင်ရည်ဖြင့် ချောမွေ့သော အတွေ့အကြုံ",
+    "appDescription": "ဂိမ်းများနှင့် ပရိုမိုးရှင်းများကို စူးစမ်းပါ",
     "downloadNow": "ဒေါင်းလုဒ်",
     "selectLanguage": "ဘာသာစကားရွေးရန်",
-    "fallbackNotice": "Flutter ဖြင့် တည်ဆောက်ထားသော UI အသစ်ကို ကြိုဆိုပါသည်။ စွမ်းဆောင်ရည်မြင့်ပြီး စက်အမျိုးမျိုးကို ပံ့ပိုးသည်!",
+    "fallbackNotice": "",
     "updateTitle": "ဗားရှင်းအသစ် တွေ့ရှိသည်",
     "updateCurrentVersion": "လက်ရှိဗားရှင်း: {version}",
     "updateLatestVersion": "နောက်ဆုံးဗားရှင်း: {version}",

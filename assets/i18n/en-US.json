@@ -311,12 +311,12 @@
     "dayUnclaimedCommission": "Today's Unclaimed Commission"
   },
   "home": {
-    "appTitle": "Flutter UI App",
+    "appTitle": "Home",
     "siteFallbackName": "Xinghui Demo",
-    "appDescription": "Native performance, smooth experience",
+    "appDescription": "Explore games and promotions",
     "downloadNow": "Download",
     "selectLanguage": "Select Language",
-    "fallbackNotice": "Welcome to the new Flutter UI with high performance and multi-platform support!",
+    "fallbackNotice": "",
     "updateTitle": "New Version Available",
     "updateCurrentVersion": "Current version: {version}",
     "updateLatestVersion": "Latest version: {version}",

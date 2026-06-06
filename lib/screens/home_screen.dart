@@ -257,8 +257,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               selector: (_, provider) =>
                                   provider.config.notices,
                               builder: (context, notices, child) {
+                                final visibleNotices = _visibleNotices(notices);
+                                final noticeText = _noticeText(visibleNotices);
+                                if (noticeText.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
                                 return NoticeBar(
-                                  text: _noticeText(_visibleNotices(notices)),
+                                  text: noticeText,
                                   leftIcon:
                                       const Icon(Icons.volume_up_outlined),
                                   backgroundColor: Colors.white,
@@ -917,7 +922,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .map((notice) => _stripHtml(notice.content ?? notice.title ?? ''))
         .where((content) => content.isNotEmpty)
         .join('   |   ');
-    return text.isEmpty ? 'home.fallbackNotice'.tr() : text;
+    return text;
   }
 
   List<NoticeModel> _visibleNotices(List<NoticeModel> notices) {

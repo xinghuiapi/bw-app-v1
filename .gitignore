@@ -33,6 +33,7 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+/brand_release/release_artifacts/
 /web/assets/fallback_fonts/
 
 # Symbolication related

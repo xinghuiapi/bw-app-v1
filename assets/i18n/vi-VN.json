@@ -311,12 +311,12 @@
     "dayUnclaimedCommission": "Hoa hồng chưa nhận hôm nay"
   },
   "home": {
-    "appTitle": "Ứng dụng Flutter UI",
+    "appTitle": "Trang chủ",
     "siteFallbackName": "Bản demo Xinghui",
-    "appDescription": "Trải nghiệm mượt mà với hiệu năng gốc",
+    "appDescription": "Khám phá trò chơi và ưu đãi",
     "downloadNow": "Tải ngay",
     "selectLanguage": "Chọn ngôn ngữ",
-    "fallbackNotice": "Chào mừng bạn trải nghiệm UI mới xây dựng bằng Flutter, hiệu năng cao và hỗ trợ đa nền tảng!",
+    "fallbackNotice": "",
     "updateTitle": "Phát hiện phiên bản mới",
     "updateCurrentVersion": "Phiên bản hiện tại: {version}",
     "updateLatestVersion": "Phiên bản mới nhất: {version}",

@@ -20,6 +20,22 @@
 dart run scripts/package_release.dart --name "你的App名字" --domain https://你的域名
 ```
 
+如果需要一次性为多个品牌循环构建 Android arm64-v8a APK 和 iOS 未签名 IPA，维护品牌索引：
+
+```text
+brand_release/BRAND_RELEASE_INDEX.md
+```
+
+然后执行批量打包命令：
+
+```bash
+dart run brand_release/package_all_brands.dart
+```
+
+批量脚本会按索引表逐个复制品牌 logo 到 `assets/logo/logo.png`，再调用上面的统一单品牌命令，最后把产物归档到 `brand_release/release_artifacts/品牌ID/`。
+
+注意：现有统一单品牌命令会更新 App 名称、launcher icon 和相关原生配置。批量打包完成后，工作区会停留在最后一个成功打包品牌的品牌状态；如果需要恢复默认品牌，请重新放置默认 logo 并执行单品牌命令或通过版本控制恢复相关品牌资源变更。
+
 脚本会把 `--domain https://你的域名` 自动生成并传给 Flutter 编译参数：
 
 ```text

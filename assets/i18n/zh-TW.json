@@ -311,12 +311,12 @@
     "dayUnclaimedCommission": "今日未領取佣金"
   },
   "home": {
-    "appTitle": "Flutter UI 應用",
+    "appTitle": "首頁",
     "siteFallbackName": "星匯演示",
-    "appDescription": "體驗極致原生效能",
+    "appDescription": "精彩遊戲 即刻暢玩",
     "downloadNow": "立即下載",
     "selectLanguage": "選擇語言",
-    "fallbackNotice": "歡迎體驗基於 Flutter 構建的全新 UI，極致效能、多端支援！",
+    "fallbackNotice": "",
     "updateTitle": "發現新版本",
     "updateCurrentVersion": "目前版本：{version}",
     "updateLatestVersion": "最新版本：{version}",

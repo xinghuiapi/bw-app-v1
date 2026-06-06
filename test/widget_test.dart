@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -239,6 +242,35 @@ void main() {
     expect(siteDomainDisplayText(''), '');
     expect(siteDomainDisplayText('   '), '');
     expect(siteDomainDisplayText('0591.in'), '0591.in');
+  });
+
+  test('home runtime i18n does not expose Flutter demo fallback copy', () {
+    final forbidden = RegExp(
+      r'Flutter UI|基于 Flutter|極致效能|极致性能|multi-platform|高性能',
+      caseSensitive: false,
+    );
+    final files = Directory('assets/i18n')
+        .listSync()
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.json'));
+
+    for (final file in files) {
+      final data = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
+      final home = data['home'] as Map<String, dynamic>;
+      expect(
+        home['fallbackNotice'],
+        '',
+        reason:
+            '${file.path} home.fallbackNotice should not create empty-data UI',
+      );
+      for (final key in ['appTitle', 'appDescription', 'fallbackNotice']) {
+        expect(
+          home[key],
+          isNot(matches(forbidden)),
+          reason: '${file.path} home.$key should use business copy',
+        );
+      }
+    }
   });
 
   test('remote display titles are preserved for localization-sensitive data',

@@ -311,12 +311,12 @@
     "dayUnclaimedCommission": "本日の未受取コミッション"
   },
   "home": {
-    "appTitle": "Flutter UI アプリ",
+    "appTitle": "ホーム",
     "siteFallbackName": "星匯デモ",
-    "appDescription": "ネイティブ性能の快適体験",
+    "appDescription": "ゲームとキャンペーンをお楽しみください",
     "downloadNow": "今すぐDL",
     "selectLanguage": "言語を選択",
-    "fallbackNotice": "Flutter で構築された新しい UI をお楽しみください。高性能でマルチ端末対応！",
+    "fallbackNotice": "",
     "updateTitle": "新しいバージョンがあります",
     "updateCurrentVersion": "現在のバージョン: {version}",
     "updateLatestVersion": "最新バージョン: {version}",

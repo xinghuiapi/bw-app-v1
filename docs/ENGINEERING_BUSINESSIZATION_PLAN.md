@@ -23,6 +23,7 @@
 - `models/` 业务模型基础。
 - 新接口文档和接口对接顺序文档。
 - 基础网络、认证、Provider、Service 和部分真实接口接入能力。
+- 发版工程已支持文档化品牌索引驱动的批量打包流程：通过 `brand_release/BRAND_RELEASE_INDEX.md` 维护 `domain/logo/app_name`，使用 `brand_release/package_all_brands.dart` 循环调用统一单品牌打包命令，并将 arm64-v8a APK 与 unsigned IPA 归档到 `brand_release/release_artifacts/品牌ID/`。
 - m1 主体路由页面基本都有 Flutter 对应实现；当前已不是“大页面缺失”阶段。
 - m1 主要 endpoint 已基本覆盖在 `ApiEndpoints`。
 - 提现、删卡、分享返利、今日收益、返水领取、找回密码、Telegram 等收尾闭环所需的 service/model 已补齐。
@@ -1567,8 +1568,8 @@ flutter test test/widget_test.dart
 - `loadRecommendedGames()`。
 - `HomeScreen.initState()` 首帧后加载推荐游戏。
 - 首页推荐游戏区优先展示真实推荐游戏图片和标题。
-- 真实接口为空或失败时保留原静态推荐游戏 fallback。
-- 推荐游戏图片使用 `AppNetworkImage`，保留本地图片兜底。
+- 真实接口无可见数据时对齐 m1 首页模块规则：不展示推荐游戏模块，不使用静态推荐游戏 fallback UI。
+- 推荐游戏图片使用 `AppNetworkImage`，图片加载失败仅显示图片占位，不补静态业务游戏数据。
 - “更多”入口跳转 `/game` 游戏大厅。
 - 点击推荐游戏已接入 `/game/login`，复用游戏大厅启动逻辑和 `/game-view` 承载页。
 - 推荐游戏启动中显示遮罩和 `启动中...`。

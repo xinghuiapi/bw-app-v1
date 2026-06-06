@@ -63,13 +63,13 @@ build/ios/unsigned-YYYYMMDD-HHMMSS/Runner-unsigned.ipa
 - `--domain` 缺失、为空或带 `/api`：重新传入不带 `/api` 的资源域名，例如 `--domain https://example.com`。
 - `assets/logo/logo.png` 不存在：先准备 logo 文件。
 - 域名校验失败：检查 `--domain` 是否是完整 `https://` 域名且末尾没有 `/api`。
-- `pod install` 失败：查看 `docs/IOS_UNSIGNED_IPA_PACKAGING_GUIDE.md` 里的 CocoaPods 章节。
+- `pod install` 失败：查看 `brand_release/IOS_UNSIGNED_IPA_PACKAGING_GUIDE.md` 里的 CocoaPods 章节。
 - Android APK 没有生成：查看 `docs/PACKAGING_GUIDE.md` 里的 APK 构建章节。
-- `Runner.app` 或 IPA 没有生成：查看 `docs/IOS_UNSIGNED_IPA_PACKAGING_GUIDE.md` 里的 iOS 构建与 IPA 校验章节。
+- `Runner.app` 或 IPA 没有生成：查看 `brand_release/IOS_UNSIGNED_IPA_PACKAGING_GUIDE.md` 里的 iOS 构建与 IPA 校验章节。
 
 ## 进一步阅读
 
 阅读顺序：正常双端发版时先看本文；只处理 Android 发包时再看 Android 文档；只处理 iOS 裸包或重签交付时再看 iOS 文档。
 
 - Android 细则：`docs/PACKAGING_GUIDE.md`
-- iOS 细则：`docs/IOS_UNSIGNED_IPA_PACKAGING_GUIDE.md`
+- iOS 细则：`brand_release/IOS_UNSIGNED_IPA_PACKAGING_GUIDE.md`

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -115,6 +117,7 @@ class _AppProvidersState extends State<AppProviders> {
       await _userProvider.loadProfile();
       if (_userProvider.profile == null) {
         await _authProvider.forceLogout();
+        return;
       }
     }).catchError((_) {});
   }
@@ -152,8 +155,165 @@ class _AppProvidersState extends State<AppProviders> {
         ChangeNotifierProvider.value(value: _messageProvider),
         ChangeNotifierProvider.value(value: _recordProvider),
       ],
-      child: widget.child,
+      child: AccountAutoRefreshScope(child: widget.child),
     );
+  }
+}
+
+class AccountAutoRefreshScope extends StatefulWidget {
+  const AccountAutoRefreshScope({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<AccountAutoRefreshScope> createState() =>
+      _AccountAutoRefreshScopeState();
+}
+
+class _AccountAutoRefreshScopeState extends State<AccountAutoRefreshScope>
+    with WidgetsBindingObserver {
+  static const _refreshInterval = Duration(seconds: 15);
+  static const _refreshTimeout = Duration(seconds: 12);
+
+  Timer? _timer;
+  bool _isRefreshing = false;
+  bool _isStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncTimer();
+    });
+    Timer(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      _syncTimer();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _stopTimer();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _syncTimer();
+      return;
+    }
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      _stopTimer();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncTimer();
+    });
+  }
+
+  void _syncTimer() {
+    final authProvider = context.read<AuthProvider>();
+    if (!authProvider.isAuthenticated) {
+      _stopTimer();
+      return;
+    }
+    if (_isStarted) return;
+    _isStarted = true;
+    if (kDebugMode) {
+      debugPrint('[account-auto-refresh] started every 15s');
+    }
+    _runRefreshCycle();
+  }
+
+  void _stopTimer() {
+    final timer = _timer;
+    timer?.cancel();
+    _timer = null;
+    final wasStarted = _isStarted;
+    _isStarted = false;
+    if ((timer != null || wasStarted) && kDebugMode) {
+      debugPrint('[account-auto-refresh] stopped');
+    }
+  }
+
+  Future<void> _runRefreshCycle() async {
+    _timer?.cancel();
+    _timer = null;
+    await _refreshNow();
+    if (!mounted || !_isStarted) return;
+    if (!context.read<AuthProvider>().isAuthenticated) {
+      _stopTimer();
+      return;
+    }
+    _timer = Timer(_refreshInterval, _runRefreshCycle);
+    if (kDebugMode) {
+      debugPrint('[account-auto-refresh] next tick in 15s');
+    }
+  }
+
+  Future<void> _refreshNow() async {
+    if (_isRefreshing) {
+      if (kDebugMode) {
+        debugPrint(
+            '[account-auto-refresh] skipped: previous tick still running');
+      }
+      return;
+    }
+    final authProvider = context.read<AuthProvider>();
+    if (!authProvider.isAuthenticated) {
+      _stopTimer();
+      return;
+    }
+    final userProvider = context.read<UserProvider>();
+    final walletProvider = context.read<WalletProvider>();
+    _isRefreshing = true;
+    if (kDebugMode) {
+      debugPrint('[account-auto-refresh] tick');
+    }
+    try {
+      await Future.wait<void>([
+        userProvider.loadProfile(refresh: true).catchError((_) {}),
+        walletProvider.loadRealtimeBalance(refresh: true).catchError((_) {}),
+        walletProvider.loadVenueBalances(refresh: true).catchError((_) {}),
+        userProvider.loadDayRevenue(refresh: true).catchError((_) {}),
+      ]).timeout(_refreshTimeout);
+      if (kDebugMode) {
+        debugPrint('[account-auto-refresh] done');
+      }
+    } on TimeoutException {
+      if (kDebugMode) {
+        debugPrint('[account-auto-refresh] timeout after 12s');
+      }
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isAuthenticated = context.select<AuthProvider, bool>(
+      (provider) => provider.isAuthenticated,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (isAuthenticated) {
+        _syncTimer();
+      } else {
+        _stopTimer();
+      }
+    });
+    return widget.child;
   }
 }
 
@@ -254,7 +414,7 @@ class _MyAppState extends State<MyApp> {
       builder: (context, child) {
         if (!isStartupReady) {
           return MaterialApp(
-            title: '新U娱乐',
+            title: '开云体育',
             theme: AppTheme.lightTheme,
             debugShowCheckedModeBanner: false,
             localizationsDelegates: context.localizationDelegates,
@@ -265,7 +425,7 @@ class _MyAppState extends State<MyApp> {
         }
 
         return MaterialApp.router(
-          title: '新U娱乐',
+          title: '开云体育',
           theme: AppTheme.lightTheme,
           routerConfig: _router!,
           debugShowCheckedModeBanner: false,

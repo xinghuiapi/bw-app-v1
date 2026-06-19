@@ -6,6 +6,8 @@
 dart run scripts/package_release.dart --name "App名字" --domain https://example.com
 ```
 
+版本规则：项目初始版本为 `pubspec.yaml` 的 `1.0.0+0`，对外四段版本为 `1.0.0.0`；每次统一单品牌命令成功打包后，build number 自动加 `1`，例如首次成功打包后变为 `1.0.0+1`，对外显示 `1.0.0.1`。批量打包按整批只递增一次，批内所有品牌使用同一个 build number。
+
 ## Logo 目录
 
 品牌 logo 统一存放在：
@@ -56,6 +58,7 @@ build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
 | true | jjyl | 玖玖娱乐 | https://007007.xh-bw.com | brand_release/logos/jjyl.png |
 | true | kxty | 开星体育 | https://akk112255.xh-bw.com| brand_release/logos/kxty.png |
 | true | myanmar | MYANMAR | https://api.myanmarn.xyz | brand_release/logos/myanmar.png |
+| true | kyty | 开云体育 | https://api.zhongan2.xyz | brand_release/logos/kyty.png |
 
 
 ## 批量打包命令

@@ -5,7 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import '../../config/app_env.dart';
+import '../../models/home/home_models.dart';
+import '../../providers/system/system_provider.dart';
 import '../../providers/user/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_nav_bar.dart';
@@ -33,11 +34,13 @@ class _ShareScreenState extends State<ShareScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
+    final systemConfig = context.watch<SystemProvider>().config;
+    final siteConfig = systemConfig.siteConfig;
     final rebate = userProvider.rebateInfo;
     final profile = userProvider.profile;
     final inviteCode = _inviteCode(profile);
-    final shareUrl = _shareUrl(inviteCode);
-    final currency = _textFallback(profile?.symbol, '¥');
+    final shareUrl = _shareUrl(inviteCode, siteConfig?.h5Url);
+    final currency = _currencySymbol(systemConfig, profile);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomNavBar(title: 'share.title'.tr()),
@@ -68,7 +71,7 @@ class _ShareScreenState extends State<ShareScreen> {
                           ),
                         ),
                       ),
-                    _buildRulesCard(context, userProvider),
+                    _buildRulesCard(context, userProvider, systemConfig),
                     SizedBox(height: 32.h),
                   ],
                 ),
@@ -451,20 +454,27 @@ class _ShareScreenState extends State<ShareScreen> {
     );
   }
 
-  Widget _buildRulesCard(BuildContext context, UserProvider provider) {
+  Widget _buildRulesCard(
+    BuildContext context,
+    UserProvider provider,
+    HomeConfig systemConfig,
+  ) {
     final rebate = provider.rebateInfo;
     final minRecharge = _compactNumber(rebate?.minRecharge ?? 1);
     final minEffectiveMembers = (rebate?.minEffectiveMembers ?? 1).toString();
-    final rules = [
-      'share.rule1'.tr(),
-      'share.rule2'.tr(),
-      'share.rule3'.tr(),
-      'share.rule4'.tr(),
-      'share.rule5'
-          .tr()
-          .replaceAll('{amount}', minRecharge)
-          .replaceAll('{n}', minEffectiveMembers),
-    ];
+    final rules = _inviteRuleLines(systemConfig.inviteRule);
+    final displayRules = rules.isNotEmpty
+        ? rules
+        : [
+            'share.rule1'.tr(),
+            'share.rule2'.tr(),
+            'share.rule3'.tr(),
+            'share.rule4'.tr(),
+            'share.rule5'
+                .tr()
+                .replaceAll('{amount}', minRecharge)
+                .replaceAll('{n}', minEffectiveMembers),
+          ];
 
     return CustomCard(
       child: Column(
@@ -472,7 +482,7 @@ class _ShareScreenState extends State<ShareScreen> {
         children: [
           _buildCardHeader('share.rulesTitle'.tr()),
           SizedBox(height: 24.h),
-          ...rules.map((rule) => Padding(
+          ...displayRules.map((rule) => Padding(
                 padding: EdgeInsets.only(bottom: 16.h),
                 child: Text(
                   rule,
@@ -600,27 +610,116 @@ class _ShareScreenState extends State<ShareScreen> {
     return value.toString();
   }
 
+  List<String> _inviteRuleLines(String raw) {
+    final text = _stripRuleMarkup(raw);
+    if (text.isEmpty) return const [];
+    final withBreaks = text
+        .replaceAllMapped(
+          RegExp(r'\s+(?=(?:\d+\.)|(?:[一二三四五六七八九十]+[、.．]))'),
+          (_) => '\n',
+        )
+        .replaceAllMapped(
+          RegExp(r'\s+(?=规则与条款|申请规则)'),
+          (_) => '\n',
+        );
+    return withBreaks
+        .split(RegExp(r'[\r\n]+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+  }
+
+  String _stripRuleMarkup(String raw) {
+    var text = raw.trim();
+    if (text.isEmpty) return '';
+    text = text
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</p\s*>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'<[^>]+>'), ' ');
+    text = text.replaceAll('&nbsp;', ' ');
+    text = text.replaceAll('&amp;', '&');
+    text = text.replaceAll('&lt;', '<');
+    text = text.replaceAll('&gt;', '>');
+    text = text.replaceAll('&quot;', '"');
+    return text.replaceAll(RegExp(r'[ \t]+'), ' ').trim();
+  }
+
+  String _currencySymbol(HomeConfig config, dynamic profile) {
+    return _systemCurrencySymbol(config) ??
+        _normalizedCurrencySymbol(profile?.symbol) ??
+        _normalizedCurrencySymbol(profile?.currency) ??
+        '¥';
+  }
+
+  String? _systemCurrencySymbol(HomeConfig config) {
+    if (config.currencies.isEmpty) return null;
+    CurrencyConfig? selected;
+    for (final currency in config.currencies) {
+      if (currency.requiredStatus == 1) {
+        selected = currency;
+        break;
+      }
+    }
+    selected ??= config.currencies.first;
+    return _normalizedCurrencySymbol(selected.symbol) ??
+        _normalizedCurrencySymbol(selected.code);
+  }
+
+  String? _normalizedCurrencySymbol(String? value) {
+    final text = value?.trim();
+    if (text == null || text.isEmpty) return null;
+    if (RegExp(r'^[¥￥$₩฿₫€£]$').hasMatch(text)) return text;
+    return switch (text.toUpperCase()) {
+      'CNY' || 'CNH' || 'RMB' => '¥',
+      'USD' || 'USDT' || 'USDC' => r'$',
+      'KRW' => '₩',
+      'THB' => '฿',
+      'VND' => '₫',
+      'EUR' => '€',
+      'GBP' => '£',
+      'JPY' => '¥',
+      _ => null,
+    };
+  }
+
   String _inviteCode(profile) {
     if (profile == null) return '-';
     return profile.id.toString();
   }
 
-  String _shareUrl(String inviteCode) {
+  String _shareUrl(String inviteCode, String? h5Url) {
     if (inviteCode == '-') return '-';
-    final origin = _shareOrigin();
-    return '$origin/m1/register?invite=${Uri.encodeComponent(inviteCode)}';
+    final baseUri = _shareBaseUri(h5Url);
+    if (baseUri == null) return '-';
+    return baseUri
+        .resolve('/register?invite=${Uri.encodeComponent(inviteCode)}')
+        .toString();
   }
 
-  String _shareOrigin() {
-    final assetUri = Uri.tryParse(AppEnv.assetBaseUrl.trim());
-    if (assetUri != null && assetUri.hasScheme && assetUri.host.isNotEmpty) {
-      return assetUri.origin;
+  Uri? _shareBaseUri(String? h5Url) {
+    final configured = _normalizeShareBase(h5Url);
+    if (configured != null) return configured;
+
+    final currentUri = Uri.base;
+    if (currentUri.hasScheme && currentUri.host.isNotEmpty) {
+      return currentUri;
     }
-    return 'https://apis.xh-demo.com';
+    return null;
   }
 
-  String _textFallback(String? value, String fallback) {
-    final text = value?.trim();
-    return text == null || text.isEmpty ? fallback : text;
+  Uri? _normalizeShareBase(String? raw) {
+    final value = raw?.trim() ?? '';
+    if (value.isEmpty) return null;
+
+    final direct = Uri.tryParse(value);
+    if (direct != null && direct.hasScheme && direct.host.isNotEmpty) {
+      return direct;
+    }
+
+    final withHttps = Uri.tryParse('https://$value');
+    if (withHttps != null && withHttps.hasScheme && withHttps.host.isNotEmpty) {
+      return withHttps;
+    }
+    return null;
   }
 }

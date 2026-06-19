@@ -61,7 +61,7 @@ class RegisterRequest {
     required this.username,
     required this.password,
     required this.confirmPassword,
-    this.currency = 'CNY',
+    this.currency,
     this.phone,
     this.areaCode,
     this.phoneCode,

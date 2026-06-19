@@ -33,6 +33,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
   final List<String> _dateRanges = [
     'today',
     'yesterday',
+    'thisWeek',
     'thisMonth',
     'lastMonth'
   ];
@@ -799,8 +800,8 @@ class _GameManagementScreenState extends State<GameManagementScreen>
 
   Future<void> _loadRecords() {
     final provider = context.read<GameManagementProvider>();
-    final startDate = _dateText(_range.start);
-    final endDate = _dateText(_range.end);
+    final startDate = _dateTimeText(_range.start);
+    final endDate = _dateTimeText(_range.end.add(const Duration(days: 1)));
     if (_tabController.index == 2) {
       return provider.loadGames(
         startDate: startDate,
@@ -906,6 +907,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
       _selectedDateRange = range;
       _range = switch (range) {
         'yesterday' => _yesterdayRange(),
+        'thisWeek' => _weekRange(DateTime.now()),
         'thisMonth' => _monthRange(DateTime.now()),
         'lastMonth' => _lastMonthRange(),
         _ => _todayRange(),
@@ -936,6 +938,7 @@ class _GameManagementScreenState extends State<GameManagementScreen>
   String _dateRangeLabel(String range) {
     return switch (range) {
       'yesterday' => _gm('yesterday'),
+      'thisWeek' => _gm('thisWeek'),
       'thisMonth' => _gm('thisMonth'),
       'lastMonth' => _gm('lastMonth'),
       _ => _gm('today'),
@@ -985,6 +988,11 @@ class _GameManagementScreenState extends State<GameManagementScreen>
     return value.replaceFirst('T', ' ').substring(0, value.length.clamp(0, 16));
   }
 
+  String _dateTimeText(DateTime date) {
+    final day = _dateText(date);
+    return '$day 00:00:00';
+  }
+
   String _dateText(DateTime date) {
     return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
@@ -1005,6 +1013,12 @@ class _GameManagementScreenState extends State<GameManagementScreen>
     return DateTimeRange(start: start, end: start);
   }
 
+  static DateTimeRange _weekRange(DateTime date) {
+    final day = DateTime(date.year, date.month, date.day);
+    final start = day.subtract(Duration(days: day.weekday - DateTime.monday));
+    return DateTimeRange(start: start, end: day);
+  }
+
   static DateTimeRange _monthRange(DateTime date) {
     return DateTimeRange(
       start: DateTime(date.year, date.month),
@@ -1023,6 +1037,7 @@ const _gameManagementTextCn = <String, String>{
   'queryDate': '查询日期',
   'today': '今日',
   'yesterday': '昨日',
+  'thisWeek': '本周',
   'thisMonth': '本月',
   'lastMonth': '上月',
   'rebateRecords': '返水记录',
@@ -1071,6 +1086,7 @@ final _gameManagementTextTw = <String, String>{
   'title': '遊戲管理',
   'today': '今日',
   'yesterday': '昨日',
+  'thisWeek': '本周',
   'thisMonth': '本月',
   'lastMonth': '上月',
   'rebateRecords': '返水記錄',
@@ -1086,6 +1102,7 @@ const _gameManagementTextEn = <String, String>{
   'queryDate': 'Query Date',
   'today': 'Today',
   'yesterday': 'Yesterday',
+  'thisWeek': 'This Week',
   'thisMonth': 'This Month',
   'lastMonth': 'Last Month',
   'rebateRecords': 'Rebate Records',
@@ -1134,6 +1151,7 @@ const _gameManagementTextMy = <String, String>{
   'queryDate': 'ရှာဖွေသည့်နေ့',
   'today': 'ယနေ့',
   'yesterday': 'မနေ့က',
+  'thisWeek': 'ယခုအပတ်',
   'thisMonth': 'ယခုလ',
   'lastMonth': 'ပြီးခဲ့သောလ',
   'rebateRecords': 'ပြန်အမ်းမှတ်တမ်း',

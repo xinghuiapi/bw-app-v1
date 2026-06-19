@@ -20,6 +20,12 @@ dart run scripts/package_release.dart --name "你的App名字" --domain https://
 
 脚本会自动把 `--domain https://你的域名` 生成 `API_BASE_URL=https://你的域名/api` 和 `ASSET_BASE_URL=https://你的域名`，然后执行换 Logo、换名字、`flutter clean`、`flutter pub get`、Android 分架构混淆 APK 构建、iOS 未签名 IPA 构建，并在完成后打印实际产物路径。
 
+版本规则：
+
+- `pubspec.yaml` 初始版本固定为 `1.0.0+0`，对外四段显示为 `1.0.0.0`。
+- 每次统一打包命令成功完成后，脚本会把 build number 自动加 `1`，例如首次打包后写回 `1.0.0+1`，对外显示为 `1.0.0.1`。
+- `brand_release/package_all_brands.dart` 批量品牌打包按整批只递增一次；批内所有品牌使用同一个 build number。
+
 Android 默认产物：
 
 ```text

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../../models/home/home_models.dart';
 import '../../models/user/user_models.dart';
@@ -932,12 +933,17 @@ class SettingScreen extends StatelessWidget {
                     isLink: true,
                     onTap: () => _clearCache(context),
                   ),
-                  CustomCell(
-                    icon: Icon(Icons.download_outlined,
-                        size: 18.sp, color: AppColors.textPrimary),
-                    title: 'settings.version'.tr(),
-                    value: 'v1.0.0',
-                    border: false,
+                  FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      return CustomCell(
+                        icon: Icon(Icons.download_outlined,
+                            size: 18.sp, color: AppColors.textPrimary),
+                        title: 'settings.version'.tr(),
+                        value: _formatSettingsAppVersion(snapshot.data),
+                        border: false,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -970,6 +976,18 @@ class SettingScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('settings.cacheCleared'.tr())),
     );
+  }
+
+  String _formatSettingsAppVersion(PackageInfo? info) {
+    final version = info?.version.trim();
+    final buildNumber = info?.buildNumber.trim();
+    final normalizedVersion =
+        version == null || version.isEmpty || version == '0.0.0'
+            ? '1.0.0'
+            : version;
+    final normalizedBuild =
+        buildNumber == null || buildNumber.isEmpty ? '0' : buildNumber;
+    return 'v$normalizedVersion.$normalizedBuild';
   }
 
   Future<void> _logout(BuildContext context) async {

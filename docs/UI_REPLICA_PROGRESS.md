@@ -19,7 +19,7 @@
 - **公共组件**：`CustomNavBar` (顶部导航)、`CustomTabBar` (弹性底导防溢出)、`CustomCard` (阴影圆角卡片)、`CustomCell` (列表行)。
 
 ### 一级主页面 (Primary Screens)
-- **我的页面精修** (`ProfileScreen`)：完成带编辑图标的栈叠头像、Pill-shape VIP标签、蓝色渐变钱包面板（¥ 符号与金额排版对齐）、白色圆角“今日收益”面板（垂直灰线分割与蓝色箭头贴字）、8宫格“更多服务”。底导钱包/资金管理入口统一指向 `FundManagementScreen`；头像数据随 `/token/user.img` 刷新回显。
+- **我的页面精修** (`ProfileScreen`)：完成带编辑图标的栈叠头像、Pill-shape VIP标签、蓝色渐变钱包面板（¥ 符号与金额排版对齐）、白色圆角“今日收益”面板（垂直灰线分割与蓝色箭头贴字）、8宫格“更多服务”。底导钱包/资金管理入口统一指向 `FundManagementScreen`；头像数据随 `/token/user.img` 刷新回显；更多服务分享入口文案已改为“推荐好友”；登录态前台轮询已覆盖钱包余额和今日收益，保留手动刷新。
 - **首页推荐游戏与分类区** (`HomeScreen`)：推荐游戏横向区已接入真实只读数据，优先展示接口图片与标题；热门游戏已按 m1 接入 `POST /gamelist/getlist(label=hot)`。Banner、公告、推荐游戏、热门游戏均对齐 m1 首页规则：有可见数据才展示模块，空数据不展示模块，也不使用“暂无公告”或静态 mock 兜底 UI。首页分类区使用 m1 本地静态资源并按截图高保真复刻：真人大卡、彩票/电子中卡、四个小卡比例、`Live/Lottery/Slot` 浅蓝英文底字、图片尺寸和文字密度已精修，并接入 `/interface/class` 与 `/game?code=...` 点击入口；多处 RenderFlex 溢出已处理。运行时语言包里的首页 demo 标题/描述文案已收口为业务文案，`home.fallbackNotice` 保持空字符串，避免空公告撑出模块。后续首页剩余 m1 对齐重点为：补齐 `NoticeModal` 公告弹窗/今日不再提示、评估搜索右侧弹窗和游戏内嵌弹窗/最小化浮窗。
 - **活动页面** (`ActivityScreen`)：已对齐 m1 `views/main/activity.vue`，顶部品牌区域读取系统配置，活动分类接入 `/activity/class`，活动列表接入 `/activity/list`，分类横向 Tab 与活动卡片展示真实图片、标签、标题和时间；接口失败时保留 fallback 活动。
 - **客服页面** (`ServiceScreen`)：已切换到新项目客服模式，复用 `/system/getlist.config_kefu` 展示问候卡片和纵向客服列表；客服页不再依赖 `config_site.service_link` 与 `tg_link` 旧模式字段，`config_kefu` 为空或无效时直接展示空态；点击客服项继续通过安全外链能力打开。
@@ -33,15 +33,15 @@
 - **提现中心** (`WithdrawScreen`)：提现银行卡信息展示、全部提现快捷键；已接入 `/drawing/order` 提现提交、提交中状态、余额/流水/取款密码校验、成功跳转和错误提示。
 - **财务记录** (`TransactionRecordScreen` & `FundRecordScreen`)：实现了基于盈亏状态动态变色、红蓝上下箭头动态图标的流水列表。
 - **个人资料** (`UserProfileScreen`)：已对齐 m1 资料编辑结构，支持实名、手机、邮箱、性别、生日、QQ、Telegram 展示/编辑；头像入口已接入相册选择、`/img/save` 上传和 `/user/edit.img` 保存流程。
-- **系统设置** (`SettingScreen`)：完成各类设置项的入口卡片构建；“关于我们”已从占位提示改为进入 `AboutUsScreen`。
+- **系统设置** (`SettingScreen`)：完成各类设置项的入口卡片构建；“关于我们”已从占位提示改为进入 `AboutUsScreen`；版本号读取本地包版本并按静态发版规则显示四段号。
 - **关于我们** (`AboutUsScreen`)：新增只读站点信息页，复用 `/system/getlist.config_site` 展示 Logo、站点名称、平台介绍、域名、版本、APP 下载、客服入口和 TG 客服，支持下拉刷新和 fallback 展示。
 - **银行卡管理** (`BankCardListScreen`)：带有银行专属背景色、虚线卡号、及底部悬浮“添加银行卡”按钮的高保真列表；已接入 `/member_bank/delete` 删除确认、提交和刷新列表。
 - **活动详情** (`ActivityDetailScreen`)：基于截图复刻并接入 `/activity/details` 数据，支持通过活动 ID 展示标题、发放方式、倍数、时间和活动说明；活动说明已支持安全富文本降级渲染和图片展示；手动活动底部按钮已接入 `/activity/apply`，支持提交中禁用、成功提示和后端错误提示。
 - **活动申请记录** (`ActivityRecordScreen`)：已对齐 m1 `ActivityApplyRecords.vue` 并接入 `/activity/record`，支持申请记录分页、下拉刷新、滚动加载、空态、状态标签、账号和申请时间展示，接口失败保留 fallback。
-- **游戏管理** (`GameManagementScreen`)：基于截图复刻与精修，实现带“查询日期”筛选项与“返水记录”、“游戏记录”双 Tab。移除默认下划线，卡片应用 `16.r` 大圆角与柔和阴影提升立体感，底部常驻栏采用 `Column+Expanded` 隔离实现防溢出；已接入 `/member_fs_log/getlist` 返水记录和 `/gamerecord/getlist` 游戏记录，展示统计、分页、下拉刷新和空态，接口空数组不再显示静态记录；日期筛选按钮支持横向滚动防溢出，记录卡片/统计卡片/空态已按 m1 移动端信息密度精修，记录模型已按 m1 字段区分返水/游戏记录避免误展示；底部领取按钮已接入 `/member_fs_log/claim`，成功后刷新返水记录。
-- **资金管理** (`FundManagementScreen`)：基于截图复刻与精修，统一收口了原有的“我的钱包”、“充提记录”、“交易记录”、“银行卡管理”入口。实现带“查询日期”筛选项，以及“充值记录”、“提现记录”、“转账记录”、“账户明细”四个 Tab 切换。卡片长文本使用 `Flexible` + `TextOverflow.ellipsis` 防止水平挤压，底部统一配置了“没有更多了”状态提示。
+- **游戏管理** (`GameManagementScreen`)：基于截图复刻与精修，实现带“查询日期”筛选项与“返水记录”、“游戏记录”双 Tab。移除默认下划线，卡片应用 `16.r` 大圆角与柔和阴影提升立体感，底部常驻栏采用 `Column+Expanded` 隔离实现防溢出；已接入 `/member_fs_log/getlist` 返水记录和 `/gamerecord/getlist` 游戏记录，展示统计、分页、下拉刷新和空态，接口空数组不再显示静态记录；日期筛选按钮支持横向滚动防溢出，支持今日、昨日、本周、本月、上月，三个记录 Tab 的快捷日期查询统一传递 `yyyy-MM-dd HH:mm:ss` 秒级日边界时间；记录卡片/统计卡片/空态已按 m1 移动端信息密度精修，记录模型已按 m1 字段区分返水/游戏记录避免误展示；底部领取按钮已接入 `/member_fs_log/claim`，成功后刷新返水记录。
+- **资金管理** (`FundManagementScreen`)：基于截图复刻与精修，统一收口了原有的“我的钱包”、“充提记录”、“交易记录”、“银行卡管理”入口。实现带“查询日期”筛选项，支持今日、昨日、本周、本月、上月，以及“充值记录”、“提现记录”、“转账记录”、“账户明细”四个 Tab 切换。卡片长文本使用 `Flexible` + `TextOverflow.ellipsis` 防止水平挤压，底部统一配置了“没有更多了”状态提示。
 - **我的钱包/场馆余额** (`MyWalletScreen`)：**【基于截图深度复刻】** 重构了“场馆余额”功能模块，实现带蓝色渐变及底部内嵌按钮组的高质感钱包卡片，并采用 `GridView.builder` 实现了带比例控制 (`childAspectRatio`) 的场馆资金网格布局，配置了场馆自动转账开关。
-- **分享赚钱** (`ShareScreen`)：**【基于截图深度复刻】** 完成了推广分享页的高保真复刻。实现了“分享返利”、“会员总览”、“分享信息（含二维码与复制链接）”以及“邀请规则说明”四个专属卡片，精准还原了字体大小、间距、蓝点标题及边框细节；已接入 `/retabe/list` 真实金额和会员统计，通过 `/retabe/amount` 领取返利；邀请码按 m1 使用账号 ID，分享链接按 m1 前端规则生成 `/m1/register?invite=账号ID`，二维码已从静态占位改为按分享链接实时生成并支持点击预览；已补齐 m1 “无可用邀请策略”空态、下拉刷新 profile+返利、无奖励/领取成功提示，以及领取条件/有效会员规则/规则 5 的动态参数；首帧使用默认有效充值金额避免 `{amount}` 占位符闪现。
+- **分享赚钱** (`ShareScreen`)：**【基于截图深度复刻】** 完成了推广分享页的高保真复刻。实现了“分享返利”、“会员总览”、“分享信息（含二维码与复制链接）”以及“邀请规则说明”四个专属卡片，精准还原了字体大小、间距、蓝点标题及边框细节；已接入 `/retabe/list` 真实金额和会员统计，通过 `/retabe/amount` 领取返利；分享返利金额符号优先跟随 `/system/getlist.config_curr` 默认币种，系统配置不可用时再回退用户资料符号和 `¥`；邀请规则说明优先使用 `/system/getlist.data_list` 中 `key=inviteRule` 的配置文本，缺失或为空时再回退本地静态规则；邀请码按 m1 使用账号 ID，分享链接按站点 `config_site.h5_url` 优先生成 `/register?invite=账号ID`，当站点未返回有效 H5 地址时再回退到当前页面地址，因此页面展示、复制结果和二维码内容始终保持一致；已补齐 m1 “无可用邀请策略”空态、下拉刷新 profile+返利、无奖励/领取成功提示，以及领取条件/有效会员规则/规则 5 的动态参数；首帧使用默认有效充值金额避免 `{amount}` 占位符闪现。
 
 ### 用户表单类 (Forms) - [Sprint 1 完成]
 - **绑定手机号** (`BindPhoneScreen`)：实现带获取验证码倒计时功能的表单；已接入短信验证码发送接口和 `/user/edit` 绑定提交。
@@ -139,6 +139,7 @@
 
 - [x] **Telegram query 拦截**：对齐 m1 `router.beforeEach`，任意路由带 `user_id`、`username` 时转 `/telegram-login`，并保留去除授权 query 后的 redirect。
 - [x] **邀请/refcode 持久化**：对齐 m1 `persistRefCodeFromQuery`，在任意路由读取邀请参数并持久化，注册页自动带入。
+- [x] **注册货币选择规则**：注册页货币完全依赖 `/system/getlist.config_curr`；无动态币种时默认提交 `CNY`，单币种时静默使用该币种，多币种时才展示货币选择器。
 - [x] **系统配置 terminal 联调**：确认 `/system/getlist` 是否需要 `{ terminal: 2 }`，并统一 banner、公告、语言、站点配置使用规则。
 - [x] **活动详情语言参数**：确认 `/activity/details?lang=CN` 是否为后端必要规则，并按当前语言兼容。
 - [x] **关键模型字段校准**：已按 m1 页面/API 响应规则复核 `DayRevenueSummary`、`WithdrawOrderResult`、Telegram 登录/设密相关模型；Telegram 兼容 `access_token/token` 与双层 `data`，提现结果兼容订单号、金额、手续费、状态文本、message 和包装结构。

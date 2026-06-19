@@ -20,6 +20,8 @@ dart run scripts/package_release.dart --name "你的App名字" --domain https://
 
 脚本会把 `--domain https://你的域名` 自动生成并传给 Flutter 编译参数：`API_BASE_URL=https://你的域名/api` 和 `ASSET_BASE_URL=https://你的域名`。
 
+版本规则：`pubspec.yaml` 初始版本为 `1.0.0+0`，对外四段版本为 `1.0.0.0`。每次统一命令成功打包后，脚本会自动把 build number 加 `1`，首次成功打包后变为 `1.0.0+1`，对外显示为 `1.0.0.1`。独立打包某个品牌会递增一次；`brand_release/package_all_brands.dart` 批量品牌打包按整批只递增一次，批内所有品牌使用同一个 build number。
+
 ## 脚本会自动做什么
 
 1. 检查 logo、AndroidManifest 和 Info.plist 是否存在。

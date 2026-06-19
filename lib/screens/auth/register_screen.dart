@@ -271,7 +271,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          if (config.currencies.isNotEmpty) ...[
+          if (_shouldShowCurrencyPicker(config)) ...[
             SizedBox(height: 20.h),
             _buildCurrencyField(config),
           ],
@@ -562,7 +562,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildCurrencyField(HomeConfig config) {
     final currencies = _availableCurrencies(config);
-    if (currencies.isEmpty) return const SizedBox.shrink();
+    if (currencies.length <= 1) return const SizedBox.shrink();
     final selectedCode = _resolvedCurrencyCode(config);
 
     return Column(
@@ -949,6 +949,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return _resolvedCurrencyCode(config);
   }
 
+  bool _shouldShowCurrencyPicker(HomeConfig config) {
+    return _availableCurrencies(config).length > 1;
+  }
+
   List<CurrencyConfig> _availableCurrencies(HomeConfig config) {
     return config.currencies.where((item) {
       final code = item.code?.trim();
@@ -958,7 +962,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String _resolvedCurrencyCode(HomeConfig config) {
     final currencies = _availableCurrencies(config);
-    if (currencies.isEmpty) return '';
+    if (currencies.isEmpty) return 'CNY';
+    if (currencies.length == 1) return currencies.first.code?.trim() ?? 'CNY';
     final selected = _selectedCurrencyCode?.trim();
     if (selected != null &&
         selected.isNotEmpty &&
@@ -987,7 +992,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _showCurrencyPicker(HomeConfig config) async {
     final currencies = _availableCurrencies(config);
-    if (currencies.isEmpty) return;
+    if (currencies.length <= 1) return;
     final selected = await showModalBottomSheet<String>(
       context: context,
       builder: (sheetContext) => SafeArea(

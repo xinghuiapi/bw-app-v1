@@ -55,6 +55,24 @@ void main() {
       expect(options.defines.assetBaseUrl, 'https://example.com');
     });
 
+    test('accepts fixed build version without writing version', () {
+      final options = ReleaseOptions.parse([
+        '--name',
+        'Demo App',
+        '--domain',
+        'https://example.com',
+        '--build-name',
+        '1.0.0',
+        '--build-number',
+        '7',
+        '--no-version-write',
+      ]);
+
+      expect(options.versionOverride?.displayVersion, '1.0.0.7');
+      expect(options.versionOverride?.pubspecValue, '1.0.0+7');
+      expect(options.writeVersion, isFalse);
+    });
+
     test('rejects release domain ending with api path', () {
       expect(
         () => ReleaseOptions.parse([
@@ -144,20 +162,60 @@ void main() {
     });
   });
 
+  group('ReleaseVersion', () {
+    test('defines initial release version as 1.0.0.0', () {
+      expect(initialReleaseVersion.marketingVersion, '1.0.0');
+      expect(initialReleaseVersion.buildNumber, 0);
+      expect(initialReleaseVersion.displayVersion, '1.0.0.0');
+      expect(initialReleaseVersion.pubspecValue, '1.0.0+0');
+    });
+
+    test('parses Flutter pubspec version and exposes four-segment display', () {
+      final version = ReleaseVersion.parse('1.0.0+0');
+
+      expect(version.marketingVersion, '1.0.0');
+      expect(version.buildNumber, 0);
+      expect(version.displayVersion, '1.0.0.0');
+      expect(version.pubspecValue, '1.0.0+0');
+    });
+
+    test('increments build number only', () {
+      final next = ReleaseVersion.parse('1.0.0+0').incrementBuild();
+
+      expect(next.marketingVersion, '1.0.0');
+      expect(next.buildNumber, 1);
+      expect(next.displayVersion, '1.0.0.1');
+      expect(next.pubspecValue, '1.0.0+1');
+    });
+
+    test('updates pubspec version line', () {
+      final updated = updatePubspecVersion(
+        'name: demo\nversion: 1.0.0+0\ndescription: test\n',
+        const ReleaseVersion(marketingVersion: '1.0.0', buildNumber: 1),
+      );
+
+      expect(updated, contains('version: 1.0.0+1'));
+      expect(updated, isNot(contains('version: 1.0.0+0')));
+    });
+  });
+
   test('android release command includes generated defines', () {
     final defines = ReleaseDefines.parse(
       '--dart-define=APP_ENV=production '
       '--dart-define=API_BASE_URL=https://example.com/api '
       '--dart-define=ASSET_BASE_URL=https://example.com',
     );
+    const version = ReleaseVersion(marketingVersion: '1.0.0', buildNumber: 1);
 
-    expect(androidBuildArgs(defines), [
+    expect(androidBuildArgs(defines, version), [
       'build',
       'apk',
       '--release',
       '--split-per-abi',
       '--obfuscate',
       '--split-debug-info=build/app/outputs/symbols',
+      '--build-name=1.0.0',
+      '--build-number=1',
       '--dart-define=APP_ENV=production',
       '--dart-define=API_BASE_URL=https://example.com/api',
       '--dart-define=ASSET_BASE_URL=https://example.com',
@@ -170,12 +228,15 @@ void main() {
       '--dart-define=API_BASE_URL=https://example.com/api '
       '--dart-define=ASSET_BASE_URL=https://example.com',
     );
+    const version = ReleaseVersion(marketingVersion: '1.0.0', buildNumber: 1);
 
-    expect(iosBuildArgs(defines), [
+    expect(iosBuildArgs(defines, version), [
       'build',
       'ios',
       '--release',
       '--no-codesign',
+      '--build-name=1.0.0',
+      '--build-number=1',
       '--dart-define=APP_ENV=production',
       '--dart-define=API_BASE_URL=https://example.com/api',
       '--dart-define=ASSET_BASE_URL=https://example.com',

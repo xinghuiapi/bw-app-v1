@@ -236,6 +236,21 @@ void main() {
     );
   });
 
+  test('system config parses data_list inviteRule', () {
+    final config = HomeConfig.fromJson({
+      'data_list': [
+        {'key': 'cardbagdelete', 'value': '0'},
+        {'key': 'inviteRule', 'value': '申请规则 1.介绍好友充值达标。'},
+        {'key': '', 'value': 'ignored'},
+      ],
+    });
+
+    expect(config.dataList.length, 2);
+    expect(config.systemDataValue('cardbagdelete'), '0');
+    expect(config.inviteRule, '申请规则 1.介绍好友充值达标。');
+    expect(config.systemDataValue('missing'), '');
+  });
+
   test('site domain display does not show fake fallback before config loads',
       () {
     expect(siteDomainDisplayText(null), '');

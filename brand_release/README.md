@@ -32,6 +32,12 @@ brand_release/release_artifacts/品牌ID/品牌ID-v8.apk
 brand_release/release_artifacts/品牌ID/品牌ID-unsigned.ipa
 ```
 
+版本规则：
+
+- 项目基线版本为 `1.0.0+0`，对外四段版本为 `1.0.0.0`。
+- 单品牌统一命令每成功执行一次，build number 自动加 `1`。
+- 批量打包命令按整批只递增一次，批内所有品牌使用同一个 build number。
+
 真机测试指定品牌：
 
 ```bash

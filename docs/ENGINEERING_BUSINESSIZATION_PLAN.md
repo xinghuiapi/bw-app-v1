@@ -23,11 +23,12 @@
 - `models/` 业务模型基础。
 - 新接口文档和接口对接顺序文档。
 - 基础网络、认证、Provider、Service 和部分真实接口接入能力。
-- 发版工程已支持文档化品牌索引驱动的批量打包流程：通过 `brand_release/BRAND_RELEASE_INDEX.md` 维护 `domain/logo/app_name`，使用 `brand_release/package_all_brands.dart` 循环调用统一单品牌打包命令，并将 arm64-v8a APK 与 unsigned IPA 归档到 `brand_release/release_artifacts/品牌ID/`。
+- 发版工程已支持文档化品牌索引驱动的批量打包流程：通过 `brand_release/BRAND_RELEASE_INDEX.md` 维护 `domain/logo/app_name`，使用 `brand_release/package_all_brands.dart` 循环调用统一单品牌打包命令，并将 arm64-v8a APK 与 unsigned IPA 归档到 `brand_release/release_artifacts/品牌ID/`；版本基线为 `1.0.0+0` / `1.0.0.0`，单品牌统一命令每成功一次递增 build number，批量品牌打包按整批只递增一次且批内所有品牌使用同一个 build number。
 - m1 主体路由页面基本都有 Flutter 对应实现；当前已不是“大页面缺失”阶段。
 - m1 主要 endpoint 已基本覆盖在 `ApiEndpoints`。
 - 提现、删卡、分享返利、今日收益、返水领取、找回密码、Telegram 等收尾闭环所需的 service/model 已补齐。
 - P0 核心业务闭环已完成一轮 `Provider -> Screen` 接入：提现提交、银行卡删除、找回密码、Telegram 登录、分享返利、游戏返水领取、我的页今日收益。
+- 账户动态数据已补齐 Flutter 顶层登录态前台轮询：每 15 秒刷新用户资料、实时余额、场馆余额和今日收益，首页余额、我的/钱包余额、场馆余额和今日收益卡片由 Provider 自动更新；进入后台暂停、回到前台立即刷新。
 - 表单完整性已完成一轮 m1 517 对齐：提现取款密码输入、找回密码三方式、修改资金密码旧密码输入、兑换码页面和接口闭环已补齐。
 
 当前项目主要待补齐：
@@ -323,6 +324,7 @@ Provider 状态必须包含：
 - 页面可从 Mock 数据平滑切换到接口数据。
 - 接口失败时保留 fallback，不影响基本浏览。
 - 列表支持刷新、分页、空态、错误态。
+- 注册货币选择完全依赖动态币种配置：无动态币种时默认提交 `CNY`，单币种时静默使用该币种，多币种时才展示选择器。
 
 ## 10. Phase 6: 写操作与资金链路
 
@@ -827,6 +829,7 @@ flutter run -d chrome --web-browser-flag --disable-web-security --web-port 8080
 设置页与个人资料页：
 
 - `/setting` 对齐 m1 `views/user/Setting.vue`，包含修改登录密码、设置资金密码、关于我们、注册信息、清除缓存、版本和退出登录。
+- 设置页版本号读取本地包版本，并按发版规则把 `major.minor.patch+build` 展示为 `vmajor.minor.patch.build`，不再硬编码 `v1.0.0`。
 - 新增 `/user-profile` 对齐 m1 `views/user/UserProfile.vue`。
 - “我的”页点击头像/用户信息进入 `/user-profile`。
 - `注册信息` 入口进入 `/user-profile`。
@@ -1724,8 +1727,9 @@ flutter test test/widget_test.dart
 - 新增模型：`GameManageQuery`、`RebateRecordPage`、`RebateRecord`、`GameRecordPage`、`GameBetRecord`。
 - 新增 `GameManagementService` 和 `GameManagementProvider`。
 - `GameManagementScreen` 接入真实返水记录和游戏记录。
-- 支持快捷日期筛选、下拉刷新、滚动分页、真实统计和空态。
+- 支持今日、昨日、本周、本月、上月快捷日期筛选、下拉刷新、滚动分页、真实统计和空态。
 - 空数组不显示静态 fallback 记录；日期筛选区使用横向滚动避免窄屏溢出。
+- 三个记录 Tab 的快捷日期筛选统一传递秒级日边界时间，例如今日为当天 `00:00:00` 到次日 `00:00:00`，本周为周一到今天。
 - 记录卡片、统计卡片和日期筛选卡片完成 m1 风格精修，减少过大的 padding 和列表空态干扰。
 - 已按 m1 数据模型补充记录字段保护，返水记录和游戏记录不会互相误解析。
 - 返水领取按钮保持禁用，避免本阶段引入金额写操作。

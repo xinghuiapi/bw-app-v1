@@ -31,7 +31,13 @@ class _FundManagementScreenState extends State<FundManagementScreen>
 
   String _selectedDateRange = 'today';
   DateTimeRange _range = _todayRange();
-  final List<String> _dateRanges = ['today', 'yesterday', 'thisMonth', 'lastMonth'];
+  final List<String> _dateRanges = [
+    'today',
+    'yesterday',
+    'thisWeek',
+    'thisMonth',
+    'lastMonth'
+  ];
   int _lastLoadedTabIndex = 0;
   String? _lastLanguageCode;
 
@@ -171,6 +177,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
                         ),
                         child: Text(
                           _dateRangeLabel(range),
+                          maxLines: 1,
                           style: TextStyle(
                             fontSize: 12.sp,
                             fontWeight: isSelected
@@ -243,10 +250,9 @@ class _FundManagementScreenState extends State<FundManagementScreen>
           child: provider.isLoading(tab) && records.isEmpty
               ? const Center(child: CircularProgressIndicator())
               : records.isEmpty
-                  ? _buildEmptyList(
-                      tab == FundRecordTab.deposit
-                          ? _fundText('emptyDeposit')
-                          : _fundText('emptyWithdraw'))
+                  ? _buildEmptyList(tab == FundRecordTab.deposit
+                      ? _fundText('emptyDeposit')
+                      : _fundText('emptyWithdraw'))
                   : ListView.builder(
                       controller: _controllerFor(tab),
                       padding: EdgeInsets.only(bottom: 20.h),
@@ -336,8 +342,8 @@ class _FundManagementScreenState extends State<FundManagementScreen>
       title: item.title.isNotEmpty
           ? item.title
           : (tab == FundRecordTab.deposit
-          ? _fundText('depositTitle')
-          : _fundText('withdrawTitle')),
+              ? _fundText('depositTitle')
+              : _fundText('withdrawTitle')),
       status: status.$1,
       statusColor: status.$2,
       amount: _money(item.money, symbol),
@@ -354,9 +360,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     return _buildRecordCard(
       title:
           '${item.code.isNotEmpty ? item.code : _fundText('venue')} ${item.isIn ? _fundText('transferIn') : _fundText('transferOut')}',
-      status: item.status == 1
-          ? _fundText('success')
-          : _fundText('failed'),
+      status: item.status == 1 ? _fundText('success') : _fundText('failed'),
       statusColor: statusColor,
       amount: '${item.isIn ? '+' : '-'}${_money(item.money, symbol)}',
       orderNo: item.order,
@@ -450,11 +454,10 @@ class _FundManagementScreenState extends State<FundManagementScreen>
         .where((type) => type.id == item.moneyTypeId)
         .map((type) => type.name)
         .firstOrNull;
-    final title =
-        typeName ??
-            (item.moneyTypeId > 0
-                ? _fundText('typeNumber', {'type': '${item.moneyTypeId}'})
-                : _fundText('accountChange'));
+    final title = typeName ??
+        (item.moneyTypeId > 0
+            ? _fundText('typeNumber', {'type': '${item.moneyTypeId}'})
+            : _fundText('accountChange'));
     return CustomCard(
       margin: EdgeInsets.only(left: 16.w, right: 16.w, top: 12.h),
       padding: EdgeInsets.all(16.w),
@@ -517,7 +520,8 @@ class _FundManagementScreenState extends State<FundManagementScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _fundText('balance', {'amount': _money(item.afterMoney, symbol)}),
+                _fundText(
+                    'balance', {'amount': _money(item.afterMoney, symbol)}),
                 style:
                     TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
               ),
@@ -614,6 +618,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
       _selectedDateRange = range;
       _range = switch (range) {
         'yesterday' => _yesterdayRange(),
+        'thisWeek' => _weekRange(DateTime.now()),
         'thisMonth' => _monthRange(DateTime.now()),
         'lastMonth' => _lastMonthRange(),
         _ => _todayRange(),
@@ -654,6 +659,7 @@ class _FundManagementScreenState extends State<FundManagementScreen>
   String _dateRangeLabel(String range) {
     return switch (range) {
       'yesterday' => _fundText('yesterday'),
+      'thisWeek' => _fundText('thisWeek'),
       'thisMonth' => _fundText('thisMonth'),
       'lastMonth' => _fundText('lastMonth'),
       _ => _fundText('today'),
@@ -692,12 +698,32 @@ class _FundManagementScreenState extends State<FundManagementScreen>
 
   String _fundText(String key, [Map<String, String> args = const {}]) {
     final fullKey = 'finance.fund.$key';
-    return fullKey.tr(namedArgs: args);
+    final translated = fullKey.tr(namedArgs: args);
+    if (translated != fullKey) return translated;
+    return _fundFallbackText(key, args);
+  }
+
+  String _fundFallbackText(String key, Map<String, String> args) {
+    final language = context.locale.languageCode.toLowerCase();
+    final country = context.locale.countryCode?.toUpperCase();
+    final map = switch ((language, country)) {
+      ('my', _) => _fundTextMy,
+      ('en', _) => _fundTextEn,
+      ('zh', 'TW') => _fundTextTw,
+      _ => _fundTextCn,
+    };
+    var text = map[key] ?? _fundTextCn[key] ?? 'finance.fund.$key';
+    for (final entry in args.entries) {
+      text = text.replaceAll('{${entry.key}}', entry.value);
+    }
+    return text;
   }
 
   String _maybeTranslate(String value) {
     final text = value.trim();
-    if (text.startsWith('finance.fund.')) return _fundText(text.split('.').last);
+    if (text.startsWith('finance.fund.')) {
+      return _fundText(text.split('.').last);
+    }
     return text;
   }
 
@@ -713,6 +739,12 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     return DateTimeRange(start: start, end: start);
   }
 
+  static DateTimeRange _weekRange(DateTime date) {
+    final day = DateTime(date.year, date.month, date.day);
+    final start = day.subtract(Duration(days: day.weekday - DateTime.monday));
+    return DateTimeRange(start: start, end: day);
+  }
+
   static DateTimeRange _monthRange(DateTime date) {
     return DateTimeRange(
       start: DateTime(date.year, date.month),
@@ -725,3 +757,134 @@ class _FundManagementScreenState extends State<FundManagementScreen>
     return _monthRange(DateTime(now.year, now.month - 1));
   }
 }
+
+const _fundTextCn = <String, String>{
+  'title': '资金管理',
+  'queryDate': '查询日期',
+  'today': '今天',
+  'yesterday': '昨日',
+  'thisWeek': '本周',
+  'thisMonth': '本月',
+  'lastMonth': '上月',
+  'depositRecords': '充值记录',
+  'withdrawRecords': '提现记录',
+  'transferRecords': '转账记录',
+  'accountDetails': '账户明细',
+  'emptyDeposit': '暂无充值记录',
+  'emptyWithdraw': '暂无提现记录',
+  'emptyTransfer': '暂无转账记录',
+  'emptyAccount': '暂无账户明细',
+  'venue': '场馆',
+  'transferIn': '转入',
+  'transferOut': '转出',
+  'success': '成功',
+  'failed': '失败',
+  'orderNo': '订单号：{orderNo}',
+  'typeNumber': '类型 {type}',
+  'accountChange': '账户变动',
+  'balance': '余额：{amount}',
+  'timeout': '已超时',
+  'depositing': '充值中',
+  'processing': '处理中',
+  'manualConfirm': '人工确认',
+  'userCanceled': '用户取消',
+  'rejected': '已拒绝',
+  'unknown': '未知',
+  'depositTitle': '充值',
+  'withdrawTitle': '提现',
+};
+
+final _fundTextTw = <String, String>{
+  ..._fundTextCn,
+  'title': '資金管理',
+  'queryDate': '查詢日期',
+  'today': '今日',
+  'thisWeek': '本週',
+  'depositRecords': '充值記錄',
+  'withdrawRecords': '提款記錄',
+  'transferRecords': '轉帳記錄',
+  'accountDetails': '帳戶明細',
+  'emptyDeposit': '暫無充值記錄',
+  'emptyWithdraw': '暫無提款記錄',
+  'emptyTransfer': '暫無轉帳記錄',
+  'emptyAccount': '暫無帳戶明細',
+  'transferIn': '轉入',
+  'transferOut': '轉出',
+  'orderNo': '訂單號：{orderNo}',
+  'accountChange': '帳戶變動',
+  'userCanceled': '用戶取消',
+  'depositTitle': '充值',
+  'withdrawTitle': '提款',
+};
+
+const _fundTextEn = <String, String>{
+  'title': 'Fund Management',
+  'queryDate': 'Query Date',
+  'today': 'Today',
+  'yesterday': 'Yesterday',
+  'thisWeek': 'This Week',
+  'thisMonth': 'This Month',
+  'lastMonth': 'Last Month',
+  'depositRecords': 'Deposit Records',
+  'withdrawRecords': 'Withdrawal Records',
+  'transferRecords': 'Transfer Records',
+  'accountDetails': 'Account Details',
+  'emptyDeposit': 'No deposit records',
+  'emptyWithdraw': 'No withdrawal records',
+  'emptyTransfer': 'No transfer records',
+  'emptyAccount': 'No account details',
+  'venue': 'Venue',
+  'transferIn': 'Transfer In',
+  'transferOut': 'Transfer Out',
+  'success': 'Success',
+  'failed': 'Failed',
+  'orderNo': 'Order No.: {orderNo}',
+  'typeNumber': 'Type {type}',
+  'accountChange': 'Account Change',
+  'balance': 'Balance: {amount}',
+  'timeout': 'Timed out',
+  'depositing': 'Depositing',
+  'processing': 'Processing',
+  'manualConfirm': 'Manual Confirm',
+  'userCanceled': 'Canceled',
+  'rejected': 'Rejected',
+  'unknown': 'Unknown',
+  'depositTitle': 'Deposit',
+  'withdrawTitle': 'Withdrawal',
+};
+
+const _fundTextMy = <String, String>{
+  'title': 'ရန်ပုံငွေစီမံခန့်ခွဲမှု',
+  'queryDate': 'ရှာဖွေသည့်နေ့',
+  'today': 'ယနေ့',
+  'yesterday': 'မနေ့က',
+  'thisWeek': 'ယခုအပတ်',
+  'thisMonth': 'ယခုလ',
+  'lastMonth': 'ပြီးခဲ့သောလ',
+  'depositRecords': 'ငွေသွင်းမှတ်တမ်း',
+  'withdrawRecords': 'ငွေထုတ်မှတ်တမ်း',
+  'transferRecords': 'လွှဲပြောင်းမှတ်တမ်း',
+  'accountDetails': 'အကောင့်အသေးစိတ်',
+  'emptyDeposit': 'ငွေသွင်းမှတ်တမ်းမရှိပါ',
+  'emptyWithdraw': 'ငွေထုတ်မှတ်တမ်းမရှိပါ',
+  'emptyTransfer': 'လွှဲပြောင်းမှတ်တမ်းမရှိပါ',
+  'emptyAccount': 'အကောင့်အသေးစိတ်မရှိပါ',
+  'venue': 'ဂိမ်းပလက်ဖောင်း',
+  'transferIn': 'လွှဲဝင်',
+  'transferOut': 'လွှဲထွက်',
+  'success': 'အောင်မြင်',
+  'failed': 'မအောင်မြင်',
+  'orderNo': 'အော်ဒါနံပါတ်：{orderNo}',
+  'typeNumber': 'အမျိုးအစား {type}',
+  'accountChange': 'အကောင့်ပြောင်းလဲမှု',
+  'balance': 'လက်ကျန်：{amount}',
+  'timeout': 'အချိန်ကုန်ဆုံး',
+  'depositing': 'ငွေသွင်းနေသည်',
+  'processing': 'ဆောင်ရွက်နေသည်',
+  'manualConfirm': 'လက်ဖြင့်အတည်ပြု',
+  'userCanceled': 'အသုံးပြုသူပယ်ဖျက်',
+  'rejected': 'ငြင်းပယ်ပြီး',
+  'unknown': 'မသိရှိ',
+  'depositTitle': 'ငွေသွင်း',
+  'withdrawTitle': 'ငွေထုတ်',
+};

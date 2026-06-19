@@ -1,5 +1,13 @@
 import 'dart:io';
 
+final _pubspecVersionPattern =
+    RegExp(r'^version:\s*(\S+)\s*$', multiLine: true);
+
+const initialReleaseVersion = ReleaseVersion(
+  marketingVersion: '1.0.0',
+  buildNumber: 0,
+);
+
 class UsageException implements Exception {
   UsageException(this.message);
 
@@ -10,10 +18,17 @@ class UsageException implements Exception {
 }
 
 class ReleaseOptions {
-  const ReleaseOptions({required this.appName, required this.defines});
+  const ReleaseOptions({
+    required this.appName,
+    required this.defines,
+    this.versionOverride,
+    this.writeVersion = true,
+  });
 
   final String appName;
   final ReleaseDefines defines;
+  final ReleaseVersion? versionOverride;
+  final bool writeVersion;
 
   static ReleaseOptions parse(List<String> args) {
     final nameIndex = args.indexOf('--name');
@@ -38,10 +53,31 @@ class ReleaseOptions {
       throw UsageException('--domain must not be empty.');
     }
 
+    final buildNameIndex = args.indexOf('--build-name');
+    final buildNumberIndex = args.indexOf('--build-number');
+    ReleaseVersion? versionOverride;
+    if (buildNameIndex != -1 || buildNumberIndex != -1) {
+      if (buildNameIndex == -1 || buildNameIndex + 1 >= args.length) {
+        throw UsageException('--build-name requires a value.');
+      }
+      if (buildNumberIndex == -1 || buildNumberIndex + 1 >= args.length) {
+        throw UsageException('--build-number requires a value.');
+      }
+      try {
+        versionOverride = ReleaseVersion.parse(
+          '${args[buildNameIndex + 1]}+${args[buildNumberIndex + 1]}',
+        );
+      } on StateError catch (error) {
+        throw UsageException(error.message);
+      }
+    }
+
     try {
       return ReleaseOptions(
         appName: appName,
         defines: ReleaseDefines.fromDomain(domain),
+        versionOverride: versionOverride,
+        writeVersion: !args.contains('--no-version-write'),
       );
     } on StateError catch (error) {
       throw UsageException(error.message);
@@ -124,21 +160,90 @@ class ReleaseDefines {
   }
 }
 
-List<String> androidBuildArgs(ReleaseDefines defines) => [
+class ReleaseVersion {
+  const ReleaseVersion({
+    required this.marketingVersion,
+    required this.buildNumber,
+  });
+
+  final String marketingVersion;
+  final int buildNumber;
+
+  String get displayVersion => '$marketingVersion.$buildNumber';
+
+  String get pubspecValue => '$marketingVersion+$buildNumber';
+
+  ReleaseVersion incrementBuild() => ReleaseVersion(
+        marketingVersion: marketingVersion,
+        buildNumber: buildNumber + 1,
+      );
+
+  static ReleaseVersion parse(String value) {
+    final parts = value.trim().split('+');
+    if (parts.length != 2) {
+      throw StateError(
+        'pubspec version must use Flutter format major.minor.patch+build_number: $value',
+      );
+    }
+
+    final marketingVersion = parts[0].trim();
+    final buildNumber = int.tryParse(parts[1].trim());
+    if (!RegExp(r'^\d+\.\d+\.\d+$').hasMatch(marketingVersion)) {
+      throw StateError(
+        'Marketing version must be major.minor.patch, got: $marketingVersion',
+      );
+    }
+    if (buildNumber == null || buildNumber < 0) {
+      throw StateError(
+        'Build number must be a non-negative integer: ${parts[1]}',
+      );
+    }
+
+    return ReleaseVersion(
+      marketingVersion: marketingVersion,
+      buildNumber: buildNumber,
+    );
+  }
+
+  static ReleaseVersion fromPubspec(String content) {
+    final match = _pubspecVersionPattern.firstMatch(content);
+    if (match == null) {
+      throw StateError('Unable to find version: entry in pubspec.yaml');
+    }
+    return ReleaseVersion.parse(match.group(1) ?? '');
+  }
+}
+
+String updatePubspecVersion(String content, ReleaseVersion version) {
+  if (!_pubspecVersionPattern.hasMatch(content)) {
+    throw StateError('Unable to find version: entry in pubspec.yaml');
+  }
+  return content.replaceFirst(
+    _pubspecVersionPattern,
+    'version: ${version.pubspecValue}',
+  );
+}
+
+List<String> androidBuildArgs(ReleaseDefines defines, ReleaseVersion version) =>
+    [
       'build',
       'apk',
       '--release',
       '--split-per-abi',
       '--obfuscate',
       '--split-debug-info=build/app/outputs/symbols',
+      '--build-name=${version.marketingVersion}',
+      '--build-number=${version.buildNumber}',
       ...defines.asArgs,
     ];
 
-List<String> iosBuildArgs(ReleaseDefines defines) => [
+List<String> iosBuildArgs(ReleaseDefines defines, ReleaseVersion version) => [
       'build',
       'ios',
       '--release',
       '--no-codesign',
+      '--build-name=${version.marketingVersion}',
+      '--build-number=${version.buildNumber}',
       ...defines.asArgs,
     ];
 
@@ -186,7 +291,11 @@ class ReleaseWorkflow {
   Future<void> run() async {
     await _validateInputs();
     final defines = options.defines;
+    final currentVersion = await _readReleaseVersion();
+    final buildVersion =
+        options.versionOverride ?? currentVersion.incrementBuild();
     _printDefines(defines);
+    _printVersion(currentVersion, buildVersion);
 
     await _runStep('Update launcher logo', 'dart', [
       'run',
@@ -200,7 +309,11 @@ class ReleaseWorkflow {
     ]);
     await _runStep('Flutter clean', 'flutter', ['clean']);
     await _runStep('Flutter pub get', 'flutter', ['pub', 'get']);
-    await _runStep('Build Android APKs', 'flutter', androidBuildArgs(defines));
+    await _runStep(
+      'Build Android APKs',
+      'flutter',
+      androidBuildArgs(defines, buildVersion),
+    );
     await _cleanIosOutputs();
     await _runStep(
       'Install iOS Pods',
@@ -212,11 +325,14 @@ class ReleaseWorkflow {
     await _runStep(
       'Build unsigned iOS app',
       'flutter',
-      iosBuildArgs(defines),
+      iosBuildArgs(defines, buildVersion),
       environment: iosCommandEnvironment(),
     );
 
     final ipaPath = await _packageUnsignedIpa(DateTime.now());
+    if (options.writeVersion) {
+      await _writeReleaseVersion(buildVersion);
+    }
     _printArtifacts(ipaPath);
   }
 
@@ -225,6 +341,7 @@ class ReleaseWorkflow {
       'assets/logo/logo.png',
       'android/app/src/main/AndroidManifest.xml',
       'ios/Runner/Info.plist',
+      'pubspec.yaml',
     ];
 
     for (final path in requiredFiles) {
@@ -239,6 +356,29 @@ class ReleaseWorkflow {
     stdout.writeln('  APP_ENV=${defines.appEnv}');
     stdout.writeln('  API_BASE_URL=${defines.apiBaseUrl}');
     stdout.writeln('  ASSET_BASE_URL=${defines.assetBaseUrl}');
+  }
+
+  void _printVersion(
+      ReleaseVersion currentVersion, ReleaseVersion nextVersion) {
+    stdout.writeln('Release version:');
+    stdout.writeln(
+      '  current=${currentVersion.displayVersion} (pubspec ${currentVersion.pubspecValue})',
+    );
+    stdout.writeln(
+      '  next=${nextVersion.displayVersion} (pubspec ${nextVersion.pubspecValue})',
+    );
+  }
+
+  Future<ReleaseVersion> _readReleaseVersion() async {
+    final pubspec = File('pubspec.yaml');
+    final content = await pubspec.readAsString();
+    return ReleaseVersion.fromPubspec(content);
+  }
+
+  Future<void> _writeReleaseVersion(ReleaseVersion version) async {
+    final pubspec = File('pubspec.yaml');
+    final content = await pubspec.readAsString();
+    await pubspec.writeAsString(updatePubspecVersion(content, version));
   }
 
   Future<void> _cleanIosOutputs() async {

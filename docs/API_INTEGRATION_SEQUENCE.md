@@ -37,6 +37,7 @@ Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，
 - endpoint 覆盖：m1 主要 API 已基本定义在 `ApiEndpoints`。
 - service/model 覆盖：提现、删卡、分享返利、今日收益、返水领取、找回密码、Telegram 等闭环所需 service/model 已补齐。
 - P0/P2 闭环：提现提交、银行卡删除、找回密码、Telegram 登录、分享返利、游戏返水领取、我的页今日收益已完成 `Provider -> Screen` 一轮接入；本轮已追加找回密码多方式、修改资金密码旧密码输入、提现取款密码输入和兑换码页面闭环。
+- 账户动态数据：已在 Flutter 顶层补齐登录态前台轻量轮询，参考 m1 `Home/Profile/MyWallet` 的进入/激活刷新逻辑，统一每 15 秒刷新 `/token/user`、`/user/balance`、`/game/balance` 和 `/day_revenue/getlist`；首页余额、我的页钱包余额、我的钱包余额、场馆余额和今日收益卡片通过 Provider 自动重绘，手动刷新入口保留。
 - 优先方向：P1 交互体验补齐已完成；P2 深链、邀请参数、系统配置 terminal、活动语言参数和关键模型字段兼容校准已完成；上线安全硬化已启动，当前已补齐 URL policy、外链校验、游戏承载 URL 拦截和禁用全局写操作自动重试，接下来做真实账号冒烟、Web token 风险治理和部署安全策略。
 
 ## 2. 总体原则
@@ -71,7 +72,7 @@ Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，
 - [x] `BankCardListScreen`：接 `/member_bank/delete`，增加删除确认和刷新。
 - [x] `ResetPasswordScreen`：接 `/code/send`、`/password/get`。
 - [x] `ResetPasswordScreen`：按 m1 补齐手机号、邮箱、真实姓名 + 取款密码三种找回方式，支持确认新密码和手机号区号选择。
-- [x] `ShareScreen`：接 `/retabe/list`、`/retabe/amount`，移除静态金额/会员/邀请码/链接。
+- [x] `ShareScreen`：接 `/retabe/list`、`/retabe/amount`，移除静态金额/会员/邀请码/链接；邀请规则说明优先读取 `/system/getlist.data_list` 中 `key=inviteRule` 的配置文本，缺失或为空时回退本地静态规则。
 - [x] `GameManagementScreen`：启用 `/member_fs_log/claim`。
 - [x] `ProfileScreen`：接 `/day_revenue/getlist`。
 - [x] `WithdrawScreen`：补齐 6 位取款密码输入、校验和 `pay_password` 提交。
@@ -89,6 +90,7 @@ Flutter 工程能力参考：`/Users/john/Documents/trae_projects/flutter-v1`，
 
 - [x] Telegram query 拦截：任意路由出现 `user_id`、`username` 时转 `/telegram-login` 并保留 redirect；Telegram 登录页已按 m1 自动登录并处理首次登录默认设密。
 - [x] 邀请/refcode query 持久化。
+- [x] 分享注册链接策略已切换为优先使用 `config_site.h5_url` 拼接 `/register?invite=账号ID`，复制链接与二维码内容同步一致；当站点未返回有效 H5 地址时，再回退到当前页面地址。
 - [x] `/system/getlist` 与 m1 `{ terminal: 2 }` 规则对齐。
 - [x] `/activity/details?lang=CN` 规则兼容。
 - [x] `DayRevenueSummary`、`WithdrawOrderResult`、Telegram 登录/设密相关字段按 m1 响应包装和页面使用规则完成兼容校准。
@@ -218,6 +220,7 @@ flutter test test/widget_test.dart
 - 退出登录后清理 Token 和用户态。
 - 登录态失效时统一跳转登录页或显示登录弹窗。
 - 注册字段根据全局配置动态展示。
+- 注册货币依赖 `/system/getlist.config_curr` 动态数据：为空时提交默认 `CNY` 且不展示选择项；仅 1 个币种时直接提交该币种且不展示选择项；多于 1 个币种时才展示货币选择。
 
 ### Phase 4: 用户中心基础信息
 
@@ -711,6 +714,7 @@ flutter test test/widget_test.dart
 - `CustomTextField` 支持 `enabled`，`CustomButton.onPressed` 支持 `null` 禁用态。
 - 登录密码修改对接 m1 `POST /token/repass`，请求参数为 `currentPass`、`newPass`、`confirmpass`。
 - `/setting` 和 `/user-profile` 按 m1 `Setting.vue`、`UserProfile.vue` 拆分职责；头像/用户信息入口和“注册信息”入口进入 `/user-profile`。
+- `/setting` 版本号显示改为读取本地包版本并按发版规则展示四段号，例如 `pubspec.yaml` 的 `1.0.0+3` 展示为 `v1.0.0.3`。
 - 个人资料页 QQ、Telegram 改为行内输入并通过底部保存按钮统一提交。
 - 消息中心对接 `POST /notify/getlist` 和 `POST /notify/status`，支持全部/未读/已读 Tab、未读红点、下拉刷新、滚动分页、点击未读标记已读，并保留 fallback mock。
 - “我的”页顶部补齐邮件和设置图标，邮件图标显示未读红点，分别跳转 `/message` 和 `/setting`。
@@ -1285,9 +1289,10 @@ flutter test test/widget_test.dart
 - 新增 `GameManagementProvider`，支持日期范围、首屏加载、下拉刷新、滚动分页和错误状态。
 - `GameManagementScreen` 从 mock 列表改为真实数据；接口返回空数组时展示空态，不再显示静态 fallback 记录。
 - 日期快捷筛选区改为横向滚动，修复本月/上月在窄宽度下 RenderFlex 溢出。
+- 游戏管理三个记录 Tab 的今日/昨日/本周/本月/上月筛选统一传递秒级日边界时间，开始为筛选首日 `yyyy-MM-dd 00:00:00`，结束为筛选末日下一天 `yyyy-MM-dd 00:00:00`。
 - 记录页 UI 进一步贴近 m1：压缩日期卡片、Tab、统计卡片和记录卡片的垂直密度；空态不再展示列表 footer。
 - 记录模型增加 payload 类型保护：返水记录只解析 `fs_money`、`bl`、`created_at` 等 `/member_fs_log/getlist` 字段；游戏记录只解析 `betAmount`、`validBetAmount`、`netAmount`、`betTime` 等 `/gamerecord/getlist` 字段，避免两个 `getlist` 响应在 UI 上混用。
-- 日期快捷筛选支持今天、昨日、本月、上月。
+- 日期快捷筛选支持今天、昨日、本周、本月、上月。
 - 返水记录展示总返水、已领取、未领取、返水金额、有效金额、领取状态。
 - 游戏记录展示注单笔数、投注金额、有效金额、盈亏、结算状态。
 - m1 的 `claimMemberFsLog()` 领取返水属于写操作，本次不接入，按钮保留禁用状态。
@@ -1438,7 +1443,7 @@ flutter test test/widget_test.dart
 
 - 需要真实账号验证 `/trade/record`、`/transfers_log/getlist`、`/money_log/getlist` 的分页字段、状态码、币种、空态和真实订单展示。
 - 记录页属于真实业务数据页面，不建议失败时展示静态假记录；后续如需增强，可加“加载失败，下拉重试”的轻量错误态。
-- 当前筛选 chips 使用横向滚动以防窄屏溢出，没有完全照搬 m1 `flex-wrap`；除非验收要求极限复刻，否则不建议大改。
+- 当前筛选 chips 使用横向滚动以防窄屏溢出，已支持今天、昨日、本周、本月、上月；没有完全照搬 m1 `flex-wrap`，除非验收要求极限复刻，否则不建议大改。
 - 当前 Tab 保持 Flutter 卡片化视觉，不完全照搬 m1 `van-tabs` 下划线样式；与项目现有资金页视觉统一。
 
 ### 2026-05-11 首页数据接入与分类区 m1 高保真复刻

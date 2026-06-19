@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import '../scripts/package_release.dart'
+    show ReleaseVersion, updatePubspecVersion;
+
 class UsageException implements Exception {
   UsageException(this.message);
 
@@ -225,11 +228,21 @@ class BatchReleaseWorkflow {
       throw StateError('Unknown brand_id: ${missingBrands.join(', ')}.');
     }
 
+    final currentVersion = await _readReleaseVersion();
+    final batchVersion = currentVersion.incrementBuild();
+    stdout.writeln('Batch release version:');
+    stdout.writeln(
+      '  current=${currentVersion.displayVersion} (pubspec ${currentVersion.pubspecValue})',
+    );
+    stdout.writeln(
+      '  batch=${batchVersion.displayVersion} (pubspec ${batchVersion.pubspecValue})',
+    );
+
     final results = <BrandResult>[];
     for (final brand in selectedBrands) {
       stdout.writeln('\n========== Packaging ${brand.brandId} ==========');
       try {
-        await _packageBrand(brand);
+        await _packageBrand(brand, batchVersion);
         final outputDir = '${options.outputDirectory}/${brand.brandId}';
         results.add(BrandResult.success(brand, outputDir));
       } on Object catch (error) {
@@ -237,6 +250,9 @@ class BatchReleaseWorkflow {
         results.add(BrandResult.failure(brand, error));
         if (options.stopOnFailure) break;
       }
+    }
+    if (results.any((result) => result.success)) {
+      await _writeReleaseVersion(batchVersion);
     }
     return results;
   }
@@ -258,7 +274,19 @@ class BatchReleaseWorkflow {
     return brands;
   }
 
-  Future<void> _packageBrand(BrandRelease brand) async {
+  Future<ReleaseVersion> _readReleaseVersion() async {
+    final pubspec = File('pubspec.yaml');
+    final content = await pubspec.readAsString();
+    return ReleaseVersion.fromPubspec(content);
+  }
+
+  Future<void> _writeReleaseVersion(ReleaseVersion version) async {
+    final pubspec = File('pubspec.yaml');
+    final content = await pubspec.readAsString();
+    await pubspec.writeAsString(updatePubspecVersion(content, version));
+  }
+
+  Future<void> _packageBrand(BrandRelease brand, ReleaseVersion version) async {
     await _prepareLogo(brand);
     await _runStep('Package ${brand.brandId}', 'dart', [
       'run',
@@ -267,6 +295,11 @@ class BatchReleaseWorkflow {
       brand.appName,
       '--domain',
       brand.domain,
+      '--build-name',
+      version.marketingVersion,
+      '--build-number',
+      version.buildNumber.toString(),
+      '--no-version-write',
     ]);
     await _copyArtifacts(brand);
   }

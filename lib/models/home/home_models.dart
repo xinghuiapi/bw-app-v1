@@ -11,6 +11,7 @@ class HomeConfig {
   final List<LanguageConfig> languages;
   final List<CurrencyConfig> currencies;
   final List<CustomerServiceItem> customerServiceItems;
+  final List<SystemDataItem> dataList;
 
   const HomeConfig({
     this.banners = const [],
@@ -23,6 +24,7 @@ class HomeConfig {
     this.languages = const [],
     this.currencies = const [],
     this.customerServiceItems = const [],
+    this.dataList = const [],
   });
 
   factory HomeConfig.fromJson(Map<String, dynamic> json) => HomeConfig(
@@ -48,7 +50,21 @@ class HomeConfig {
             jsonList(json['config_kefu'], CustomerServiceItem.fromJson)
                 .where((item) => item.link.isNotEmpty)
                 .toList(),
+        dataList: jsonList(json['data_list'], SystemDataItem.fromJson)
+            .where((item) => item.key.isNotEmpty)
+            .toList(),
       );
+
+  String systemDataValue(String key) {
+    final normalizedKey = key.trim();
+    if (normalizedKey.isEmpty) return '';
+    for (final item in dataList) {
+      if (item.key == normalizedKey) return item.value;
+    }
+    return '';
+  }
+
+  String get inviteRule => systemDataValue('inviteRule');
 
   Map<String, dynamic> toJson() => {
         'config_banner': banners.map((item) => item.toJson()).toList(),
@@ -62,6 +78,29 @@ class HomeConfig {
         'config_curr': currencies.map((item) => item.toJson()).toList(),
         'config_kefu':
             customerServiceItems.map((item) => item.toJson()).toList(),
+        'data_list': dataList.map((item) => item.toJson()).toList(),
+      };
+}
+
+class SystemDataItem {
+  final String key;
+  final String value;
+
+  const SystemDataItem({
+    required this.key,
+    required this.value,
+  });
+
+  factory SystemDataItem.fromJson(Map<String, dynamic> json) {
+    return SystemDataItem(
+      key: jsonString(json['key'])?.trim() ?? '',
+      value: jsonString(json['value'])?.trim() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'key': key,
+        'value': value,
       };
 }
 
